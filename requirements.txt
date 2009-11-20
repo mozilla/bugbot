@@ -1,0 +1,5 @@
+-e git://github.com/sixapart/remoteobjects.git#egg=remoteobjects
+argparse
+python-dateutil
+
+-e git://github.com/jbalogh/check.git#egg=check
