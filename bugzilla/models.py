@@ -82,6 +82,9 @@ class Bug(RemoteObject):
     def __repr__(self):
         return '<Bug %s: "%s">' % (self.id, self.summary)
 
+    def __hash__(self):
+        return self.id
+
 
 class User(RemoteObject):
 
@@ -129,7 +132,7 @@ class Attachment(RemoteObject):
 class Comment(RemoteObject):
 
     id = fields.Field()
-    author = fields.Object('User')
+    author = creator = fields.Object('User')
     creation_time = Datetime(DATETIME_FORMAT_WITH_SECONDS)
     text = fields.Field()
     is_private = StringBoolean()
