@@ -128,6 +128,9 @@ class Attachment(RemoteObject):
     def __repr__(self):
         return '<Attachment %s: "%s">' % (self.id, self.description)
 
+    def __hash__(self):
+        return self.id
+
 
 class Comment(RemoteObject):
 
@@ -140,6 +143,9 @@ class Comment(RemoteObject):
     def __repr__(self):
         return '<Comment by %s on %s>' % (
             self.author, self.creation_time.strftime(DATETIME_FORMAT))
+
+    def __hash__(self):
+        return self.id
 
 
 class Change(RemoteObject):
@@ -175,3 +181,11 @@ class Flag(RemoteObject):
 
     def __repr__(self):
         return '<Flag "%s">' % self.name
+
+    def __hash__(self):
+        return self.id
+
+
+class BugSearch(RemoteObject):
+    
+    bugs = fields.List(fields.Object('Bug'))
