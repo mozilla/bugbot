@@ -37,6 +37,7 @@ class Bug(RemoteObject):
     attachments = fields.List(fields.Object('Attachment'))
     comments = fields.List(fields.Object('Comment'))
     history = fields.List(fields.Object('Changeset'))
+    keywords = fields.List(fields.Object('Keyword'))
     status = fields.Field()
     resolution = fields.Field()
 
@@ -184,6 +185,17 @@ class Flag(RemoteObject):
 
     def __hash__(self):
         return self.id
+
+
+class Keyword(RemoteObject):
+
+    name = fields.Field()
+
+    def __repr__(self):
+        return '<Keyword "%s">' % self.name
+
+    def __hash__(self):
+        return int(self.name)
 
 
 class BugSearch(RemoteObject):
