@@ -15,7 +15,7 @@ we'll have to do this the long way.
 
 #. Check out the code::
 
-    git clone git://github.com/jbalogh/bztools.git
+    git clone git://github.com/LegNeato/bztools.git
 
 #. Create your virtualenv using virtualenvwrapper::
 
