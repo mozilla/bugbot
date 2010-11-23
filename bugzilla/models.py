@@ -83,6 +83,9 @@ class Bug(RemoteObject):
     def __repr__(self):
         return '<Bug %s: "%s">' % (self.id, self.summary)
 
+    def __str__(self):
+        return "[%s] - %s" % (self.id, self.summary)
+
     def __hash__(self):
         return self.id
 
@@ -95,6 +98,12 @@ class User(RemoteObject):
 
     def __repr__(self):
         return '<User "%s">' % self.real_name
+
+    def __str__(self):
+        return self.real_name or self.name
+
+    def __hash__(self):
+        return int(self.name)
 
 
 class Attachment(RemoteObject):
@@ -145,6 +154,9 @@ class Comment(RemoteObject):
         return '<Comment by %s on %s>' % (
             self.author, self.creation_time.strftime(DATETIME_FORMAT))
 
+    def __str__(self):
+        return self.text
+
     def __hash__(self):
         return self.id
 
@@ -183,6 +195,9 @@ class Flag(RemoteObject):
     def __repr__(self):
         return '<Flag "%s">' % self.name
 
+    def __str__(self):
+        return self.name
+
     def __hash__(self):
         return self.id
 
@@ -193,6 +208,9 @@ class Keyword(RemoteObject):
 
     def __repr__(self):
         return '<Keyword "%s">' % self.name
+
+    def __str__(self):
+        return self.name
 
     def __hash__(self):
         return int(self.name)
