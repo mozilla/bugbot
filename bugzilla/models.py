@@ -1,6 +1,7 @@
 from remoteobjects import RemoteObject as RemoteObject_, fields
 
 from .fields import StringBoolean, Datetime
+import urlparse
 
 
 # The datetime format is inconsistent.
@@ -26,6 +27,30 @@ class RemoteObject(RemoteObject_):
 
     _location = property(_get_location, _set_location)
 
+'''
+class BugLink(fields.Link):
+
+    def install(self, attrname, cls):
+        print cls
+        print attrname
+        self.of_cls = cls
+        self.attrname = attrname
+        if self.api_name is None:
+            self.api_name = attrname
+
+    def __decode__(self, foo):
+        print foo
+
+    def __get__(self, instance, owner):
+        print "HERE"
+        if instance._location is None:
+            raise AttributeError('Cannot find URL of %s relative to URL-less %s' % (self.cls.__name__, owner.__name__))
+        newurl = urlparse.urljoin(instance._location, self.api_name)
+        print instance._location
+        print newurl
+        return self.cls.get(newurl)
+'''
+
 
 class Bug(RemoteObject):
 
@@ -44,7 +69,8 @@ class Bug(RemoteObject):
     creation_time = Datetime(DATETIME_FORMAT_WITH_SECONDS)
     flags = fields.List(fields.Object('Flag'))
     blocks = fields.List(fields.Field())
-    depends_on = fields.List(fields.Field())
+    #depends_on = fields.List(BugLink(fields.Object('Bug')))
+    #depends_on = BugLink(fields.List(fields.Object('Bug')))
     url = fields.Field()
     cc = fields.List(fields.Object('User'))
     keywords = fields.List(fields.Field())
@@ -103,7 +129,9 @@ class User(RemoteObject):
         return self.real_name or self.name
 
     def __hash__(self):
-        return int(self.name)
+        if not self or not self.name:
+            return 0
+        return self.name.__hash__()
 
 
 class Attachment(RemoteObject):
@@ -213,7 +241,9 @@ class Keyword(RemoteObject):
         return self.name
 
     def __hash__(self):
-        return int(self.name)
+        if not self or not self.name:
+            return 0
+        return self.name.__hash__()
 
 
 class BugSearch(RemoteObject):
