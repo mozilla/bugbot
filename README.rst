@@ -17,7 +17,7 @@ we'll have to do this the long way.
 
     git clone git://github.com/LegNeato/bztools.git
 
-#. Create your virtualenv using virtualenvwrapper::
+#. (optional) Create your virtualenv using virtualenvwrapper::
 
     mkvirtualenv --no-site-packages bztools
 
