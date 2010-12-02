@@ -1,4 +1,4 @@
--e git://github.com/sixapart/remoteobjects.git#egg=remoteobjects
+-e git://github.com/LegNeato/remoteobjects.git#egg=remoteobjects
 argparse
 python-dateutil
 keyring
