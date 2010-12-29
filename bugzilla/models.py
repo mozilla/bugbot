@@ -209,7 +209,7 @@ class Changeset(RemoteObject):
 
     def __repr__(self):
         return '<Changeset by %s on %s>' % (
-            self.changer, self.change_time.strptime(DATETIME_FORMAT))
+            self.changer, self.change_time.strftime(DATETIME_FORMAT))
 
 
 class Flag(RemoteObject):
