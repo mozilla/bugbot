@@ -140,6 +140,7 @@ class Attachment(RemoteObject):
     id = fields.Field()
     attacher = fields.Object('User')
     creation_time = Datetime(DATETIME_FORMAT_WITH_SECONDS)
+    last_change_time = Datetime(DATETIME_FORMAT_WITH_SECONDS)
     description = fields.Field()
     bug_id = fields.Field()
     bug_ref = fields.Field()
