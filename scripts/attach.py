@@ -2,22 +2,31 @@
 
 import base64
 import itertools
-
+import os
 import argparse
 
 from bugzilla.models import Bug, Attachment, Flag, User, Comment
 from bugzilla.utils import urljoin, qs, get_credentials, FILE_TYPES
 
+# API_ROOT example: 'https://api-dev.bugzilla.mozilla.org/0.2/' 
+API_ROOT = os.environ['API_ROOT']
+BZ_USERNAME = os.environ['BZ_USERNAME']
+BZ_PASSWORD = os.environ['BZ_PASSWORD']
 
-API_ROOT = 'https://api-dev.bugzilla.mozilla.org/0.2/'
 REVIEW = 4
 
 
 class Agent(object):
     """Stores credentials, navigates the site."""
 
-    def __init__(self, username, password):
-        self.username, self.password = username, password
+    def __init__(self):
+        if API_ROOT is None:
+            raise "Please set the API_ROOT environment variable"
+        if BZ_USERNAME && BZ_PASSWORD:
+            self.username, self.password = BZ_USERNAME, BZ_PASSWORD
+        else:
+            username, password = get_credentials()
+            self.username, self.password = username, password
 
     def get_bug(self, bug, attachments=True, comments=True, history=True):
         """Fetch Bug ``bug``."""
