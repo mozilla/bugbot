@@ -9,9 +9,9 @@ from bugzilla.models import Bug, Attachment, Flag, User, Comment
 from bugzilla.utils import urljoin, qs, get_credentials, FILE_TYPES
 
 # API_ROOT example: 'https://api-dev.bugzilla.mozilla.org/0.2/' 
-API_ROOT = os.environ['API_ROOT']
-BZ_USERNAME = os.environ['BZ_USERNAME']
-BZ_PASSWORD = os.environ['BZ_PASSWORD']
+API_ROOT = os.environ.get('API_ROOT', 'https://api-dev.bugzilla.mozilla.org/0.2/')
+BZ_USERNAME = os.environ.get('BZ_USERNAME', None)
+BZ_PASSWORD = os.environ.get('BZ_PASSWORD', None)
 
 REVIEW = 4
 
