@@ -1,9 +1,21 @@
 from bugzilla.models import *
 from bugzilla.utils import *
 
+class InvalidAPI_ROOT(Exception):
+    def __str__(self):
+        return "Invalid API url specified. " + \
+               "Please set BZ_API_ROOT in your environment " + \
+               "or pass it to the agent constructor"
+
 class BugzillaAgent(object):
-    def __init__(self, api_root, username=None, password=None):
+    def __init__(self, api_root=None, username=None, password=None):
+        
+        if not api_root:
+            api_root = os.environ.get('BZ_API_ROOT')
+            if not api_root:
+                raise InvalidAPI_ROOT
         self.API_ROOT = api_root
+
         self.username, self.password = username, password
 
     def get_bug(self, bug, include_fields='_default', exclude_fields=None, params={}):

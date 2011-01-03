@@ -18,22 +18,27 @@ def qs(**kwargs):
 
 
 def get_credentials(username=None):
-    password = None
 
-    # Try to get it from the system keychain first 
-    try:
-        import keyring
-        if not username:
-            # Grab the default username as we weren't passed in a specific one
-            username = keyring.get_password("bugzilla", 'default_username')
-        if username:
-            # Get the password for the username
-            password = keyring.get_password("bugzilla", username)
-    except ImportError:
-        # If they don't have the keyring lib, fall back to next method
-        pass
+    # Try to get it from the environment first
+    if not username:
+        username = os.environ.get('BZ_USERNAME', None)
+    password = os.environ.get('BZ_PASSWORD', None)
 
-    # Next try the config file
+    # Try to get it from the system keychain next 
+    if not username and not password:
+        try:
+            import keyring
+            if not username:
+                # Grab the default username as we weren't passed in a specific one
+                username = keyring.get_password("bugzilla", 'default_username')
+            if username:
+                # Get the password for the username
+                password = keyring.get_password("bugzilla", username)
+        except ImportError:
+            # If they don't have the keyring lib, fall back to next method
+            pass
+
+    # Then try a config file in their home directory
     if not (username and password):
         rcfile = os.path.expanduser('~/.bztoolsrc')
         config = ConfigParser()
@@ -68,13 +73,13 @@ def get_credentials(username=None):
 
 
 FILE_TYPES = {
-    'text': 'text/plain',
-    'html': 'text/html',
-    'xml': 'application/xml',
-    'gif': 'image/gif',
-    'jpg': 'image/jpeg',
-    'png': 'image/png',
-    'svg': 'image/svg+xml',
+    'text':  'text/plain',
+    'html':  'text/html',
+    'xml':   'application/xml',
+    'gif':   'image/gif',
+    'jpg':   'image/jpeg',
+    'png':   'image/png',
+    'svg':   'image/svg+xml',
     'binary': 'application/octet-stream',
-    'xul': 'application/vnd.mozilla.xul+xml',
+    'xul':    'application/vnd.mozilla.xul+xml',
 }
