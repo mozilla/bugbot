@@ -16,6 +16,10 @@ class RemoteObject(RemoteObject_):
         self.post(self)
         return self.api_data['ref']
 
+    def put_to(self, url):
+        self._location = url
+        self.put()
+
     def _get_location(self):
         if self.__location is not None:
             return self.__location
@@ -26,31 +30,6 @@ class RemoteObject(RemoteObject_):
         self.__location = url
 
     _location = property(_get_location, _set_location)
-
-'''
-class BugLink(fields.Link):
-
-    def install(self, attrname, cls):
-        print cls
-        print attrname
-        self.of_cls = cls
-        self.attrname = attrname
-        if self.api_name is None:
-            self.api_name = attrname
-
-    def __decode__(self, foo):
-        print foo
-
-    def __get__(self, instance, owner):
-        print "HERE"
-        if instance._location is None:
-            raise AttributeError('Cannot find URL of %s relative to URL-less %s' % (self.cls.__name__, owner.__name__))
-        newurl = urlparse.urljoin(instance._location, self.api_name)
-        print instance._location
-        print newurl
-        return self.cls.get(newurl)
-'''
-
 
 class Bug(RemoteObject):
 
@@ -66,9 +45,12 @@ class Bug(RemoteObject):
     status = fields.Field()
     resolution = fields.Field()
 
+    cf_blocking_20 = fields.Field()
+
     creation_time = Datetime(DATETIME_FORMAT_WITH_SECONDS)
     flags = fields.List(fields.Object('Flag'))
     blocks = fields.List(fields.Field())
+    #depends_on = CommaSeparatedBugs(FooLink(fields.Object('Bug')))
     #depends_on = fields.List(BugLink(fields.Object('Bug')))
     #depends_on = BugLink(fields.List(fields.Object('Bug')))
     url = fields.Field()

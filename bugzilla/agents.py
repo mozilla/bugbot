@@ -18,7 +18,7 @@ class BugzillaAgent(object):
 
         self.username, self.password = username, password
 
-    def get_bug(self, bug, include_fields='_default', exclude_fields=None, params={}):
+    def get_bug(self, bug, include_fields='_default,token,cc,keywords,whiteboard', exclude_fields=None, params={}):
         params['include_fields'] = include_fields
         params['exclude_fields'] = exclude_fields
 
