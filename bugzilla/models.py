@@ -45,7 +45,10 @@ class Bug(RemoteObject):
     status = fields.Field()
     resolution = fields.Field()
 
+    # TODO: These are Mozilla specific and should be generalized
     cf_blocking_20 = fields.Field()
+    cf_blocking_fennec = fields.Field()
+    cf_crash_signature = fields.Field()
 
     creation_time = Datetime(DATETIME_FORMAT_WITH_SECONDS)
     flags = fields.List(fields.Object('Flag'))
