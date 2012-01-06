@@ -1,7 +1,6 @@
 from remoteobjects import RemoteObject as RemoteObject_, fields
 
 from .fields import StringBoolean, Datetime
-import urlparse
 
 
 # The datetime format is inconsistent.
@@ -80,7 +79,7 @@ class Bug(RemoteObject):
     ref = fields.Field()
 
     # Needed for submitting changes.
-    token = fields.Field()
+    token = fields.Field(api_name='update_token')
 
     # Time tracking.
     actual_time = fields.Field()
