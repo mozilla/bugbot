@@ -1,0 +1,6 @@
+Notes on bztools:
+
+## Issues
+# If using python 2.6 the models.py will balk with TypeError: iter() returned non-iterator of type '_timelex'
+    sudo pip install python-dateutil==1.5
+# I had to install this patched version of keyring https://bitbucket.org/kang/python-keyring-lib/pull-request/11/fixed-get-set-in-os-x-under-virtualenv#chg-keyring/backends/osx_keychain.py

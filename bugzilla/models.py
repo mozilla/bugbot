@@ -35,7 +35,7 @@ class Bug(RemoteObject):
     id = fields.Field()
     summary = fields.Field()
     assigned_to = fields.Object('User')
-    reporter = fields.Object('User')
+    creator = fields.Object('User')
     target_milestone = fields.Field()
     attachments = fields.List(fields.Object('Attachment'))
     comments = fields.List(fields.Object('Comment'))
@@ -52,9 +52,7 @@ class Bug(RemoteObject):
     creation_time = Datetime(DATETIME_FORMAT_WITH_SECONDS)
     flags = fields.List(fields.Object('Flag'))
     blocks = fields.List(fields.Field())
-    #depends_on = CommaSeparatedBugs(FooLink(fields.Object('Bug')))
-    #depends_on = fields.List(BugLink(fields.Object('Bug')))
-    #depends_on = BugLink(fields.List(fields.Object('Bug')))
+    depends_on = fields.List(fields.Field())
     url = fields.Field()
     cc = fields.List(fields.Object('User'))
     keywords = fields.List(fields.Field())
@@ -74,7 +72,7 @@ class Bug(RemoteObject):
     component = fields.Field()
     is_cc_accessible = StringBoolean()
     is_everconfirmed = StringBoolean()
-    is_reporter_accessible = StringBoolean()
+    is_creator_accessible = StringBoolean()
     last_change_time = Datetime(DATETIME_FORMAT_WITH_SECONDS)
     ref = fields.Field()
 
@@ -158,14 +156,14 @@ class Attachment(RemoteObject):
 class Comment(RemoteObject):
 
     id = fields.Field()
-    author = creator = fields.Object('User')
+    creator = fields.Object('User')
     creation_time = Datetime(DATETIME_FORMAT_WITH_SECONDS)
     text = fields.Field()
     is_private = StringBoolean()
 
     def __repr__(self):
         return '<Comment by %s on %s>' % (
-            self.author, self.creation_time.strftime(DATETIME_FORMAT))
+            self.creator, self.creation_time.strftime(DATETIME_FORMAT))
 
     def __str__(self):
         return self.text
