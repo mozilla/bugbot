@@ -1,6 +1,6 @@
 -e git://github.com/LegNeato/remoteobjects.git#egg=remoteobjects
 argparse
-python-dateutil
+python-dateutil==1.5
 keyring
 
 -e git://github.com/jbalogh/check.git#egg=check
