@@ -92,7 +92,7 @@ class Bug(RemoteObject):
         return '<Bug %s: "%s">' % (self.id, self.summary)
 
     def __str__(self):
-        return "[%s] - %s" % (self.id, self.summary)
+        return "[Bug %s] - %s" % (self.id, self.summary)
 
     def __hash__(self):
         return self.id

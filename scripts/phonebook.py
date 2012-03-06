@@ -47,7 +47,7 @@ class PhonebookDirectory():
                 if 'director' in self.people[email]['title'].lower() or 'manager' in self.people[email]['title'].lower():
                     managers[email] = info
             # HACK! don't have titles with manager/director - double check which email i'm comparing
-            if email in ('jst@mozilla.com','rocallahan@mozilla.com','ladamski@mozilla.com', 'mark.finkle@gmail.com','dtownsend@mozilla.com','blassey.bugs@lassey.us','doug.turner@gmail.com','dougt@mozilla.com'):
+            if email in ('jst@mozilla.com','jst@mozilla.org','rocallahan@mozilla.com','ladamski@mozilla.com', 'mark.finkle@gmail.com','dtownsend@mozilla.com','blassey.bugs@lassey.us','doug.turner@gmail.com','dougt@mozilla.com', 'dcamp@mozilla.com', 'mfinkle@mozilla.com', 'bsmedberg@mozilla.com'):
                 managers[email] = info
         return managers
 
@@ -62,6 +62,12 @@ class PhonebookDirectory():
     def get_people_by_bzmail(self):
         temp = {}
         for email, info in self.people.items():
-            temp[info['bugzillaEmail']] = dict(info.items())
-            temp[info['bugzillaEmail']].update({'mozillaMail':email})
+            # if someone doesn't have a bugzillaEmail set, we'll try their mozilla mail instead
+            if info.get('bugzillaEmail'):
+                temp[info['bugzillaEmail']] = dict(info.items())
+                temp[info['bugzillaEmail']].update({'mozillaMail':email})
+            else:
+                temp[email] = dict(info.items())
+                temp[email].update({'mozillaMail':email})
+            
         return temp

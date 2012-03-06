@@ -42,11 +42,13 @@ query_params = {
 }
 
 def createEmail(manager_email, bugs, version, cc_list=None):
-    if cc_list != None:
-        cc = cc_list
-    else:
-        cc = []
-	# Create the message
+    # TESTING ONLY - to be removed
+    if manager_email == 'joduinn@mozilla.com':
+        manager_email = 'lsblakk@mozilla.com'
+    if cc_list == None:
+        cc_list = [manager_email, FROM_EMAIL]
+    toaddrs = []
+
     message_body ='''
 We're currently getting in touch with teams that have unfixed bugs tracked for Firefox %s assigned to them. 
 
@@ -54,26 +56,26 @@ Here's your list:\n
 ''' % version
 
     for bug in bugs:
-        ## TODO add date of last comment
-        message_body += '%s - assigned to: %s\n\tLast commented on: %s\n' % (bug, bug.assigned_to.real_name, bug.comments[-1].creation_time)
+        message_body += '%s - assigned to: %s\n\tLast commented on: %s\n' % (bug, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
         if bug.assigned_to.name != 'general@js.bugs':
-            cc.append(bug.assigned_to.name)
+            if bug.assigned_to.name not in toaddrs:
+                toaddrs.append(bug.assigned_to.name)
 
     message_body +='''
 Please either make the case for untracking, let us know what is blocking the 
 investigation, or make sure the above issues are prioritized for release. Thanks!
 
 Sincerely,
-Your Friendly Release Managment Team'''
+Release Managment Team'''
 
     message_subject = 'Bugs Tracked for Firefox %s' % version
     message = ("From: %s\r\n" % FROM_EMAIL
-        + "To: %s\r\n" % ",".join(cc)
-        + "CC: %s\r\n" % ",".join(manager_email, 'release-mgmt@mozilla.com')
+        + "To: %s\r\n" % ",".join(toaddrs)
+        + "CC: %s\r\n" % ",".join(cc_list)
         + "Subject: %s\r\n" % message_subject
         + "\r\n" 
         + message_body)
-    toaddrs = [manager_email] + cc
+    toaddrs = toaddrs + cc_list
     return toaddrs,message
 
 def sendMail(toaddrs,msg,dryrun=False):
@@ -141,14 +143,15 @@ if __name__ == '__main__':
         else:
             managers[manager_email]['nagging'] = [bug]
 
-    # Go through the bugs found
     for b in buglist:
+        # TODO - check security status of bug
         counter = counter + 1
         send_mail = True
         bug = bmo.get_bug(b.id)
+        manual_notify.append(bug)
         assignee = bug.assigned_to.name
         
-        # compare today to date of last comment, see how many days since comment
+        # how many days since comment
         if options.days_since_comment != -1:
             last_comment = bug.comments[-1].creation_time.replace(tzinfo=None)
             timedelta = datetime.now() - last_comment
@@ -157,13 +160,13 @@ if __name__ == '__main__':
                     print "Skipping bug %s since it's had a comment within the past %s days" % (bug.id, options.days_since_comment)
                 send_mail = False
                 counter = counter - 1
+                manual_notify.pop(bug)
 
         if send_mail:
             if 'nobody' in assignee:
                 if options.verbose:
                     print "No one assigned to: %s, adding to manual notification list..." % bug.id
                 assignee = None
-                manual_notify.append(bug)
             elif 'general@js.bugs' in assignee:
                 if options.verbose:
                     print "No one assigned to JS bug: %s, adding to dmandelin's list..." % bug.id
@@ -184,26 +187,21 @@ if __name__ == '__main__':
                                 # we're already at the highest level we'll go
                                 if managers.has_key(assignee):
                                     add_to_managers(assignee)
+                                else:
+                                    if options.verbose:
+                                        print "%s has a V-level for a manager, and is not in the manager list" % assignee
+                                    # Maybe we want to send out a Group email here? Team accountability?  Or send to Damon?
                             else:
-                                # try to go up a level and find manager
+                                # try to go up one level and see if we find a manager
                                 if people.people.has_key(manager_email):
                                     person = dict(people.people[manager_email])
                                     manager_email = person['manager']['dn'].split('mail=')[1].split(',')[0]
                                     if managers.has_key(manager_email):
                                         add_to_managers(manager_email)
                                 else:
-                                    print "Manager could not be found: %s" % manager_email 
-                                    manual_notify.append(bug)
-                    else:
-                        if options.verbose:
-                            print "Not assigned to an employee: %s, adding to manual notification list..." % bug.id
-                        manual_notify.append(bug)
-                else:
-                    if options.verbose:
-                        print "No email address for assignee: %s, adding to manual notification list..." % bug.id
-                    manual_notify.append(bug)
+                                    print "Manager could not be found: %s" % manager_email
 
-    # Time to Nag!
+    # Get yr nag on!
     for email, info in managers.items():
         if info.has_key('nagging'):
             print "\nRelMan Nag is ready to send the following email:\n<------ MESSAGE BELOW -------->"
@@ -212,17 +210,18 @@ if __name__ == '__main__':
             print "<------- END MESSAGE -------->\nWould you like to send now?"
             inp = raw_input('\n Please select y/Y to send or n/N to skip and continue to next email: ')
             if inp == 'y' or inp == 'Y':
-                # send it
                 print "SENDING EMAIL"
                 sendMail(toaddrs,msg,options.dryrun)
                 counter = counter - len(info['nagging'])
-            else:
-                manual_notify.extend(info['nagging'])
-                print "Email not sent, adding %s bugs to manual_notification list" % len(info['nagging'])
+                # take sent bugs out of manual notification list
+                for bug in info['nagging']:
+                    manual_notify.remove(bug)
 
-    print "\n*************\nNo email generated for %s/%s bugs, you will need to manually notify the following %s bugs:\n" % (counter, len(buglist), len(manual_notify)) 
+    # Here's the manual notification list
+    print "\n*************\nNo email generated for %s/%s bugs, you will need to manually notify the following %s bugs:\n" % (counter, len(buglist), len(manual_notify))
+    url = "https://bugzilla.mozilla.org/buglist.cgi?quicksearch="
     for bug in manual_notify:
-        print "\t%s: %s" % (bug.id, bug.assigned_to.name)
+        print "%s - assigned to: %s\n\tLast commented on: %s\n" % (bug, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
+        url += "%s," % bug.id
+    print "Url for manual notification bug list: %s" % url
 
-    
-        
