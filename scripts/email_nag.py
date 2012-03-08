@@ -56,7 +56,8 @@ Here's your list:\n
 ''' % version
 
     for bug in bugs:
-        message_body += '%s - assigned to: %s\n\tLast commented on: %s\n' % (bug, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
+        # leaving out the bug summary because of security bugs
+        message_body += '[Bug %s] -- assigned to: %s -- Last comment on: %s\n' % (bug.id, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
         if bug.assigned_to.name != 'general@js.bugs':
             if bug.assigned_to.name not in toaddrs:
                 toaddrs.append(bug.assigned_to.name)
@@ -66,7 +67,7 @@ Please either make the case for untracking, let us know what is blocking the
 investigation, or make sure the above issues are prioritized for release. Thanks!
 
 Sincerely,
-Release Managment Team'''
+Release Management Team'''
 
     message_subject = 'Bugs Tracked for Firefox %s' % version
     message = ("From: %s\r\n" % FROM_EMAIL
@@ -138,13 +139,15 @@ if __name__ == '__main__':
     counter = 0
 
     def add_to_managers(manager_email):
-        if managers[manager_email].has_key('nagging'):
-            managers[manager_email]['nagging'].append(bug)
+        if managers.has_key(manager_email):
+                if managers[manager_email].has_key('nagging'):
+                    managers[manager_email]['nagging'].append(bug)
+                else:
+                    managers[manager_email]['nagging'] = [bug]
         else:
-            managers[manager_email]['nagging'] = [bug]
+                managers[manager_email]  = {'nagging': [bug]}
 
-    for b in buglist:
-        # TODO - check security status of bug
+    for b in buglist:            
         counter = counter + 1
         send_mail = True
         bug = bmo.get_bug(b.id)
@@ -190,7 +193,8 @@ if __name__ == '__main__':
                                 else:
                                     if options.verbose:
                                         print "%s has a V-level for a manager, and is not in the manager list" % assignee
-                                    # Maybe we want to send out a Group email here? Team accountability?  Or send to Damon?
+                                    # send individual email for those who are not managers, and have V-level for a manager
+                                    add_to_managers(person['mozillaMail'])
                             else:
                                 # try to go up one level and see if we find a manager
                                 if people.people.has_key(manager_email):
@@ -221,7 +225,7 @@ if __name__ == '__main__':
     print "\n*************\nNo email generated for %s/%s bugs, you will need to manually notify the following %s bugs:\n" % (counter, len(buglist), len(manual_notify))
     url = "https://bugzilla.mozilla.org/buglist.cgi?quicksearch="
     for bug in manual_notify:
-        print "%s - assigned to: %s\n\tLast commented on: %s\n" % (bug, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
+        print "[Bug %s] -- assigned to: %s -- Last commented on: %s\n" % (bug.id, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
         url += "%s," % bug.id
     print "Url for manual notification bug list: %s" % url
 
