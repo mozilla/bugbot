@@ -42,9 +42,6 @@ query_params = {
 }
 
 def createEmail(manager_email, bugs, version, cc_list=None):
-    # TESTING ONLY - to be removed
-    if manager_email == 'joduinn@mozilla.com':
-        manager_email = 'lsblakk@mozilla.com'
     if cc_list == None:
         cc_list = [manager_email, FROM_EMAIL]
     toaddrs = []
@@ -56,8 +53,7 @@ Here's your list:\n
 ''' % version
 
     for bug in bugs:
-        # leaving out the bug summary because of security bugs
-        message_body += '[Bug %s] -- assigned to: %s -- Last comment on: %s\n' % (bug.id, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
+        message_body += '%s -- assigned to: %s -- Last commented on: %s\n' % (bug, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
         if bug.assigned_to.name != 'general@js.bugs':
             if bug.assigned_to.name not in toaddrs:
                 toaddrs.append(bug.assigned_to.name)
@@ -139,15 +135,12 @@ if __name__ == '__main__':
     counter = 0
 
     def add_to_managers(manager_email):
-        if managers.has_key(manager_email):
-                if managers[manager_email].has_key('nagging'):
-                    managers[manager_email]['nagging'].append(bug)
-                else:
-                    managers[manager_email]['nagging'] = [bug]
+        if managers[manager_email].has_key('nagging'):
+            managers[manager_email]['nagging'].append(bug)
         else:
-                managers[manager_email]  = {'nagging': [bug]}
+            managers[manager_email]['nagging'] = [bug]
 
-    for b in buglist:            
+    for b in buglist:
         counter = counter + 1
         send_mail = True
         bug = bmo.get_bug(b.id)
@@ -193,7 +186,7 @@ if __name__ == '__main__':
                                 else:
                                     if options.verbose:
                                         print "%s has a V-level for a manager, and is not in the manager list" % assignee
-                                    # send individual email for those who are not managers, and have V-level for a manager
+                                    managers[person['mozillaMail']] = {}
                                     add_to_managers(person['mozillaMail'])
                             else:
                                 # try to go up one level and see if we find a manager
@@ -225,7 +218,7 @@ if __name__ == '__main__':
     print "\n*************\nNo email generated for %s/%s bugs, you will need to manually notify the following %s bugs:\n" % (counter, len(buglist), len(manual_notify))
     url = "https://bugzilla.mozilla.org/buglist.cgi?quicksearch="
     for bug in manual_notify:
-        print "[Bug %s] -- assigned to: %s -- Last commented on: %s\n" % (bug.id, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
+        print "[Bug %s] -- assigned to: %s\n -- Last commented on: %s\n" % (bug.id, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
         url += "%s," % bug.id
     print "Url for manual notification bug list: %s" % url
 
