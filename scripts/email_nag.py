@@ -17,6 +17,7 @@ import phonebook
 
 FROM_EMAIL = 'release-mgmt@mozilla.com'
 SMTP = 'smtp.mozilla.org'
+people = phonebook.PhonebookDirectory()
 
 # TODO - pull a variety of queries from passed in json file(s) instead of hardcoding here
 query_params = {
@@ -55,8 +56,10 @@ Here's your list:\n
     for bug in bugs:
         message_body += '%s -- assigned to: %s -- Last commented on: %s\n' % (bug, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
         if bug.assigned_to.name != 'general@js.bugs':
-            if bug.assigned_to.name not in toaddrs:
-                toaddrs.append(bug.assigned_to.name)
+            # we will email people at their LDAP email, not bugmail
+            person = dict(people.people_by_bzmail[bug.assigned_to.name])
+            if person['mozillaMail'] not in toaddrs:
+                toaddrs.append(person['mozillaMail'])
 
     message_body +='''
 Please either make the case for untracking, let us know what is blocking the 
@@ -129,7 +132,6 @@ if __name__ == '__main__':
     buglist = bmo.get_bug_list(query_params)
     print "Found %s bugs" % (len(buglist))
     
-    people = phonebook.PhonebookDirectory()
     managers = people.managers
     manual_notify = []
     counter = 0
