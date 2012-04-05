@@ -5,6 +5,7 @@
         [--verbose]
 
 """
+import sys, os
 import json
 import smtplib
 from datetime import datetime
@@ -19,28 +20,17 @@ FROM_EMAIL = 'release-mgmt@mozilla.com'
 SMTP = 'smtp.mozilla.org'
 people = phonebook.PhonebookDirectory()
 
-# TODO - pull a variety of queries from passed in json file(s) instead of hardcoding here
-query_params = {
-        'field0-0-0':   'cf_tracking_firefox12',
-        'field0-1-0':   'cf_status_firefox12',
-        'field0-2-0':   'cf_status_firefox12',
-        'field0-4-0':   'cf_status_firefox12',
-        'field0-3-0':   'cf_status_firefox12',
-        'query_format': 'advanced',
-        'value0-2-0':   'fixed',
-        'type0-1-0':    'notequals',
-        'value0-4-0':   'verified',
-        'emailtype1':   'notequals',
-        'value0-3-0':   'unaffected',
-        'emailassigned_to1':    '1',
-        'value0-1-0':   'wontfix',
-        'email1':   'administration@bugzilla.bugs',
-        'type0-0-0':    'equals',
-        'value0-0-0':   '+',
-        'type0-2-0':    'notequals',
-        'type0-4-0':    'notequals',
-        'type0-3-0':    'notequals'
-}
+# DONE - get last comment, but also walk up the comments to last assignee comment
+# TODO - pass in more than one version, organize email template to coallesce emails, Beta first, then Aurora
+# DONE - pull a variety of queries from passed files
+
+def get_last_assignee_comment(comments, person):
+    for comment in comments[::-1]:
+        if person != None:
+            if comment.creator.name == person['mozillaMail'] or comment.creator.name == person['bugzillaEmail']:
+                print "Returning %s's last comment on their bug." % comment.creator.real_name
+                return comment.creation_time.replace(tzinfo=None)
+    return None
 
 def createEmail(manager_email, bugs, version, cc_list=None):
     if cc_list == None:
@@ -94,9 +84,12 @@ if __name__ == '__main__':
         username=None,
         password=None,
         version=None,
-        verbose=False,
+        template=None,
+        wiki=False,
         email_cc_list=['release-mgmt@mozilla.com'],
+        queries=[],
         days_since_comment=-1,
+        verbose=False,
         )
     parser.add_argument("-d", "--dryrun", dest="dryrun", action="store_true",
             help="just do the query, and print emails to console without emailing anyone")
@@ -104,15 +97,25 @@ if __name__ == '__main__':
             help="specify a specific username for bugzilla")
     parser.add_argument("-V", "--version", dest="version",
             help="firefox version string for tracking", required=True)
+    parser.add_argument("-t", "--template", dest="template",
+            help="jinja template to use for the email or wiki page to create")
+    parser.add_argument("--wiki", dest="wiki", action="store_true",
+            help="flag to set wiki output instead of email")
     parser.add_argument("-e", "--email-cc-list", dest="email_cc_list",
             action="append",
             help="email addresses to include in cc when sending mail")
+    parser.add_argument("-q", "--query", dest="queries",
+            action="append",
+            help="a file containing a dictionary of a bugzilla query")
     parser.add_argument("--days-since-comment", dest="days_since_comment",
             help="threshold to check comments against to take action based on days since comment")
     parser.add_argument("--verbose", dest="verbose", action="store_true",
             help="threshold to check comments against to take action based on days since comment")
 
     options, args = parser.parse_known_args()
+    
+    if options.queries == []:
+        parser.error("Need to provide at least one query to run")
     
     if not options.username:
         # We can use "None" for both instead to not authenticate
@@ -128,9 +131,27 @@ if __name__ == '__main__':
     # Load our agent for BMO
     bmo = BMOAgent(username, password)
     
-    # Get the bugs for the requested query_params
-    buglist = bmo.get_bug_list(query_params)
-    print "Found %s bugs" % (len(buglist))
+    # Get the buglist(s)
+    collected_channels = {}
+    for query in options.queries:
+        # import the query
+        if os.path.exists(query):
+            info = {}
+            execfile(query, info)
+            channel = info['channel']
+            collected_channels[channel] = {
+                'priority' : info.get('priority', 1),
+                'buglist' : [],
+                }
+            collected_channels[channel]['buglist'] = bmo.get_bug_list(info['query_params'])
+        else:
+            print "Not a valid path: %s" % query
+    total_bugs = 0
+    for channel in collected_channels.keys():
+        total_bugs += len(collected_channels[channel]['buglist'])
+    print "Found %s bugs total." % total_bugs
+    print collected_channels.keys()
+    sys.exit(0)
     
     managers = people.managers
     manual_notify = []
@@ -141,24 +162,40 @@ if __name__ == '__main__':
             managers[manager_email]['nagging'].append(bug)
         else:
             managers[manager_email]['nagging'] = [bug]
-
+    
+    # TODO - now go through each channel and build the notifications, then come back for template selection & creation of output (email/wiki)
     for b in buglist:
         counter = counter + 1
         send_mail = True
         bug = bmo.get_bug(b.id)
         manual_notify.append(bug)
         assignee = bug.assigned_to.name
+        if people.people_by_bzmail.has_key(assignee):
+            person = dict(people.people_by_bzmail[assignee])
+        else:
+            person = None
         
-        # how many days since comment
+        # kick bug out if days since comment check is on
         if options.days_since_comment != -1:
-            last_comment = bug.comments[-1].creation_time.replace(tzinfo=None)
-            timedelta = datetime.now() - last_comment
-            if timedelta.days <= int(options.days_since_comment):
-                if options.verbose:
-                    print "Skipping bug %s since it's had a comment within the past %s days" % (bug.id, options.days_since_comment)
-                send_mail = False
-                counter = counter - 1
-                manual_notify.pop(bug)
+            # try to get last_comment by assignee
+            if person != None:
+                last_comment = get_last_assignee_comment(bug.comments, person)
+            # otherwise just get the last comment
+            else:
+                last_comment = bug.comments[-1].creation_time.replace(tzinfo=None)
+            if last_comment != None:
+                print bug.comments[-1].creator.name, bug.comments[-1].creator.real_name
+                timedelta = datetime.now() - last_comment
+                if timedelta.days <= int(options.days_since_comment):
+                    if options.verbose:
+                        print "Skipping bug %s since it's had a comment within the past %s days" % (bug.id, options.days_since_comment)
+                    send_mail = False
+                    counter = counter - 1
+                    manual_notify.remove(bug)
+                else:
+                    print timedelta.days
+                    if options.verbose:
+                        print "This bug needs notification, it's been %s since last comment of note" % timedelta.days
 
         if send_mail:
             if 'nobody' in assignee:
@@ -171,8 +208,7 @@ if __name__ == '__main__':
                 add_to_managers('dmandelin@mozilla.com')
             else:
                 if bug.assigned_to.real_name != None:
-                    if people.people_by_bzmail.has_key(assignee):
-                        person = dict(people.people_by_bzmail[assignee])
+                    if person != None:
                         # check if assignee is already a manager
                         if managers.has_key(person['bugzillaEmail']):
                             add_to_managers(person['bugzillaEmail'])

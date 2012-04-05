@@ -1,0 +1,23 @@
+channel = 'beta'
+priority = 1
+query_params = {
+'field0-0-0':   'cf_tracking_firefox12',
+'field0-1-0':   'cf_status_firefox12',
+'field0-2-0':   'cf_status_firefox12',
+'field0-4-0':   'cf_status_firefox12',
+'field0-3-0':   'cf_status_firefox12',
+'query_format': 'advanced',
+'value0-2-0':   'fixed',
+'type0-1-0':    'notequals',
+'value0-4-0':   'verified',
+'emailtype1':   'notequals',
+'value0-3-0':   'unaffected',
+'emailassigned_to1':    '1',
+'value0-1-0':   'wontfix',
+'email1':   'administration@bugzilla.bugs',
+'type0-0-0':    'equals',
+'value0-0-0':   '+',
+'type0-2-0':    'notequals',
+'type0-4-0':    'notequals',
+'type0-3-0':    'notequals'
+}
