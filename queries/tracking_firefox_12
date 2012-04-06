@@ -1,4 +1,4 @@
-channel = 'beta'
+query_name = 'beta'
 priority = 1
 query_params = {
 'field0-0-0':   'cf_tracking_firefox12',

@@ -35,7 +35,7 @@ def get_last_assignee_comment(comments, person):
                 return comment.creation_time.replace(tzinfo=None)
     return None
 
-def createEmail(manager_email, channels, cc_list=None):
+def createEmail(manager_email, queries, cc_list=None):
     if cc_list == None:
         cc_list = [manager_email, FROM_EMAIL]
     toaddrs = []
@@ -45,13 +45,13 @@ We're currently getting in touch with the assignees and manager of unfixed bugs 
 
 Here's your list:
 '''
-    print channels
-    for channel,info in channels.items():
+    for query,results in queries.items():
         # TODO sort by priority flag, if exists
         # TODO take out dupe bugs from lower priority
-        message_body += '\nBugs tracked for: %s\n---------------------------\n\n' % channel.title()
-        for bug in info['bugs']:
+        message_body += '\nBugs tracked for: %s\n---------------------------\n\n' % query.title()
+        for bug in results['bugs']:
             message_body += '  %s -- assigned to: %s -- Last commented on: %s\n' % (bug, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
+            # Another fun hack around js :)
             if bug.assigned_to.name != 'general@js.bugs':
                 # we will email people at their LDAP email, not bugmail
                 person = dict(people.people_by_bzmail[bug.assigned_to.name])
@@ -136,50 +136,50 @@ if __name__ == '__main__':
     bmo = BMOAgent(username, password)
     
     # Get the buglist(s)
-    collected_channels = {}
+    collected_queries = {}
     for query in options.queries:
         # import the query
         if os.path.exists(query):
             info = {}
             execfile(query, info)
-            channel = info['channel']
-            collected_channels[channel] = {
+            query_name = info['query_name']
+            collected_queries[query_name] = {
                 'priority' : info.get('priority', 1),
                 'buglist' : [],
                 }
-            collected_channels[channel]['buglist'] = bmo.get_bug_list(info['query_params'])
+            collected_queries[query_name]['buglist'] = bmo.get_bug_list(info['query_params'])
         else:
             print "Not a valid path: %s" % query
     total_bugs = 0
-    for channel in collected_channels.keys():
-        total_bugs += len(collected_channels[channel]['buglist'])
+    for channel in collected_queries.keys():
+        total_bugs += len(collected_queries[query_name]['buglist'])
     print "Found %s bugs total." % total_bugs
-    print "Channels to collect: %s" % collected_channels.keys()
+    print "Queries to collect: %s" % collected_queries.keys()
 
     managers = people.managers
     manual_notify = []
     counter = 0
 
-    def add_to_managers(manager_email, channel):
+    def add_to_managers(manager_email, query):
         if managers[manager_email].has_key('nagging'):
-            if managers[manager_email]['nagging'].has_key(channel):
-                managers[manager_email]['nagging'][channel]['bugs'].append(bug)
+            if managers[manager_email]['nagging'].has_key(query):
+                managers[manager_email]['nagging'][query]['bugs'].append(bug)
                 if options.verbose:
-                    print "Adding %s to %s in nagging for %s" % (bug.id, channel, manager_email)
+                    print "Adding %s to %s in nagging for %s" % (bug.id, query, manager_email)
             else:
-                managers[manager_email]['nagging'][channel] = { 'bugs': [bug] }
+                managers[manager_email]['nagging'][query] = { 'bugs': [bug] }
                 if options.verbose:
-                    print "Adding new channel %s for bug %s in nagging and %s" % (channel, bug.id, manager_email)
+                    print "Adding new query key %s for bug %s in nagging and %s" % (query, bug.id, manager_email)
         else:
             managers[manager_email]['nagging'] = {
-                    channel : { 'bugs': [bug] },
+                    query : { 'bugs': [bug] },
                 }
             if options.verbose:
-                print "Creating channel %s for bug %s in nagging and %s" % (channel, bug.id, manager_email)
+                print "Creating query key %s for bug %s in nagging and %s" % (query, bug.id, manager_email)
     
     # TODO - now go through each channel and build the notifications, then come back for template selection & creation of output (email/wiki)
-    for channel in collected_channels.keys():
-        for b in collected_channels[channel]['buglist']:
+    for query in collected_queries.keys():
+        for b in collected_queries[query]['buglist']:
             counter = counter + 1
             send_mail = True
             bug = bmo.get_bug(b.id)
@@ -216,39 +216,40 @@ if __name__ == '__main__':
                     if options.verbose:
                         print "No one assigned to: %s, adding to manual notification list..." % bug.id
                     assignee = None
+                # TODO - get rid of this, SUCH A HACK!
                 elif 'general@js.bugs' in assignee:
                     if options.verbose:
                         print "No one assigned to JS bug: %s, adding to dmandelin's list..." % bug.id
-                    add_to_managers('dmandelin@mozilla.com', channel)
+                    add_to_managers('dmandelin@mozilla.com', query)
                 else:
                     if bug.assigned_to.real_name != None:
                         if person != None:
                             # check if assignee is already a manager
                             if managers.has_key(person['bugzillaEmail']):
-                                add_to_managers(person['bugzillaEmail'], channel)
+                                add_to_managers(person['bugzillaEmail'], query)
                             # otherwise we dig up the assignee's manager
                             else:
                                 # check for manager key first, a few people don't have them
                                 if person.has_key('manager') and person['manager'] != None:
                                     manager_email = person['manager']['dn'].split('mail=')[1].split(',')[0]
                                     if managers.has_key(manager_email):
-                                        add_to_managers(manager_email, channel)
+                                        add_to_managers(manager_email, query)
                                     elif people.vices.has_key(manager_email):
                                         # we're already at the highest level we'll go
                                         if managers.has_key(assignee):
-                                            add_to_managers(assignee, channel)
+                                            add_to_managers(assignee, query)
                                         else:
                                             if options.verbose:
                                                 print "%s has a V-level for a manager, and is not in the manager list" % assignee
                                             managers[person['mozillaMail']] = {}
-                                            add_to_managers(person['mozillaMail'], channel)
+                                            add_to_managers(person['mozillaMail'], query)
                                     else:
                                         # try to go up one level and see if we find a manager
                                         if people.people.has_key(manager_email):
                                             person = dict(people.people[manager_email])
                                             manager_email = person['manager']['dn'].split('mail=')[1].split(',')[0]
                                             if managers.has_key(manager_email):
-                                                add_to_managers(manager_email, channel)
+                                                add_to_managers(manager_email, query)
                                         else:
                                             print "Manager could not be found: %s" % manager_email
                                 else:
@@ -256,24 +257,25 @@ if __name__ == '__main__':
 
     # Get yr nag on!
     for email, info in managers.items():
-        if email == 'dmandelin@mozilla.com':
-            print info['nagging'].items()
         if info.has_key('nagging'):
             print "\nRelMan Nag is ready to send the following email:\n<------ MESSAGE BELOW -------->"
-            toaddrs,msg = createEmail(manager_email=email, channels=info['nagging'])
+            toaddrs,msg = createEmail(manager_email=email, queries=info['nagging'])
             print msg
             print "<------- END MESSAGE -------->\nWould you like to send now?"
             inp = raw_input('\n Please select y/Y to send or n/N to skip and continue to next email: ')
             if inp == 'y' or inp == 'Y':
                 print "SENDING EMAIL"
                 sendMail(toaddrs,msg,options.dryrun)
-                counter = counter - len(info['nagging'])
-                # take sent bugs out of manual notification list
-                for bug in info['nagging']['channel']['bugs']:
-                    manual_notify.remove(bug)
+                sent_bugs = 0
+                for query, info in info['nagging'].items():
+                    sent_bugs += len(info['bugs'])
+                    # take sent bugs out of manual notification list
+                    for bug in info['bugs']:
+                        manual_notify.remove(bug)
+                counter = counter - sent_bugs
 
     # Here's the manual notification list
-    print "\n*************\nNo email generated for %s/%s bugs, you will need to manually notify the following %s bugs:\n" % (counter, len(buglist), len(manual_notify))
+    print "\n*************\nNo email generated for %s/%s bugs, you will need to manually notify the following %s bugs:\n" % (counter, total_bugs, len(manual_notify))
     url = "https://bugzilla.mozilla.org/buglist.cgi?quicksearch="
     for bug in manual_notify:
         print "[Bug %s] -- assigned to: %s\n -- Last commented on: %s\n" % (bug.id, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))

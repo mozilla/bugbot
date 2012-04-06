@@ -1,4 +1,4 @@
-channel = 'aurora'
+query_name = 'aurora'
 priority = 2
 query_params = {
     'field0-0-0':   'cf_tracking_firefox13',
