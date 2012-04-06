@@ -10,6 +10,8 @@ for each channel
 import sys, os
 import json
 import smtplib
+import time
+import subprocess
 from datetime import datetime
 from dateutil.parser import parse
 from argparse import ArgumentParser
@@ -258,11 +260,28 @@ if __name__ == '__main__':
     # Get yr nag on!
     for email, info in managers.items():
         if info.has_key('nagging'):
-            print "\nRelMan Nag is ready to send the following email:\n<------ MESSAGE BELOW -------->"
             toaddrs,msg = createEmail(manager_email=email, queries=info['nagging'])
-            print msg
-            print "<------- END MESSAGE -------->\nWould you like to send now?"
-            inp = raw_input('\n Please select y/Y to send or n/N to skip and continue to next email: ')
+            while True:
+                print "\nRelMan Nag is ready to send the following email:\n<------ MESSAGE BELOW -------->"
+                print msg
+                print "<------- END MESSAGE -------->\nWould you like to send now?"
+                inp = raw_input('\n Please select y/Y to send, v/V to edit, or n/N to skip and continue to next email: ')
+
+                if  inp != 'v' and inp != 'V':
+                    break
+
+                # TODO: there's better ways of creating tmp files
+                temp_file_name = '/tmp/email_nag_' + str(time.time())
+                temp_file = open(temp_file_name,'w')
+                temp_file.write(msg)
+                temp_file.close()
+
+                subprocess.call(['vi', temp_file_name])
+
+                temp_file = open(temp_file_name,'r')
+                msg = temp_file.read()
+                toaddrs=msg.split("To: ")[1].split("\r\n")[0].split(',') + msg.split("CC: ")[1].split("\r\n")[0].split(',')
+
             if inp == 'y' or inp == 'Y':
                 print "SENDING EMAIL"
                 sendMail(toaddrs,msg,options.dryrun)
