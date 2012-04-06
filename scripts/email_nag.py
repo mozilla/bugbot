@@ -77,7 +77,7 @@ Release Management Team'''
 
 def sendMail(toaddrs,msg,dryrun=False):
     if dryrun:
-        print "DRYRUN: not sending mail: %s" % msg
+        print "\n****************************\n* DRYRUN: not sending mail *\n****************************\n"
     else:
         server = smtplib.SMTP(SMTP)
         server.set_debuglevel(1)
