@@ -12,6 +12,7 @@ import json
 import smtplib
 import time
 import subprocess
+import urllib
 from datetime import datetime
 from dateutil.parser import parse
 from argparse import ArgumentParser
@@ -24,9 +25,7 @@ FROM_EMAIL = 'release-mgmt@mozilla.com'
 SMTP = 'smtp.mozilla.org'
 people = phonebook.PhonebookDirectory()
 
-# DONE - get last comment, but also walk up the comments to last assignee comment
-# TODO - pass in more than one version, organize email template to coallesce emails, Beta first, then Aurora
-# DONE - pull a variety of queries from passed files
+# TODO - use the queries' 'priority' for order in email eg: Beta first, then Aurora
 
 def get_last_assignee_comment(comments, person):
     # go through in reverse order to get most recent
@@ -36,6 +35,17 @@ def get_last_assignee_comment(comments, person):
                 print "Found last assignee (%s) comment on bug. %s" % (comment.creator.real_name, comment.creation_time.replace(tzinfo=None))
                 return comment.creation_time.replace(tzinfo=None)
     return None
+
+def query_url_to_dict(url):
+    fields_and_values = url.split("?")[1].split(";")
+    d = {}
+
+    for pair in fields_and_values:
+        (key,val) = pair.split("=")
+        if key != "list_id":
+            d[key]=urllib.unquote(val)
+
+    return d
 
 def createEmail(manager_email, queries, cc_list=None):
     if cc_list == None:
@@ -49,10 +59,10 @@ Here's your list:
 '''
     for query,results in queries.items():
         # TODO sort by priority flag, if exists
-        # TODO take out dupe bugs from lower priority
+        # TODO take out dupe bugs from lower priority if they exist in the higher priority's list
         message_body += '\nBugs tracked for: %s\n---------------------------\n\n' % query.title()
         for bug in results['bugs']:
-            message_body += '  %s -- assigned to: %s -- Last commented on: %s\n' % (bug, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
+            message_body += '  %s -- assigned to: %s -- Last commented on: %s\n' % (bug.id, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
             # Another fun hack around js :)
             if bug.assigned_to.name != 'general@js.bugs':
                 # we will email people at their LDAP email, not bugmail
@@ -149,7 +159,15 @@ if __name__ == '__main__':
                 'priority' : info.get('priority', 1),
                 'buglist' : [],
                 }
-            collected_queries[query_name]['buglist'] = bmo.get_bug_list(info['query_params'])
+            if info.has_key('query_params'):
+                print "Gathering from query_params in %s" % query
+                collected_queries[query_name]['buglist'] = bmo.get_bug_list(info['query_params'])
+            elif info.has_key('query_url'):
+                print "Gathering from query_url in %s" % query
+                collected_queries[query_name]['buglist'] = bmo.get_bug_list(query_url_to_dict(info['query_url'])) 
+            else:
+                print "Error - no valid query params or url in the config file"
+                sys.exit(1)
         else:
             print "Not a valid path: %s" % query
     total_bugs = 0
