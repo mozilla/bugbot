@@ -1,6 +1,4 @@
-This package defines `remoteobjects`_ models and some scripts for all the
-resources provided in `Gervase Markham's`_ Bugzilla `REST API`_.  Right now it's
-pretty damn slow.  I hope that will change.
+This package currently uses `remoteobjects`_ models, Mozilla's `_ Bugzilla `REST API`_, and optionally the Mozilla LDAP phonebook (to access bug assignees' managers & Mozilla email addresses).
 
 .. _remoteobjects: http://sixapart.github.com/remoteobjects/
 .. _Gervase Markham's: http://weblogs.mozillazine.org/gerv/
@@ -38,6 +36,10 @@ Now you'll have ``bzattach`` installed in the ``/bin`` directory of your
 virtual environment.  To use the script, you'll have to activate this
 environment with ``workon bztools``.
 
+Note to developers: if you make any changes to the bugzilla/ files (agents, models, utils) during
+work on other scripts, you will want to re-install the scripts as instructed above in order to pick
+up changes
+
 Usage 
 ----------
 
@@ -70,3 +72,27 @@ Example::
 
     for bug in buglist:
         print bug
+
+Email Nag Script
+-------------------
+Do a dryrun::
+    python scripts/email_nag.py -d -q queries/tracking_firefox_12 -q queries/tracking_firefox_13
+
+You can pass in several config files (examples in queries/) that should have the following information::
+    query_name
+    priority
+    query_{url,params}  (choose one format - see queries/ for examples of each)
+
+The script does the following:
+* Gathers the current list of employees and managers from Mozilla LDAP phonebook 
+** you will need a local config for phonebook auth with your LDAP info::
+    # in scripts/configs/config.json                                   ▸▸▸▸▸▸▸▸▸▸
+    {
+        "username": "you@mozilla.com",
+        "password": "xxxxxxxxxxxxxx"
+    }
+* Polls the bugzilla API with each query supplied and builds a dictionary of bugs found per query
+* For each bug, finds the assignee and if possible the assignee's manager - then adds the bug to the manager's bug bucket for later email notification
+* Goes through the manager dictionary and contructs an email with the bugs assigned to that manager's team members
+* Outputs the message to console and waits for use input to either send/edit/cancel (save for manual notification)
+* At the end it provides a list of all bugs that were not emailed about and provides the url for bugzilla of that buglist
