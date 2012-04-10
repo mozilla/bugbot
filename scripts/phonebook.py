@@ -47,7 +47,7 @@ class PhonebookDirectory():
                 if 'director' in self.people[email]['title'].lower() or 'manager' in self.people[email]['title'].lower():
                     managers[email] = info
             # HACK! don't have titles with manager/director - double check which email i'm comparing
-            if email in ('jst@mozilla.com','jst@mozilla.org','rocallahan@mozilla.com','ladamski@mozilla.com', 'mark.finkle@gmail.com','dtownsend@mozilla.com','blassey.bugs@lassey.us','doug.turner@gmail.com','dougt@mozilla.com', 'dcamp@mozilla.com', 'mfinkle@mozilla.com', 'bsmedberg@mozilla.com'):
+            if email in ('rocallahan@mozilla.com','ladamski@mozilla.com', 'mark.finkle@gmail.com','dtownsend@mozilla.com','blassey.bugs@lassey.us','doug.turner@gmail.com','dougt@mozilla.com', 'dcamp@mozilla.com', 'mfinkle@mozilla.com', 'bsmedberg@mozilla.com'):
                 managers[email] = info
         return managers
 

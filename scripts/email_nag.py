@@ -26,6 +26,9 @@ SMTP = 'smtp.mozilla.org'
 people = phonebook.PhonebookDirectory()
 
 # TODO - use the queries' 'priority' for order in email eg: Beta first, then Aurora
+# TODO - make a flag for "show summary" or not - because of security bugs, this should be off by default
+# and perhaps WARN if you are running a query with summary's viewable in output
+# TODO - josh@mozilla.com should get his own and his team's bugs, not two separate emails (one with josh's team and then cc josh, and a second with josh as assignee and bmoss as cc)
 
 def get_last_assignee_comment(comments, person):
     # go through in reverse order to get most recent
@@ -160,10 +163,10 @@ if __name__ == '__main__':
                 'buglist' : [],
                 }
             if info.has_key('query_params'):
-                print "Gathering from query_params in %s" % query
+                print "Gathering bugs from query_params in %s" % query
                 collected_queries[query_name]['buglist'] = bmo.get_bug_list(info['query_params'])
             elif info.has_key('query_url'):
-                print "Gathering from query_url in %s" % query
+                print "Gathering bugs from query_url in %s" % query
                 collected_queries[query_name]['buglist'] = bmo.get_bug_list(query_url_to_dict(info['query_url'])) 
             else:
                 print "Error - no valid query params or url in the config file"
@@ -173,6 +176,7 @@ if __name__ == '__main__':
     total_bugs = 0
     for channel in collected_queries.keys():
         total_bugs += len(collected_queries[query_name]['buglist'])
+    # TODO - check total bug tallies, see to be possibly off
     print "Found %s bugs total." % total_bugs
     print "Queries to collect: %s" % collected_queries.keys()
 
