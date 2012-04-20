@@ -2,7 +2,7 @@ import requests
 import os
 import json
 
-# NOTE: You must create a file with your people LDAP auth in it like:
+# NOTE: You must create a file for CONFIG_JSON with your LDAP auth in it like:
 # {
 #   "username": "username",
 #   "password": "password"
@@ -34,7 +34,7 @@ class PhonebookDirectory():
 
     def __init__(self, config=CONFIG_JSON):
         config = json.load(open(config, 'r'))
-        print "Fetching people" 
+        print "Fetching people from phonebook..." 
         self.people = json.loads(requests.get(PEOPLE_URL, auth=(config['username'], config['password'])).content)
         self.people_by_bzmail = self.get_people_by_bzmail()
         self.managers = self.get_managers()
@@ -47,7 +47,7 @@ class PhonebookDirectory():
                 if 'director' in self.people[email]['title'].lower() or 'manager' in self.people[email]['title'].lower():
                     managers[email] = info
             # HACK! don't have titles with manager/director - double check which email i'm comparing
-            if email in ('rocallahan@mozilla.com','ladamski@mozilla.com', 'mark.finkle@gmail.com','dtownsend@mozilla.com','blassey.bugs@lassey.us','doug.turner@gmail.com','dougt@mozilla.com', 'dcamp@mozilla.com', 'mfinkle@mozilla.com', 'bsmedberg@mozilla.com'):
+            if email in ('rocallahan@mozilla.com', 'ladamski@mozilla.com', 'dtownsend@mozilla.com', 'dougt@mozilla.com', 'mfinkle@mozilla.com', 'bsmedberg@mozilla.com', 'blassey@mozilla.com') and email not in managers.keys():
                 managers[email] = info
         return managers
 

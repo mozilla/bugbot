@@ -69,7 +69,8 @@ def createEmail(manager_email, queries, template, cc_list=None):
     toaddrs = toaddrs + cc_list
     return toaddrs,message
 
-def generateOutput(manager_email, queries, template, show_summary, show_comment, cc_list=None, wiki_output=False):
+def generateOutput(manager_email, queries, template, show_summary, show_comment, 
+                    cc_list=None, wiki_output=False, managers=None):
     template_params = {}
     toaddrs = []   
     # TODO sort by priority flag, if exists
@@ -92,6 +93,10 @@ def generateOutput(manager_email, queries, template, show_summary, show_comment,
     if not wiki_output:
         if cc_list == None:
             cc_list = [manager_email, FROM_EMAIL]
+        # no need to send to as well as cc a manager
+        for email in toaddrs:
+            if email in cc_list:
+                toaddrs.remove(email)
         message_subject = 'Automatic Tracked Bugs Reminder'
         message = ("From: %s\r\n" % FROM_EMAIL
             + "To: %s\r\n" % ",".join(toaddrs)
@@ -112,6 +117,7 @@ def sendMail(toaddrs,msg,dryrun=False):
     else:
         server = smtplib.SMTP(SMTP)
         server.set_debuglevel(1)
+        # we send in toaddrs for transport agents, the msg['To'] header is not modified
         server.sendmail(FROM_EMAIL,toaddrs, msg)
         server.quit()
 
@@ -158,7 +164,7 @@ if __name__ == '__main__':
         parser.error("Need to provide at least one query to run")
     
     if options.show_summary:
-        print "!ATTN! Bug Summaries will be shown in output, be careful when sending emails."
+        print "\n *****ATTN***** Bug Summaries will be shown in output, be careful when sending emails.\n"
 
     if not options.username:
         # We can use "None" for both instead to not authenticate
@@ -190,7 +196,7 @@ if __name__ == '__main__':
                 print "Gathering bugs from query_params in %s" % query
                 collected_queries[query_name]['buglist'] = bmo.get_bug_list(info['query_params'])
             elif info.has_key('query_url'):
-                print "Gathering bugs from query_url in %s" % query
+                print "Gathering bugs from query_url in %s..." % query
                 collected_queries[query_name]['buglist'] = bmo.get_bug_list(query_url_to_dict(info['query_url'])) 
             else:
                 print "Error - no valid query params or url in the config file"
@@ -201,7 +207,7 @@ if __name__ == '__main__':
     for channel in collected_queries.keys():
         total_bugs += len(collected_queries[query_name]['buglist'])
     # TODO - check total bug tallies, see to be possibly off
-    print "Found %s bugs total." % total_bugs
+    print "Found %s bugs total for %s queries" % (total_bugs, len(collected_queries.keys()))
     print "Queries to collect: %s" % collected_queries.keys()
 
     managers = people.managers
@@ -272,8 +278,8 @@ if __name__ == '__main__':
                     if bug.assigned_to.real_name != None:
                         if person != None:
                             # check if assignee is already a manager
-                            if managers.has_key(person['bugzillaEmail']):
-                                add_to_managers(person['bugzillaEmail'], query)
+                            if managers.has_key(person['mozillaMail']):
+                                add_to_managers(person['mozillaMail'], query)
                             # otherwise we dig up the assignee's manager
                             else:
                                 # check for manager key first, a few people don't have them
