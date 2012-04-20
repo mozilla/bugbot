@@ -1,0 +1,17 @@
+We're currently getting in touch with the assignees and manager of unfixed bugs we are tracking. 
+
+Here's your list:
+
+{% for name, results in queries.items() %}
+	{{ name }}
+	============================================================================================
+	{% for bug in results.buglist -%}
+	    {{ bug.id }} {% if show_summary %} Summary: {{ bug.summary }} {% endif %} {% if show_comment %} Last comment: {{ bug.comment }}{% endif %}
+	{% endfor %}
+{% endfor %}
+
+Please either make the case for untracking, let us know what is blocking the investigation, 
+or make sure the above issues are prioritized for release. Thanks!
+
+Sincerely,
+Release Management Team

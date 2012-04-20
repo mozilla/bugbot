@@ -3,5 +3,5 @@ argparse
 python-dateutil==1.5
 keyring
 requests
-
+Jinja2
 -e git://github.com/jbalogh/check.git#egg=check

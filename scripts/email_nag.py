@@ -13,6 +13,7 @@ import smtplib
 import time
 import subprocess
 import urllib
+import tempfile
 from datetime import datetime
 from dateutil.parser import parse
 from argparse import ArgumentParser
@@ -20,13 +21,14 @@ from bugzilla.agents import BMOAgent
 from bugzilla.utils import get_credentials
 from bugzilla.models import DATETIME_FORMAT, DATETIME_FORMAT_WITH_SECONDS
 import phonebook
+from jinja2 import Environment, FileSystemLoader
+env = Environment(loader=FileSystemLoader('templates'))
 
 FROM_EMAIL = 'release-mgmt@mozilla.com'
 SMTP = 'smtp.mozilla.org'
 people = phonebook.PhonebookDirectory()
 
 # TODO - use the queries' 'priority' for order in email eg: Beta first, then Aurora
-# TODO - make a flag for "show summary" or not - because of security bugs, this should be off by default
 # and perhaps WARN if you are running a query with summary's viewable in output
 # TODO - josh@mozilla.com should get his own and his team's bugs, not two separate emails (one with josh's team and then cc josh, and a second with josh as assignee and bmoss as cc)
 
@@ -50,36 +52,13 @@ def query_url_to_dict(url):
 
     return d
 
-def createEmail(manager_email, queries, cc_list=None):
+def createEmail(manager_email, queries, template, cc_list=None):
     if cc_list == None:
         cc_list = [manager_email, FROM_EMAIL]
-    toaddrs = []
-
-    message_body ='''
-We're currently getting in touch with the assignees and manager of unfixed bugs we are tracking. 
-
-Here's your list:
-'''
-    for query,results in queries.items():
-        # TODO sort by priority flag, if exists
-        # TODO take out dupe bugs from lower priority if they exist in the higher priority's list
-        message_body += '\nBugs tracked for: %s\n---------------------------\n\n' % query.title()
-        for bug in results['bugs']:
-            message_body += '  %s -- assigned to: %s -- Last commented on: %s\n' % (bug.id, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
-            # Another fun hack around js :)
-            if bug.assigned_to.name != 'general@js.bugs':
-                # we will email people at their LDAP email, not bugmail
-                person = dict(people.people_by_bzmail[bug.assigned_to.name])
-                if person['mozillaMail'] not in toaddrs:
-                    toaddrs.append(person['mozillaMail'])
-
-    message_body +='''
-Please either make the case for untracking, let us know what is blocking the investigation, 
-or make sure the above issues are prioritized for release. Thanks!
-
-Sincerely,
-Release Management Team'''
-
+    toaddrs = []   
+    # TODO sort by priority flag, if exists
+    template = env.get_template(template)
+    message_body = template.render(queries=queries.items())
     message_subject = 'Automatic Tracked Bugs Reminder'
     message = ("From: %s\r\n" % FROM_EMAIL
         + "To: %s\r\n" % ",".join(toaddrs)
@@ -89,6 +68,43 @@ Release Management Team'''
         + message_body)
     toaddrs = toaddrs + cc_list
     return toaddrs,message
+
+def generateOutput(manager_email, queries, template, show_summary, show_comment, cc_list=None, wiki_output=False):
+    template_params = {}
+    toaddrs = []   
+    # TODO sort by priority flag, if exists
+    for query,results in queries.items():
+        template_params[query] = {'buglist': []}
+        for bug in results['bugs']:
+            template_params[query]['buglist'].append({
+                    'id':bug.id,
+                    'summary':bug.summary,
+                    'comment': bug.comments[-1].creation_time.replace(tzinfo=None)
+            })
+            if bug.assigned_to.name != 'general@js.bugs':
+                person = dict(people.people_by_bzmail[bug.assigned_to.name])
+                if person['mozillaMail'] not in toaddrs:
+                    toaddrs.append(person['mozillaMail'])
+                
+    template = env.get_template(template)
+    message_body = template.render(queries=template_params, show_summary=show_summary, show_comment=show_comment)
+    
+    if not wiki_output:
+        if cc_list == None:
+            cc_list = [manager_email, FROM_EMAIL]
+        message_subject = 'Automatic Tracked Bugs Reminder'
+        message = ("From: %s\r\n" % FROM_EMAIL
+            + "To: %s\r\n" % ",".join(toaddrs)
+            + "CC: %s\r\n" % ",".join(cc_list)
+            + "Subject: %s\r\n" % message_subject
+            + "\r\n" 
+            + message_body)
+        toaddrs = toaddrs + cc_list
+    else:
+        message = message_body
+
+    return toaddrs,message
+
 
 def sendMail(toaddrs,msg,dryrun=False):
     if dryrun:
@@ -105,8 +121,9 @@ if __name__ == '__main__':
         dryrun=False,
         username=None,
         password=None,
-        template=None,
         wiki=False,
+        show_summary=False,
+        show_comment=False,
         email_cc_list=['release-mgmt@mozilla.com'],
         queries=[],
         days_since_comment=-1,
@@ -116,16 +133,20 @@ if __name__ == '__main__':
             help="just do the query, and print emails to console without emailing anyone")
     parser.add_argument("-u", "--username", dest="username",
             help="specify a specific username for bugzilla")
-    parser.add_argument("-t", "--template", dest="template",
-            help="jinja template to use for the email or wiki page to create")
-    parser.add_argument("--wiki", dest="wiki", action="store_true",
-            help="flag to set wiki output instead of email")
+    parser.add_argument("-t", "--template", dest="template", required=True,
+            help="template to use for the buglist output")
     parser.add_argument("-e", "--email-cc-list", dest="email_cc_list",
             action="append",
             help="email addresses to include in cc when sending mail")
     parser.add_argument("-q", "--query", dest="queries",
             action="append",
             help="a file containing a dictionary of a bugzilla query")
+    parser.add_argument("--wiki", dest="wiki", action="store_true",
+            help="flag to get wiki output to console instead of creating sendable emails")
+    parser.add_argument("--show-summary", dest="show_summary", action="store_true",
+            help="flag to ensure secure bug summaries don't go into output by accident, must explicitly ask to show")
+    parser.add_argument("--show-comment", dest="show_comment", action="store_true",
+            help="flag to display last comment on a bug in the message output")
     parser.add_argument("--days-since-comment", dest="days_since_comment",
             help="threshold to check comments against to take action based on days since comment")
     parser.add_argument("--verbose", dest="verbose", action="store_true",
@@ -136,6 +157,9 @@ if __name__ == '__main__':
     if options.queries == []:
         parser.error("Need to provide at least one query to run")
     
+    if options.show_summary:
+        print "!ATTN! Bug Summaries will be shown in output, be careful when sending emails."
+
     if not options.username:
         # We can use "None" for both instead to not authenticate
         username, password = get_credentials()
@@ -201,7 +225,6 @@ if __name__ == '__main__':
             if options.verbose:
                 print "Creating query key %s for bug %s in nagging and %s" % (query, bug.id, manager_email)
     
-    # TODO - now go through each channel and build the notifications, then come back for template selection & creation of output (email/wiki)
     for query in collected_queries.keys():
         for b in collected_queries[query]['buglist']:
             counter = counter + 1
@@ -282,7 +305,14 @@ if __name__ == '__main__':
     # Get yr nag on!
     for email, info in managers.items():
         if info.has_key('nagging'):
-            toaddrs,msg = createEmail(manager_email=email, queries=info['nagging'])
+            toaddrs,msg = generateOutput(
+                manager_email=email,
+                queries=info['nagging'],
+                template=options.template,
+                wiki_output=options.wiki,
+                show_summary=options.show_summary,
+                show_comment=options.show_comment,
+                managers=managers)
             while True:
                 print "\nRelMan Nag is ready to send the following email:\n<------ MESSAGE BELOW -------->"
                 print msg
@@ -292,17 +322,17 @@ if __name__ == '__main__':
                 if  inp != 'v' and inp != 'V':
                     break
 
-                # TODO: there's better ways of creating tmp files
-                temp_file_name = '/tmp/email_nag_' + str(time.time())
-                temp_file = open(temp_file_name,'w')
+                tempfilename = tempfile.mktemp()
+                temp_file = open(tempfilename, 'w')
                 temp_file.write(msg)
                 temp_file.close()
 
-                subprocess.call(['vi', temp_file_name])
+                subprocess.call(['vi', tempfilename])
 
-                temp_file = open(temp_file_name,'r')
+                temp_file = open(tempfilename,'r')
                 msg = temp_file.read()
                 toaddrs=msg.split("To: ")[1].split("\r\n")[0].split(',') + msg.split("CC: ")[1].split("\r\n")[0].split(',')
+                os.remove(tempfilename)
 
             if inp == 'y' or inp == 'Y':
                 print "SENDING EMAIL"
