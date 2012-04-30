@@ -29,8 +29,9 @@ SMTP = 'smtp.mozilla.org'
 people = phonebook.PhonebookDirectory()
 
 # TODO - use the queries' 'priority' for order in email eg: Beta first, then Aurora
-# and perhaps WARN if you are running a query with summary's viewable in output
-# TODO - josh@mozilla.com should get his own and his team's bugs, not two separate emails (one with josh's team and then cc josh, and a second with josh as assignee and bmoss as cc)
+# TODO - get the wiki output working, rename (generic) this script and clean up
+# TODO - write some tests
+# TODO - look into knocking out duplicated bugs in queries
 
 def get_last_assignee_comment(comments, person):
     # go through in reverse order to get most recent
@@ -117,7 +118,7 @@ def sendMail(toaddrs,msg,dryrun=False):
     else:
         server = smtplib.SMTP(SMTP)
         server.set_debuglevel(1)
-        # we send in toaddrs for transport agents, the msg['To'] header is not modified
+        # note: toaddrs is required for transport agents, the msg['To'] header is not modified
         server.sendmail(FROM_EMAIL,toaddrs, msg)
         server.quit()
 
@@ -206,7 +207,7 @@ if __name__ == '__main__':
     total_bugs = 0
     for channel in collected_queries.keys():
         total_bugs += len(collected_queries[query_name]['buglist'])
-    # TODO - check total bug tallies, see to be possibly off
+    # TODO - check total bug tallies, seem to be possibly off
     print "Found %s bugs total for %s queries" % (total_bugs, len(collected_queries.keys()))
     print "Queries to collect: %s" % collected_queries.keys()
 
