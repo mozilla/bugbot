@@ -27,6 +27,7 @@ phonebook entry data looks like this when you pull it from JSON:
             ext : XXX,
             manager : {u'dn': u'mail=manager@mozilla.com,o=com,dc=mozilla', u'cn': u'Manager Name'},
             bugzillaEmail : 'email@example.com'
+            mozillaMail : 'email@mozilla.com'
         }
 '''
 

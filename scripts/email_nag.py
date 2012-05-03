@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 """
 A script for automated nagging emails listing all the bugs being tracked by certain queries
-These can be collated into several 'channels' through the use of multiple query files with 
-a 'channel' param set eg: 'beta', 'aurora'
+These can be collated into several 'queries' through the use of multiple query files with 
+a 'query_name' param set eg: 'Bugs tracked for Firefox Beta (13)'
 Once the bugs have been collected from bugzilla they are sorted into buckets by assignee manager
-and an email can be sent out to the assignees, cc'ing the manager about which bugs are being tracked
-for each channel
+and an email can be sent out to the assignees, cc'ing their manager about which bugs are being tracked
+for each query
 """
 import sys, os
 import json
@@ -28,7 +28,6 @@ FROM_EMAIL = 'release-mgmt@mozilla.com'
 SMTP = 'smtp.mozilla.org'
 people = phonebook.PhonebookDirectory()
 
-# TODO - use the queries' 'priority' for order in email eg: Beta first, then Aurora
 # TODO - get the wiki output working, rename (generic) this script and clean up
 # TODO - write some tests
 # TODO - look into knocking out duplicated bugs in queries
@@ -74,7 +73,7 @@ def generateOutput(manager_email, queries, template, show_summary, show_comment,
                     cc_list=None, wiki_output=False, managers=None):
     template_params = {}
     toaddrs = []   
-    # TODO sort by priority flag, if exists
+
     for query,results in queries.items():
         template_params[query] = {'buglist': []}
         for bug in results['bugs']:
@@ -93,12 +92,17 @@ def generateOutput(manager_email, queries, template, show_summary, show_comment,
     message_body = template.render(queries=template_params, show_summary=show_summary, show_comment=show_comment)
     
     if not wiki_output:
-        if cc_list == None:
-            cc_list = [manager_email, FROM_EMAIL]
-        # no need to send to as well as cc a manager
-        for email in toaddrs:
-            if email in cc_list:
-                toaddrs.remove(email)
+    	# is our only email to a manager? then only cc the FROM_EMAIL
+    	if len(toaddrs) == 1:
+    		if cc_list = None:
+    			cc_list = [FROM_EMAIL]
+    	else:
+			if cc_list == None:
+				cc_list = [manager_email, FROM_EMAIL]
+			# no need to send to as well as cc a manager
+			for email in toaddrs:
+				if email in cc_list:
+					toaddrs.remove(email)
         message_subject = 'Tracked Bugs Roundup'
         message = ("From: %s\r\n" % FROM_EMAIL
             + "To: %s\r\n" % ",".join(toaddrs)
@@ -158,7 +162,7 @@ if __name__ == '__main__':
     parser.add_argument("--days-since-comment", dest="days_since_comment",
             help="threshold to check comments against to take action based on days since comment")
     parser.add_argument("--verbose", dest="verbose", action="store_true",
-            help="threshold to check comments against to take action based on days since comment")
+            help="turn on verbose output")
 
     options, args = parser.parse_known_args()
     
@@ -208,7 +212,7 @@ if __name__ == '__main__':
     total_bugs = 0
     for channel in collected_queries.keys():
         total_bugs += len(collected_queries[query_name]['buglist'])
-    # TODO - check total bug tallies, seem to be possibly off
+
     print "Found %s bugs total for %s queries" % (total_bugs, len(collected_queries.keys()))
     print "Queries to collect: %s" % collected_queries.keys()
 
@@ -279,10 +283,10 @@ if __name__ == '__main__':
                 else:
                     if bug.assigned_to.real_name != None:
                         if person != None:
-                            # check if assignee is already a manager
+                            # check if assignee is already a manager, add to their own list
                             if managers.has_key(person['mozillaMail']):
                                 add_to_managers(person['mozillaMail'], query)
-                            # otherwise we dig up the assignee's manager
+                            # otherwise we search for the assignee's manager
                             else:
                                 # check for manager key first, a few people don't have them
                                 if person.has_key('manager') and person['manager'] != None:
