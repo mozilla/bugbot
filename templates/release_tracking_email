@@ -1,17 +1,23 @@
-We're currently getting in touch with the assignees and manager of unfixed bugs we are tracking for upcoming release. 
+We're reaching out to you because there are unresolved bugs tracked for FF13/14 assigned to your team.
 
-Here's your list:
+= Upcoming Scheduling =
+* FF13 beta 2 will be released this coming Friday, 5/4
+* FF13 beta 4 will go to build on 5/15 - this is our last checkpoint for speculative fixes
+* FF13 will code freeze on 5/25
+* FF13 will be released, and FF14 will be on the Beta Channel on 6/5
 
+= Next Actions =
+* Let us know if we should consider untracking for release, if your  investigation is blocked, or we can be of any other assistance
+* Please prioritize bugs tracked for FF13 over bugs tracked for FF14 over other work landing on mozilla-central
 {% for name, results in queries.items() %}
-	{{ name }}
-	============================================================================================
-	{% for bug in results.buglist -%}
-	    {{ bug.id }} {% if show_summary %} Summary: {{ bug.summary }} {% endif %} {% if show_comment %} Last comment: {{ bug.comment }}{% endif %}
-	{% endfor %}
-{% endfor %}
+= {{ name }} =
+{% for bug in results.buglist -%}
+* {{ bug.id }} {% if show_summary %} - {{ bug.summary }} {% endif %} (assigned to {{ bug.assignee }})
+{% endfor %}{% endfor %}
 
-Please either make the case for untracking, let us know what is blocking the investigation, 
-or make sure the above issues are prioritized for release. Thanks!
+= Full Tracked Bug Lists =
+* Tracked for FF13 and unfixed (including security bugs): http://mzl.la/JVy2N1
+* Tracked for FF14 and unfixed (including security bugs): http://mzl.la/IVFeXG
 
 Sincerely,
-Release Management Team
+Release Management

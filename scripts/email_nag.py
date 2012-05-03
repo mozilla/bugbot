@@ -60,7 +60,7 @@ def createEmail(manager_email, queries, template, cc_list=None):
     # TODO sort by priority flag, if exists
     template = env.get_template(template)
     message_body = template.render(queries=queries.items())
-    message_subject = 'Automatic Tracked Bugs Reminder'
+    message_subject = 'Tracked Bugs Roundup'
     message = ("From: %s\r\n" % FROM_EMAIL
         + "To: %s\r\n" % ",".join(toaddrs)
         + "CC: %s\r\n" % ",".join(cc_list)
@@ -81,7 +81,8 @@ def generateOutput(manager_email, queries, template, show_summary, show_comment,
             template_params[query]['buglist'].append({
                     'id':bug.id,
                     'summary':bug.summary,
-                    'comment': bug.comments[-1].creation_time.replace(tzinfo=None)
+                    'comment': bug.comments[-1].creation_time.replace(tzinfo=None),
+                    'assignee': bug.assigned_to.real_name
             })
             if bug.assigned_to.name != 'general@js.bugs':
                 person = dict(people.people_by_bzmail[bug.assigned_to.name])
@@ -98,7 +99,7 @@ def generateOutput(manager_email, queries, template, show_summary, show_comment,
         for email in toaddrs:
             if email in cc_list:
                 toaddrs.remove(email)
-        message_subject = 'Automatic Tracked Bugs Reminder'
+        message_subject = 'Tracked Bugs Roundup'
         message = ("From: %s\r\n" % FROM_EMAIL
             + "To: %s\r\n" % ",".join(toaddrs)
             + "CC: %s\r\n" % ",".join(cc_list)
