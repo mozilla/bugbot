@@ -1,39 +1,31 @@
 = Triage =
+{{ channel_mtg_info }}
 == Approvals needing Channel Attention ==
 # Keyworded with #relman/triage/defer-to-group using mediawiki bz extension
 <bugzilla>
 {
- "id": {% for bug in keywords_bugs.approval %}"{{ bug.id }},"{% endfor %}
+ "id": {% for bug in approval_attention %}"{{ bug.id }},"{% endfor %}
 }
 </bugzilla>
 
-== Bugs marked for Beta Discussion ==
-# Keyworded with discuss-in-channel-meeting and tracking for Beta
+{% for channel in results %}
+== Bugs marked for {{ channel.name }} Discussion ==
 <bugzilla>
 {
- "id": {% for bug in keyword_bugs.beta %}"{{ bug.id }},"{% endfor %}
+ "id": {% for bug in channel.bugs.mtg_attention %}"{{ bug.id }},"{% endfor %}
 }
 </bugzilla>
-== Tracking Beta without Recent Comment ==
+== Tracking {{ channel.name }} without Recent Comment ==
 3/5 days without comment by assignee or manager
-for m in manager:
-    === Manager's Team ===
-        * {{bug|bug.id}} - assignee - bug.id - keywords/whiteboard
-== Tracking for Beta and QA Wanted for more than x days ==
+    {% for m in channel.managers %}
+    {# note: escaping the wiki bug template with '{{' and '}}"  #}
+    === {{ m.name }}'s Team ===
+        {% for bug in m.bugs %}* '{{'bug|{{ bug.id }}'}}' - assignee : {{ bug.assignee }} - keywords: {{ bug.keywords }} - whiteboard: {{ bug.whiteboard }} {% endfor %}
+    {% endfor %}
+== Tracking for {{ channel.name }} and QA Wanted for more than x days ==
 <bugzilla>
 {
- "id": {% for bug in keyword_bugs.qawanted %}"{{ bug.id }},"{% endfor %}
+ "id": {% for bug in channel.qawanted %}"{{ bug.id }},"{% endfor %}
 }
 </bugzilla>
-== Tracking Aurora without Recent Comment ==
-# Keyworded with discuss-in-channel-meeting and tracking for Aurora
-<bugzilla>
-{
- "id": {% for bug in keyword_bugs.aurora %}"{{ bug.id }},"{% endfor %}
-}
-</bugzilla>
-== Aurora (7 days without comment by assignee or manager) ==
-for m in manager:
-    === Manager's Team ===
-        * {{bug|bug.id}} - assignee - bug.id - keywords/whiteboard
-== Tracking for Aurora and QA Wanted for more than 7 days ==
+{% endfor %}

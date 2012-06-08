@@ -1,14 +1,15 @@
 We're reaching out to you because there are unresolved bugs tracked for FF13/14 assigned to your team.
 
 = Upcoming Scheduling =
-* FF13 beta 2 will be released this coming Friday, 5/4
-* FF13 beta 4 will go to build on 5/15 - this is our last checkpoint for speculative fixes
-* FF13 will code freeze on 5/25
+* FF13 beta 5 will be released this coming Friday, 5/25
+* FF13 will code freeze on Friday 5/25
+* FF13 beta 6 (our FINAL 13 beta) will go to build on Monday 5/28
 * FF13 will be released, and FF14 will be on the Beta Channel on 6/5
 
 = Next Actions =
-* Let us know if we should consider untracking for release, if your  investigation is blocked, or we can be of any other assistance
+* Let us know if we should consider untracking for release, if your  investigation is blocked, or we can be of any other assistance (in Bugzilla or email)
 * Please prioritize bugs tracked for FF13 over bugs tracked for FF14 over other work landing on mozilla-central
+
 {% for name, results in queries.items() %}
 = {{ name }} =
 {% for bug in results.buglist -%}

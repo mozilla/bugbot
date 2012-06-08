@@ -29,8 +29,32 @@ SMTP = 'smtp.mozilla.org'
 people = phonebook.PhonebookDirectory()
 
 # TODO - get the wiki output working, rename (generic) this script and clean up
+# TODO - for wiki page generation, just post counts of certain query results (and their queries) eg: how many unverified fixed bugs for esr10?
 # TODO - write some tests
 # TODO - look into knocking out duplicated bugs in queries
+
+class Channel:
+    def __init__(self, name="", bugs=[]):
+        self.name = name
+        self.bugs = bugs
+
+    def to_dict(self):
+        d = {
+            'name': self.name,
+            'bugs': self.bugs
+        }
+        return d
+
+class Manager:
+    def __init__(self, name="", bugs=[]):
+        self.name = name
+        self.bugs = bugs
+    def to_dict(self):
+        d = {
+            'name': self.name,
+            'bugs': self.bugs
+        }
+        return d
 
 def get_last_assignee_comment(comments, person):
     # go through in reverse order to get most recent
@@ -52,13 +76,87 @@ def query_url_to_dict(url):
 
     return d
 
-def createEmail(manager_email, queries, template, cc_list=None):
-    if cc_list == None:
-        cc_list = [manager_email, FROM_EMAIL]
+def generateWikiOutput(queries, template, managers=None, keywords=None):
+    """ TODO: reorganize the dictionary based on wiki request
+    
+    {   
+        'channels': {
+            'name': {
+                'managers': {
+                    'bugs': [],
+                    'name': "manager_name",
+                },
+                # keyword bug lists
+                'needs_attention': [],
+                'qawanted': [],
+            }
+        }
+    }
+    """
+    template = env.get_template(template.replace('templates/', '', 1))
+    
+    bugs = []
+    
+    # queries = { 'query_name': { 'priority': "", 'bugs': [] } }
+    # managers = { 'manager_email': { 'nagging': { 'query': { 'bugs': [] } } } }
+
+    # TODO - create the dictionary here
+    channel_info = ChannelInfo()
+    # pull keyword bugs
+    for name,info in queries.items():
+        channel_info.channels = []
+        channel_info.channels.append({ 'name': name})
+        for keyword in keywords:
+            channel_mtg_info['channels'][name][keyword] = []
+            for bug in info['bugs']:
+                if keyword in bug.keywords:
+                    channel_mtg_info['channels'][name][keyword].append(bug)
+                    
+    for email,info in managers.items():
+        person = dict(people.people[email])
+        manager = Manager(name=person['name'])
+        if info.has_key('nagging'):
+            for query_name in info['nagging'].keys():
+                manager.bugs = info['nagging'][query_name]['bugs']
+                channel_mtg_info['channels'][query_name]['managers'].append(manager.to_dict())
+    return template.render(channel_info=channel_info)
+
+def generateEmailOutput(queries, template, show_summary=False, show_comment=False, manager_email=None, 
+                    cc_list=None):
+    template_params = {}
     toaddrs = []   
-    # TODO sort by priority flag, if exists
-    template = env.get_template(template)
-    message_body = template.render(queries=queries.items())
+
+    # stripping off the templates dir, just in case it gets passed in the args
+    template = env.get_template(template.replace('templates/', '', 1))
+    message_body = template.render(queries=template_params, show_summary=show_summary, show_comment=show_comment)
+
+    for query,results in queries.items():
+        template_params[query] = {'buglist': []}
+        for bug in results['bugs']:
+            template_params[query]['buglist'].append({
+                    'id':bug.id,
+                    'summary':bug.summary,
+                    #'comment': bug.comments[-1].creation_time.replace(tzinfo=None),
+                    'assignee': bug.assigned_to.real_name
+            })
+            if bug.assigned_to.name != 'general@js.bugs':
+                if people.people_by_bzmail.has_key(bug.assigned_to.name):
+                    person = dict(people.people_by_bzmail[bug.assigned_to.name])
+                    if person['mozillaMail'] not in toaddrs:
+                        toaddrs.append(person['mozillaMail'])
+                    
+    message_body = template.render(queries=template_params, show_summary=show_summary, show_comment=show_comment)
+    # is our only email to a manager? then only cc the FROM_EMAIL
+    if len(toaddrs) == 1:
+        if cc_list == None:
+            cc_list = [FROM_EMAIL]
+    else:
+        if cc_list == None:
+            cc_list = [manager_email, FROM_EMAIL]
+        # no need to send to as well as cc a manager
+        for email in toaddrs:
+            if email in cc_list:
+                toaddrs.remove(email)
     message_subject = 'Tracked Bugs Roundup'
     message = ("From: %s\r\n" % FROM_EMAIL
         + "To: %s\r\n" % ",".join(toaddrs)
@@ -67,52 +165,6 @@ def createEmail(manager_email, queries, template, cc_list=None):
         + "\r\n" 
         + message_body)
     toaddrs = toaddrs + cc_list
-    return toaddrs,message
-
-def generateOutput(manager_email, queries, template, show_summary, show_comment, 
-                    cc_list=None, wiki_output=False, managers=None):
-    template_params = {}
-    toaddrs = []   
-
-    for query,results in queries.items():
-        template_params[query] = {'buglist': []}
-        for bug in results['bugs']:
-            template_params[query]['buglist'].append({
-                    'id':bug.id,
-                    'summary':bug.summary,
-                    'comment': bug.comments[-1].creation_time.replace(tzinfo=None),
-                    'assignee': bug.assigned_to.real_name
-            })
-            if bug.assigned_to.name != 'general@js.bugs':
-                person = dict(people.people_by_bzmail[bug.assigned_to.name])
-                if person['mozillaMail'] not in toaddrs:
-                    toaddrs.append(person['mozillaMail'])
-                
-    template = env.get_template(template)
-    message_body = template.render(queries=template_params, show_summary=show_summary, show_comment=show_comment)
-    
-    if not wiki_output:
-    	# is our only email to a manager? then only cc the FROM_EMAIL
-    	if len(toaddrs) == 1:
-    		if cc_list = None:
-    			cc_list = [FROM_EMAIL]
-    	else:
-			if cc_list == None:
-				cc_list = [manager_email, FROM_EMAIL]
-			# no need to send to as well as cc a manager
-			for email in toaddrs:
-				if email in cc_list:
-					toaddrs.remove(email)
-        message_subject = 'Tracked Bugs Roundup'
-        message = ("From: %s\r\n" % FROM_EMAIL
-            + "To: %s\r\n" % ",".join(toaddrs)
-            + "CC: %s\r\n" % ",".join(cc_list)
-            + "Subject: %s\r\n" % message_subject
-            + "\r\n" 
-            + message_body)
-        toaddrs = toaddrs + cc_list
-    else:
-        message = message_body
 
     return toaddrs,message
 
@@ -140,6 +192,7 @@ if __name__ == '__main__':
         queries=[],
         days_since_comment=-1,
         verbose=False,
+        keywords=[],
         )
     parser.add_argument("-d", "--dryrun", dest="dryrun", action="store_true",
             help="just do the query, and print emails to console without emailing anyone")
@@ -153,6 +206,9 @@ if __name__ == '__main__':
     parser.add_argument("-q", "--query", dest="queries",
             action="append",
             help="a file containing a dictionary of a bugzilla query")
+    parser.add_argument("-k", "--keyword", dest="keywords",
+            action="append",
+            help="keywords to collate buglists")
     parser.add_argument("--wiki", dest="wiki", action="store_true",
             help="flag to get wiki output to console instead of creating sendable emails")
     parser.add_argument("--show-summary", dest="show_summary", action="store_true",
@@ -196,14 +252,14 @@ if __name__ == '__main__':
             query_name = info['query_name']
             collected_queries[query_name] = {
                 'priority' : info.get('priority', 1),
-                'buglist' : [],
+                'bugs' : [],
                 }
             if info.has_key('query_params'):
                 print "Gathering bugs from query_params in %s" % query
-                collected_queries[query_name]['buglist'] = bmo.get_bug_list(info['query_params'])
+                collected_queries[query_name]['bugs'] = bmo.get_bug_list(info['query_params'])
             elif info.has_key('query_url'):
-                print "Gathering bugs from query_url in %s..." % query
-                collected_queries[query_name]['buglist'] = bmo.get_bug_list(query_url_to_dict(info['query_url'])) 
+                print "Gathering bugs from query_url in %s" % query
+                collected_queries[query_name]['bugs'] = bmo.get_bug_list(query_url_to_dict(info['query_url'])) 
             else:
                 print "Error - no valid query params or url in the config file"
                 sys.exit(1)
@@ -211,7 +267,7 @@ if __name__ == '__main__':
             print "Not a valid path: %s" % query
     total_bugs = 0
     for channel in collected_queries.keys():
-        total_bugs += len(collected_queries[query_name]['buglist'])
+        total_bugs += len(collected_queries[channel]['bugs'])
 
     print "Found %s bugs total for %s queries" % (total_bugs, len(collected_queries.keys()))
     print "Queries to collect: %s" % collected_queries.keys()
@@ -238,7 +294,7 @@ if __name__ == '__main__':
                 print "Creating query key %s for bug %s in nagging and %s" % (query, bug.id, manager_email)
     
     for query in collected_queries.keys():
-        for b in collected_queries[query]['buglist']:
+        for b in collected_queries[query]['bugs']:
             counter = counter + 1
             send_mail = True
             bug = bmo.get_bug(b.id)
@@ -314,54 +370,60 @@ if __name__ == '__main__':
                                 else:
                                     print "%s's entry doesn't list a manager! Let's ask them to update phonebook." % person['name']
 
-    # Get yr nag on!
-    for email, info in managers.items():
-        if info.has_key('nagging'):
-            toaddrs,msg = generateOutput(
-                manager_email=email,
-                queries=info['nagging'],
-                template=options.template,
-                wiki_output=options.wiki,
-                show_summary=options.show_summary,
-                show_comment=options.show_comment,
-                managers=managers)
-            while True:
-                print "\nRelMan Nag is ready to send the following email:\n<------ MESSAGE BELOW -------->"
-                print msg
-                print "<------- END MESSAGE -------->\nWould you like to send now?"
-                inp = raw_input('\n Please select y/Y to send, v/V to edit, or n/N to skip and continue to next email: ')
-
-                if  inp != 'v' and inp != 'V':
-                    break
-
-                tempfilename = tempfile.mktemp()
-                temp_file = open(tempfilename, 'w')
-                temp_file.write(msg)
-                temp_file.close()
-
-                subprocess.call(['vi', tempfilename])
-
-                temp_file = open(tempfilename,'r')
-                msg = temp_file.read()
-                toaddrs=msg.split("To: ")[1].split("\r\n")[0].split(',') + msg.split("CC: ")[1].split("\r\n")[0].split(',')
-                os.remove(tempfilename)
-
-            if inp == 'y' or inp == 'Y':
-                print "SENDING EMAIL"
-                sendMail(toaddrs,msg,options.dryrun)
-                sent_bugs = 0
-                for query, info in info['nagging'].items():
-                    sent_bugs += len(info['bugs'])
-                    # take sent bugs out of manual notification list
-                    for bug in info['bugs']:
-                        manual_notify.remove(bug)
-                counter = counter - sent_bugs
-
-    # Here's the manual notification list
-    print "\n*************\nNo email generated for %s/%s bugs, you will need to manually notify the following %s bugs:\n" % (counter, total_bugs, len(manual_notify))
-    url = "https://bugzilla.mozilla.org/buglist.cgi?quicksearch="
-    for bug in manual_notify:
-        print "[Bug %s] -- assigned to: %s\n -- Last commented on: %s\n" % (bug.id, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
-        url += "%s," % bug.id
-    print "Url for manual notification bug list: %s" % url
-
+    if options.wiki:
+        msg = generateWikiOutput(
+            queries=collected_queries,
+            template=options.template,
+            managers=managers,
+            keywords=options.keywords)
+        print msg
+    else:
+        # Get yr nag on!
+        for email, info in managers.items():
+            if info.has_key('nagging'):
+                toaddrs,msg = generateEmailOutput(
+                    manager_email=email,
+                    queries=info['nagging'],
+                    template=options.template,
+                    show_summary=options.show_summary,
+                    show_comment=options.show_comment)
+                while True:
+                    print "\nRelMan Nag is ready to send the following email:\n<------ MESSAGE BELOW -------->"
+                    print msg
+                    print "<------- END MESSAGE -------->\nWould you like to send now?"
+                    inp = raw_input('\n Please select y/Y to send, v/V to edit, or n/N to skip and continue to next email: ')
+    
+                    if  inp != 'v' and inp != 'V':
+                        break
+    
+                    tempfilename = tempfile.mktemp()
+                    temp_file = open(tempfilename, 'w')
+                    temp_file.write(msg)
+                    temp_file.close()
+    
+                    subprocess.call(['vi', tempfilename])
+    
+                    temp_file = open(tempfilename,'r')
+                    msg = temp_file.read()
+                    toaddrs=msg.split("To: ")[1].split("\r\n")[0].split(',') + msg.split("CC: ")[1].split("\r\n")[0].split(',')
+                    os.remove(tempfilename)
+    
+                if inp == 'y' or inp == 'Y':
+                    print "SENDING EMAIL"
+                    sendMail(toaddrs,msg,options.dryrun)
+                    sent_bugs = 0
+                    for query, info in info['nagging'].items():
+                        sent_bugs += len(info['bugs'])
+                        # take sent bugs out of manual notification list
+                        for bug in info['bugs']:
+                            manual_notify.remove(bug)
+                    counter = counter - sent_bugs
+    
+        # output the manual notification list
+        print "\n*************\nNo email generated for %s/%s bugs, you will need to manually notify the following %s bugs:\n" % (counter, total_bugs, len(manual_notify))
+        url = "https://bugzilla.mozilla.org/buglist.cgi?quicksearch="
+        for bug in manual_notify:
+            print "[Bug %s] -- assigned to: %s\n -- Last commented on: %s\n" % (bug.id, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
+            url += "%s," % bug.id
+        print "Url for manual notification bug list: %s" % url
+    

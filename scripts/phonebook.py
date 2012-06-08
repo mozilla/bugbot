@@ -18,7 +18,7 @@ BASE_URL = 'https://ldap.mozilla.org/phonebook'
 PEOPLE_URL = '%s/directory.php' % BASE_URL
 
 '''
-phonebook entry data looks like this when you pull it from JSON:
+a single phonebook entry data looks like this when you pull it from JSON:
 'email' = {
             ims : [],
             name : 'name',
@@ -47,7 +47,7 @@ class PhonebookDirectory():
             if self.people[email]['title'] != None:
                 if 'director' in self.people[email]['title'].lower() or 'manager' in self.people[email]['title'].lower():
                     managers[email] = info
-            # HACK! don't have titles with manager/director - double check which email i'm comparing
+            # HACK! don't have titles with manager/director
             if email in ('rocallahan@mozilla.com', 'ladamski@mozilla.com', 'dtownsend@mozilla.com', 'dougt@mozilla.com', 'mfinkle@mozilla.com', 'bsmedberg@mozilla.com', 'blassey@mozilla.com') and email not in managers.keys():
                 managers[email] = info
         return managers
