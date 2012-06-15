@@ -176,6 +176,7 @@ def sendMail(toaddrs,msg,dryrun=False):
         server = smtplib.SMTP(SMTP)
         server.set_debuglevel(1)
         # note: toaddrs is required for transport agents, the msg['To'] header is not modified
+        # server.sendmail(FROM_EMAIL,toaddrs, msg)
         server.sendmail(FROM_EMAIL,toaddrs, msg)
         server.quit()
 

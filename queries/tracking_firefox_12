@@ -1,3 +1,0 @@
-query_name = 'beta'
-priority = 1
-query_url = 'https://bugzilla.mozilla.org/buglist.cgi?field0-3-0=cf_status_firefox12;type0-1-0=notequals;value0-4-0=verified;field0-1-0=cf_status_firefox12;field0-0-0=cf_tracking_firefox12;type0-4-0=notequals;value0-3-0=unaffected;query_format=advanced;value0-2-0=fixed;value0-1-0=wontfix;type0-3-0=notequals;field0-2-0=cf_status_firefox12;field0-4-0=cf_status_firefox12;type0-0-0=equals;value0-0-0=%2B;type0-2-0=notequals;list_id=2779844'
