@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 """
 A script for automated nagging emails listing all the bugs being tracked by certain queries
+
 These can be collated into several 'queries' through the use of multiple query files with 
 a 'query_name' param set eg: 'Bugs tracked for Firefox Beta (13)'
+
 Once the bugs have been collected from bugzilla they are sorted into buckets by assignee manager
 and an email can be sent out to the assignees, cc'ing their manager about which bugs are being tracked
 for each query
@@ -173,10 +175,10 @@ def sendMail(toaddrs,msg,dryrun=False):
     if dryrun:
         print "\n****************************\n* DRYRUN: not sending mail *\n****************************\n"
     else:
+        ## if msgs get put in SPAM, see https://bugzil.la/756259#c35 
         server = smtplib.SMTP(SMTP)
         server.set_debuglevel(1)
         # note: toaddrs is required for transport agents, the msg['To'] header is not modified
-        # server.sendmail(FROM_EMAIL,toaddrs, msg)
         server.sendmail(FROM_EMAIL,toaddrs, msg)
         server.quit()
 
