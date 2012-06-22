@@ -1,0 +1,13 @@
+We're reaching out to you because there are bugs with unfixed changes that are tracked as also affecting the upcoming ESR 10.0.6 (Shipping with FF14) which need your attention.
+
+Please take a look at the following bugs and, where applicable, nominate patches for mozilla-beta as well as ESR branch landing, update status flags, and/or land approved patches.
+
+NOTE: Anything requiring mozilla-beta approval/landing is first priority, since we'd like the ready fixes to land in our next Beta, going to build Tuesday 6/26.
+{% for name, results in queries.items() %}
+= {{name}} =
+{% for bug in results.buglist -%}
+* {{ bug.id }} {% if show_summary %} - {{ bug.summary }} {% endif %} (assigned to {{ bug.assignee }})
+{% endfor %}{% endfor %}
+
+Sincerely,
+Release Management

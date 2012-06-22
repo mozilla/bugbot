@@ -25,13 +25,14 @@ from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates'))
 
 FROM_EMAIL = 'release-mgmt@mozilla.com'
+EMAIL_SUBJECT = 'Tracked Security Bugs Roundup'
 SMTP = 'smtp.mozilla.org'
 people = phonebook.PhonebookDirectory()
 
 # TODO - get the wiki output working, rename (generic) this script and clean up
 # TODO - for wiki page generation, just post counts of certain query results (and their queries) eg: how many unverified fixed bugs for esr10?
 # TODO - write some tests
-# TODO - look into knocking out duplicated bugs in queries
+# TODO - look into knocking out duplicated bugs in queries -- perhaps print out if there are dupes in queries when queries > 1
 
 class Channel:
     def __init__(self, name="", bugs=[]):
@@ -158,7 +159,7 @@ def generateEmailOutput(queries, template, show_summary=False, show_comment=Fals
         for email in toaddrs:
             if email in cc_list:
                 toaddrs.remove(email)
-    message_subject = 'Tracked Bugs Roundup'
+    message_subject = EMAIL_SUBJECT
     message = ("From: %s\r\n" % FROM_EMAIL
         + "To: %s\r\n" % ",".join(toaddrs)
         + "CC: %s\r\n" % ",".join(cc_list)
