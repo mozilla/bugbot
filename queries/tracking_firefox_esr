@@ -1,2 +1,2 @@
-query_name = 'Bugs tracked for ESR 10 (Shipping with Firefox 13)'
-query_url = 'https://bugzilla.mozilla.org/buglist.cgi?type0-1-0=notequals;list_id=3082614;field0-1-0=cf_status_esr10;field0-0-0=cf_tracking_esr10;query_based_on=ESR-land-NOW;query_format=advanced;value0-2-0=verified;value0-1-0=fixed;field0-2-0=cf_status_esr10;type0-0-0=equals;value0-0-0=13%2B;type0-2-0=notequals'
+query_name = 'Bugs tracked for ESR 10 (Shipping with Firefox 14)'
+query_url = 'https://bugzilla.mozilla.org/buglist.cgi?type0-1-0=notequals;list_id=3082614;field0-1-0=cf_status_esr10;field0-0-0=cf_tracking_esr10;query_based_on=ESR-land-NOW;query_format=advanced;value0-2-0=verified;value0-1-0=fixed;field0-2-0=cf_status_esr10;type0-0-0=equals;value0-0-0=14%2B;type0-2-0=notequals'

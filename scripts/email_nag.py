@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 """
 A script for automated nagging emails listing all the bugs being tracked by certain queries
-
 These can be collated into several 'queries' through the use of multiple query files with 
 a 'query_name' param set eg: 'Bugs tracked for Firefox Beta (13)'
-
 Once the bugs have been collected from bugzilla they are sorted into buckets by assignee manager
 and an email can be sent out to the assignees, cc'ing their manager about which bugs are being tracked
 for each query
@@ -149,9 +147,10 @@ def generateEmailOutput(queries, template, show_summary=False, show_comment=Fals
                     
     message_body = template.render(queries=template_params, show_summary=show_summary, show_comment=show_comment)
     # is our only email to a manager? then only cc the FROM_EMAIL
-    if len(toaddrs) == 1:
-        if cc_list == None:
+    manager = dict(people.people[manager_email])
+    if len(toaddrs) == 1 and toaddrs[0] == manager_email or toaddrs[0] == manager.get('bugzillaMail'):
             cc_list = [FROM_EMAIL]
+            print "Debug, not cc'ing a manager"
     else:
         if cc_list == None:
             cc_list = [manager_email, FROM_EMAIL]
@@ -175,7 +174,6 @@ def sendMail(toaddrs,msg,dryrun=False):
     if dryrun:
         print "\n****************************\n* DRYRUN: not sending mail *\n****************************\n"
     else:
-        ## if msgs get put in SPAM, see https://bugzil.la/756259#c35 
         server = smtplib.SMTP(SMTP)
         server.set_debuglevel(1)
         # note: toaddrs is required for transport agents, the msg['To'] header is not modified
