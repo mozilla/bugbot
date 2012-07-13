@@ -6,7 +6,7 @@ NOTE: Anything requiring mozilla-beta approval/landing is first priority, since 
 {% for name, results in queries.items() %}
 = {{name}} =
 {% for bug in results.buglist -%}
-* {{ bug.id }} {% if show_summary %} - {{ bug.summary }} {% endif %} (assigned to {{ bug.assignee }})
+* https://bugzil.la/{{ bug.id }} {% if show_summary %} - {{ bug.summary }} {% endif %} (assigned to {{ bug.assignee }})
 {% endfor %}{% endfor %}
 
 Sincerely,

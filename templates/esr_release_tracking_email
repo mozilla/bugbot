@@ -1,10 +1,9 @@
-We're reaching out to you because there are tracked bugs still affecting ESR 10.0.5 (Shipping with FF13) which need your attention.
+We're reaching out to you because there are tracked bugs still affecting ESR 10.0.6 (Shipping with FF14) which need your attention.
 
-Please take a look at the following bugs and, where applicable, nominate patches for ESR branch landing, update status flags, and/or landh approved patches:
-
+Please take a look at the following bugs and, where applicable, nominate patches for ESR branch landing, update status flags, and/or land approved patches:
 {% for name, results in queries.items() %}
 {% for bug in results.buglist -%}
-* {{ bug.id }} {% if show_summary %} - {{ bug.summary }} {% endif %} (assigned to {{ bug.assignee }})
+* https://bugzil.la/{{ bug.id }} {% if show_summary %} - {{ bug.summary }} {% endif %} (assigned to {{ bug.assignee }})
 {% endfor %}{% endfor %}
 
 Sincerely,

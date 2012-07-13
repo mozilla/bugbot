@@ -25,7 +25,7 @@ from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates'))
 
 FROM_EMAIL = 'release-mgmt@mozilla.com'
-EMAIL_SUBJECT = 'Tracked Security Bugs Roundup'
+EMAIL_SUBJECT = 'Tracked ESR Bugs Roundup'
 SMTP = 'smtp.mozilla.org'
 people = phonebook.PhonebookDirectory()
 
