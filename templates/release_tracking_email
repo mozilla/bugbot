@@ -1,14 +1,14 @@
-Thanks to http://bugzil.la/756259 many of last week's reminder emails may have ended up in your Zimbra junk folder marked ** SPAM ** so we're reaching out to you (again) because there are unresolved bugs tracked for FF14/15 assigned to your team.
+We're reaching out to you because there are unresolved bugs tracked for FF15/16 assigned to your team.
 
 = Upcoming Scheduling =
-* Our third FF14 beta will be next Friday, 6/22
-* FF14 code freeze will be Friday 7/6
-* Our FINAL 14 beta will go to build on Monday 7/9
-* FF14 will be released, and FF15 will be on the Beta Channel on 7/17
+* Our second FF15 beta will go to build next Tuesday, 7/24
+* FF15 code freeze will be Friday 8/17
+* Our FINAL 15 beta will go to build on Monday 8/20
+* FF15 will be released on 8/28, and FF16 will be on the Beta Channel on 8/27
 
 = Next Actions =
 * Let us know if we should consider untracking for release, if your  investigation is blocked, or we can be of any other assistance (in Bugzilla or email)
-* Please prioritize bugs tracked for FF14 over bugs tracked for FF15 over other work landing on mozilla-central
+* Please prioritize bugs tracked for FF15 over bugs tracked for FF16 over other work landing on mozilla-central
 
 {% for name, results in queries.items() %}
 = {{ name }} =
@@ -17,8 +17,8 @@ Thanks to http://bugzil.la/756259 many of last week's reminder emails may have e
 {% endfor %}{% endfor %}
 
 = Full Tracked Bug Lists =
-* Tracked for FF14 and unfixed (including security bugs): http://mzl.la/IVFeXG
 * Tracked for FF15 and unfixed (including security bugs): http://mzl.la/NBT1Zz
+* Tracked for FF16 and unfixed (including security bugs): http://mzl.la/Nj1Bgt
 
 Sincerely,
 Release Management
