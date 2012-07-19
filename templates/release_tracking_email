@@ -13,7 +13,7 @@ We're reaching out to you because there are unresolved bugs tracked for FF15/16 
 {% for name, results in queries.items() %}
 = {{ name }} =
 {% for bug in results.buglist -%}
-* {{ bug.id }} {% if show_summary %} - {{ bug.summary }} {% endif %} (assigned to {{ bug.assignee }})
+* https://bugzil.la/{{ bug.id }} {% if show_summary %} - {{ bug.summary }} {% endif %} (assigned to {{ bug.assignee }})
 {% endfor %}{% endfor %}
 
 = Full Tracked Bug Lists =
