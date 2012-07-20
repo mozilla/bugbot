@@ -1,31 +1,28 @@
 = Triage =
-{{ channel_mtg_info }}
-== Approvals needing Channel Attention ==
+{% for channel,info in channel_info.items() %}
+{% if info.needs_attention %}
+== {{ channel }} bugs needing attention ==
 # Keyworded with #relman/triage/defer-to-group using mediawiki bz extension
 <bugzilla>
 {
- "id": {% for bug in approval_attention %}"{{ bug.id }},"{% endfor %}
+ "id": {% for bug in info.needs_attention %}"{{ bug.id }},"{% endfor %}
 }
 </bugzilla>
-
-{% for channel in results %}
-== Bugs marked for {{ channel.name }} Discussion ==
+{% endif %}
+{% if info.qawanted %}
+== Tracking for {{ channel }} and QA Wanted for more than x days ==
 <bugzilla>
 {
- "id": {% for bug in channel.bugs.mtg_attention %}"{{ bug.id }},"{% endfor %}
+ "id": {% for bug in info.qawanted %}"{{ bug.id }},"{% endfor %}
 }
 </bugzilla>
-== Tracking {{ channel.name }} without Recent Comment ==
-3/5 days without comment by assignee or manager
-    {% for m in channel.managers %}
-    {# note: escaping the wiki bug template with '{{' and '}}"  #}
-    === {{ m.name }}'s Team ===
-        {% for bug in m.bugs %}* '{{'bug|{{ bug.id }}'}}' - assignee : {{ bug.assignee }} - keywords: {{ bug.keywords }} - whiteboard: {{ bug.whiteboard }} {% endfor %}
+{% endif %}
+== Tracking {{ channel }} without Recent Comment ==
+{% if days_since_comment > -1 %}# days without comment by assignee or manager: {{ days_since_comment }}{% endif %}
+{% for m in info.managers %}
+{# note: escaping the wiki bug template with '{{' and '}}"  #}
+=== {{ m.name }} ===
+    {% for bug in m.bugs %}* [https://bugzil.la/{{ bug.id }} {{ bug.id }}] - assignee : {{ bug.assigned_to.real_name }} - keywords: {{ bug.keywords }}{% if bug.whiteboard %} - whiteboard: {{ bug.whiteboard }} {% endif %}
     {% endfor %}
-== Tracking for {{ channel.name }} and QA Wanted for more than x days ==
-<bugzilla>
-{
- "id": {% for bug in channel.qawanted %}"{{ bug.id }},"{% endfor %}
-}
-</bugzilla>
+{% endfor %}
 {% endfor %}

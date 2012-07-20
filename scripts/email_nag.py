@@ -34,35 +34,23 @@ people = phonebook.PhonebookDirectory()
 # TODO - write some tests
 # TODO - look into knocking out duplicated bugs in queries -- perhaps print out if there are dupes in queries when queries > 1
 
-class Channel:
-    def __init__(self, name="", bugs=[]):
-        self.name = name
-        self.bugs = bugs
-
-    def to_dict(self):
-        d = {
-            'name': self.name,
-            'bugs': self.bugs
-        }
-        return d
-
-class Manager:
-    def __init__(self, name="", bugs=[]):
-        self.name = name
-        self.bugs = bugs
-    def to_dict(self):
-        d = {
-            'name': self.name,
-            'bugs': self.bugs
-        }
-        return d
+def get_last_manager_comment(comments, manager):
+    # go through in reverse order to get most recent
+    for comment in comments[::-1]:
+        if person != None:
+            if comment.creator.name == manager['mozillaMail'] or comment.creator.name == manager['bugzillaEmail']:
+                # DEBUG 
+                # print "Found last manager (%s) comment on bug. %s" % (comment.creator.real_name, comment.creation_time.replace(tzinfo=None))
+                return comment.creation_time.replace(tzinfo=None)
+    return None
 
 def get_last_assignee_comment(comments, person):
     # go through in reverse order to get most recent
     for comment in comments[::-1]:
         if person != None:
             if comment.creator.name == person['mozillaMail'] or comment.creator.name == person['bugzillaEmail']:
-                print "Found last assignee (%s) comment on bug. %s" % (comment.creator.real_name, comment.creation_time.replace(tzinfo=None))
+                # DEBUG
+                # print "Found last assignee (%s) comment on bug. %s" % (comment.creator.real_name, comment.creation_time.replace(tzinfo=None))
                 return comment.creation_time.replace(tzinfo=None)
     return None
 
@@ -77,50 +65,48 @@ def query_url_to_dict(url):
 
     return d
 
-def generateWikiOutput(queries, template, managers=None, keywords=None):
+def generateWikiOutput(queries, template, managers=None, keywords=None, days_since_comment=-1):
     """ TODO: reorganize the dictionary based on wiki request
-    
-    {   
-        'channels': {
+    channel_info = {
             'name': {
                 'managers': {
                     'bugs': [],
                     'name': "manager_name",
                 },
+                
                 # keyword bug lists
                 'needs_attention': [],
                 'qawanted': [],
             }
-        }
     }
     """
     template = env.get_template(template.replace('templates/', '', 1))
-    
-    bugs = []
-    
-    # queries = { 'query_name': { 'priority': "", 'bugs': [] } }
-    # managers = { 'manager_email': { 'nagging': { 'query': { 'bugs': [] } } } }
+    channel_info = {}
+    for query_name, info in queries.items():
+        channel_name = info['channel']
+        channel_info[channel_name] = {
+            'managers': [],
+            'needs_attention': None,
+            'qawanted': None,
+        }
+        
+        channel_bugs = info['bugs']
 
-    # TODO - create the dictionary here
-    channel_info = ChannelInfo()
-    # pull keyword bugs
-    for name,info in queries.items():
-        channel_info.channels = []
-        channel_info.channels.append({ 'name': name})
-        for keyword in keywords:
-            channel_mtg_info['channels'][name][keyword] = []
-            for bug in info['bugs']:
-                if keyword in bug.keywords:
-                    channel_mtg_info['channels'][name][keyword].append(bug)
-                    
-    for email,info in managers.items():
-        person = dict(people.people[email])
-        manager = Manager(name=person['name'])
-        if info.has_key('nagging'):
-            for query_name in info['nagging'].keys():
-                manager.bugs = info['nagging'][query_name]['bugs']
-                channel_mtg_info['channels'][query_name]['managers'].append(manager.to_dict())
-    return template.render(channel_info=channel_info)
+        # sift out the bugs with known managers
+        for manager_email in managers.keys():
+            if managers[manager_email].has_key('nagging'):
+                manager_name = managers[manager_email].get('name','no_name')
+                if managers[manager_email]['nagging'].has_key(query_name):
+                    manager_bugs = managers[manager_email]['nagging'][query_name].get('bugs')
+                    channel_info[channel_name]['managers'].append({'name':manager_name,'bugs':manager_bugs})
+                
+        # TODO filter out bugs that have gone into manager list
+        # the rest go in a no-manager pool
+        channel_info[channel_name]['managers'].append({'name':'General','bugs':channel_bugs})
+
+        # TODO also check for 'qawanted', 'relman-channel-meeting'
+
+    return template.render(channel_info=channel_info, days_since_comment=days_since_comment)
 
 def generateEmailOutput(queries, template, show_summary=False, show_comment=False, manager_email=None, 
                     cc_list=None):
@@ -253,7 +239,7 @@ if __name__ == '__main__':
             execfile(query, info)
             query_name = info['query_name']
             collected_queries[query_name] = {
-                'priority' : info.get('priority', 1),
+                'channel': info.get('query_channel', ''),
                 'bugs' : [],
                 }
             if info.has_key('query_params'):
@@ -309,18 +295,26 @@ if __name__ == '__main__':
             
             # kick bug out if days since comment check is on
             if options.days_since_comment != -1:
-                # try to get last_comment by assignee
+                # try to get last_comment by assignee & manager
                 if person != None:
                     last_comment = get_last_assignee_comment(bug.comments, person)
+                    if person.has_key('manager') and person['manager'] != None:
+                        manager_email = person['manager']['dn'].split('mail=')[1].split(',')[0]
+                        manager = people.people[manager_email]
+                        last_manager_comment = get_last_manager_comment(bug.comments, people.people_by_bzmail[manager['bugzillaEmail']])
+                        # set last_comment to the most recent of last_assignee and last_manager
+                        if last_manager_comment != None and last_comment != None and last_manager_comment > last_comment:
+                            last_comment = last_manager_comment
                 # otherwise just get the last comment
                 else:
-                    print "Nothing from assignee, using last comment %s" % bug.comments[-1].creation_time.replace(tzinfo=None)
+                    # DEBUG 
+                    # print "Nothing from assignee, using last comment %s" % bug.comments[-1].creation_time.replace(tzinfo=None)
                     last_comment = bug.comments[-1].creation_time.replace(tzinfo=None)
                 if last_comment != None:
                     timedelta = datetime.now() - last_comment
                     if timedelta.days <= int(options.days_since_comment):
                         if options.verbose:
-                            print "Skipping bug %s since it's had a comment within the past %s days" % (bug.id, options.days_since_comment)
+                            print "Skipping bug %s since it's had an assignee or manager comment within the past %s days" % (bug.id, options.days_since_comment)
                         send_mail = False
                         counter = counter - 1
                         manual_notify.remove(bug)
@@ -377,7 +371,8 @@ if __name__ == '__main__':
             queries=collected_queries,
             template=options.template,
             managers=managers,
-            keywords=options.keywords)
+            keywords=options.keywords,
+            days_since_comment=options.days_since_comment)
         print msg
     else:
         # Get yr nag on!
