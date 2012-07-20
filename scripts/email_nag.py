@@ -29,10 +29,10 @@ EMAIL_SUBJECT = 'Tracked Bugs Roundup'
 SMTP = 'smtp.mozilla.org'
 people = phonebook.PhonebookDirectory()
 
-# TODO - get the wiki output working, rename (generic) this script and clean up
-# TODO - for wiki page generation, just post counts of certain query results (and their queries) eg: how many unverified fixed bugs for esr10?
-# TODO - write some tests
+# TODO - keyword groupings for wiki output (and maybe for emails too?)
+# TODO - write tests!
 # TODO - look into knocking out duplicated bugs in queries -- perhaps print out if there are dupes in queries when queries > 1
+# TODO - for wiki page generation, just post counts of certain query results (and their queries) eg: how many unverified fixed bugs for esr10?
 
 def get_last_manager_comment(comments, manager):
     # go through in reverse order to get most recent
@@ -90,9 +90,7 @@ def generateWikiOutput(queries, template, managers=None, keywords=None, days_sin
             'qawanted': None,
         }
         
-        channel_bugs = info['bugs']
-
-        # sift out the bugs with known managers
+        # sift out the manager bugs that haven't had comment lately
         for manager_email in managers.keys():
             if managers[manager_email].has_key('nagging'):
                 manager_name = managers[manager_email].get('name','no_name')
@@ -100,11 +98,14 @@ def generateWikiOutput(queries, template, managers=None, keywords=None, days_sin
                     manager_bugs = managers[manager_email]['nagging'][query_name].get('bugs')
                     channel_info[channel_name]['managers'].append({'name':manager_name,'bugs':manager_bugs})
                 
-        # TODO filter out bugs that have gone into manager list
-        # the rest go in a no-manager pool
-        channel_info[channel_name]['managers'].append({'name':'General','bugs':channel_bugs})
+        # filter out bugs that are unassigned
+        unassigned_bugs = []
+        for bug in info['bugs']:
+            if bug.assigned_to.real_name != None and bug.assigned_to.real_name[:6] == 'Nobody':
+                unassigned_bugs.append(bug)
+        channel_info[channel_name]['managers'].append({'name':'Unassigned','bugs':unassigned_bugs})
 
-        # TODO also check for 'qawanted', 'relman-channel-meeting'
+        # TODO also check for 'qawanted', 'topcrash', 'startupcrash', 'relman-channel-meeting'
 
     return template.render(channel_info=channel_info, days_since_comment=days_since_comment)
 
@@ -180,7 +181,7 @@ if __name__ == '__main__':
         queries=[],
         days_since_comment=-1,
         verbose=False,
-        keywords=[],
+        keywords=None,
         )
     parser.add_argument("-d", "--dryrun", dest="dryrun", action="store_true",
             help="just do the query, and print emails to console without emailing anyone")
