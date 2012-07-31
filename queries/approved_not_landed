@@ -1,0 +1,3 @@
+query_channel = 'Beta'
+query_name = 'Bugs approved for Beta, not landed yet'
+query_url = 'https://bugzilla.mozilla.org/buglist.cgi?type1-0-0=substring;type0-1-0=nowordssubstr;list_id=3875538;field0-1-0=cf_status_firefox15;field0-0-0=flagtypes.name;value0-1-0=verified%2Cfixed%2Cunaffected%2Cwontfix;type0-0-0=substring;value0-0-0=approval-mozilla-beta%2B;type0-2-0=changedafter;known_name=beta-approved-not-landed;negate1=1;type1-0-1=anywordssubstr;value1-0-1=verified%2Cfixed;query_based_on=beta-approved-not-landed;query_format=advanced;value0-2-0=07-17-2012;value1-0-0=core-security;field0-2-0=flagtypes.name;field1-0-0=bug_group;field1-0-1=cf_status_firefox14'

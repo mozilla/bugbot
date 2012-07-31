@@ -25,7 +25,7 @@ from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates'))
 
 FROM_EMAIL = 'release-mgmt@mozilla.com'
-EMAIL_SUBJECT = 'Tracked Bugs Roundup'
+EMAIL_SUBJECT = 'Tracked Security Bugs Roundup'
 SMTP = 'smtp.mozilla.org'
 people = phonebook.PhonebookDirectory()
 
@@ -127,11 +127,13 @@ def generateEmailOutput(queries, template, show_summary=False, show_comment=Fals
                     #'comment': bug.comments[-1].creation_time.replace(tzinfo=None),
                     'assignee': bug.assigned_to.real_name
             })
-            if bug.assigned_to.name != 'general@js.bugs':
-                if people.people_by_bzmail.has_key(bug.assigned_to.name):
-                    person = dict(people.people_by_bzmail[bug.assigned_to.name])
-                    if person['mozillaMail'] not in toaddrs:
-                        toaddrs.append(person['mozillaMail'])
+            # more hacking for JS special casing
+            if bug.assigned_to.name == 'general@js.bugs' and 'dmandelin@mozilla.com' not in toaddrs:
+                toaddrs.append('dmandelin@mozilla.com')
+            if people.people_by_bzmail.has_key(bug.assigned_to.name):
+                person = dict(people.people_by_bzmail[bug.assigned_to.name])
+                if person['mozillaMail'] not in toaddrs:
+                    toaddrs.append(person['mozillaMail'])
                     
     message_body = template.render(queries=template_params, show_summary=show_summary, show_comment=show_comment)
     # is our only email to a manager? then only cc the FROM_EMAIL
