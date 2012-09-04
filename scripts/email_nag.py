@@ -24,8 +24,8 @@ import phonebook
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates'))
 
-FROM_EMAIL = 'release-mgmt@mozilla.com'
-EMAIL_SUBJECT = 'Tracked Security Bugs Roundup'
+REPLY_TO_EMAIL = 'release-mgmt@mozilla.com'
+EMAIL_SUBJECT = 'Bugs tracked for FF16/17 (ignore previous email)'
 SMTP = 'smtp.mozilla.org'
 people = phonebook.PhonebookDirectory()
 
@@ -136,22 +136,23 @@ def generateEmailOutput(queries, template, show_summary=False, show_comment=Fals
                     toaddrs.append(person['mozillaMail'])
                     
     message_body = template.render(queries=template_params, show_summary=show_summary, show_comment=show_comment)
-    # is our only email to a manager? then only cc the FROM_EMAIL
+    # is our only email to a manager? then only cc the REPLY_TO_EMAIL
     manager = dict(people.people[manager_email])
     if len(toaddrs) == 1 and toaddrs[0] == manager_email or toaddrs[0] == manager.get('bugzillaMail'):
-            cc_list = [FROM_EMAIL]
+            cc_list = [REPLY_TO_EMAIL]
             print "Debug, not cc'ing a manager"
     else:
         if cc_list == None:
-            cc_list = [manager_email, FROM_EMAIL]
+            cc_list = [manager_email, REPLY_TO_EMAIL]
         # no need to send to as well as cc a manager
         for email in toaddrs:
             if email in cc_list:
                 toaddrs.remove(email)
     message_subject = EMAIL_SUBJECT
-    message = ("From: %s\r\n" % FROM_EMAIL
+    message = ("From: %s\r\n" % REPLY_TO_EMAIL
         + "To: %s\r\n" % ",".join(toaddrs)
         + "CC: %s\r\n" % ",".join(cc_list)
+        + "Reply-To: %s\r\n" % REPLY_TO_EMAIL
         + "Subject: %s\r\n" % message_subject
         + "\r\n" 
         + message_body)
@@ -160,14 +161,15 @@ def generateEmailOutput(queries, template, show_summary=False, show_comment=Fals
     return toaddrs,message
 
 
-def sendMail(toaddrs,msg,dryrun=False):
+def sendMail(toaddrs,msg,username,password,dryrun=False):
     if dryrun:
         print "\n****************************\n* DRYRUN: not sending mail *\n****************************\n"
     else:
-        server = smtplib.SMTP(SMTP)
+        server = smtplib.SMTP_SSL(SMTP, 465)
         server.set_debuglevel(1)
+        server.login(username, password)
         # note: toaddrs is required for transport agents, the msg['To'] header is not modified
-        server.sendmail(FROM_EMAIL,toaddrs, msg)
+        server.sendmail(username,toaddrs, msg)
         server.quit()
 
 if __name__ == '__main__':
@@ -187,8 +189,10 @@ if __name__ == '__main__':
         )
     parser.add_argument("-d", "--dryrun", dest="dryrun", action="store_true",
             help="just do the query, and print emails to console without emailing anyone")
-    parser.add_argument("-u", "--username", dest="username",
-            help="specify a specific username for bugzilla")
+    parser.add_argument("-m", "--mozilla-email", dest="mozilla_mail",
+            help="specify a specific address for sending email"),
+    parser.add_argument("-p", "--email-password", dest="email_password",
+            help="specify a specific password for sending email")
     parser.add_argument("-t", "--template", dest="template", required=True,
             help="template to use for the buglist output")
     parser.add_argument("-e", "--email-cc-list", dest="email_cc_list",
@@ -409,8 +413,11 @@ if __name__ == '__main__':
                     os.remove(tempfilename)
     
                 if inp == 'y' or inp == 'Y':
+                    if options.email_password == None or options.mozilla_mail == None:
+                        print "Please supply a username/password (-u, -p) for sending email"
+                        sys.exit(1)
                     print "SENDING EMAIL"
-                    sendMail(toaddrs,msg,options.dryrun)
+                    sendMail(toaddrs,msg,options.mozilla_mail,options.email_password,options.dryrun)
                     sent_bugs = 0
                     for query, info in info['nagging'].items():
                         sent_bugs += len(info['bugs'])

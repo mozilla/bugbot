@@ -1,14 +1,17 @@
-We're reaching out to you because there are unresolved security bugs (including ESR) and/or unlanded uplift patches tracked for FF15/16 assigned to your team.
+We're reaching out to you because there are unresolved bugs tracked for FF16/17 assigned to your team.
 
 = Upcoming Scheduling =
-* Our third FF15 beta will go to build tomorrow, 7/31
-* FF15 code freeze will be Friday 8/17
-* Our FINAL 15 beta will go to build on Monday 8/20
-* FF15 will be released on 8/28, and FF16 will be on the Beta Channel on 8/27
+* FF16 beta 2 went to build this morning, and will be released this week
+** Mobile Notice: This is the first build to support ARMv6
+** Desktop Notice: We are planning to support Win8 Classic in FF16
+
+* FF16 beta 4 will go to build on 9/18 - this is our last opportunity for speculative fixes
+* FF16 will code freeze on 9/25
+* FF16 will be released, and FF17 will be on the Beta Channel, on 10/9
 
 = Next Actions =
 * Let us know if we should consider untracking for release, if your  investigation is blocked, or we can be of any other assistance (in Bugzilla or email)
-* Please prioritize bugs tracked for FF15 over bugs tracked for FF16 over other work landing on mozilla-central
+* Please prioritize bugs tracked for FF16 over bugs tracked for FF17 over other work landing on mozilla-central
 
 {% for name, results in queries.items() %}
 = {{ name }} =
@@ -17,8 +20,8 @@ We're reaching out to you because there are unresolved security bugs (including 
 {% endfor %}{% endfor %}
 
 = Full Tracked Bug Lists =
-* Tracked for FF15 and unfixed (including security bugs): http://mzl.la/NBT1Zz
-* Tracked for FF16 and unfixed (including security bugs): http://mzl.la/Nj1Bgt
+* Tracked for FF16 and unfixed: http://mzl.la/Nj1Bgt
+* Tracked for FF17 and unfixed: http://mzl.la/OQqlsA
 
 Sincerely,
 Release Management
