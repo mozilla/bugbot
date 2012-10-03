@@ -25,7 +25,7 @@ from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates'))
 
 REPLY_TO_EMAIL = 'release-mgmt@mozilla.com'
-EMAIL_SUBJECT = 'Bugs tracked for FF16/17 (ignore previous email)'
+EMAIL_SUBJECT = 'Bugs tracked for Firefox 17 - Soon to be on Beta Channel'
 SMTP = 'smtp.mozilla.org'
 people = phonebook.PhonebookDirectory()
 
