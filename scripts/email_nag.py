@@ -139,11 +139,17 @@ def generateEmailOutput(queries, template, show_summary=False, show_comment=Fals
     # is our only email to a manager? then only cc the REPLY_TO_EMAIL
     manager = dict(people.people[manager_email])
     if len(toaddrs) == 1 and toaddrs[0] == manager_email or toaddrs[0] == manager.get('bugzillaMail'):
+        if toaddrs[0] == 'dmandelin@mozilla.com':
+            cc_list = [REPLY_TO_EMAIL, 'danderson@mozilla.com','nihsanullah@mozilla.com']
+        else:
             cc_list = [REPLY_TO_EMAIL]
-            print "Debug, not cc'ing a manager"
+        print "Debug, not cc'ing a manager"
     else:
         if cc_list == None:
-            cc_list = [manager_email, REPLY_TO_EMAIL]
+            if manager_email == 'dmandelin@mozilla.com':
+                cc_list = [manager_email, REPLY_TO_EMAIL, 'danderson@mozilla.com', 'nihsanullah@mozilla.com']
+            else:
+                cc_list = [manager_email, REPLY_TO_EMAIL]
         # no need to send to as well as cc a manager
         for email in toaddrs:
             if email in cc_list:
