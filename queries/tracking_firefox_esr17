@@ -1,0 +1,2 @@
+query_name = 'Bugs fixed on Firefox 18, tracked for ESR 17.0.2 (Shipping with Firefox 18)'
+query_url = 'https://bugzilla.mozilla.org/buglist.cgi?type1-0-0=notequals;type0-1-0=nowordssubstr;list_id=5217762;field0-1-0=cf_status_firefox_esr17;field0-0-0=cf_tracking_firefox_esr17;query_format=advanced;value0-1-0=fixed%20verified%20disabled%20wontfix%20unaffected;value1-0-0=18%2B;type0-0-0=equals;value0-0-0=18%2B;field1-0-0=cf_tracking_esr10'

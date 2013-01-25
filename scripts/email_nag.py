@@ -25,7 +25,7 @@ from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates'))
 
 REPLY_TO_EMAIL = 'release-mgmt@mozilla.com'
-EMAIL_SUBJECT = 'Bugs tracked for Firefox 17 - Soon to be on Beta Channel'
+EMAIL_SUBJECT = ''
 SMTP = 'smtp.mozilla.org'
 people = phonebook.PhonebookDirectory()
 
@@ -39,8 +39,6 @@ def get_last_manager_comment(comments, manager):
     for comment in comments[::-1]:
         if person != None:
             if comment.creator.name == manager['mozillaMail'] or comment.creator.name == manager['bugzillaEmail']:
-                # DEBUG 
-                # print "Found last manager (%s) comment on bug. %s" % (comment.creator.real_name, comment.creation_time.replace(tzinfo=None))
                 return comment.creation_time.replace(tzinfo=None)
     return None
 
@@ -49,8 +47,6 @@ def get_last_assignee_comment(comments, person):
     for comment in comments[::-1]:
         if person != None:
             if comment.creator.name == person['mozillaMail'] or comment.creator.name == person['bugzillaEmail']:
-                # DEBUG
-                # print "Found last assignee (%s) comment on bug. %s" % (comment.creator.real_name, comment.creation_time.replace(tzinfo=None))
                 return comment.creation_time.replace(tzinfo=None)
     return None
 
@@ -109,18 +105,17 @@ def generateWikiOutput(queries, template, managers=None, keywords=None, days_sin
 
     return template.render(channel_info=channel_info, days_since_comment=days_since_comment)
 
-def generateEmailOutput(queries, template, show_summary=False, show_comment=False, manager_email=None, 
+def generateEmailOutput(subject, queries, template, show_comment=False, manager_email=None, 
                     cc_list=None):
     template_params = {}
-    toaddrs = []   
+    toaddrs = []
 
     # stripping off the templates dir, just in case it gets passed in the args
     template = env.get_template(template.replace('templates/', '', 1))
-    message_body = template.render(queries=template_params, show_summary=show_summary, show_comment=show_comment)
 
-    for query,results in queries.items():
-        template_params[query] = {'buglist': []}
-        for bug in results['bugs']:
+    for query in queries.keys():
+        template_params[query] = {'buglist': [], 'show_summary': queries[query].get('show_summary', 0)}
+        for bug in queries[query]['bugs']:
             template_params[query]['buglist'].append({
                     'id':bug.id,
                     'summary':bug.summary,
@@ -135,12 +130,11 @@ def generateEmailOutput(queries, template, show_summary=False, show_comment=Fals
                 if person['mozillaMail'] not in toaddrs:
                     toaddrs.append(person['mozillaMail'])
                     
-    message_body = template.render(queries=template_params, show_summary=show_summary, show_comment=show_comment)
+    message_body = template.render(queries=template_params, show_comment=show_comment)
     # is our only email to a manager? then only cc the REPLY_TO_EMAIL
     manager = dict(people.people[manager_email])
     if len(toaddrs) == 1 and toaddrs[0] == manager_email or toaddrs[0] == manager.get('bugzillaMail'):
             cc_list = [REPLY_TO_EMAIL]
-            print "Debug, not cc'ing a manager"
     else:
         if cc_list == None:
             cc_list = [manager_email, REPLY_TO_EMAIL]
@@ -148,12 +142,11 @@ def generateEmailOutput(queries, template, show_summary=False, show_comment=Fals
         for email in toaddrs:
             if email in cc_list:
                 toaddrs.remove(email)
-    message_subject = EMAIL_SUBJECT
     message = ("From: %s\r\n" % REPLY_TO_EMAIL
         + "To: %s\r\n" % ",".join(toaddrs)
         + "CC: %s\r\n" % ",".join(cc_list)
         + "Reply-To: %s\r\n" % REPLY_TO_EMAIL
-        + "Subject: %s\r\n" % message_subject
+        + "Subject: %s\r\n" % subject
         + "\r\n" 
         + message_body)
     toaddrs = toaddrs + cc_list
@@ -179,13 +172,14 @@ if __name__ == '__main__':
         username=None,
         password=None,
         wiki=False,
-        show_summary=False,
+        show_summary=0,
         show_comment=False,
         email_cc_list=['release-mgmt@mozilla.com'],
         queries=[],
         days_since_comment=-1,
         verbose=False,
         keywords=None,
+        email_subject=None,
         )
     parser.add_argument("-d", "--dryrun", dest="dryrun", action="store_true",
             help="just do the query, and print emails to console without emailing anyone")
@@ -193,21 +187,24 @@ if __name__ == '__main__':
             help="specify a specific address for sending email"),
     parser.add_argument("-p", "--email-password", dest="email_password",
             help="specify a specific password for sending email")
-    parser.add_argument("-t", "--template", dest="template", required=True,
+    parser.add_argument("-t", "--template", dest="template", 
+            required=True,
             help="template to use for the buglist output")
     parser.add_argument("-e", "--email-cc-list", dest="email_cc_list",
             action="append",
             help="email addresses to include in cc when sending mail")
     parser.add_argument("-q", "--query", dest="queries",
-            action="append",
+            action="append", 
+            required=True,
             help="a file containing a dictionary of a bugzilla query")
     parser.add_argument("-k", "--keyword", dest="keywords",
             action="append",
             help="keywords to collate buglists")
+    parser.add_argument("-s", "--subject", dest="email_subject", 
+            required=True,
+            help="The subject of the email being sent")
     parser.add_argument("--wiki", dest="wiki", action="store_true",
             help="flag to get wiki output to console instead of creating sendable emails")
-    parser.add_argument("--show-summary", dest="show_summary", action="store_true",
-            help="flag to ensure secure bug summaries don't go into output by accident, must explicitly ask to show")
     parser.add_argument("--show-comment", dest="show_comment", action="store_true",
             help="flag to display last comment on a bug in the message output")
     parser.add_argument("--days-since-comment", dest="days_since_comment",
@@ -216,12 +213,6 @@ if __name__ == '__main__':
             help="turn on verbose output")
 
     options, args = parser.parse_known_args()
-    
-    if options.queries == []:
-        parser.error("Need to provide at least one query to run")
-    
-    if options.show_summary:
-        print "\n *****ATTN***** Bug Summaries will be shown in output, be careful when sending emails.\n"
 
     if not options.username:
         # We can use "None" for both instead to not authenticate
@@ -248,13 +239,18 @@ if __name__ == '__main__':
             collected_queries[query_name] = {
                 'channel': info.get('query_channel', ''),
                 'bugs' : [],
+                'show_summary': info.get('show_summary', 0),
                 }
             if info.has_key('query_params'):
                 print "Gathering bugs from query_params in %s" % query
                 collected_queries[query_name]['bugs'] = bmo.get_bug_list(info['query_params'])
             elif info.has_key('query_url'):
-                print "Gathering bugs from query_url in %s" % query
-                collected_queries[query_name]['bugs'] = bmo.get_bug_list(query_url_to_dict(info['query_url'])) 
+                if 'bug_id' in info['query_url']:
+                    print "Getting buglist from buglist query_url in %s" % query
+                    collected_queries[query_name]['bugs'] = bmo.get_bug_list({'bug_id': info['query_url'].split('?')[1]})
+                else:
+                    print "Gathering bugs from query_url in %s" % query
+                    collected_queries[query_name]['bugs'] = bmo.get_bug_list(query_url_to_dict(info['query_url'])) 
             else:
                 print "Error - no valid query params or url in the config file"
                 sys.exit(1)
@@ -271,7 +267,7 @@ if __name__ == '__main__':
     manual_notify = []
     counter = 0
 
-    def add_to_managers(manager_email, query):
+    def add_to_managers(manager_email, query, info={}):
         if managers[manager_email].has_key('nagging'):
             if managers[manager_email]['nagging'].has_key(query):
                 managers[manager_email]['nagging'][query]['bugs'].append(bug)
@@ -283,12 +279,12 @@ if __name__ == '__main__':
                     print "Adding new query key %s for bug %s in nagging and %s" % (query, bug.id, manager_email)
         else:
             managers[manager_email]['nagging'] = {
-                    query : { 'bugs': [bug] },
+                    query : { 'bugs': [bug], 'show_summary': info.get('show_summary', 0) },
                 }
             if options.verbose:
                 print "Creating query key %s for bug %s in nagging and %s" % (query, bug.id, manager_email)
     
-    for query in collected_queries.keys():
+    for query, info in collected_queries.items():
         for b in collected_queries[query]['bugs']:
             counter = counter + 1
             send_mail = True
@@ -314,8 +310,6 @@ if __name__ == '__main__':
                             last_comment = last_manager_comment
                 # otherwise just get the last comment
                 else:
-                    # DEBUG 
-                    # print "Nothing from assignee, using last comment %s" % bug.comments[-1].creation_time.replace(tzinfo=None)
                     last_comment = bug.comments[-1].creation_time.replace(tzinfo=None)
                 if last_comment != None:
                     timedelta = datetime.now() - last_comment
@@ -338,36 +332,36 @@ if __name__ == '__main__':
                 elif 'general@js.bugs' in assignee:
                     if options.verbose:
                         print "No one assigned to JS bug: %s, adding to dmandelin's list..." % bug.id
-                    add_to_managers('dmandelin@mozilla.com', query)
+                    add_to_managers('dmandelin@mozilla.com', query, info)
                 else:
                     if bug.assigned_to.real_name != None:
                         if person != None:
                             # check if assignee is already a manager, add to their own list
                             if managers.has_key(person['mozillaMail']):
-                                add_to_managers(person['mozillaMail'], query)
+                                add_to_managers(person['mozillaMail'], query, info)
                             # otherwise we search for the assignee's manager
                             else:
                                 # check for manager key first, a few people don't have them
                                 if person.has_key('manager') and person['manager'] != None:
                                     manager_email = person['manager']['dn'].split('mail=')[1].split(',')[0]
                                     if managers.has_key(manager_email):
-                                        add_to_managers(manager_email, query)
+                                        add_to_managers(manager_email, query, info)
                                     elif people.vices.has_key(manager_email):
                                         # we're already at the highest level we'll go
                                         if managers.has_key(assignee):
-                                            add_to_managers(assignee, query)
+                                            add_to_managers(assignee, query, info)
                                         else:
                                             if options.verbose:
                                                 print "%s has a V-level for a manager, and is not in the manager list" % assignee
                                             managers[person['mozillaMail']] = {}
-                                            add_to_managers(person['mozillaMail'], query)
+                                            add_to_managers(person['mozillaMail'], query, info)
                                     else:
                                         # try to go up one level and see if we find a manager
                                         if people.people.has_key(manager_email):
                                             person = dict(people.people[manager_email])
                                             manager_email = person['manager']['dn'].split('mail=')[1].split(',')[0]
                                             if managers.has_key(manager_email):
-                                                add_to_managers(manager_email, query)
+                                                add_to_managers(manager_email, query, info)
                                         else:
                                             print "Manager could not be found: %s" % manager_email
                                 else:
@@ -386,10 +380,10 @@ if __name__ == '__main__':
         for email, info in managers.items():
             if info.has_key('nagging'):
                 toaddrs,msg = generateEmailOutput(
+                    subject=options.email_subject,
                     manager_email=email,
                     queries=info['nagging'],
                     template=options.template,
-                    show_summary=options.show_summary,
                     show_comment=options.show_comment)
                 while True:
                     print "\nRelMan Nag is ready to send the following email:\n<------ MESSAGE BELOW -------->"
@@ -414,7 +408,7 @@ if __name__ == '__main__':
     
                 if inp == 'y' or inp == 'Y':
                     if options.email_password == None or options.mozilla_mail == None:
-                        print "Please supply a username/password (-u, -p) for sending email"
+                        print "Please supply a username/password (-m, -p) for sending email"
                         sys.exit(1)
                     print "SENDING EMAIL"
                     sendMail(toaddrs,msg,options.mozilla_mail,options.email_password,options.dryrun)
