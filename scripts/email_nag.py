@@ -110,15 +110,20 @@ def generateEmailOutput(subject, queries, template, show_comment=False, manager_
     template_params = {}
     toaddrs = []
 
+    # Might be able to delete this
     # stripping off the templates dir, just in case it gets passed in the args
     template = env.get_template(template.replace('templates/', '', 1))
 
     for query in queries.keys():
-        template_params[query] = {'buglist': [], 'show_summary': queries[query].get('show_summary', 0)}
+        template_params[query] = {'buglist': []}
         for bug in queries[query]['bugs']:
+            if queries[query]['show_summary'] == '1':
+                summary=bug.summary
+            else:
+                summary=''
             template_params[query]['buglist'].append({
                     'id':bug.id,
-                    'summary':bug.summary,
+                    'summary':summary,
                     #'comment': bug.comments[-1].creation_time.replace(tzinfo=None),
                     'assignee': bug.assigned_to.real_name
             })
@@ -163,6 +168,7 @@ def generateEmailOutput(subject, queries, template, show_comment=False, manager_
 def sendMail(toaddrs,msg,username,password,dryrun=False):
     if dryrun:
         print "\n****************************\n* DRYRUN: not sending mail *\n****************************\n"
+        print msg
     else:
         server = smtplib.SMTP_SSL(SMTP, 465)
         server.set_debuglevel(1)
@@ -178,7 +184,6 @@ if __name__ == '__main__':
         username=None,
         password=None,
         wiki=False,
-        show_summary=0,
         show_comment=False,
         email_cc_list=['release-mgmt@mozilla.com'],
         queries=[],
@@ -186,6 +191,7 @@ if __name__ == '__main__':
         verbose=False,
         keywords=None,
         email_subject=None,
+        no_verification=False,
         )
     parser.add_argument("-d", "--dryrun", dest="dryrun", action="store_true",
             help="just do the query, and print emails to console without emailing anyone")
@@ -217,6 +223,8 @@ if __name__ == '__main__':
             help="threshold to check comments against to take action based on days since comment")
     parser.add_argument("--verbose", dest="verbose", action="store_true",
             help="turn on verbose output")
+    parser.add_argument("--no-verification", dest="no_verification", action="store_true",
+            help="don't wait for human verification of every email")
 
     options, args = parser.parse_known_args()
 
@@ -251,12 +259,8 @@ if __name__ == '__main__':
                 print "Gathering bugs from query_params in %s" % query
                 collected_queries[query_name]['bugs'] = bmo.get_bug_list(info['query_params'])
             elif info.has_key('query_url'):
-                if 'bug_id' in info['query_url']:
-                    print "Getting buglist from buglist query_url in %s" % query
-                    collected_queries[query_name]['bugs'] = bmo.get_bug_list({'bug_id': info['query_url'].split('?')[1]})
-                else:
-                    print "Gathering bugs from query_url in %s" % query
-                    collected_queries[query_name]['bugs'] = bmo.get_bug_list(query_url_to_dict(info['query_url'])) 
+                print "Gathering bugs from query_url in %s" % query
+                collected_queries[query_name]['bugs'] = bmo.get_bug_list(query_url_to_dict(info['query_url'])) 
             else:
                 print "Error - no valid query params or url in the config file"
                 sys.exit(1)
@@ -280,7 +284,7 @@ if __name__ == '__main__':
                 if options.verbose:
                     print "Adding %s to %s in nagging for %s" % (bug.id, query, manager_email)
             else:
-                managers[manager_email]['nagging'][query] = { 'bugs': [bug] }
+                managers[manager_email]['nagging'][query] = { 'bugs': [bug], 'show_summary': info.get('show_summary', 0) }
                 if options.verbose:
                     print "Adding new query key %s for bug %s in nagging and %s" % (query, bug.id, manager_email)
         else:
@@ -335,6 +339,14 @@ if __name__ == '__main__':
                         print "No one assigned to: %s, adding to manual notification list..." % bug.id
                     assignee = None
                 # TODO - get rid of this, SUCH A HACK!
+                elif 'dkeeler@mozilla.com' in assignee:
+                    if options.verbose:
+                        print "David Keeler goes to Sid Stamm's pile"
+                    add_to_managers('sstamm@mozilla.com', query, info)
+                elif 'smichaud@pobox.com' in assignee:
+                    if options.verbose:
+                        print "Stephen Michaud goes to Rob Strong's pile"
+                    add_to_managers('rstrong@mozilla.com', query, info)
                 elif 'general@js.bugs' in assignee:
                     if options.verbose:
                         print "No one assigned to JS bug: %s, adding to dmandelin's list..." % bug.id
@@ -384,6 +396,7 @@ if __name__ == '__main__':
     else:
         # Get yr nag on!
         for email, info in managers.items():
+            inp = ''
             if info.has_key('nagging'):
                 toaddrs,msg = generateEmailOutput(
                     subject=options.email_subject,
@@ -391,7 +404,7 @@ if __name__ == '__main__':
                     queries=info['nagging'],
                     template=options.template,
                     show_comment=options.show_comment)
-                while True:
+                while True and not options.no_verification:
                     print "\nRelMan Nag is ready to send the following email:\n<------ MESSAGE BELOW -------->"
                     print msg
                     print "<------- END MESSAGE -------->\nWould you like to send now?"
@@ -412,11 +425,12 @@ if __name__ == '__main__':
                     toaddrs=msg.split("To: ")[1].split("\r\n")[0].split(',') + msg.split("CC: ")[1].split("\r\n")[0].split(',')
                     os.remove(tempfilename)
     
-                if inp == 'y' or inp == 'Y':
+                if inp == 'y' or inp == 'Y' or options.no_verification:
                     if options.email_password == None or options.mozilla_mail == None:
                         print "Please supply a username/password (-m, -p) for sending email"
                         sys.exit(1)
-                    print "SENDING EMAIL"
+                    if not options.dryrun:
+                        print "SENDING EMAIL"
                     sendMail(toaddrs,msg,options.mozilla_mail,options.email_password,options.dryrun)
                     sent_bugs = 0
                     for query, info in info['nagging'].items():
@@ -426,11 +440,15 @@ if __name__ == '__main__':
                             manual_notify.remove(bug)
                     counter = counter - sent_bugs
     
-        # output the manual notification list
-        print "\n*************\nNo email generated for %s/%s bugs, you will need to manually notify the following %s bugs:\n" % (counter, total_bugs, len(manual_notify))
-        url = "https://bugzilla.mozilla.org/buglist.cgi?quicksearch="
+        # Send RelMan the manual notification list
+        msg_body = "\n*************\nNo nag emails were generated for %s/%s bugs, you will need to look at the following %s bugs:\n*************\n\n" % (counter, total_bugs, len(manual_notify))
         for bug in manual_notify:
-            print "[Bug %s] -- assigned to: %s\n -- Last commented on: %s\n" % (bug.id, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
-            url += "%s," % bug.id
-        print "Url for manual notification bug list: %s" % url
+            msg_body +="http://bugzil.la/" + "%s -- assigned to: %s\n -- Last commented on: %s\n" % (bug.id, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
+        msg = ("From: %s\r\n" % REPLY_TO_EMAIL
+            + "To: %s\r\n" % REPLY_TO_EMAIL
+            + "Reply-To: %s\r\n" % REPLY_TO_EMAIL
+            + "Subject: %s\r\n" % options.email_subject
+            + "\r\n" 
+            + msg_body)
+        sendMail(['release-mgmt@mozilla.com'], msg, options.mozilla_mail, options.email_password, options.dryrun)
     

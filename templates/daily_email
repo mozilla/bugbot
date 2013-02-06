@@ -1,4 +1,4 @@
-NOTE: On Mondays, we send email to remind you of the work tracked for upcoming releases. On Thursdays, we send email to remind you of bugs that haven't been investigated yet this week. Every day, we send email for unlanded approvals.
+NOTE: On Mondays, we send email to remind you of the work tracked for upcoming releases. On Thursdays, we send email to remind you of tracked bugs that haven't been investigated yet this week. Every day, we send email for unlanded approvals.
 
 = Next Actions =
 * If you don't believe a bug should be tracked for release or your investigation is blocked, please comment in the bug and optionally reply to this email
@@ -9,8 +9,8 @@ NOTE: On Mondays, we send email to remind you of the work tracked for upcoming r
 = Queries =
 {% for name, results in queries.items() %}== {{ name }} ==
 {% for bug in results.buglist -%}
-* https://bugzil.la/{{ bug.id }} {% if results.show_summary %} - {{ bug.summary }} {% endif %} (assigned to {{ bug.assignee }}){% endfor %}
+* https://bugzil.la/{{ bug.id }} - {{ bug.summary }} (assigned to {{ bug.assignee }})
 {% endfor %}
-
+{% endfor %}
 Sincerely,
 Release Management

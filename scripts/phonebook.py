@@ -38,7 +38,7 @@ class PhonebookDirectory():
     def __init__(self, config=CONFIG_JSON):
         config = json.load(open(config, 'r'))
         print "Fetching people from phonebook..." 
-        self.people = json.loads(requests.get(PEOPLE_URL, auth=(config['username'], config['password'])).content)
+        self.people = json.loads(requests.get(PEOPLE_URL, auth=(config['ldap_username'], config['ldap_password'])).content)
         self.people_by_bzmail = self.get_people_by_bzmail()
         self.managers = self.get_managers()
         self.vices = self.get_vices()
@@ -49,8 +49,8 @@ class PhonebookDirectory():
             if self.people[email]['title'] != None:
                 if 'director' in self.people[email]['title'].lower() or 'manager' in self.people[email]['title'].lower():
                     managers[email] = info
-            # HACK! don't have titles with manager/director
-            if email in ('rocallahan@mozilla.com', 'ladamski@mozilla.com', 'dtownsend@mozilla.com', 'dougt@mozilla.com', 'mfinkle@mozilla.com', 'bsmedberg@mozilla.com', 'blassey@mozilla.com', 'gsharp@mozilla.com' ) and email not in managers.keys():
+            # HACK! don't have titles with manager/director or missing bugmail address
+            if email in ('ctalbert@mozilla.com', 'msreckovic@mozilla.com', 'sstamm@mozilla.com', 'rocallahan@mozilla.com', 'ladamski@mozilla.com', 'dtownsend@mozilla.com', 'dougt@mozilla.com', 'mfinkle@mozilla.com', 'bsmedberg@mozilla.com', 'blassey@mozilla.com', 'gsharp@mozilla.com' ) and email not in managers.keys():
                 managers[email] = info
         return managers
 
