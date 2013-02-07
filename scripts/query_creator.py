@@ -27,7 +27,9 @@ def createQuery(title, short_title, url, show_summary):
 
 	qf = open(file_name, 'w')
 	qf.write("query_name = \'" + title + "\'\n")
+    print "Query Title: %s" % title
 	qf.write("query_url = \'" + url + "\'\n")
+    print "Query Url: %s" % url
 	qf.write("show_summary = \'" + str(show_summary) + "\'\n")
 
 	return file_name 
