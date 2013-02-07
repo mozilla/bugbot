@@ -23,16 +23,16 @@ def getReportURL(approval_flag, span):
 	return a.url
 
 def createQuery(title, short_title, url, show_summary):
-	file_name = queries_dir + str(datetime.date.today()) + '_' + short_title
+    file_name = queries_dir + str(datetime.date.today()) + '_' + short_title
 
-	qf = open(file_name, 'w')
-	qf.write("query_name = \'" + title + "\'\n")
+    qf = open(file_name, 'w')
+    qf.write("query_name = \'" + title + "\'\n")
     print "Query Title: %s" % title
-	qf.write("query_url = \'" + url + "\'\n")
+    qf.write("query_url = \'" + url + "\'\n")
     print "Query Url: %s" % url
-	qf.write("show_summary = \'" + str(show_summary) + "\'\n")
+    qf.write("show_summary = \'" + str(show_summary) + "\'\n")
 
-	return file_name 
+    return file_name 
 
 def createQueriesList():
 
