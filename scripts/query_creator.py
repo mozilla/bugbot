@@ -77,7 +77,7 @@ def createQueriesList():
     	queries.append(createQuery("Bugs Tracked for ESR10", "tracking_esr10", tracking_esr10_url, 0))
     	queries.append(createQuery("Bugs Tracked for ESR17", "tracking_esr17", tracking_esr17_url, 0))
 
-    if weekday == 4:
+    if weekday == 3:
     	queries.append(createQuery("Tracked Beta " + beta_version + " Bugs, untouched this week", "untouched_tracking_beta", tracking_beta_touch_url, 1))
     	queries.append(createQuery("Tracked Aurora " + aurora_version + " Bugs, untouched this week", "untouched_tracking_aurora", tracking_aurora_touch_url, 1))
     	queries.append(createQuery("Tracked Nightly " + central_version + " Bugs, untouched this week", "untouched_tracking_nightly", tracking_central_touch_url, 1))
