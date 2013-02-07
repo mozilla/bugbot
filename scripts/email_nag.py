@@ -447,7 +447,7 @@ if __name__ == '__main__':
         msg = ("From: %s\r\n" % REPLY_TO_EMAIL
             + "To: %s\r\n" % REPLY_TO_EMAIL
             + "Reply-To: %s\r\n" % REPLY_TO_EMAIL
-            + "Subject: %s\r\n" % options.email_subject
+            + "Subject: RelMan Attention Needed: %s\r\n" % options.email_subject
             + "\r\n" 
             + msg_body)
         sendMail(['release-mgmt@mozilla.com'], msg, options.mozilla_mail, options.email_password, options.dryrun)
