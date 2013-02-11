@@ -58,8 +58,6 @@ def createQueriesList():
 
     tracking_central_touch_url = "https://bugzilla.mozilla.org/buglist.cgi?negate1=1;field0-3-0=cf_status_firefox" + central_version + ";type1-0-0=equals;type2-1-0=notequals;type0-1-0=notequals;type0-5-0=notequals;value0-5-0=disabled;value0-4-0=verified;list_id=5128283;type3-0-0=greaterthan;field0-1-0=cf_status_firefox" + central_version + ";field0-0-0=cf_tracking_firefox" + central_version + ";type0-4-0=notequals;value3-0-0=3;columnlist=bug_severity%2Cpriority%2Cop_sys%2Cassigned_to%2Cbug_status%2Cresolution%2Cshort_desc%2Cchangeddate%2Ccf_tracking_firefox17%2Ccf_tracking_firefox" + beta_version + "%2Ccf_status_firefox17%2Ccf_status_firefox" + beta_version + ";value2-0-0=%2B;field2-0-0=cf_tracking_firefox" + beta_version + ";field0-6-0=cf_status_firefox" + central_version + ";value0-3-0=unaffected;field3-0-0=owner_idle_time;type2-0-0=notequals;query_format=advanced;value0-2-0=fixed;value0-6-0=verified%" + central_version + "disabled;value0-1-0=wontfix;type0-3-0=notequals;value2-1-0=%2B;value1-0-0=core-security;field0-2-0=cf_status_firefox" + central_version + ";field0-5-0=cf_status_firefox" + central_version + ";field0-4-0=cf_status_firefox" + central_version + ";type0-6-0=notequals;type0-0-0=equals;value0-0-0=%2B;field2-1-0=cf_tracking_firefox" + aurora_version + ";type0-2-0=notequals;field1-0-0=bug_group"
 
-    tracking_esr10_url = "https://bugzilla.mozilla.org/buglist.cgi?type0-1-0=nowordssubstr;field0-1-0=cf_status_esr10;field0-0-0=cf_tracking_esr10;query_format=advanced;value0-1-0=fixed%20verified%20disabled%20wontfix%20unaffected;type0-0-0=equals;value0-0-0=" + beta_version + "%2B"
-
     tracking_esr17_url =  "https://bugzilla.mozilla.org/buglist.cgi?type0-1-0=nowordssubstr;field0-1-0=cf_status_esr17;field0-0-0=cf_tracking_esr17;query_format=advanced;value0-1-0=fixed%20verified%20disabled%20wontfix%20unaffected;type0-0-0=equals;value0-0-0=" + beta_version + "%2B"
 
     queries = []
@@ -74,7 +72,6 @@ def createQueriesList():
     	queries.append(createQuery("Bugs Tracked for Beta " + beta_version, "tracking_beta", tracking_beta_url, 1))
     	queries.append(createQuery("Bugs Tracked for Aurora " + aurora_version, "tracking_aurora", tracking_aurora_url, 1))
     	queries.append(createQuery("Bugs Tracked for Nightly " + central_version, "tracking_central", tracking_central_url, 1))
-    	queries.append(createQuery("Bugs Tracked for ESR10", "tracking_esr10", tracking_esr10_url, 0))
     	queries.append(createQuery("Bugs Tracked for ESR17", "tracking_esr17", tracking_esr17_url, 0))
 
     if weekday == 3:
