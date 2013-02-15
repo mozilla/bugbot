@@ -33,6 +33,7 @@ people = phonebook.PhonebookDirectory()
 # TODO - write tests!
 # TODO - look into knocking out duplicated bugs in queries -- perhaps print out if there are dupes in queries when queries > 1
 # TODO - for wiki page generation, just post counts of certain query results (and their queries) eg: how many unverified fixed bugs for esr10?
+# TODO - If manager is in the C or V levels, send to the individual
 
 def get_last_manager_comment(comments, manager):
     # go through in reverse order to get most recent
