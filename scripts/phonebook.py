@@ -14,8 +14,8 @@ import json
 MY_DIR = os.path.abspath(os.path.dirname(__file__))
 PEOPLE_FILENAME = os.path.join(MY_DIR, 'people.json')
 CONFIG_JSON = os.path.join(os.path.dirname(__file__),"configs/config.json")
-BASE_URL = 'https://ldap.mozilla.org/phonebook'
-PEOPLE_URL = '%s/directory.php' % BASE_URL
+BASE_URL = 'https://phonebook.mozill.org'
+PEOPLE_URL = '%s/search.php?query=*&format=fligtar' % BASE_URL
 
 '''
 a single phonebook entry data looks like this when you pull it from JSON:
