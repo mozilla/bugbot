@@ -442,14 +442,15 @@ if __name__ == '__main__':
                     counter = counter - sent_bugs
     
         # Send RelMan the manual notification list
-        msg_body = "\n*************\nNo nag emails were generated for %s/%s bugs, you will need to look at the following %s bugs:\n*************\n\n" % (counter, total_bugs, len(manual_notify))
-        for bug in manual_notify:
-            msg_body +="http://bugzil.la/" + "%s -- assigned to: %s\n -- Last commented on: %s\n" % (bug.id, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
-        msg = ("From: %s\r\n" % REPLY_TO_EMAIL
-            + "To: %s\r\n" % REPLY_TO_EMAIL
-            + "Reply-To: %s\r\n" % REPLY_TO_EMAIL
-            + "Subject: RelMan Attention Needed: %s\r\n" % options.email_subject
-            + "\r\n" 
-            + msg_body)
-        sendMail(['release-mgmt@mozilla.com'], msg, options.mozilla_mail, options.email_password, options.dryrun)
+        msg_body = "\n*************\nNo nag emails were generated for %s/%s bugs, you will need to look at the following %s bugs:\n*************\n\n" % (len(manual_notify), total_bugs, len(manual_notify))
+        if len(manual_notify) != 0:
+            for bug in manual_notify:
+                msg_body +="http://bugzil.la/" + "%s -- assigned to: %s\n -- Last commented on: %s\n" % (bug.id, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
+            msg = ("From: %s\r\n" % REPLY_TO_EMAIL
+                + "To: %s\r\n" % REPLY_TO_EMAIL
+                + "Reply-To: %s\r\n" % REPLY_TO_EMAIL
+                + "Subject: RelMan Attention Needed: %s\r\n" % options.email_subject
+                + "\r\n" 
+                + msg_body)
+            sendMail(['release-mgmt@mozilla.com'], msg, options.mozilla_mail, options.email_password, options.dryrun)
     
