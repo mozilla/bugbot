@@ -81,11 +81,12 @@ def createQueriesList(print_all):
     weekday = datetime.datetime.today().weekday()
     for url in urls:
         if weekday >= 0 and weekday < 5 and url[0] == 5:
-            queries.append(createQuery(param) for param in url[1])
+            queries.append(createQuery(title=url[1][0],short_title=url[1][1],url=url[1][2],show_summary=url[1][3]))
         if weekday == 0 and url[0] == 0:
-            queries.append(createQuery(param) for param in url[1])
+            queries.append(createQuery(title=url[1][0],short_title=url[1][1],url=url[1][2],show_summary=url[1][3]))
         if weekday == 3 and url[0] == 3:
-            queries.append(createQuery(param) for param in url[1])
+            queries.append(createQuery(title=url[1][0],short_title=url[1][1],url=url[1][2],show_summary=url[1][3]))
+    print queries
     return queries
 
 def cleanUp():
@@ -120,6 +121,7 @@ if __name__ == '__main__':
             command.append(query)
         subject = datetime.datetime.today().strftime("%A %b %d") + " -- Daily Release Tracking Alert"
         command.extend(['-s',  subject])
+        print command
         subprocess.call(command)
         cleanUp()
 
