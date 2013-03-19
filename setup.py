@@ -14,7 +14,7 @@ setup(
     long_description=open(path('README.rst')).read(),
     author='Jeff Balogh',
     author_email='me@jeffbalogh.org',
-    url='http://github.com/LegNeato/bztools',
+    url='http://github.com/mozilla/bztools',
     license='BSD',
     packages=find_packages(),
     include_package_data=True,
