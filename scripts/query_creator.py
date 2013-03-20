@@ -8,9 +8,6 @@ import os
 import json
 from argparse import ArgumentParser
 
-# TODO -- [no-nag] tag
-# TODO -- take out non-tracked appovals from the queries (ie: approval-mozilla-aurora+ but not tracked)
-
 CONFIG_JSON = os.getcwd() + "/scripts/configs/config.json"
 config = json.load(open(CONFIG_JSON, 'r'))
 scripts_dir =  os.getcwd() + "/scripts/"
