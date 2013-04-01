@@ -48,12 +48,24 @@ tracking_central_touch_url = "https://bugzilla.mozilla.org/buglist.cgi?negate1=1
 
 tracking_esr17_url =  "https://bugzilla.mozilla.org/buglist.cgi?type0-1-0=nowordssubstr;field0-1-0=cf_status_firefox_esr17;field0-0-0=cf_tracking_firefox_esr17;value0-1-0=fixed%20verified%20disabled%20wontfix%20unaffected;type0-0-0=equals;value0-0-0=" + beta_version + "%2B;field0-2-0=status_whiteboard;type0-2-0=notsubstring;value0-2-0=[no-nag]"
 
+needinfo_beta_url = "https://bugzilla.mozilla.org/buglist.cgi?f1=cf_tracking_firefox" + beta_version + "&v6=fixed%2Cwontfix%2Cunaffected%2Cverified%2Cdisabled&list_id=6139844&o1=anywords&resolution=---&o6=anywords&query_format=advanced&f12=flagtypes.name&v12=needinfo%3F&f11=OP&bug_status=UNCONFIRMED&bug_status=NEW&bug_status=READY&bug_status=ASSIGNED&bug_status=REOPENED&o12=equals&v1=%2B%2C%3F&f6=cf_status_firefox" + beta_version + "&n6=1"
+
+needinfo_aurora_url = "https://bugzilla.mozilla.org/buglist.cgi?f1=cf_tracking_firefox" + aurora_version + "&v6=fixed%2Cwontfix%2Cunaffected%2Cverified%2Cdisabled&list_id=6139844&o1=anywords&resolution=---&o6=anywords&query_format=advanced&f12=flagtypes.name&v12=needinfo%3F&f11=OP&bug_status=UNCONFIRMED&bug_status=NEW&bug_status=READY&bug_status=ASSIGNED&bug_status=REOPENED&o12=equals&v1=%2B%2C%3F&f6=cf_status_firefox" + aurora_version + "&n6=1"
+
+needinfo_central_url = "https://bugzilla.mozilla.org/buglist.cgi?f1=cf_tracking_firefox" + central_version + "&v6=fixed%2Cwontfix%2Cunaffected%2Cverified%2Cdisabled&list_id=6139844&o1=anywords&resolution=---&o6=anywords&query_format=advanced&f12=flagtypes.name&v12=needinfo%3F&f11=OP&bug_status=UNCONFIRMED&bug_status=NEW&bug_status=READY&bug_status=ASSIGNED&bug_status=REOPENED&o12=equals&v1=%2B%2C%3F&f6=cf_status_firefox" + central_version + "&n6=1"
+
+needinfo_esr17_url = "https://bugzilla.mozilla.org/buglist.cgi?f1=cf_tracking_firefox_esr" + esr_version + "&v6=fixed%2Cwontfix%2Cunaffected%2Cverified%2Cdisabled&list_id=6139844&o1=anywords&resolution=---&o6=anywords&query_format=advanced&f12=flagtypes.name&v12=needinfo%3F&f11=OP&bug_status=UNCONFIRMED&bug_status=NEW&bug_status=READY&bug_status=ASSIGNED&bug_status=REOPENED&o12=equals&v1=%2B%2C%3F&f6=cf_status_firefox_esr" + esr_version + "&n6=1"
+
 
 # TODO - sort the queries according to a priority flag
 urls = [
     (5,["Unlanded Beta " + beta_version + " Bugs", "unlanded_beta", unlanded_beta_url, 1]),
     (5,["Unlanded Aurora " + aurora_version + " Bugs", "unlanded_aurora", unlanded_aurora_url, 1]),
     (5,["Unlanded ESR17 Bugs", "unlanded_esr17", unlanded_esr17_url, 0]),
+    (5,["Tracked or Nominated for Tracking with Need-Info? Beta " + beta_version + " Bugs", "needinfo_beta", needinfo_beta_url, 1]),
+    (5,["Tracked or Nominated for Tracking with Need-Info? Aurora " + aurora_version + " Bugs", "needinfo_aurora", needinfo_aurora_url, 1]),
+    (5,["Tracked or Nominated for Tracking with Need-Info? Nightly " + central_version + " Bugs", "needinfo_central", needinfo_central_url, 1]),
+    (5,["Tracked or Nominated for Tracking with Need-Info? ESR17 Bugs", "needinfo_esr17", needinfo_esr17_url, 0]),
     (0,["Bugs Tracked for Beta " + beta_version, "tracking_beta", tracking_beta_url, 1]),
     (0,["Bugs Tracked for Aurora " + aurora_version, "tracking_aurora", tracking_aurora_url, 1]),
     (0,["Bugs Tracked for Nightly " + central_version, "tracking_central", tracking_central_url, 1]),
@@ -118,7 +130,9 @@ if __name__ == '__main__':
             command.append(query)
         subject = datetime.datetime.today().strftime("%A %b %d") + " -- Daily Release Tracking Alert"
         command.extend(['-s',  subject])
-        print command
+        if options.dryrun:
+            print "Command: %s" % command
         subprocess.call(command)
-        cleanUp()
+        if not options.dryrun:
+            cleanUp()
 

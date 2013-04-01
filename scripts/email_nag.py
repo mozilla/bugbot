@@ -52,9 +52,12 @@ def get_last_assignee_comment(comments, person):
     return None
 
 def query_url_to_dict(url):
-    fields_and_values = url.split("?")[1].split(";")
+    if (';')in url:
+        fields_and_values = url.split("?")[1].split(";")
+    else:
+        fields_and_values = url.split("?")[1].split("&")
     d = {}
-
+    print fields_and_values
     for pair in fields_and_values:
         (key,val) = pair.split("=")
         if key != "list_id":
@@ -129,8 +132,8 @@ def generateEmailOutput(subject, queries, template, show_comment=False, manager_
                     'assignee': bug.assigned_to.real_name
             })
             # more hacking for JS special casing
-            if bug.assigned_to.name == 'general@js.bugs' and 'dmandelin@mozilla.com' not in toaddrs:
-                toaddrs.append('dmandelin@mozilla.com')
+            if bug.assigned_to.name == 'general@js.bugs' and 'nihsanullah@mozilla.com' not in toaddrs:
+                toaddrs.append('nihsanullah@mozilla.com')
             if people.people_by_bzmail.has_key(bug.assigned_to.name):
                 person = dict(people.people_by_bzmail[bug.assigned_to.name])
                 if person['mozillaMail'] not in toaddrs:
@@ -140,13 +143,13 @@ def generateEmailOutput(subject, queries, template, show_comment=False, manager_
     # is our only email to a manager? then only cc the REPLY_TO_EMAIL
     manager = dict(people.people[manager_email])
     if len(toaddrs) == 1 and toaddrs[0] == manager_email or toaddrs[0] == manager.get('bugzillaMail'):
-        if toaddrs[0] == 'dmandelin@mozilla.com':
+        if toaddrs[0] == 'nihsanullah@mozilla.com':
             cc_list = [REPLY_TO_EMAIL, 'danderson@mozilla.com','nihsanullah@mozilla.com']
         else:
             cc_list = [REPLY_TO_EMAIL]
     else:
         if cc_list == None:
-            if manager_email == 'dmandelin@mozilla.com':
+            if manager_email == 'nihsanullah@mozilla.com':
                 cc_list = [manager_email, REPLY_TO_EMAIL, 'danderson@mozilla.com', 'nihsanullah@mozilla.com']
             else:
                 cc_list = [manager_email, REPLY_TO_EMAIL]
@@ -351,7 +354,7 @@ if __name__ == '__main__':
                 elif 'general@js.bugs' in assignee:
                     if options.verbose:
                         print "No one assigned to JS bug: %s, adding to dmandelin's list..." % bug.id
-                    add_to_managers('dmandelin@mozilla.com', query, info)
+                    add_to_managers('nihsanullah@mozilla.com', query, info)
                 else:
                     if bug.assigned_to.real_name != None:
                         if person != None:
