@@ -57,12 +57,11 @@ def query_url_to_dict(url):
     else:
         fields_and_values = url.split("?")[1].split("&")
     d = {}
-    print fields_and_values
+
     for pair in fields_and_values:
         (key,val) = pair.split("=")
         if key != "list_id":
             d[key]=urllib.unquote(val)
-
     return d
 
 def generateWikiOutput(queries, template, managers=None, keywords=None, days_since_comment=-1):
@@ -264,7 +263,9 @@ if __name__ == '__main__':
                 collected_queries[query_name]['bugs'] = bmo.get_bug_list(info['query_params'])
             elif info.has_key('query_url'):
                 print "Gathering bugs from query_url in %s" % query
+                print "DEBUG: url %s" % info['query_url']
                 collected_queries[query_name]['bugs'] = bmo.get_bug_list(query_url_to_dict(info['query_url'])) 
+                print "DEBUG: %s" % collected_queries[query_name]['bugs']
             else:
                 print "Error - no valid query params or url in the config file"
                 sys.exit(1)
