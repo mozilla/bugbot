@@ -157,6 +157,12 @@ def generateEmailOutput(subject, queries, template, show_comment=False, manager_
         for email in toaddrs:
             if email in cc_list:
                 toaddrs.remove(email)
+    # if needinfo? in flags, add the flag.requestee to the toaddrs
+    if bug.flags:
+        for flag in bug.flags:
+            if flag.name == 'needinfo' and flag.status == '?':
+                toaddrs.append(str(flag.requestee))
+
     message = ("From: %s\r\n" % REPLY_TO_EMAIL
         + "To: %s\r\n" % ",".join(toaddrs)
         + "CC: %s\r\n" % ",".join(cc_list)
@@ -264,9 +270,7 @@ if __name__ == '__main__':
                 collected_queries[query_name]['bugs'] = bmo.get_bug_list(info['query_params'])
             elif info.has_key('query_url'):
                 print "Gathering bugs from query_url in %s" % query
-                print "DEBUG: url %s" % info['query_url']
                 collected_queries[query_name]['bugs'] = bmo.get_bug_list(query_url_to_dict(info['query_url'])) 
-                print "DEBUG: %s" % collected_queries[query_name]['bugs']
             else:
                 print "Error - no valid query params or url in the config file"
                 sys.exit(1)
