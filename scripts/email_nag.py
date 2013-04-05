@@ -128,7 +128,8 @@ def generateEmailOutput(subject, queries, template, show_comment=False, manager_
                     'id':bug.id,
                     'summary':summary,
                     #'comment': bug.comments[-1].creation_time.replace(tzinfo=None),
-                    'assignee': bug.assigned_to.real_name
+                    'assignee': bug.assigned_to.real_name,
+                    'flags': bug.flags
             })
             # more hacking for JS special casing
             if bug.assigned_to.name == 'general@js.bugs' and 'nihsanullah@mozilla.com' not in toaddrs:

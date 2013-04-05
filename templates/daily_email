@@ -9,7 +9,7 @@ NOTE: On Mondays, we send email to remind you of the work tracked for upcoming r
 = Queries =
 {% for name, results in queries.items() %}== {{ name }} ==
 {% for bug in results.buglist -%}
-* https://bugzil.la/{{ bug.id }} - {{ bug.summary }} (assigned to {{ bug.assignee }})
+* https://bugzil.la/{{ bug.id }} - {{ bug.summary }} {% if 'Need-Info?' in name %}(needinfo? {% for flag in bug.flags %}{{ flag.requestee }}{% endfor %}){% else %}(assigned to {{ bug.assignee }}){% endif %}
 {% endfor %}
 {% endfor %}
 Sincerely,
