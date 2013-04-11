@@ -122,7 +122,13 @@ if __name__ == '__main__':
         for url in urls:
             print url
     else:
-        command = [scripts_dir + "email_nag.py", "-t", "daily_email", "--no-verification", "-m", config['ldap_username'], "-p", config['ldap_password']]
+        command = [
+            scripts_dir + "email_nag.py",
+            "-t", "daily_email",
+            "--no-verification",
+            "-m", config['ldap_username'],
+            "-p", config['ldap_password'],
+            "-e", "release-mgmt@mozilla.com"]
         if options.dryrun:
             command.append('-d')
         for query in queries:

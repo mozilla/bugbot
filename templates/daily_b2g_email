@@ -1,0 +1,11 @@
+Welcome to B2G reminder auto-mails. On Mondays, we'll send email to remind you of the unfixed blockers for upcoming B2G releases. On Thursdays, we send email to remind you of blocking bugs that haven't been touched yet this week by their assignee. Every day, we send email for unlanded uplifts and bugs with needinfo? set.
+
+As always, please refer to https://wiki.mozilla.org/Release_Management/B2G_Landing for the latest scheduling info and landing criterias.
+
+{% for name, results in queries.items() %}== {{ name }} ==
+{% for bug in results.buglist -%}
+* https://bugzil.la/{{ bug.id }} - {{ bug.summary }} {% if 'Need-Info?' in name %}(needinfo? {% for flag in bug.flags %}{{ flag.requestee }}{% endfor %}){% else %}(assigned to {{ bug.assignee }}){% endif %}
+{% endfor %}
+{% endfor %}
+Sincerely,
+Release Management

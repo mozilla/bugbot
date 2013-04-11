@@ -146,7 +146,7 @@ def generateEmailOutput(subject, queries, template, show_comment=False, manager_
         if toaddrs[0] == 'nihsanullah@mozilla.com':
             cc_list = [REPLY_TO_EMAIL, 'danderson@mozilla.com','nihsanullah@mozilla.com']
         else:
-            cc_list = [REPLY_TO_EMAIL]
+            cc_list = cc_list
     else:
         if cc_list == None:
             if manager_email == 'nihsanullah@mozilla.com':
@@ -166,7 +166,6 @@ def generateEmailOutput(subject, queries, template, show_comment=False, manager_
     message = ("From: %s\r\n" % REPLY_TO_EMAIL
         + "To: %s\r\n" % ",".join(toaddrs)
         + "CC: %s\r\n" % ",".join(cc_list)
-        + "Reply-To: %s\r\n" % REPLY_TO_EMAIL
         + "Subject: %s\r\n" % subject
         + "\r\n" 
         + message_body)
@@ -195,7 +194,7 @@ if __name__ == '__main__':
         password=None,
         wiki=False,
         show_comment=False,
-        email_cc_list=['release-mgmt@mozilla.com'],
+        email_cc_list=[],
         queries=[],
         days_since_comment=-1,
         verbose=False,
@@ -288,6 +287,12 @@ if __name__ == '__main__':
     counter = 0
 
     def add_to_managers(manager_email, query, info={}):
+        if not managers.has_key(manager_email):
+            managers[manager_email] = {}
+            managers[manager_email]['nagging'] = {
+                    query : { 'bugs': [bug], 'show_summary': info.get('show_summary', 0) },
+                }
+            return
         if managers[manager_email].has_key('nagging'):
             if managers[manager_email]['nagging'].has_key(query):
                 managers[manager_email]['nagging'][query]['bugs'].append(bug)
@@ -392,8 +397,10 @@ if __name__ == '__main__':
                                                 add_to_managers(manager_email, query, info)
                                         else:
                                             print "Manager could not be found: %s" % manager_email
+                                # if you don't have a manager listed, but are an employee, we'll nag you anyway
                                 else:
-                                    print "%s's entry doesn't list a manager! Let's ask them to update phonebook." % person['name']
+                                    add_to_managers(person['mozillaMail'], query, info)
+                                    print "%s's entry doesn't list a manager! Let's ask them to update phonebook but in the meantime they get the email directly." % person['name']
 
     if options.wiki:
         msg = generateWikiOutput(
@@ -413,7 +420,8 @@ if __name__ == '__main__':
                     manager_email=email,
                     queries=info['nagging'],
                     template=options.template,
-                    show_comment=options.show_comment)
+                    show_comment=options.show_comment,
+                    cc_list=options.email_cc_list)
                 while True and not options.no_verification:
                     print "\nRelMan Nag is ready to send the following email:\n<------ MESSAGE BELOW -------->"
                     print msg
@@ -457,7 +465,6 @@ if __name__ == '__main__':
                 msg_body +="http://bugzil.la/" + "%s -- assigned to: %s\n -- Last commented on: %s\n" % (bug.id, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
             msg = ("From: %s\r\n" % REPLY_TO_EMAIL
                 + "To: %s\r\n" % REPLY_TO_EMAIL
-                + "Reply-To: %s\r\n" % REPLY_TO_EMAIL
                 + "Subject: RelMan Attention Needed: %s\r\n" % options.email_subject
                 + "\r\n" 
                 + msg_body)
