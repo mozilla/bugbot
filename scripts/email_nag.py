@@ -112,10 +112,17 @@ def generateEmailOutput(subject, queries, template, show_comment=False, manager_
                     cc_list=None):
     template_params = {}
     toaddrs = []
+    cclist = []
+
 
     # Might be able to delete this
     # stripping off the templates dir, just in case it gets passed in the args
     template = env.get_template(template.replace('templates/', '', 1))
+    def addToAddrs(bug):
+        if people.people_by_bzmail.has_key(bug.assigned_to.name):
+            person = dict(people.people_by_bzmail[bug.assigned_to.name])
+            if person['mozillaMail'] not in toaddrs:
+                toaddrs.append(person['mozillaMail'])
 
     for query in queries.keys():
         template_params[query] = {'buglist': []}
@@ -134,38 +141,41 @@ def generateEmailOutput(subject, queries, template, show_comment=False, manager_
             # more hacking for JS special casing
             if bug.assigned_to.name == 'general@js.bugs' and 'nihsanullah@mozilla.com' not in toaddrs:
                 toaddrs.append('nihsanullah@mozilla.com')
-            if people.people_by_bzmail.has_key(bug.assigned_to.name):
-                person = dict(people.people_by_bzmail[bug.assigned_to.name])
-                if person['mozillaMail'] not in toaddrs:
-                    toaddrs.append(person['mozillaMail'])
+            # if needinfo? in flags, add the flag.requestee to the toaddrs instead of bug assignee
+            if bug.flags:
+                for flag in bug.flags:
+                    if 'needinfo' in flag.name and flag.status == '?':
+                        try:
+                            person = dict(people.people_by_bzmail[str(flag.requestee)])
+                            if person['mozillaMail'] not in toaddrs:
+                                toaddrs.append(person['mozillaMail'])
+                        except:
+                            if str(flag.requestee) not in toaddrs:
+                                toaddrs.append(str(flag.requestee))
+                    else:
+                        addToAddrs(bug)
+            else:
+                addToAddrs(bug)
+
                     
     message_body = template.render(queries=template_params, show_comment=show_comment)
-    # is our only email to a manager? then only cc the REPLY_TO_EMAIL
     manager = dict(people.people[manager_email])
-    if len(toaddrs) == 1 and toaddrs[0] == manager_email or toaddrs[0] == manager.get('bugzillaMail'):
+    if len(toaddrs) == 1 and (toaddrs[0] == manager_email or toaddrs[0] == manager.get('bugzillaMail')):
         if toaddrs[0] == 'nihsanullah@mozilla.com':
-            cc_list = [REPLY_TO_EMAIL, 'danderson@mozilla.com','nihsanullah@mozilla.com']
-        else:
-            cc_list = cc_list
+            cclist.extend(['danderson@mozilla.com','nihsanullah@mozilla.com'])
     else:
-        if cc_list == None:
-            if manager_email == 'nihsanullah@mozilla.com':
-                cc_list = [manager_email, REPLY_TO_EMAIL, 'danderson@mozilla.com', 'nihsanullah@mozilla.com']
-            else:
-                cc_list = [manager_email, REPLY_TO_EMAIL]
-        # no need to send to as well as cc a manager
-        for email in toaddrs:
-            if email in cc_list:
-                toaddrs.remove(email)
-    # if needinfo? in flags, add the flag.requestee to the toaddrs
-    if bug.flags:
-        for flag in bug.flags:
-            if flag.name == 'needinfo' and flag.status == '?':
-                toaddrs.append(str(flag.requestee))
+        if manager_email == 'nihsanullah@mozilla.com':
+            cclist.extend([manager_email,'danderson@mozilla.com', 'nihsanullah@mozilla.com'])
+        else:
+            cclist.append(manager_email)
+    # no need to send to as well as cc a manager
+    for email in toaddrs:
+        if email in cclist:
+            toaddrs.remove(email)
 
     message = ("From: %s\r\n" % REPLY_TO_EMAIL
         + "To: %s\r\n" % ",".join(toaddrs)
-        + "CC: %s\r\n" % ",".join(cc_list)
+        + "CC: %s\r\n" % ",".join(cclist + cc_list)
         + "Subject: %s\r\n" % subject
         + "\r\n" 
         + message_body)
@@ -459,7 +469,7 @@ if __name__ == '__main__':
                     counter = counter - sent_bugs
     
         # Send RelMan the manual notification list
-        msg_body = "\n*************\nNo nag emails were generated for %s/%s bugs, you will need to look at the following %s bugs:\n*************\n\n" % (len(manual_notify), total_bugs, len(manual_notify))
+        msg_body = "\n*************\nNo nag emails were generated for %s/%s bugs because they are either assigned to no one or to non-employees (though ni? on non-employees will get nagged). \nYou will need to look at the following %s bugs:\n*************\n\n" % (len(manual_notify), total_bugs, len(manual_notify))
         if len(manual_notify) != 0:
             for bug in manual_notify:
                 msg_body +="http://bugzil.la/" + "%s -- assigned to: %s\n -- Last commented on: %s\n" % (bug.id, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
