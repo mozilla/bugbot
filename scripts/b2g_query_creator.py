@@ -106,7 +106,6 @@ if __name__ == '__main__':
             "--no-verification",
             "-m", config['ldap_username'],
             "-p", config['ldap_password'],
-            "-e", "mlee@mozilla.com",
             "-e", "jcheng@mozilla.com",
             "-e", "b2g-release-drivers@mozilla.org"]
         if options.dryrun:
