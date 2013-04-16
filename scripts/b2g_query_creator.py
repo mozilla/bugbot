@@ -102,12 +102,15 @@ if __name__ == '__main__':
     else:
         command = [
             scripts_dir + "email_nag.py",
+            "-r", # rollup email, one per day
             "-t", "daily_b2g_email",
             "--no-verification",
             "-m", config['ldap_username'],
             "-p", config['ldap_password'],
             "-e", "jcheng@mozilla.com",
-            "-e", "b2g-release-drivers@mozilla.org"]
+            "-e", "dietrich@mozilla.com",
+            "-e", "ladamski@mozilla.com",
+            "-e", "release-mgmt@mozilla.com"]
         if options.dryrun:
             command.append('-d')
         for query in queries:
