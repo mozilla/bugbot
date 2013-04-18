@@ -63,7 +63,7 @@ def query_url_to_dict(url):
     return d
 
 def generateEmailOutput(subject, queries, template, show_comment=False, manager_email=None, 
-                    cc_list=None):
+                    cc_list=None, to_addrs=None):
     template_params = {}
     toaddrs = []
     cclist = []
@@ -116,10 +116,14 @@ def generateEmailOutput(subject, queries, template, show_comment=False, manager_
     message_body = template.render(queries=template_params, show_comment=show_comment)
     if manager_email != None:
         cclist.append(manager_email)
-    # no need to and cc the manager
-    for email in toaddrs:
-        if email in cclist:
-            toaddrs.remove(email)
+    # no need to and cc the manager if more than one email 
+    if len(toaddrs) > 1:
+        for email in toaddrs:
+            if email in cclist:
+                toaddrs.remove(email)
+
+    if to_addrs != None:
+        toaddrs = to_addrs
 
     message = ("From: %s\r\n" % REPLY_TO_EMAIL
         + "To: %s\r\n" % ",".join(toaddrs)
@@ -127,7 +131,7 @@ def generateEmailOutput(subject, queries, template, show_comment=False, manager_
         + "Subject: %s\r\n" % subject
         + "\r\n" 
         + message_body)
-    toaddrs = toaddrs + cc_list
+    toaddrs = toaddrs #+ cc_list
 
     return toaddrs,message
 
@@ -359,7 +363,8 @@ if __name__ == '__main__':
                     queries=manual_notify,
                     template=options.template,
                     show_comment=options.show_comment,
-                    cc_list=options.email_cc_list)
+                    cc_list=options.email_cc_list,
+                    to_addrs=['b2g-release-drivers@mozilla.org'])
         if options.email_password == None or options.mozilla_mail == None:
             print "Please supply a username/password (-m, -p) for sending email"
             sys.exit(1)

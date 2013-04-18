@@ -107,12 +107,9 @@ if __name__ == '__main__':
     parser = ArgumentParser(__doc__)
     parser.set_defaults(
         queries_only=False,
-        dryrun=False,
         )
     parser.add_argument("-q", "--queries-only", dest="queries_only", action="store_true",
             help="just create and print queries")
-    parser.add_argument("-d", "--dryrun", dest="dryrun", action="store_true",
-            help="pass dryrun flag to the email_nag")
 
     options, args = parser.parse_known_args()
     
@@ -129,16 +126,13 @@ if __name__ == '__main__':
             "-m", config['ldap_username'],
             "-p", config['ldap_password'],
             "-e", "release-mgmt@mozilla.com"]
-        if options.dryrun:
-            command.append('-d')
         for query in queries:
             command.append('-q')
             command.append(query)
         subject = datetime.datetime.today().strftime("%A %b %d") + " -- Daily Release Tracking Alert"
         command.extend(['-s',  subject])
-        if options.dryrun:
-            print "Command: %s" % command
+        # send all other args to email_nag script argparser
+        command.extend(args)
         subprocess.call(command)
-        if not options.dryrun:
-            cleanUp()
+        cleanUp()
 
