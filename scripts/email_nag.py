@@ -77,7 +77,8 @@ def generateEmailOutput(subject, queries, template, show_comment=False, manager_
                 toaddrs.append(person['mozillaMail'])
 
     for query in queries.keys():
-        template_params[query] = {'buglist': []}
+        if not template_params.has_key(query):
+            template_params[query] = {'buglist': []}
         for bug in queries[query]['bugs']:
             if queries[query].has_key('show_summary'):
                 if queries[query]['show_summary'] == '1':
@@ -221,11 +222,12 @@ if __name__ == '__main__':
             info = {}
             execfile(query, info)
             query_name = info['query_name']
-            collected_queries[query_name] = {
-                'channel': info.get('query_channel', ''),
-                'bugs' : [],
-                'show_summary': info.get('show_summary', 0),
-                }
+            if not collected_queries.has_key(query_name):
+                collected_queries[query_name] = {
+                    'channel': info.get('query_channel', ''),
+                    'bugs' : [],
+                    'show_summary': info.get('show_summary', 0),
+                    }
             if info.has_key('query_params'):
                 print "Gathering bugs from query_params in %s" % query
                 collected_queries[query_name]['bugs'] = bmo.get_bug_list(info['query_params'])
