@@ -65,8 +65,8 @@ unlanded_leo_url = "https://bugzilla.mozilla.org/buglist.cgi?o5=nowords&v11=fixe
 needinfo_sec_blockers_url = "https://bugzilla.mozilla.org/buglist.cgi?o1=anywords&o2=substring&v1=tef%2B%2Cleo%2B&v2=needinfo%3F&f1=cf_blocking_b2g&resolution=---&f2=flagtypes.name&f3=status_whiteboard&o3=notsubstring&v3=[no-nag]&o4=anywordssubstr&v4=Confidential%20Security&f4=bug_group"
 needinfo_blockers_url = "https://bugzilla.mozilla.org/buglist.cgi?o1=anywords&o2=substring&v1=tef%2B%2Cleo%2B&v2=needinfo%3F&f1=cf_blocking_b2g&resolution=---&f2=flagtypes.name&f3=status_whiteboard&o3=notsubstring&v3=[no-nag]&o4=anywordssubstr&v4=Confidential%20Security&f4=bug_group&n4=1"
 
-qe1_sec_blockers_url = "https://bugzilla.mozilla.org/buglist.cgi?f1=target_milestone&o1=substring&o2=substring&f2=cf_blocking_b2g&bug_status=UNCONFIRMED,NEW,READY,ASSIGNED,REOPENED&v1=QE1&v2=%2B&o3=anywordssubstr&v3=Confidential%20Security&f3=bug_group"
-qe1_blockers_url = "https://bugzilla.mozilla.org/buglist.cgi?f1=target_milestone&o1=substring&o2=substring&f2=cf_blocking_b2g&bug_status=UNCONFIRMED,NEW,READY,ASSIGNED,REOPENED&v1=QE1&v2=%2B&o3=anywordssubstr&v3=Confidential%20Security&f3=bug_group&n3=1"
+qe1_sec_blockers_url = "https://bugzilla.mozilla.org/buglist.cgi?f1=target_milestone&o1=substring&o2=substring&f2=cf_blocking_b2g&bug_status=UNCONFIRMED,NEW,READY,ASSIGNED,REOPENED&v1=QE1&v2=%2B&o3=anywordssubstr&v3=Confidential%20Security&f3=bug_group&o4=nowordssubstr&f4=cf_status_b2g18&v4=fixed%20verified"
+qe1_blockers_url = "https://bugzilla.mozilla.org/buglist.cgi?f1=target_milestone&o1=substring&o2=substring&f2=cf_blocking_b2g&bug_status=UNCONFIRMED,NEW,READY,ASSIGNED,REOPENED&v1=QE1&v2=%2B&o3=anywordssubstr&v3=Confidential%20Security&f3=bug_group&n3=1&o4=nowordssubstr&f4=cf_status_b2g18&v4=fixed%20verified"
 
 # TODO - sort the queries according to a priority flag
 # TODO - batch up by query name (so sec & non-sec get in the same output)
