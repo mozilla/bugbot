@@ -61,6 +61,7 @@ needinfo_esr17_url = "https://bugzilla.mozilla.org/buglist.cgi?f1=cf_tracking_fi
 
 # TODO - sort the queries according to a priority flag
 # TODO - separate queries for sec bugs, for now hide summary
+# TODO - fix the 'untouched' queries
 
 urls = [
     (5, ["Unlanded Beta " + beta_version + " Bugs", "unlanded_beta", unlanded_beta_url, 0]),
@@ -74,9 +75,9 @@ urls = [
     (0, ["Bugs Tracked for Aurora " + aurora_version, "tracking_aurora", tracking_aurora_url, 0]),
     (0, ["Bugs Tracked for Nightly " + central_version, "tracking_central", tracking_central_url, 0]),
     (0, ["Bugs Tracked for ESR17", "tracking_esr17", tracking_esr17_url, 0]),
-    (3, ["Tracked Beta " + beta_version + " Bugs, untouched this week", "untouched_tracking_beta", tracking_beta_touch_url, 0]),
-    (3, ["Tracked Aurora " + aurora_version + " Bugs, untouched this week", "untouched_tracking_aurora", tracking_aurora_touch_url, 0]),
-    (3, ["Tracked Nightly " + central_version + " Bugs, untouched this week", "untouched_tracking_nightly", tracking_central_touch_url, 0])
+    #(3, ["Tracked Beta " + beta_version + " Bugs, untouched this week", "untouched_tracking_beta", tracking_beta_touch_url, 0]),
+    #(3, ["Tracked Aurora " + aurora_version + " Bugs, untouched this week", "untouched_tracking_aurora", tracking_aurora_touch_url, 0]),
+    #(3, ["Tracked Nightly " + central_version + " Bugs, untouched this week", "untouched_tracking_nightly", tracking_central_touch_url, 0])
 ]
 
 

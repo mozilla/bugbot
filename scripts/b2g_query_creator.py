@@ -83,10 +83,10 @@ urls = [
     (0, ["Bugs Blocking LEO", "unfixed_leo", unfixed_leo_url, 1]),
     (0, ["QE1 Blocking Bugs (Sec)", "blocking_qe1_sec", qe1_sec_blockers_url, 0]),
     (0, ["QE1 Blocking Bugs", "blocking_qe1", qe1_blockers_url, 1]),
-    (3, ["TEF Blocker Bugs, untouched this week", "untouched_tef_blockers", untouched_tef_url, 1]),
-    (3, ["LEO Blocker Bugs, untouched this week", "untouched_leo_blockers", untouched_leo_url, 1]),
-    (3, ["TEF Blocker Bugs (Sec), untouched this week", "untouched_tef_sec_blockers", untouched_tef_sec_url, 0]),
-    (3, ["LEO Blocker Bugs (Sec), untouched this week", "untouched_leo_sec_blockers", untouched_leo_sec_url, 0]),
+    #(3, ["TEF Blocker Bugs, untouched this week", "untouched_tef_blockers", untouched_tef_url, 1]),
+    #(3, ["LEO Blocker Bugs, untouched this week", "untouched_leo_blockers", untouched_leo_url, 1]),
+    #(3, ["TEF Blocker Bugs (Sec), untouched this week", "untouched_tef_sec_blockers", untouched_tef_sec_url, 0]),
+    #(3, ["LEO Blocker Bugs (Sec), untouched this week", "untouched_leo_sec_blockers", untouched_leo_sec_url, 0]),
 ]
 
 
