@@ -4,4 +4,5 @@
 build/
 bztools.egg-info/
 dist/
+queries/
 scripts/configs/config.json

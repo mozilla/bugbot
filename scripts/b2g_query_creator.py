@@ -45,48 +45,37 @@ def createQueriesList(print_all):
 # b2g a+ needing uplift to b2g18
 # https://bugzilla.mozilla.org/buglist.cgi?order=Bug%20Number;bug_status=RESOLVED;bug_status=VERIFIED;resolution=FIXED;field0-0-0=flagtypes.name;type0-0-0=equals;value0-0-0=approval-mozilla-b2g18%2B;field0-1-0=cf_status_b2g18;type0-1-0=nowordssubstr;value0-1-0=fixed%20verified%20unaffected%20wontfix%20disabled;
 
-unfixed_tef_sec_url = "https://bugzilla.mozilla.org/buglist.cgi?f1=cf_blocking_b2g&o1=equals&resolution=---&bug_status=UNCONFIRMED,NEW,READY,ASSIGNED,REOPENED&v1=tef%2B&f2=status_whiteboard&o2=notsubstring&v2=[no-nag]&o3=anywordssubstr&v3=Confidential%20Security&f3=bug_group"
-unfixed_tef_url = "https://bugzilla.mozilla.org/buglist.cgi?f1=cf_blocking_b2g&o1=equals&resolution=---&bug_status=UNCONFIRMED,NEW,READY,ASSIGNED,REOPENED&v1=tef%2B&f2=status_whiteboard&o2=notsubstring&v2=[no-nag]&o3=anywordssubstr&v3=Confidential%20Security&f3=bug_group&n3=1"
+unfixed_koi_sec_url = "https://bugzilla.mozilla.org/buglist.cgi?f1=cf_blocking_b2g&o1=equals&resolution=---&bug_status=UNCONFIRMED,NEW,READY,ASSIGNED,REOPENED&v1=koi%2B&f2=status_whiteboard&o2=notsubstring&v2=[no-nag]&o3=anywordssubstr&v3=Confidential%20Security&f3=bug_group"
+unfixed_koi_url = "https://bugzilla.mozilla.org/buglist.cgi?f1=cf_blocking_b2g&o1=equals&resolution=---&bug_status=UNCONFIRMED,NEW,READY,ASSIGNED,REOPENED&v1=koi%2B&f2=status_whiteboard&o2=notsubstring&v2=[no-nag]&o3=anywordssubstr&v3=Confidential%20Security&f3=bug_group&n3=1"
 
 unfixed_leo_sec_url = "https://bugzilla.mozilla.org/buglist.cgi?f1=cf_blocking_b2g&o1=equals&resolution=---&bug_status=UNCONFIRMED,NEW,READY,ASSIGNED,REOPENED&v1=leo%2B&f2=status_whiteboard&o2=notsubstring&v2=[no-nag]&o3=anywordssubstr&v3=Confidential%20Security&f3=bug_group"
 unfixed_leo_url = "https://bugzilla.mozilla.org/buglist.cgi?f1=cf_blocking_b2g&o1=equals&resolution=---&bug_status=UNCONFIRMED,NEW,READY,ASSIGNED,REOPENED&v1=leo%2B&f2=status_whiteboard&o2=notsubstring&v2=[no-nag]&o3=anywordssubstr&v3=Confidential%20Security&f3=bug_group&n3=1"
 
-untouched_tef_url = unfixed_tef_url + "&o3=greaterthan&f3=owner_idle_time&v3=3"
+untouched_koi_url = unfixed_koi_url + "&o3=greaterthan&f3=owner_idle_time&v3=3"
 untouched_leo_url = unfixed_leo_url + "&o3=greaterthan&f3=owner_idle_time&v3=3"
-untouched_tef_sec_url = unfixed_tef_sec_url + "&o4=greaterthan&f4=owner_idle_time&v4=3"
+untouched_koi_sec_url = unfixed_koi_sec_url + "&o4=greaterthan&f4=owner_idle_time&v4=3"
 untouched_leo_sec_url = unfixed_leo_sec_url + "&o4=greaterthan&f4=owner_idle_time&v4=3"
 
-unlanded_tef_sec_url = "https://bugzilla.mozilla.org/buglist.cgi?o5=nowords&v11=fixed%20verified%20unaffected%20wontfix%20disabled&j10=OR&o14=notsubstring&f13=OP&o2=anywordssubstr&v5=Gaia%20Server%20Security%20Payments%20Hardware%20Builds&f12=CP&j4=OR&f14=status_whiteboard&v2=tef%2B%20shira%2B&f10=OP&f1=OP&j13=OR&f8=cf_last_resolved&f0=OP&o11=nowordssubstr&f15=CP&resolution=FIXED&f9=CP&j7=OR&f4=OP&j1=OR&f3=CP&f2=cf_blocking_b2g&f11=cf_status_b2g18_1_0_1&bug_status=RESOLVED,VERIFIED&f5=component&v8=2013-01-25&v14=NO_UPLIFT&f6=CP&f7=OP&o8=greaterthaneq&f16=CP&f17=status_whiteboard&o17=notsubstring&v17=[no-nag]&o18=anywordssubstr&v18=Confidential%20Security&f18=bug_group"
-unlanded_tef_url = "https://bugzilla.mozilla.org/buglist.cgi?o5=nowords&v11=fixed%20verified%20unaffected%20wontfix%20disabled&j10=OR&o14=notsubstring&f13=OP&o2=anywordssubstr&v5=Gaia%20Server%20Security%20Payments%20Hardware%20Builds&f12=CP&j4=OR&f14=status_whiteboard&v2=tef%2B%20shira%2B&f10=OP&f1=OP&j13=OR&f8=cf_last_resolved&f0=OP&o11=nowordssubstr&f15=CP&resolution=FIXED&f9=CP&j7=OR&f4=OP&j1=OR&f3=CP&f2=cf_blocking_b2g&f11=cf_status_b2g18_1_0_1&bug_status=RESOLVED,VERIFIED&f5=component&v8=2013-01-25&v14=NO_UPLIFT&f6=CP&f7=OP&o8=greaterthaneq&f16=CP&f17=status_whiteboard&o17=notsubstring&v17=[no-nag]&o18=anywordssubstr&v18=Confidential%20Security&f18=bug_group&n18=1"
+#unlanded_koi_sec_url = "https://bugzilla.mozilla.org/buglist.cgi?o5=nowords&v11=fixed%20verified%20unaffected%20wontfix%20disabled&j10=OR&o14=notsubstring&f13=OP&o2=anywordssubstr&v5=Gaia%20Server%20Security%20Payments%20Hardware%20Builds&f12=CP&j4=OR&f14=status_whiteboard&v2=koi%2B&f10=OP&f1=OP&j13=OR&f8=cf_last_resolved&f0=OP&o11=nowordssubstr&f15=CP&resolution=FIXED&f9=CP&j7=OR&f4=OP&j1=OR&f3=CP&f2=cf_blocking_b2g&f11=cf_status_b2g_1_2&bug_status=RESOLVED,VERIFIED&f5=component&v8=2013-01-25&v14=NO_UPLIFT&f6=CP&f7=OP&o8=greaterthaneq&f16=CP&f17=status_whiteboard&o17=notsubstring&v17=[no-nag]&o18=anywordssubstr&v18=Confidential%20Security&f18=bug_group"
+#unlanded_koi_url = "https://bugzilla.mozilla.org/buglist.cgi?o5=nowords&v11=fixed%20verified%20unaffected%20wontfix%20disabled&j10=OR&o14=notsubstring&f13=OP&o2=anywordssubstr&v5=Gaia%20Server%20Security%20Payments%20Hardware%20Builds&f12=CP&j4=OR&f14=status_whiteboard&v2=koi%2B%2B&f10=OP&f1=OP&j13=OR&f8=cf_last_resolved&f0=OP&o11=nowordssubstr&f15=CP&resolution=FIXED&f9=CP&j7=OR&f4=OP&j1=OR&f3=CP&f2=cf_blocking_b2g&f11=cf_status_b2g_1_2&bug_status=RESOLVED,VERIFIED&f5=component&v8=2013-01-25&v14=NO_UPLIFT&f6=CP&f7=OP&o8=greaterthaneq&f16=CP&f17=status_whiteboard&o17=notsubstring&v17=[no-nag]&o18=anywordssubstr&v18=Confidential%20Security&f18=bug_group&n18=1"
 
 unlanded_leo_sec_url = "https://bugzilla.mozilla.org/buglist.cgi?o5=nowords&v11=fixed%20verified%20unaffected%20wontfix%20disabled&j10=OR&o14=notsubstring&f13=OP&o2=anywordssubstr&v5=Gaia%20Server%20Security%20Payments%20Hardware%20Builds&f12=CP&j4=OR&f14=status_whiteboard&v2=leo%2B&f10=OP&f1=OP&j13=OR&f8=cf_last_resolved&f0=OP&o11=nowordssubstr&f15=CP&resolution=FIXED&f9=CP&j7=OR&f4=OP&j1=OR&f3=CP&f2=cf_blocking_b2g&f11=cf_status_b2g18&bug_status=RESOLVED,VERIFIED&f5=component&v8=2013-01-25&v14=NO_UPLIFT&f6=CP&f7=OP&o8=greaterthaneq&f16=CP&f17=status_whiteboard&o17=notsubstring&v17=[no-nag]&o18=anywordssubstr&v18=Confidential%20Security&f18=bug_group"
 unlanded_leo_url = "https://bugzilla.mozilla.org/buglist.cgi?o5=nowords&v11=fixed%20verified%20unaffected%20wontfix%20disabled&j10=OR&o14=notsubstring&f13=OP&o2=anywordssubstr&v5=Gaia%20Server%20Security%20Payments%20Hardware%20Builds&f12=CP&j4=OR&f14=status_whiteboard&v2=leo%2B&f10=OP&f1=OP&j13=OR&f8=cf_last_resolved&f0=OP&o11=nowordssubstr&f15=CP&resolution=FIXED&f9=CP&j7=OR&f4=OP&j1=OR&f3=CP&f2=cf_blocking_b2g&f11=cf_status_b2g18&bug_status=RESOLVED,VERIFIED&f5=component&v8=2013-01-25&v14=NO_UPLIFT&f6=CP&f7=OP&o8=greaterthaneq&f16=CP&f17=status_whiteboard&o17=notsubstring&v17=[no-nag]&o18=anywordssubstr&v18=Confidential%20Security&f18=bug_group&n18=1"
 
-needinfo_sec_blockers_url = "https://bugzilla.mozilla.org/buglist.cgi?o1=anywords&o2=substring&v1=tef%2B%2Cleo%2B&v2=needinfo%3F&f1=cf_blocking_b2g&resolution=---&f2=flagtypes.name&f3=status_whiteboard&o3=notsubstring&v3=[no-nag]&o4=anywordssubstr&v4=Confidential%20Security&f4=bug_group"
-needinfo_blockers_url = "https://bugzilla.mozilla.org/buglist.cgi?o1=anywords&o2=substring&v1=tef%2B%2Cleo%2B&v2=needinfo%3F&f1=cf_blocking_b2g&resolution=---&f2=flagtypes.name&f3=status_whiteboard&o3=notsubstring&v3=[no-nag]&o4=anywordssubstr&v4=Confidential%20Security&f4=bug_group&n4=1"
-
-qe1_sec_blockers_url = "https://bugzilla.mozilla.org/buglist.cgi?f1=target_milestone&o1=substring&o2=substring&f2=cf_blocking_b2g&bug_status=UNCONFIRMED,NEW,READY,ASSIGNED,REOPENED&v1=QE1&v2=%2B&o3=anywordssubstr&v3=Confidential%20Security&f3=bug_group&o4=nowordssubstr&f4=cf_status_b2g18&v4=fixed%20verified"
-qe1_blockers_url = "https://bugzilla.mozilla.org/buglist.cgi?f1=target_milestone&o1=substring&o2=substring&f2=cf_blocking_b2g&bug_status=UNCONFIRMED,NEW,READY,ASSIGNED,REOPENED&v1=QE1&v2=%2B&o3=anywordssubstr&v3=Confidential%20Security&f3=bug_group&n3=1&o4=nowordssubstr&f4=cf_status_b2g18&v4=fixed%20verified"
+needinfo_sec_blockers_url = "https://bugzilla.mozilla.org/buglist.cgi?o1=anywords&o2=substring&v1=koi%2B%2Cleo%2B&v2=needinfo%3F&f1=cf_blocking_b2g&resolution=---&f2=flagtypes.name&f3=status_whiteboard&o3=notsubstring&v3=[no-nag]&o4=anywordssubstr&v4=Confidential%20Security&f4=bug_group"
+needinfo_blockers_url = "https://bugzilla.mozilla.org/buglist.cgi?o1=anywords&o2=substring&v1=koi%2B%2Cleo%2B&v2=needinfo%3F&f1=cf_blocking_b2g&resolution=---&f2=flagtypes.name&f3=status_whiteboard&o3=notsubstring&v3=[no-nag]&o4=anywordssubstr&v4=Confidential%20Security&f4=bug_group&n4=1"
 
 # TODO - sort the queries according to a priority flag
 # TODO - batch up by query name (so sec & non-sec get in the same output)
 urls = [
-    (5, ["Unlanded TEF (Sec) Bugs", "unlanded_tef_sec_url", unlanded_tef_sec_url, 0]),
-    (5, ["Unlanded TEF Bugs", "unlanded_tef", unlanded_tef_url, 1]),
     (5, ["Unlanded LEO (Sec) Bugs", "unlanded_leo_sec_url", unlanded_leo_sec_url, 0]),
     (5, ["Unlanded LEO Bugs", "unlanded_leo", unlanded_leo_url, 1]),
     (5, ["Blocker Bugs with Need-Info? (Sec)", "needinfo_sec_blockers", needinfo_sec_blockers_url, 0]),
     (5, ["Blocker Bugs with Need-Info?", "needinfo_blockers", needinfo_blockers_url, 1]),
-    (0, ["Bugs Blocking TEF (Sec)", "unfixed_tef_sec", unfixed_tef_sec_url, 0]),
-    (0, ["Bugs Blocking TEF", "unfixed_tef", unfixed_tef_url, 1]),
+    (0, ["Bugs Blocking KOI (Sec)", "unfixed_koi_sec", unfixed_koi_sec_url, 0]),
+    (0, ["Bugs Blocking KOI", "unfixed_koi", unfixed_koi_url, 1]),
     (0, ["Bugs Blocking LEO (Sec)", "unfixed_leo_sec", unfixed_leo_sec_url, 0]),
-    (0, ["Bugs Blocking LEO", "unfixed_leo", unfixed_leo_url, 1]),
-    (0, ["QE1 Blocking Bugs (Sec)", "blocking_qe1_sec", qe1_sec_blockers_url, 0]),
-    (0, ["QE1 Blocking Bugs", "blocking_qe1", qe1_blockers_url, 1]),
-    #(3, ["TEF Blocker Bugs, untouched this week", "untouched_tef_blockers", untouched_tef_url, 1]),
-    #(3, ["LEO Blocker Bugs, untouched this week", "untouched_leo_blockers", untouched_leo_url, 1]),
-    #(3, ["TEF Blocker Bugs (Sec), untouched this week", "untouched_tef_sec_blockers", untouched_tef_sec_url, 0]),
-    #(3, ["LEO Blocker Bugs (Sec), untouched this week", "untouched_leo_sec_blockers", untouched_leo_sec_url, 0]),
+    (0, ["Bugs Blocking LEO", "unfixed_leo", unfixed_leo_url, 1])
 ]
 
 

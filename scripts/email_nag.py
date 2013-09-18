@@ -29,6 +29,7 @@ EMAIL_SUBJECT = ''
 SMTP = 'smtp.mozilla.org'
 people = phonebook.PhonebookDirectory()
 
+# TODO - Sort by who a bug is blocked on (thanks @dturner)
 # TODO - write tests!
 # TODO - look into knocking out duplicated bugs in queries -- perhaps print out if there are dupes in queries when queries > 1
 # TODO - should compare bugmail from API results to phonebook bugmail in to_lower()
@@ -79,39 +80,40 @@ def generateEmailOutput(subject, queries, template, show_comment=False, manager_
     for query in queries.keys():
         if not template_params.has_key(query):
             template_params[query] = {'buglist': []}
-        for bug in queries[query]['bugs']:
-            if queries[query].has_key('show_summary'):
-                if queries[query]['show_summary'] == '1':
-                    summary=bug.summary
-                else:
-                    summary = ""
-            else:
-                summary=""
-            template_params[query]['buglist'].append({
-                    'id':bug.id,
-                    'summary':summary,
-                    #'comment': bug.comments[-1].creation_time.replace(tzinfo=None),
-                    'assignee': bug.assigned_to.real_name,
-                    'flags': bug.flags
-            })
-            # more hacking for JS special casing
-            if bug.assigned_to.name == 'general@js.bugs' and 'nihsanullah@mozilla.com' not in toaddrs:
-                toaddrs.append('nihsanullah@mozilla.com')
-            # if needinfo? in flags, add the flag.requestee to the toaddrs instead of bug assignee
-            if bug.flags:
-                for flag in bug.flags:
-                    if 'needinfo' in flag.name and flag.status == '?':
-                        try:
-                            person = dict(people.people_by_bzmail[str(flag.requestee)])
-                            if person['mozillaMail'] not in toaddrs:
-                                toaddrs.append(person['mozillaMail'])
-                        except:
-                            if str(flag.requestee) not in toaddrs:
-                                toaddrs.append(str(flag.requestee))
+        if len(queries[query]['bugs']) != 0:
+            for bug in queries[query]['bugs']:
+                if queries[query].has_key('show_summary'):
+                    if queries[query]['show_summary'] == '1':
+                        summary=bug.summary
                     else:
-                        addToAddrs(bug)
-            else:
-                addToAddrs(bug)
+                        summary = ""
+                else:
+                    summary=""
+                template_params[query]['buglist'].append({
+                        'id':bug.id,
+                        'summary':summary,
+                        #'comment': bug.comments[-1].creation_time.replace(tzinfo=None),
+                        'assignee': bug.assigned_to.real_name,
+                        'flags': bug.flags
+                })
+                # more hacking for JS special casing
+                if bug.assigned_to.name == 'general@js.bugs' and 'nihsanullah@mozilla.com' not in toaddrs:
+                    toaddrs.append('nihsanullah@mozilla.com')
+                # if needinfo? in flags, add the flag.requestee to the toaddrs instead of bug assignee
+                if bug.flags:
+                    for flag in bug.flags:
+                        if 'needinfo' in flag.name and flag.status == '?':
+                            try:
+                                person = dict(people.people_by_bzmail[str(flag.requestee)])
+                                if person['mozillaMail'] not in toaddrs:
+                                    toaddrs.append(person['mozillaMail'])
+                            except:
+                                if str(flag.requestee) not in toaddrs:
+                                    toaddrs.append(str(flag.requestee))
+                        else:
+                            addToAddrs(bug)
+                else:
+                    addToAddrs(bug)
 
                     
     message_body = template.render(queries=template_params, show_comment=show_comment)
@@ -132,7 +134,7 @@ def generateEmailOutput(subject, queries, template, show_comment=False, manager_
         + "Subject: %s\r\n" % subject
         + "\r\n" 
         + message_body)
-    toaddrs = toaddrs #+ cc_list
+    toaddrs = toaddrs + cc_list
 
     return toaddrs,message
 
@@ -274,89 +276,90 @@ if __name__ == '__main__':
                 print "Creating query key %s for bug %s in nagging and %s" % (query, bug.id, manager_email)
     
     for query, info in collected_queries.items():
-        manual_notify[query] = { 'bugs': [], 'show_summary': info.get('show_summary',0)}
-        for b in collected_queries[query]['bugs']:
-            counter = counter + 1
-            send_mail = True
-            bug = bmo.get_bug(b.id)
-            manual_notify[query]['bugs'].append(bug)
-            assignee = bug.assigned_to.name
-            if people.people_by_bzmail.has_key(assignee):
-                person = dict(people.people_by_bzmail[assignee])
-            else:
-                person = None
-            
-            # kick bug out if days since comment check is on
-            if options.days_since_comment != -1:
-                # try to get last_comment by assignee & manager
-                if person != None:
-                    last_comment = get_last_assignee_comment(bug.comments, person)
-                    if person.has_key('manager') and person['manager'] != None:
-                        manager_email = person['manager']['dn'].split('mail=')[1].split(',')[0]
-                        manager = people.people[manager_email]
-                        last_manager_comment = get_last_manager_comment(bug.comments, people.people_by_bzmail[manager['bugzillaEmail']])
-                        # set last_comment to the most recent of last_assignee and last_manager
-                        if last_manager_comment != None and last_comment != None and last_manager_comment > last_comment:
-                            last_comment = last_manager_comment
-                # otherwise just get the last comment
+        if len(collected_queries[query]['bugs']) != 0:
+            manual_notify[query] = { 'bugs': [], 'show_summary': info.get('show_summary',0)}
+            for b in collected_queries[query]['bugs']:
+                counter = counter + 1
+                send_mail = True
+                bug = bmo.get_bug(b.id)
+                manual_notify[query]['bugs'].append(bug)
+                assignee = bug.assigned_to.name
+                if people.people_by_bzmail.has_key(assignee):
+                    person = dict(people.people_by_bzmail[assignee])
                 else:
-                    last_comment = bug.comments[-1].creation_time.replace(tzinfo=None)
-                if last_comment != None:
-                    timedelta = datetime.now() - last_comment
-                    if timedelta.days <= int(options.days_since_comment):
-                        if options.verbose:
-                            print "Skipping bug %s since it's had an assignee or manager comment within the past %s days" % (bug.id, options.days_since_comment)
-                        send_mail = False
-                        counter = counter - 1
-                        manual_notify[query]['bugs'].remove(bug)
+                    person = None
+                
+                # kick bug out if days since comment check is on
+                if options.days_since_comment != -1:
+                    # try to get last_comment by assignee & manager
+                    if person != None:
+                        last_comment = get_last_assignee_comment(bug.comments, person)
+                        if person.has_key('manager') and person['manager'] != None:
+                            manager_email = person['manager']['dn'].split('mail=')[1].split(',')[0]
+                            manager = people.people[manager_email]
+                            last_manager_comment = get_last_manager_comment(bug.comments, people.people_by_bzmail[manager['bugzillaEmail']])
+                            # set last_comment to the most recent of last_assignee and last_manager
+                            if last_manager_comment != None and last_comment != None and last_manager_comment > last_comment:
+                                last_comment = last_manager_comment
+                    # otherwise just get the last comment
                     else:
+                        last_comment = bug.comments[-1].creation_time.replace(tzinfo=None)
+                    if last_comment != None:
+                        timedelta = datetime.now() - last_comment
+                        if timedelta.days <= int(options.days_since_comment):
+                            if options.verbose:
+                                print "Skipping bug %s since it's had an assignee or manager comment within the past %s days" % (bug.id, options.days_since_comment)
+                            send_mail = False
+                            counter = counter - 1
+                            manual_notify[query]['bugs'].remove(bug)
+                        else:
+                            if options.verbose:
+                                print "This bug needs notification, it's been %s since last comment of note" % timedelta.days
+        
+                if send_mail:
+                    if 'nobody' in assignee:
                         if options.verbose:
-                            print "This bug needs notification, it's been %s since last comment of note" % timedelta.days
-    
-            if send_mail:
-                if 'nobody' in assignee:
-                    if options.verbose:
-                        print "No one assigned to: %s, will be in the manual notification list..." % bug.id
-                # TODO - get rid of this, SUCH A HACK!
-                elif 'general@js.bugs' in assignee:
-                    if options.verbose:
-                        print "No one assigned to JS bug: %s, adding to Naveed's list..." % bug.id
-                    add_to_managers('nihsanullah@mozilla.com', query, info)
-                else:
-                    if bug.assigned_to.real_name != None:
-                        if person != None:
-                            # check if assignee is already a manager, add to their own list
-                            if managers.has_key(person['mozillaMail']):
-                                add_to_managers(person['mozillaMail'], query, info)
-                            # otherwise we search for the assignee's manager
-                            else:
-                                # check for manager key first, a few people don't have them
-                                if person.has_key('manager') and person['manager'] != None:
-                                    manager_email = person['manager']['dn'].split('mail=')[1].split(',')[0]
-                                    if managers.has_key(manager_email):
-                                        add_to_managers(manager_email, query, info)
-                                    elif people.vices.has_key(manager_email):
-                                        # we're already at the highest level we'll go
-                                        if managers.has_key(assignee):
-                                            add_to_managers(assignee, query, info)
-                                        else:
-                                            if options.verbose:
-                                                print "%s has a V-level for a manager, and is not in the manager list" % assignee
-                                            managers[person['mozillaMail']] = {}
-                                            add_to_managers(person['mozillaMail'], query, info)
-                                    else:
-                                        # try to go up one level and see if we find a manager
-                                        if people.people.has_key(manager_email):
-                                            person = dict(people.people[manager_email])
-                                            manager_email = person['manager']['dn'].split('mail=')[1].split(',')[0]
-                                            if managers.has_key(manager_email):
-                                                add_to_managers(manager_email, query, info)
-                                        else:
-                                            print "Manager could not be found: %s" % manager_email
-                                # if you don't have a manager listed, but are an employee, we'll nag you anyway
-                                else:
+                            print "No one assigned to: %s, will be in the manual notification list..." % bug.id
+                    # TODO - get rid of this, SUCH A HACK!
+                    elif 'general@js.bugs' in assignee:
+                        if options.verbose:
+                            print "No one assigned to JS bug: %s, adding to Naveed's list..." % bug.id
+                        add_to_managers('nihsanullah@mozilla.com', query, info)
+                    else:
+                        if bug.assigned_to.real_name != None:
+                            if person != None:
+                                # check if assignee is already a manager, add to their own list
+                                if managers.has_key(person['mozillaMail']):
                                     add_to_managers(person['mozillaMail'], query, info)
-                                    print "%s's entry doesn't list a manager! Let's ask them to update phonebook but in the meantime they get the email directly." % person['name']
+                                # otherwise we search for the assignee's manager
+                                else:
+                                    # check for manager key first, a few people don't have them
+                                    if person.has_key('manager') and person['manager'] != None:
+                                        manager_email = person['manager']['dn'].split('mail=')[1].split(',')[0]
+                                        if managers.has_key(manager_email):
+                                            add_to_managers(manager_email, query, info)
+                                        elif people.vices.has_key(manager_email):
+                                            # we're already at the highest level we'll go
+                                            if managers.has_key(assignee):
+                                                add_to_managers(assignee, query, info)
+                                            else:
+                                                if options.verbose:
+                                                    print "%s has a V-level for a manager, and is not in the manager list" % assignee
+                                                managers[person['mozillaMail']] = {}
+                                                add_to_managers(person['mozillaMail'], query, info)
+                                        else:
+                                            # try to go up one level and see if we find a manager
+                                            if people.people.has_key(manager_email):
+                                                person = dict(people.people[manager_email])
+                                                manager_email = person['manager']['dn'].split('mail=')[1].split(',')[0]
+                                                if managers.has_key(manager_email):
+                                                    add_to_managers(manager_email, query, info)
+                                            else:
+                                                print "Manager could not be found: %s" % manager_email
+                                    # if you don't have a manager listed, but are an employee, we'll nag you anyway
+                                    else:
+                                        add_to_managers(person['mozillaMail'], query, info)
+                                        print "%s's entry doesn't list a manager! Let's ask them to update phonebook but in the meantime they get the email directly." % person['name']
 
     if options.roll_up:
         # only send one email
