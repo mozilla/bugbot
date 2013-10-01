@@ -22,6 +22,7 @@ from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates'))
 
 REPLY_TO_EMAIL = 'release-mgmt@mozilla.com'
+DEFAULT_CC = ['release-mgmt@mozilla.com']
 EMAIL_SUBJECT = ''
 SMTP = 'smtp.mozilla.org'
 people = phonebook.PhonebookDirectory()
@@ -159,7 +160,7 @@ if __name__ == '__main__':
         password=None,
         roll_up=False,
         show_comment=False,
-        email_cc_list=[],
+        email_cc_list=DEFAULT_CC,
         queries=[],
         days_since_comment=-1,
         verbose=False,
@@ -230,7 +231,7 @@ if __name__ == '__main__':
                     'channel': info.get('query_channel', ''),
                     'bugs' : [],
                     'show_summary': info.get('show_summary', 0),
-                    'cclist' : [],
+                    'cclist' : options.email_cc_list,
                     }
             if info.has_key('cc'):
                 for c in info.get('cc').split(','):
