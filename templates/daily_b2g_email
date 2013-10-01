@@ -1,7 +1,7 @@
 B2G Blocker Auto Mailing:
 
 * On Mondays, we'll send teams email to remind on the unfixed blockers for upcoming B2G releases. 
-* On Thursdays, we'll send teams email to remind on blocking bugs that haven't been touched yet this week by their assignee. 
+* On Tuesdays, we'll send team-specific koi? and koi+ rollups
 * Every day, we send a roll-up email to b2g-release-drivers with unlanded uplifts and bugs waiting on a needinfo? request.
 
 As always, please refer to https://wiki.mozilla.org/Release_Management/B2G_Landing for the latest scheduling info and landing criterias.

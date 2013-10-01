@@ -39,6 +39,9 @@ def createQueriesList(print_all):
         # Monday only emails
         if weekday == 0 and url[0] == 0:
             queries.append(createQuery(title=url[1][0], short_title=url[1][1], url=url[1][2], show_summary=url[1][3], cc=cc))
+        # Tuesday only emails
+        if weekday == 1 and url[0] == 1:
+            queries.append(createQuery(title=url[1][0], short_title=url[1][1], url=url[1][2], show_summary=url[1][3], cc=cc))
         # Thursday only emails
         if weekday == 3 and url[0] == 3:
             queries.append(createQuery(title=url[1][0], short_title=url[1][1], url=url[1][2], show_summary=url[1][3], cc=cc))
@@ -86,14 +89,14 @@ urls = [
     (0, ["Bugs Blocking KOI", "unfixed_koi", unfixed_koi_url, 1]),
     (0, ["Bugs Blocking LEO (Sec)", "unfixed_leo_sec", unfixed_leo_sec_url, 0]),
     (0, ["Bugs Blocking LEO", "unfixed_leo", unfixed_leo_url, 1]),
-    (0, ["Blocking Nominiations for DOM: Dev Interfaces", "team_dev_koi_nom", team_dev_koi_nom, 1, ["dhylands@mozilla.com",]]),
-    (0, ["Blocker Bugs, DOM: Dev Interfaces", "team_dev_koi_blockers", team_dev_koi_blockers, 1, ["dhylands@mozilla.com",]]),
-    (0, ["Blocking Nominiations for Graphics", "team_gfx_koi_nom", team_gfx_koi_nom, 1, ["msreckovic@mozilla.com",]]),
-    (0, ["Blocker Bugs, Graphics", "team_gfx_koi_blockers", team_gfx_koi_blockers, 1, ["msreckovic@mozilla.com",]]),
-    (0, ["Blocking Nominiations for B2G: Media", "team_media_koi_nom", team_media_koi_nom, 1, ["hkoka@mozilla.com",]]),
-    (0, ["Blocker Bugs, B2G: Media", "team_media_koi_blockers", team_media_koi_blockers, 1, ["hkoka@mozilla.com",]]),
-    (0, ["Blocking Nominiations for B2G: Communications", "team_comm_koi_nom", team_comm_koi_nom, 1, ["dscravaglieri@mozilla.com",]]),
-    (0, ["Blocker Bugs, B2G: Communications", "team_comm_koi_blockers", team_comm_koi_blockers, 1, ["dscravaglieri@mozilla.com",]]),
+    (1, ["Blocking Nominiations for DOM: Dev Interfaces", "team_dev_koi_nom", team_dev_koi_nom, 1, ["dhylands@mozilla.com",]]),
+    (1, ["Blocker Bugs, DOM: Dev Interfaces", "team_dev_koi_blockers", team_dev_koi_blockers, 1, ["dhylands@mozilla.com",]]),
+    (1, ["Blocking Nominiations for Graphics", "team_gfx_koi_nom", team_gfx_koi_nom, 1, ["msreckovic@mozilla.com",]]),
+    (1, ["Blocker Bugs, Graphics", "team_gfx_koi_blockers", team_gfx_koi_blockers, 1, ["msreckovic@mozilla.com",]]),
+    (1, ["Blocking Nominiations for B2G: Media", "team_media_koi_nom", team_media_koi_nom, 1, ["hkoka@mozilla.com",]]),
+    (1, ["Blocker Bugs, B2G: Media", "team_media_koi_blockers", team_media_koi_blockers, 1, ["hkoka@mozilla.com",]]),
+    (1, ["Blocking Nominiations for B2G: Communications", "team_comm_koi_nom", team_comm_koi_nom, 1, ["dscravaglieri@mozilla.com",]]),
+    (1, ["Blocker Bugs, B2G: Communications", "team_comm_koi_blockers", team_comm_koi_blockers, 1, ["dscravaglieri@mozilla.com",]]),
 ]
 
 
