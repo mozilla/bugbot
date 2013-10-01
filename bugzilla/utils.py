@@ -13,8 +13,13 @@ def urljoin(base, *args):
 
 def qs(**kwargs):
     """Build a URL query string."""
-    return '&'.join('%s=%s' % tuple(map(urllib.quote, map(str, pair)))
-                    for pair in kwargs.items())
+    url = ''
+    for k,v in kwargs.iteritems():
+        if k == 'username' or k == 'password':
+            pass
+        for value in v:
+            url += '&%s=%s' % (urllib.quote(k),value)
+    return url
 
 
 def get_credentials(username=None):

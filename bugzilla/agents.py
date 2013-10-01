@@ -19,8 +19,8 @@ class BugzillaAgent(object):
         self.username, self.password = username, password
 
     def get_bug(self, bug, include_fields='_default,token,cc,keywords,whiteboard,comments', exclude_fields=None, params={}):
-        params['include_fields'] = include_fields
-        params['exclude_fields'] = exclude_fields
+        params['include_fields'] = [include_fields]
+        params['exclude_fields'] = [exclude_fields]
 
         url = urljoin(self.API_ROOT, 'bug/%s?%s' % (bug, self.qs(**params)))
         return Bug.get(url)
@@ -31,8 +31,8 @@ class BugzillaAgent(object):
 
     def qs(self, **params):
         if self.username and self.password:
-            params['username'] = self.username
-            params['password'] = self.password
+            params['username'] = [self.username]
+            params['password'] = [self.password]
         return qs(**params)
 
 

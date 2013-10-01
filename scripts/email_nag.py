@@ -1,25 +1,22 @@
 #!/usr/bin/env python
 """
-A script for automated nagging emails listing all the bugs being tracked by certain queries
+
+A script for automated nagging emails based on passed in queries
 These can be collated into several 'queries' through the use of multiple query files with 
 a 'query_name' param set eg: 'Bugs tracked for Firefox Beta (13)'
-Once the bugs have been collected from bugzilla they are sorted into buckets by assignee manager
-and an email can be sent out to the assignees, cc'ing their manager about which bugs are being tracked
-for each query
+Once the bugs have been collected from Bugzilla they are sorted into buckets cc: assignee manager
+and to the assignee(s) or need-info? for each query
+
 """
 import sys, os
-import json
 import smtplib
-import time
 import subprocess
-import urllib
 import tempfile
+import collections
 from datetime import datetime
-from dateutil.parser import parse
 from argparse import ArgumentParser
 from bugzilla.agents import BMOAgent
 from bugzilla.utils import get_credentials
-from bugzilla.models import DATETIME_FORMAT, DATETIME_FORMAT_WITH_SECONDS
 import phonebook
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates'))
@@ -55,20 +52,18 @@ def query_url_to_dict(url):
         fields_and_values = url.split("?")[1].split(";")
     else:
         fields_and_values = url.split("?")[1].split("&")
-    d = {}
+    d = collections.defaultdict(list)
 
     for pair in fields_and_values:
         (key,val) = pair.split("=")
         if key != "list_id":
-            d[key]=urllib.unquote(val)
+            d[key].append(val)
     return d
 
-def generateEmailOutput(subject, queries, template, show_comment=False, manager_email=None, 
-                    cc_list=None, to_addrs=None):
-    template_params = {}
-    toaddrs = []
+def generateEmailOutput(subject, queries, template, show_comment=False, manager_email=None):
     cclist = []
-
+    toaddrs = []
+    template_params = {}
     # stripping off the templates dir, just in case it gets passed in the args
     template = env.get_template(template.replace('templates/', '', 1))
     def addToAddrs(bug):
@@ -78,6 +73,11 @@ def generateEmailOutput(subject, queries, template, show_comment=False, manager_
                 toaddrs.append(person['mozillaMail'])
 
     for query in queries.keys():
+        # Avoid dupes in the cclist from several queries
+        query_cc = queries[query].get('cclist', [])
+        for qcc in query_cc:
+            if qcc not in cclist:
+                cclist.append(qcc)
         if not template_params.has_key(query):
             template_params[query] = {'buglist': []}
         if len(queries[query]['bugs']) != 0:
@@ -117,7 +117,7 @@ def generateEmailOutput(subject, queries, template, show_comment=False, manager_
 
                     
     message_body = template.render(queries=template_params, show_comment=show_comment)
-    if manager_email != None:
+    if manager_email != None and manager_email not in cclist:
         cclist.append(manager_email)
     # no need to and cc the manager if more than one email 
     if len(toaddrs) > 1:
@@ -125,16 +125,16 @@ def generateEmailOutput(subject, queries, template, show_comment=False, manager_
             if email in cclist:
                 toaddrs.remove(email)
 
-    if to_addrs != None:
-        toaddrs = to_addrs
-
+    if cclist == ['']:
+        cclist = None
     message = ("From: %s\r\n" % REPLY_TO_EMAIL
         + "To: %s\r\n" % ",".join(toaddrs)
-        + "CC: %s\r\n" % ",".join(cclist + cc_list)
+        + "CC: %s\r\n" % ",".join(cclist)
         + "Subject: %s\r\n" % subject
         + "\r\n" 
         + message_body)
-    toaddrs = toaddrs + cc_list
+
+    toaddrs = toaddrs + cclist
 
     return toaddrs,message
 
@@ -211,7 +211,8 @@ if __name__ == '__main__':
         int(options.days_since_comment)
     except:
         if options.days_since_comment != None:
-            parser.error("Need to provide a number for days since last comment value")
+            parser.error("Need to provide a number for days \
+                    since last comment value")
 
     # Load our agent for BMO
     bmo = BMOAgent(username, password)
@@ -229,13 +230,19 @@ if __name__ == '__main__':
                     'channel': info.get('query_channel', ''),
                     'bugs' : [],
                     'show_summary': info.get('show_summary', 0),
+                    'cclist' : [],
                     }
+            if info.has_key('cc'):
+                for c in info.get('cc').split(','):
+                    collected_queries[query_name]['cclist'].append(c)
             if info.has_key('query_params'):
                 print "Gathering bugs from query_params in %s" % query
                 collected_queries[query_name]['bugs'] = bmo.get_bug_list(info['query_params'])
             elif info.has_key('query_url'):
                 print "Gathering bugs from query_url in %s" % query
                 collected_queries[query_name]['bugs'] = bmo.get_bug_list(query_url_to_dict(info['query_url'])) 
+                #print "DEBUG: %d bug(s) found for query %s" % \
+                #   (len(collected_queries[query_name]['bugs']), info['query_url'])
             else:
                 print "Error - no valid query params or url in the config file"
                 sys.exit(1)
@@ -256,24 +263,39 @@ if __name__ == '__main__':
         if not managers.has_key(manager_email):
             managers[manager_email] = {}
             managers[manager_email]['nagging'] = {
-                    query : { 'bugs': [bug], 'show_summary': info.get('show_summary', 0) },
+                    query : { 
+                        'bugs': [bug],
+                        'show_summary': info.get('show_summary', 0),
+                        'cclist': info.get('cclist', [])
+                    },
                 }
             return
         if managers[manager_email].has_key('nagging'):
             if managers[manager_email]['nagging'].has_key(query):
                 managers[manager_email]['nagging'][query]['bugs'].append(bug)
                 if options.verbose:
-                    print "Adding %s to %s in nagging for %s" % (bug.id, query, manager_email)
+                    print "Adding %s to %s in nagging for %s" % \
+                        (bug.id, query, manager_email)
             else:
-                managers[manager_email]['nagging'][query] = { 'bugs': [bug], 'show_summary': info.get('show_summary', 0) }
+                managers[manager_email]['nagging'][query] = { 
+                    'bugs': [bug],
+                    'show_summary': info.get('show_summary', 0) ,
+                    'cclist': info.get('cclist', [])
+                }
                 if options.verbose:
-                    print "Adding new query key %s for bug %s in nagging and %s" % (query, bug.id, manager_email)
+                    print "Adding new query key %s for bug %s in nagging \
+                     and %s" % (query, bug.id, manager_email)
         else:
             managers[manager_email]['nagging'] = {
-                    query : { 'bugs': [bug], 'show_summary': info.get('show_summary', 0) },
+                    query : { 
+                        'bugs': [bug],
+                        'show_summary': info.get('show_summary', 0),
+                        'cclist': info.get('cclist', [])
+                     },
                 }
             if options.verbose:
-                print "Creating query key %s for bug %s in nagging and %s" % (query, bug.id, manager_email)
+                print "Creating query key %s for bug %s in nagging and \
+                    %s" % (query, bug.id, manager_email)
     
     for query, info in collected_queries.items():
         if len(collected_queries[query]['bugs']) != 0:
@@ -367,9 +389,7 @@ if __name__ == '__main__':
                     subject=options.email_subject,
                     queries=manual_notify,
                     template=options.template,
-                    show_comment=options.show_comment,
-                    cc_list=options.email_cc_list,
-                    to_addrs=['b2g-release-drivers@mozilla.org'])
+                    show_comment=options.show_comment)
         if options.email_password == None or options.mozilla_mail == None:
             print "Please supply a username/password (-m, -p) for sending email"
             sys.exit(1)
@@ -386,8 +406,7 @@ if __name__ == '__main__':
                     manager_email=email,
                     queries=info['nagging'],
                     template=options.template,
-                    show_comment=options.show_comment,
-                    cc_list=options.email_cc_list)
+                    show_comment=options.show_comment)
                 while True and not options.no_verification:
                     print "\nRelMan Nag is ready to send the following email:\n<------ MESSAGE BELOW -------->"
                     print msg
