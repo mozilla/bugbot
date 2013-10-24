@@ -68,6 +68,9 @@ needinfo_esr24_url = "https://bugzilla.mozilla.org/buglist.cgi?f1=cf_tracking_fi
 # TODO - separate queries for sec bugs, for now hide summary
 # TODO - fix the 'untouched' queries
 
+# tracked beta/aurora/nightly nobodies: https://bugzilla.mozilla.org/buglist.cgi?j_top=OR&f1=cf_tracking_firefox25&o3=equals&v3=%2B&o1=equals&emailtype1=exact&o2=equals&emailassigned_to1=1&query_format=advanced&f3=cf_tracking_firefox27&f2=cf_tracking_firefox26&bug_status=UNCONFIRMED&bug_status=NEW&bug_status=ASSIGNED&bug_status=REOPENED&email1=nobody%40mozilla.org&v1=%2B&v2=%2B&list_id=8177063
+# need same but for untouched 
+
 urls = [
     (5, ["Unlanded Beta " + beta_version + " Bugs", "unlanded_beta", unlanded_beta_url, 0]),
     (5, ["Unlanded Aurora " + aurora_version + " Bugs", "unlanded_aurora", unlanded_aurora_url, 0]),
