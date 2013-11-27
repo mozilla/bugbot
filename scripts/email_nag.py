@@ -61,7 +61,7 @@ def query_url_to_dict(url):
             d[key].append(val)
     return d
 
-def generateEmailOutput(subject, queries, template, show_comment=False, manager_email=None):
+def generateEmailOutput(subject, queries, template, show_comment=False, manager_email=None, rollup=False, rollupEmail=None):
     cclist = []
     toaddrs = []
     template_params = {}
@@ -128,8 +128,12 @@ def generateEmailOutput(subject, queries, template, show_comment=False, manager_
 
     if cclist == ['']:
         cclist = None
+    if rollup:
+        joined_to = ",".join(rollupEmail)
+    else:
+        joined_to = ",".join(toaddrs)
     message = ("From: %s\r\n" % REPLY_TO_EMAIL
-        + "To: %s\r\n" % ",".join(toaddrs)
+        + "To: %s\r\n" % joined_to
         + "CC: %s\r\n" % ",".join(cclist)
         + "Subject: %s\r\n" % subject
         + "\r\n" 
@@ -160,7 +164,7 @@ if __name__ == '__main__':
         password=None,
         roll_up=False,
         show_comment=False,
-        email_cc_list=DEFAULT_CC,
+        email_cc_list=None,
         queries=[],
         days_since_comment=-1,
         verbose=False,
@@ -214,6 +218,8 @@ if __name__ == '__main__':
         if options.days_since_comment != None:
             parser.error("Need to provide a number for days \
                     since last comment value")
+    if options.email_cc_list == None:
+        options.email_cc_list = DEFAULT_CC
 
     # Load our agent for BMO
     bmo = BMOAgent(username, password)
@@ -390,7 +396,9 @@ if __name__ == '__main__':
                     subject=options.email_subject,
                     queries=manual_notify,
                     template=options.template,
-                    show_comment=options.show_comment)
+                    show_comment=options.show_comment,
+                    rollup = options.roll_up,
+                    rollupEmail = options.email_cc_list)
         if options.email_password == None or options.mozilla_mail == None:
             print "Please supply a username/password (-m, -p) for sending email"
             sys.exit(1)

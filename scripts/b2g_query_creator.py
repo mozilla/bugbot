@@ -126,7 +126,11 @@ if __name__ == '__main__':
         for query in queries:
             command.append('-q')
             command.append(query)
-        subject = datetime.datetime.today().strftime("%A %b %d") + " -- Daily B2G Blocking Bugs Alert"
+        if ('-r') in args:
+            subject = datetime.datetime.today().strftime("%A %b %d") + " -- Daily B2G Drivers Rollup"
+            command.extend(['-e', 'b2g-release-drivers@mozilla.org'])
+        else:
+            subject = datetime.datetime.today().strftime("%A %b %d") + " -- Daily B2G Blocking Bugs Alert"
         command.extend(['-s',  subject])
         # send all other args to email_nag script argparser
         command.extend(args)
