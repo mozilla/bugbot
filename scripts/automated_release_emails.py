@@ -49,8 +49,8 @@ today = datetime.date.today()
 release = datetime.datetime.strptime(release_date, "%B %d, %Y").date()
 
 # Check the timedelta between today and releasedate and if:
-# -7 days before release date Sign Off reminder for 'tomorrow': Wed at 10am PT
-# -29 days before next release date send Post-Mortem for the previous version 'tomorrow': Tues at 9am PT)
+# -7 days before release date Sign Off reminder for 'tomorrow': Thurs at 10am PT
+# -29 days before next release date send Post-Mortem for the previous version 'tomorrow': Tues at 10am PT)
 timedelta = today - release
 
 if timedelta.days == -7:
@@ -69,7 +69,7 @@ if timedelta.days == -29:
     print "Sending post-mortem email reminder %s" % today
     subject = "Reminder: Firefox %s Post Mortem Meeting Tomorrow" % current_version
     body = """
-Friendly Reminder that the FF%s.0 Post-Mortem will take place tomorrow @ 9:00 am PT in the Release Co-ordination Vidyo room.
+Friendly Reminder that the FF%s.0 Post-Mortem will take place tomorrow @ 10:00 am PT during the Channel Meeting in the Release Co-ordination Vidyo room.
 
 Etherpad - https://etherpad.mozilla.org/%s-0-Post-Mortem
 
