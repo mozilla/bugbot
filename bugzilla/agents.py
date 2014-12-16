@@ -38,4 +38,4 @@ class BugzillaAgent(object):
 
 class BMOAgent(BugzillaAgent):
     def __init__(self, username=None, password=None):
-        super(BMOAgent, self).__init__('https://api-dev.bugzilla.mozilla.org/latest/', username, password)
+        super(BMOAgent, self).__init__('https://bugzilla.mozilla.org/bzapi/', username, password)
