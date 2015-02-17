@@ -455,9 +455,9 @@ if __name__ == '__main__':
 if not options.roll_up:
     emailed_bugs = []
     # Send RelMan the manual notification list only when there are bugs that didn't go out
-    msg_body = """\n*************\nNo nag emails were generated for these bugs because 
+    msg_body = """\n******************************************\nNo nag emails were generated for these bugs because 
 they are either assigned to no one or to non-employees (though ni? on non-employees will get nagged). 
-\nYou will need to look at the following bugs:\n*************\n\n"""
+\nYou will need to look at the following bugs:\n******************************************\n\n"""
     for k,v in manual_notify.items():
         if len(v['bugs']) != 0:
             for bug in v['bugs']:
