@@ -13,7 +13,7 @@ we'll have to do this the long way.
 
 #. Check out the code::
 
-    git clone git://github.com/LegNeato/bztools.git
+    git clone git://github.com/mozilla/bztools.git
 
 #. (optional) Create your virtualenv using virtualenvwrapper::
 
@@ -73,26 +73,51 @@ Example::
     for bug in buglist:
         print bug
 
-Email Nag Script
--------------------
+Query Creator, Automated Nagging Script
+---------------------------------------
 Do a dryrun::
-    python scripts/email_nag.py -d -q queries/tracking_firefox_12 -q queries/tracking_firefox_13
-
-You can pass in several config files (examples in queries/) that should have the following information::
-    query_name
-    priority
-    query_{url,params}  (choose one format - see queries/ for examples of each)
+    python scripts/query_creator.py -d
 
 The script does the following:
 * Gathers the current list of employees and managers from Mozilla LDAP phonebook 
 ** you will need a local config for phonebook auth with your LDAP info::
-    # in scripts/configs/config.json                                   ▸▸▸▸▸▸▸▸▸▸
+    # in scripts/configs/config.json
     {
-        "username": "you@mozilla.com",
-        "password": "xxxxxxxxxxxxxx"
+        "ldap_username": "you@mozilla.com",
+        "ldap_password": "xxxxxxxxxxxxxx"
     }
+* Creates queries based on the day of the week the script is run
 * Polls the bugzilla API with each query supplied and builds a dictionary of bugs found per query
 * For each bug, finds the assignee and if possible the assignee's manager - then adds the bug to the manager's bug bucket for later email notification
 * Goes through the manager dictionary and contructs an email with the bugs assigned to that manager's team members
 * Outputs the message to console and waits for use input to either send/edit/cancel (save for manual notification)
 * At the end it provides a list of all bugs that were not emailed about and provides the url for bugzilla of that buglist
+
+
+Running on a server
+-------------------
+
+This needs to run on a private server because it will have both logins for Bugzilla and LDAP so it can't currently be shared access.
+I run this on WebFaction with a wrapper script, virtualenv, and a cronjob:
+
+Cronjob:
+    00 14 * * 1-5 $HOME/bin/run_autonags.sh > $HOME/logs/user/autonag.log
+
+Shell script:
+    #!/bin/bash
+    source $HOME/.virtualenvs/bztools/bin/activate
+    cd $HOME/bztools
+    /usr/local/bin/python $HOME/bztools/scripts/query_creator.py
+    
+
+When you change your Bugzilla password you need to change it in the virtualenv keyring as follows:
+
+    # activate the bztools virtualenv
+    python
+    import keyring
+    keyring.set_password("bugzilla", "username", "password") # using your username and password
+    keyring.get_password("bugzilla", "username")  # should confirm the new password
+    exit()
+    deactivate
+    
+Then test a dry-run of the crontjob again (with or without the redirect to logs) to make sure the script runs through.
