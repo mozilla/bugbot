@@ -80,7 +80,7 @@ Do a dryrun::
 
 The script does the following:
 * Gathers the current list of employees and managers from Mozilla LDAP phonebook 
-** you will need a local config for phonebook auth with your LDAP info:
+** you will need a local config for phonebook auth with your LDAP info::
     # in scripts/configs/config.json
     {
         "ldap_username": "you@mozilla.com",
@@ -100,10 +100,10 @@ Running on a server
 This needs to run on a private server because it will have both logins for Bugzilla and LDAP so it can't currently be shared access.
 I run this on WebFaction with a wrapper script, virtualenv, and a cronjob:
 
-Cronjob:
+Cronjob::
   00 14 * * 1-5 $HOME/bin/run_autonags.sh > $HOME/logs/user/autonag.log
 
-Shell script:
+Shell script::
 
   #!/bin/bash
   source $HOME/.virtualenvs/bztools/bin/activate
@@ -111,7 +111,7 @@ Shell script:
   /usr/local/bin/python $HOME/bztools/scripts/query_creator.py
     
 
-When you change your Bugzilla password you need to change it in the virtualenv keyring as follows:
+When you change your Bugzilla password you need to change it in the virtualenv keyring as follows::
 
   python
   import keyring
