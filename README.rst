@@ -112,7 +112,6 @@ Shell script:
 
 When you change your Bugzilla password you need to change it in the virtualenv keyring as follows:
 
-    # activate the bztools virtualenv
     python
     import keyring
     keyring.set_password("bugzilla", "username", "password") # using your username and password
