@@ -119,6 +119,10 @@ Shell script::
   /usr/local/bin/python $HOME/bztools/scripts/query_creator.py
     
 
+
+Updating your Bugzilla account
+------------------------------
+
 When you change your Bugzilla password you need to change it in the virtualenv keyring as follows::
 
   python
