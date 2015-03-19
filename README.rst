@@ -76,19 +76,21 @@ Example::
 Query Creator, Automated Nagging Script
 ---------------------------------------
 
-You'll need to create a writeable 'queries' directory at the top level of the checkout where the script is run from.
+Before running::
 
-Do a dryrun::
-    python scripts/query_creator.py -d
-
-The script does the following:
-* Gathers the current list of employees and managers from Mozilla LDAP phonebook 
-** you will need a local config for phonebook auth with your LDAP info::
+1. You'll need to create a writeable 'queries' directory at the top level of the checkout where the script is run from.
+2. you will need a local config for phonebook auth with your LDAP info::
     # in scripts/configs/config.json
     {
         "ldap_username": "you@mozilla.com",
         "ldap_password": "xxxxxxxxxxxxxx"
     }
+    
+Do a dryrun::
+    python scripts/query_creator.py -d
+
+The script does the following:
+* Gathers the current list of employees and managers from Mozilla LDAP phonebook 
 * Creates queries based on the day of the week the script is run
 * Polls the bugzilla API with each query supplied and builds a dictionary of bugs found per query
 * For each bug, finds the assignee and if possible the assignee's manager - then adds the bug to the manager's bug bucket for later email notification
