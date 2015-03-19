@@ -1,8 +1,8 @@
-This package currently uses `remoteobjects`_ models, Mozilla's `_ Bugzilla `REST API`_, and optionally the Mozilla LDAP `phonebook`_ (to access bug assignees' managers & Mozilla email addresses).
+This package currently uses [remoteobject] [remoteobjects] models, Mozilla's [Bugzilla REST API] [api], and optionally the Mozilla LDAP [phonebook] [phonebook] (to access bug assignees' managers & Mozilla email addresses).
 
-.. _remoteobjects: http://sixapart.github.com/remoteobjects/
-.. _REST API: https://wiki.mozilla.org/Bugzilla:REST_API
-.. _phonebook: https://github.com/mozilla/mobile-phonebook
+[remoteobjects]: http://sixapart.github.com/remoteobjects/
+[api]: https://wiki.mozilla.org/Bugzilla:REST_API
+[phonebook]: https://github.com/mozilla/mobile-phonebook
 
 
 Installation
@@ -88,7 +88,7 @@ Before running::
   "ldap_password": "xxxxxxxxxxxxxx"
 }
  </pre>
-    
+
 Do a dryrun::
     python scripts/query_creator.py -d
 
