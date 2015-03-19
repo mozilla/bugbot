@@ -81,11 +81,13 @@ Before running::
 1. You'll need to create a writeable 'queries' directory at the top level of the checkout where the script is run from.
 2. you will need a local config for phonebook auth with your LDAP info
 
-    # in scripts/configs/config.json
-    {
-        "ldap_username": "you@mozilla.com",
-        "ldap_password": "xxxxxxxxxxxxxx"
-    }
+<pre>
+# in scripts/configs/config.json
+{
+  "ldap_username": "you@mozilla.com",
+  "ldap_password": "xxxxxxxxxxxxxx"
+}
+ </pre>
     
 Do a dryrun::
     python scripts/query_creator.py -d
