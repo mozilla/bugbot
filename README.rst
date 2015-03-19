@@ -75,6 +75,9 @@ Example::
 
 Query Creator, Automated Nagging Script
 ---------------------------------------
+
+You'll need to create a writeable 'queries' directory at the top level of the checkout where the script is run from.
+
 Do a dryrun::
     python scripts/query_creator.py -d
 
