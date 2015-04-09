@@ -40,7 +40,7 @@ Note to developers: if you make any changes to the bugzilla/ files (agents, mode
 work on other scripts, you will want to re-install the scripts as instructed above in order to pick
 up changes
 
-Usage 
+Usage
 ----------
 
 Example::
@@ -93,7 +93,13 @@ Do a dryrun::
     python scripts/query_creator.py -d
 
 The script does the following:
-* Gathers the current list of employees and managers from Mozilla LDAP phonebook 
+* Gathers the current list of employees and managers from Mozilla LDAP phonebook
+** you will need a local config for phonebook auth with your LDAP info::
+    # in scripts/configs/config.json
+    {
+        "ldap_username": "you@mozilla.com",
+        "ldap_password": "xxxxxxxxxxxxxx"
+    }
 * Creates queries based on the day of the week the script is run
 * Polls the bugzilla API with each query supplied and builds a dictionary of bugs found per query
 * For each bug, finds the assignee and if possible the assignee's manager - then adds the bug to the manager's bug bucket for later email notification
@@ -117,7 +123,7 @@ Shell script::
   source $HOME/.virtualenvs/bztools/bin/activate
   cd $HOME/bztools
   /usr/local/bin/python $HOME/bztools/scripts/query_creator.py
-    
+
 
 
 Updating your Bugzilla account
@@ -128,8 +134,9 @@ When you change your Bugzilla password you need to change it in the virtualenv k
   python
   import keyring
   keyring.set_password("bugzilla", "username", "password") # using your username and password
+  # Please make sure that any special char in the password must be URL encoded (example: ! = %21)
   keyring.get_password("bugzilla", "username")  # should confirm the new password
   exit()
   deactivate
-    
-Then test a dry-run of the crontjob again (with or without the redirect to logs) to make sure the script runs through.
+
+Then test a dry-run of the cronjob again (with or without the redirect to logs) to make sure the script runs through.
