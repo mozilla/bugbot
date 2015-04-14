@@ -1,8 +1,4 @@
-This package currently uses [remoteobject] [remoteobjects] models, Mozilla's [Bugzilla REST API] [api], and optionally the Mozilla LDAP [phonebook] [phonebook] (to access bug assignees' managers & Mozilla email addresses).
-
-[remoteobjects]: http://sixapart.github.com/remoteobjects/
-[api]: https://wiki.mozilla.org/Bugzilla:REST_API
-[phonebook]: https://github.com/mozilla/mobile-phonebook
+This package currently uses [remoteobject](http://sixapart.github.com/remoteobjects/) models, Mozilla's [Bugzilla REST API](https://wiki.mozilla.org/Bugzilla:REST_API), and optionally the Mozilla LDAP [phonebook](https://github.com/mozilla/mobile-phonebook) (to access bug assignees' managers & Mozilla email addresses).
 
 
 Installation
