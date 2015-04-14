@@ -53,7 +53,7 @@ def createQueriesList(print_all):
 # ========================= CURRENT QUERIES ============================
 # NOTE: You must replace query bug_status with comma-separated values
 #    eg: &bug_status=UNCONFIRMED,NEW,ASSIGNED,REOPENED
-# 
+#
 # ==== KOI (v1.2) ====
 unfixed_koi_sec_url = "https://bugzilla.mozilla.org/buglist.cgi?f1=cf_blocking_b2g&o1=equals&resolution=---&bug_status=UNCONFIRMED,NEW,READY,ASSIGNED,REOPENED&v1=koi%2B&f2=status_whiteboard&o2=notsubstring&v2=[no-nag]&o3=anywordssubstr&v3=Confidential%20Security&f3=bug_group"
 unfixed_koi_url = "https://bugzilla.mozilla.org/buglist.cgi?f1=cf_blocking_b2g&o1=equals&resolution=---&bug_status=UNCONFIRMED,NEW,READY,ASSIGNED,REOPENED&v1=koi%2B&f2=status_whiteboard&o2=notsubstring&v2=[no-nag]&o3=anywordssubstr&v3=Confidential%20Security&f3=bug_group&n3=1"

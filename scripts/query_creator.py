@@ -63,7 +63,7 @@ needinfo_esr31_url = "https://bugzilla.mozilla.org/buglist.cgi?f1=cf_tracking_fi
 # TODO - fix the 'untouched' queries
 
 # tracked beta/aurora/nightly nobodies: https://bugzilla.mozilla.org/buglist.cgi?j_top=OR&f1=cf_tracking_firefox25&o3=equals&v3=%2B&o1=equals&emailtype1=exact&o2=equals&emailassigned_to1=1&f3=cf_tracking_firefox27&f2=cf_tracking_firefox26&bug_status=UNCONFIRMED&bug_status=NEW&bug_status=ASSIGNED&bug_status=REOPENED&email1=nobody%40mozilla.org&v1=%2B&v2=%2B
-# need same but for untouched 
+# need same but for untouched
 
 urls = [
     (5, ["Unlanded Beta " + beta_version + " Bugs", "unlanded_beta", unlanded_beta_url, 0]),
