@@ -5,11 +5,12 @@ import itertools
 import os
 import argparse
 
-from bugzilla.models import Bug, Attachment, Flag, User, Comment
+from bugzilla.models import Attachment, Flag, User, Comment
 from bugzilla.agents import BugzillaAgent
-from bugzilla.utils import urljoin, qs, get_credentials, FILE_TYPES
+from bugzilla.utils import urljoin, get_credentials, FILE_TYPES
 
 REVIEW = 4
+
 
 class AttachmentAgent(BugzillaAgent):
     """Stores credentials, navigates the site."""
@@ -32,7 +33,7 @@ class AttachmentAgent(BugzillaAgent):
         self.obsolete(bug)
 
     def _attach(self, bug_id, filename, description, is_patch=False,
-               reviewer=None, content_type='text/plain'):
+                reviewer=None, content_type='text/plain'):
         """Create a new attachment."""
         fields = {
             'data':         base64.b64encode(open(filename).read()),
@@ -87,6 +88,7 @@ class AttachmentAgent(BugzillaAgent):
         attachment.is_obsolete = True
         attachment._location += '?%s' % self.qs()
         attachment.put()
+
 
 def main():
 

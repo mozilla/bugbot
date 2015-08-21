@@ -32,7 +32,7 @@ def createQueriesList(print_all):
         try:
             cc = url[1][4]
         except IndexError:
-            cc = None # no cc
+            cc = None  # no cc
         # Every Weekday
         if weekday >= 0 and weekday < 5 and url[0] == 5:
             queries.append(createQuery(title=url[1][0], short_title=url[1][1], url=url[1][2], show_summary=url[1][3], cc=cc))
@@ -84,14 +84,14 @@ urls = [
     (5, ["Blocker Bugs with Need-Info?", "needinfo_blockers", needinfo_blockers_url, 1]),
     (0, ["Bugs Blocking KOI (Sec)", "unfixed_koi_sec", unfixed_koi_sec_url, 0]),
     (0, ["Bugs Blocking KOI", "unfixed_koi", unfixed_koi_url, 1]),
-    (1, ["Koi Blocking Nominiations for DOM: Dev Interfaces", "team_dev_koi_nom", team_dev_koi_nom, 1, ["dhylands@mozilla.com",]]),
-    (1, ["Koi Blocker Bugs, DOM: Dev Interfaces", "team_dev_koi_blockers", team_dev_koi_blockers, 1, ["dhylands@mozilla.com",]]),
-    (1, ["Koi Blocking Nominiations for Graphics", "team_gfx_koi_nom", team_gfx_koi_nom, 1, ["msreckovic@mozilla.com",]]),
-    (1, ["Koi Blocker Bugs, Graphics", "team_gfx_koi_blockers", team_gfx_koi_blockers, 1, ["msreckovic@mozilla.com",]]),
-    (1, ["Koi Blocking Nominiations for B2G: Media", "team_media_koi_nom", team_media_koi_nom, 1, ["hkoka@mozilla.com",]]),
-    (1, ["Koi Blocker Bugs, B2G: Media", "team_media_koi_blockers", team_media_koi_blockers, 1, ["hkoka@mozilla.com",]]),
-    (1, ["Koi Blocking Nominiations for B2G: Communications", "team_comm_koi_nom", team_comm_koi_nom, 1, ["dscravaglieri@mozilla.com",]]),
-    (1, ["Koi Blocker Bugs, B2G: Communications", "team_comm_koi_blockers", team_comm_koi_blockers, 1, ["dscravaglieri@mozilla.com",]]),
+    (1, ["Koi Blocking Nominiations for DOM: Dev Interfaces", "team_dev_koi_nom", team_dev_koi_nom, 1, ["dhylands@mozilla.com", ]]),
+    (1, ["Koi Blocker Bugs, DOM: Dev Interfaces", "team_dev_koi_blockers", team_dev_koi_blockers, 1, ["dhylands@mozilla.com", ]]),
+    (1, ["Koi Blocking Nominiations for Graphics", "team_gfx_koi_nom", team_gfx_koi_nom, 1, ["msreckovic@mozilla.com", ]]),
+    (1, ["Koi Blocker Bugs, Graphics", "team_gfx_koi_blockers", team_gfx_koi_blockers, 1, ["msreckovic@mozilla.com", ]]),
+    (1, ["Koi Blocking Nominiations for B2G: Media", "team_media_koi_nom", team_media_koi_nom, 1, ["hkoka@mozilla.com", ]]),
+    (1, ["Koi Blocker Bugs, B2G: Media", "team_media_koi_blockers", team_media_koi_blockers, 1, ["hkoka@mozilla.com", ]]),
+    (1, ["Koi Blocking Nominiations for B2G: Communications", "team_comm_koi_nom", team_comm_koi_nom, 1, ["dscravaglieri@mozilla.com", ]]),
+    (1, ["Koi Blocker Bugs, B2G: Communications", "team_comm_koi_blockers", team_comm_koi_blockers, 1, ["dscravaglieri@mozilla.com", ]]),
     (4, ["Koi Blocker Bugs, No Comment from Assignee in 3 days or more", "koi_assignee_no_comment_three_days", koi_assignee_no_comment_three_days, 1]),
     (4, ["Koi Blocker Bugs, Regressions", "koi_regressions_unfixed", koi_regressions_unfixed, 1]),
 ]
