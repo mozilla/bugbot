@@ -19,7 +19,8 @@ toaddrs = ['dev-planning@lists.mozilla.org', 'release-drivers@mozilla.com']
 
 
 def sendMail(toaddr, options):
-    message = ("From: %s\r\n" % options['username']
+    message = (
+        "From: %s\r\n" % options['username']
         + "To: %s\r\n" % toaddr
         + "CC: %s\r\n" % options['cclist']
         + "Reply-To: %s\r\n" % REPLY_TO_EMAIL

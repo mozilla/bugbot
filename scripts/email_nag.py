@@ -74,7 +74,7 @@ def generateEmailOutput(subject, queries, template, show_comment=False, manager_
     template = env.get_template(template.replace('templates/', '', 1))
 
     def addToAddrs(bug):
-        if people.people_by_bzmail.has_key(bug.assigned_to.name):
+        if bug.assigned_to.name in people.people_by_bzmail:
             person = dict(people.people_by_bzmail[bug.assigned_to.name])
             if person['mozillaMail'] not in toaddrs:
                 toaddrs.append(person['mozillaMail'])
@@ -85,24 +85,26 @@ def generateEmailOutput(subject, queries, template, show_comment=False, manager_
         for qcc in query_cc:
             if qcc not in cclist:
                 cclist.append(qcc)
-        if not template_params.has_key(query):
+        if query not in template_params:
             template_params[query] = {'buglist': []}
         if len(queries[query]['bugs']) != 0:
             for bug in queries[query]['bugs']:
-                if queries[query].has_key('show_summary'):
+                if 'show_summary' in queries[query]:
                     if queries[query]['show_summary'] == '1':
                         summary = bug.summary
                     else:
                         summary = ""
                 else:
                     summary = ""
-                template_params[query]['buglist'].append({
+                template_params[query]['buglist'].append(
+                    {
                         'id': bug.id,
                         'summary': summary,
                         # 'comment': bug.comments[-1].creation_time.replace(tzinfo=None),
                         'assignee': bug.assigned_to.real_name,
                         'flags': bug.flags
-                })
+                    }
+                )
                 # more hacking for JS special casing
                 if bug.assigned_to.name == 'general@js.bugs' and 'nihsanullah@mozilla.com' not in toaddrs:
                     toaddrs.append('nihsanullah@mozilla.com')
@@ -122,7 +124,6 @@ def generateEmailOutput(subject, queries, template, show_comment=False, manager_
                 else:
                     addToAddrs(bug)
 
-
     message_body = template.render(queries=template_params, show_comment=show_comment)
     if manager_email is not None and manager_email not in cclist:
         cclist.append(manager_email)
@@ -138,7 +139,8 @@ def generateEmailOutput(subject, queries, template, show_comment=False, manager_
         joined_to = ",".join(rollupEmail)
     else:
         joined_to = ",".join(toaddrs)
-    message = ("From: %s\r\n" % REPLY_TO_EMAIL
+    message = (
+        "From: %s\r\n" % REPLY_TO_EMAIL
         + "To: %s\r\n" % joined_to
         + "CC: %s\r\n" % ",".join(cclist)
         + "Subject: %s\r\n" % subject
@@ -147,10 +149,10 @@ def generateEmailOutput(subject, queries, template, show_comment=False, manager_
 
     toaddrs = toaddrs + cclist
 
-    return toaddrs,message
+    return toaddrs, message
 
 
-def sendMail(toaddrs,msg,username,password,dryrun=False):
+def sendMail(toaddrs, msg, username, password, dryrun=False):
     if dryrun:
         print "\n****************************\n* DRYRUN: not sending mail *\n****************************\n"
         print msg
@@ -159,7 +161,7 @@ def sendMail(toaddrs,msg,username,password,dryrun=False):
         server.set_debuglevel(1)
         server.login(username, password)
         # note: toaddrs is required for transport agents, the msg['To'] header is not modified
-        server.sendmail(username,toaddrs, msg)
+        server.sendmail(username, toaddrs, msg)
         server.quit()
 
 
@@ -180,37 +182,37 @@ if __name__ == '__main__':
         no_verification=False,
         )
     parser.add_argument("-d", "--dryrun", dest="dryrun", action="store_true",
-            help="just do the query, and print emails to console without emailing anyone")
+                        help="just do the query, and print emails to console without emailing anyone")
     parser.add_argument("-m", "--mozilla-email", dest="mozilla_mail",
-            help="specify a specific address for sending email"),
+                        help="specify a specific address for sending email"),
     parser.add_argument("-p", "--email-password", dest="email_password",
-            help="specify a specific password for sending email")
+                        help="specify a specific password for sending email")
     parser.add_argument("-t", "--template", dest="template",
-            required=True,
-            help="template to use for the buglist output")
+                        required=True,
+                        help="template to use for the buglist output")
     parser.add_argument("-e", "--email-cc-list", dest="email_cc_list",
-            action="append",
-            help="email addresses to include in cc when sending mail")
+                        action="append",
+                        help="email addresses to include in cc when sending mail")
     parser.add_argument("-q", "--query", dest="queries",
-            action="append",
-            required=True,
-            help="a file containing a dictionary of a bugzilla query")
+                        action="append",
+                        required=True,
+                        help="a file containing a dictionary of a bugzilla query")
     parser.add_argument("-k", "--keyword", dest="keywords",
-            action="append",
-            help="keywords to collate buglists")
+                        action="append",
+                        help="keywords to collate buglists")
     parser.add_argument("-s", "--subject", dest="email_subject",
-            required=True,
-            help="The subject of the email being sent")
+                        required=True,
+                        help="The subject of the email being sent")
     parser.add_argument("-r", "--roll-up", dest="roll_up", action="store_true",
-            help="flag to get roll-up output in one email instead of creating multiple emails")
+                        help="flag to get roll-up output in one email instead of creating multiple emails")
     parser.add_argument("--show-comment", dest="show_comment", action="store_true",
-            help="flag to display last comment on a bug in the message output")
+                        help="flag to display last comment on a bug in the message output")
     parser.add_argument("--days-since-comment", dest="days_since_comment",
-            help="threshold to check comments against to take action based on days since comment")
+                        help="threshold to check comments against to take action based on days since comment")
     parser.add_argument("--verbose", dest="verbose", action="store_true",
-            help="turn on verbose output")
+                        help="turn on verbose output")
     parser.add_argument("--no-verification", dest="no_verification", action="store_true",
-            help="don't wait for human verification of every email")
+                        help="don't wait for human verification of every email")
 
     options, args = parser.parse_known_args()
 
@@ -239,23 +241,23 @@ if __name__ == '__main__':
             info = {}
             execfile(query, info)
             query_name = info['query_name']
-            if not collected_queries.has_key(query_name):
+            if query_name not in collected_queries:
                 collected_queries[query_name] = {
                     'channel': info.get('query_channel', ''),
                     'bugs': [],
                     'show_summary': info.get('show_summary', 0),
                     'cclist': options.email_cc_list,
                     }
-            if info.has_key('cc'):
+            if 'cc' in info:
                 for c in info.get('cc').split(','):
                     collected_queries[query_name]['cclist'].append(c)
-            if info.has_key('query_params'):
+            if 'query_params' in info:
                 print "Gathering bugs from query_params in %s" % query
                 collected_queries[query_name]['bugs'] = bmo.get_bug_list(info['query_params'])
-            elif info.has_key('query_url'):
+            elif 'query_url' in info:
                 print "Gathering bugs from query_url in %s" % query
                 collected_queries[query_name]['bugs'] = bmo.get_bug_list(query_url_to_dict(info['query_url']))
-                #print "DEBUG: %d bug(s) found for query %s" % \
+                # print "DEBUG: %d bug(s) found for query %s" % \
                 #   (len(collected_queries[query_name]['bugs']), info['query_url'])
             else:
                 print "Error - no valid query params or url in the config file"
@@ -274,18 +276,14 @@ if __name__ == '__main__':
     counter = 0
 
     def add_to_managers(manager_email, query, info={}):
-        if not managers.has_key(manager_email):
+        if manager_email not in managers:
             managers[manager_email] = {}
-            managers[manager_email]['nagging'] = {
-                    query : {
-                        'bugs': [bug],
-                        'show_summary': info.get('show_summary', 0),
-                        'cclist': info.get('cclist', [])
-                    },
-                }
+            managers[manager_email]['nagging'] = {query: {'bugs': [bug],
+                                                          'show_summary': info.get('show_summary', 0),
+                                                          'cclist': info.get('cclist', [])}, }
             return
-        if managers[manager_email].has_key('nagging'):
-            if managers[manager_email]['nagging'].has_key(query):
+        if 'nagging' in managers[manager_email]:
+            if query in managers[manager_email]['nagging']:
                 managers[manager_email]['nagging'][query]['bugs'].append(bug)
                 if options.verbose:
                     print "Adding %s to %s in nagging for %s" % \
@@ -293,20 +291,16 @@ if __name__ == '__main__':
             else:
                 managers[manager_email]['nagging'][query] = {
                     'bugs': [bug],
-                    'show_summary': info.get('show_summary', 0) ,
+                    'show_summary': info.get('show_summary', 0),
                     'cclist': info.get('cclist', [])
                 }
                 if options.verbose:
                     print "Adding new query key %s for bug %s in nagging \
                      and %s" % (query, bug.id, manager_email)
         else:
-            managers[manager_email]['nagging'] = {
-                    query : {
-                        'bugs': [bug],
-                        'show_summary': info.get('show_summary', 0),
-                        'cclist': info.get('cclist', [])
-                     },
-                }
+            managers[manager_email]['nagging'] = {query: {'bugs': [bug],
+                                                          'show_summary': info.get('show_summary', 0),
+                                                          'cclist': info.get('cclist', [])}, }
             if options.verbose:
                 print "Creating query key %s for bug %s in nagging and \
                     %s" % (query, bug.id, manager_email)
@@ -320,7 +314,7 @@ if __name__ == '__main__':
                 bug = bmo.get_bug(b.id)
                 manual_notify[query]['bugs'].append(bug)
                 assignee = bug.assigned_to.name
-                if people.people_by_bzmail.has_key(assignee):
+                if assignee in people.people_by_bzmail:
                     person = dict(people.people_by_bzmail[assignee])
                 else:
                     person = None
@@ -330,7 +324,7 @@ if __name__ == '__main__':
                     # try to get last_comment by assignee & manager
                     if person is not None:
                         last_comment = get_last_assignee_comment(bug.comments, person)
-                        if person.has_key('manager') and person['manager'] is not None:
+                        if 'manager' in person and person['manager'] is not None:
                             manager_email = person['manager']['dn'].split('mail=')[1].split(',')[0]
                             manager = people.people[manager_email]
                             last_manager_comment = get_last_manager_comment(bug.comments, people.people_by_bzmail[manager['bugzillaEmail']])
@@ -365,18 +359,18 @@ if __name__ == '__main__':
                         if bug.assigned_to.real_name is not None:
                             if person is not None:
                                 # check if assignee is already a manager, add to their own list
-                                if managers.has_key(person['mozillaMail']):
+                                if 'mozillaMail' in managers:
                                     add_to_managers(person['mozillaMail'], query, info)
                                 # otherwise we search for the assignee's manager
                                 else:
                                     # check for manager key first, a few people don't have them
-                                    if person.has_key('manager') and person['manager'] is not None:
+                                    if 'manager' in person and person['manager'] is not None:
                                         manager_email = person['manager']['dn'].split('mail=')[1].split(',')[0]
-                                        if managers.has_key(manager_email):
+                                        if manager_email in managers:
                                             add_to_managers(manager_email, query, info)
-                                        elif people.vices.has_key(manager_email):
+                                        elif manager_email in people.vices:
                                             # we're already at the highest level we'll go
-                                            if managers.has_key(assignee):
+                                            if assignee in managers:
                                                 add_to_managers(assignee, query, info)
                                             else:
                                                 if options.verbose:
@@ -385,10 +379,10 @@ if __name__ == '__main__':
                                                 add_to_managers(person['mozillaMail'], query, info)
                                         else:
                                             # try to go up one level and see if we find a manager
-                                            if people.people.has_key(manager_email):
+                                            if manager_email in people.people:
                                                 person = dict(people.people[manager_email])
                                                 manager_email = person['manager']['dn'].split('mail=')[1].split(',')[0]
-                                                if managers.has_key(manager_email):
+                                                if manager_email in managers:
                                                     add_to_managers(manager_email, query, info)
                                             else:
                                                 print "Manager could not be found: %s" % manager_email
@@ -399,13 +393,12 @@ if __name__ == '__main__':
 
     if options.roll_up:
         # only send one email
-        toaddrs, msg = generateEmailOutput(
-                    subject=options.email_subject,
-                    queries=manual_notify,
-                    template=options.template,
-                    show_comment=options.show_comment,
-                    rollup = options.roll_up,
-                    rollupEmail = options.email_cc_list)
+        toaddrs, msg = generateEmailOutput(subject=options.email_subject,
+                                           queries=manual_notify,
+                                           template=options.template,
+                                           show_comment=options.show_comment,
+                                           rollup=options.roll_up,
+                                           rollupEmail=options.email_cc_list)
         if options.email_password is None or options.mozilla_mail is None:
             print "Please supply a username/password (-m, -p) for sending email"
             sys.exit(1)
@@ -416,7 +409,7 @@ if __name__ == '__main__':
         # Get yr nag on!
         for email, info in managers.items():
             inp = ''
-            if info.has_key('nagging'):
+            if 'nagging' in info:
                 toaddrs, msg = generateEmailOutput(
                     subject=options.email_subject,
                     manager_email=email,
@@ -474,8 +467,8 @@ they are either assigned to no one or to non-employees (though ni? on non-employ
                     emailed_bugs.append(bug.id)
                     msg_body += "http://bugzil.la/" + "%s -- assigned to: %s\n -- Last commented on: %s\n" % (bug.id, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
                 msg = ("From: %s\r\n" % REPLY_TO_EMAIL
-                    + "To: %s\r\n" % REPLY_TO_EMAIL
-                    + "Subject: RelMan Attention Needed: %s\r\n" % options.email_subject
-                    + "\r\n"
-                    + msg_body)
+                       + "To: %s\r\n" % REPLY_TO_EMAIL
+                       + "Subject: RelMan Attention Needed: %s\r\n" % options.email_subject
+                       + "\r\n"
+                       + msg_body)
     sendMail(['release-mgmt@mozilla.com'], msg, options.mozilla_mail, options.email_password, options.dryrun)

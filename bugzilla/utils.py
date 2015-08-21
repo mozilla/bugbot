@@ -14,11 +14,11 @@ def urljoin(base, *args):
 def qs(**kwargs):
     """Build a URL query string."""
     url = ''
-    for k,v in kwargs.iteritems():
+    for k, v in kwargs.iteritems():
         if k == 'username' or k == 'password':
             pass
         for value in v:
-            url += '&%s=%s' % (urllib.quote(k),value)
+            url += '&%s=%s' % (urllib.quote(k), value)
     return url
 
 
@@ -29,7 +29,7 @@ def get_credentials(username=None):
         username = os.environ.get('BZ_USERNAME', None)
     password = os.environ.get('BZ_PASSWORD', None)
 
-    # Try to get it from the system keychain next 
+    # Try to get it from the system keychain next
     if not username and not password:
         try:
             import keyring
@@ -51,7 +51,7 @@ def get_credentials(username=None):
         if os.path.exists(rcfile):
             try:
                 config.read(rcfile)
-                username  = config.get('bugzilla', 'username')
+                username = config.get('bugzilla', 'username')
                 _password = config.get('bugzilla', 'password')
                 if _password:
                     password = base64.b64decode(_password)

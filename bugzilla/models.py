@@ -30,6 +30,7 @@ class RemoteObject(RemoteObject_):
 
     _location = property(_get_location, _set_location)
 
+
 class Bug(RemoteObject):
 
     id = fields.Field()
@@ -230,5 +231,5 @@ class Keyword(RemoteObject):
 
 
 class BugSearch(RemoteObject):
-    
+
     bugs = fields.List(fields.Object('Bug'))
