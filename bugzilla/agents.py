@@ -28,7 +28,7 @@ class BugzillaAgent(object):
         return Bug.get(url)
 
     def get_bug_list(self, params={}):
-        url = url = urljoin(self.API_ROOT, 'bug/?%s' % (self.qs(**params)))
+        url = urljoin(self.API_ROOT, 'bug/?%s' % (self.qs(**params)))
         return BugSearch.get(url).bugs
 
     def qs(self, **params):
