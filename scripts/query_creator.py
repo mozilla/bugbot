@@ -131,6 +131,7 @@ if __name__ == '__main__':
             "--no-verification",
             "-m", config['ldap_username'],
             "-p", config['ldap_password'],
+            "-b", config['bz_api_key'],
             "-e", "release-mgmt@mozilla.com"]
         for query in queries:
             command.append('-q')

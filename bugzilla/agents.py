@@ -12,7 +12,7 @@ class InvalidAPI_ROOT(Exception):
 
 
 class BugzillaAgent(object):
-    def __init__(self, api_root=None, username=None, password=None):
+    def __init__(self, api_root=None, api_key=None)
 
         if not api_root:
             api_root = os.environ.get('BZ_API_ROOT')
@@ -20,7 +20,7 @@ class BugzillaAgent(object):
                 raise InvalidAPI_ROOT
         self.API_ROOT = api_root
 
-        self.username, self.password = username, password
+        self.api_key = api_key
 
     def get_bug(self, bug, include_fields='_default,token,cc,keywords,whiteboard,comments', exclude_fields=None, params={}):
         params['include_fields'] = [include_fields]
@@ -29,18 +29,16 @@ class BugzillaAgent(object):
         return Bug.get(url)
 
     def get_bug_list(self, params={}):
-        params = urllib.urlencode(params) + '&username=%s' % self.username \
-                                          + '&password=%s' % self.password
+        params = urllib.urlencode(params) + '&Bugzilla_api_key=%s' % self.api_key
         url = self.API_ROOT + 'bug/?' + params
         return BugSearch.get(url).bugs
 
     def qs(self, **params):
-        if self.username and self.password:
-            params['username'] = [self.username]
-            params['password'] = [self.password]
+        if self.api_key:
+            params['api_key'] = [self.api_key]
         return params
 
 
 class BMOAgent(BugzillaAgent):
-    def __init__(self, username=None, password=None):
-        super(BMOAgent, self).__init__('https://bugzilla.mozilla.org/bzapi/', username, password)
+    def __init__(self, api_key=None):
+        super(BMOAgent, self).__init__('https://bugzilla.mozilla.org/bzapi/', api_key)

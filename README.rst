@@ -45,13 +45,12 @@ Usage
 Example::
 
     from bugzilla.agents import BMOAgent
-    from bugzilla.utils import get_credentials
 
     # We can use "None" for both instead to not authenticate
-    username, password = get_credentials()
+    api_key = 'xxx'
 
     # Load our agent for BMO
-    bmo = BMOAgent(username, password)
+    bmo = BMOAgent(api_key)
 
     # Set whatever REST API options we want
     options = {
@@ -78,13 +77,15 @@ Query Creator, Automated Nagging Script
 Before running::
 
 1. You'll need to create a writeable 'queries' directory at the top level of the checkout where the script is run from.
-2. you will need a local config for phonebook auth with your LDAP info
+2. Need a local config for phonebook auth with your LDAP info
+3. Need to generate an API key from bugzilla admin ( https://bugzilla.mozilla.org/userprefs.cgi?tab=apikey )
 
 <pre>
 # in scripts/configs/config.json
 {
   "ldap_username": "you@mozilla.com",
-  "ldap_password": "xxxxxxxxxxxxxx"
+  "ldap_password": "xxxxxxxxxxxxxx",
+  "bugzilla_api_key": "xxxxxxxxxxxxxx"
 }
  </pre>
 
@@ -97,7 +98,8 @@ The script does the following:
     # in scripts/configs/config.json
     {
         "ldap_username": "you@mozilla.com",
-        "ldap_password": "xxxxxxxxxxxxxx"
+        "ldap_password": "xxxxxxxxxxxxxx",
+        "bugzilla_api_key": "xxxxxxxxxxxxxx"
     }
 * Creates queries based on the day of the week the script is run
 * Polls the bugzilla API with each query supplied and builds a dictionary of bugs found per query
@@ -110,8 +112,7 @@ The script does the following:
 Running on a server
 -------------------
 
-This needs to run on a private server because it will have both logins for Bugzilla and LDAP so it can't currently be shared access.
-I run this on WebFaction with a wrapper script, virtualenv, and a cronjob:
+This needs to run on a private server because it will have login for LDAP and bugzilla key so it can't currently be shared access.
 
 Cronjob::
   00 14 * * 1-5 $HOME/bin/run_autonags.sh > $HOME/logs/user/autonag.log
@@ -122,20 +123,3 @@ Shell script::
   source $HOME/.virtualenvs/bztools/bin/activate
   cd $HOME/bztools
   /usr/local/bin/python $HOME/bztools/scripts/query_creator.py
-
-
-
-Updating your Bugzilla account
-------------------------------
-
-When you change your Bugzilla password you need to change it in the virtualenv keyring as follows::
-
-  python
-  import keyring
-  keyring.set_password("bugzilla", "username", "password") # using your username and password
-  # Please make sure that any special char in the password must be URL encoded (example: ! = %21)
-  keyring.get_password("bugzilla", "username")  # should confirm the new password
-  exit()
-  deactivate
-
-Then test a dry-run of the cronjob again (with or without the redirect to logs) to make sure the script runs through.

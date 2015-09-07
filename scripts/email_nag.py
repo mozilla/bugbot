@@ -187,6 +187,8 @@ if __name__ == '__main__':
                         help="specify a specific address for sending email"),
     parser.add_argument("-p", "--email-password", dest="email_password",
                         help="specify a specific password for sending email")
+    parser.add_argument("-b", "--bz-api-key", dest="bz_api_key",
+                        help="Bugzilla API key")
     parser.add_argument("-t", "--template", dest="template",
                         required=True,
                         help="template to use for the buglist output")
@@ -216,11 +218,6 @@ if __name__ == '__main__':
 
     options, args = parser.parse_known_args()
 
-    if not options.username:
-        # We can use "None" for both instead to not authenticate
-        username, password = get_credentials()
-    else:
-        username, password = get_credentials(username)
     try:
         int(options.days_since_comment)
     except:
@@ -231,7 +228,7 @@ if __name__ == '__main__':
         options.email_cc_list = DEFAULT_CC
 
     # Load our agent for BMO
-    bmo = BMOAgent(username, password)
+    bmo = BMOAgent(options.bz_api_key)
 
     # Get the buglist(s)
     collected_queries = {}

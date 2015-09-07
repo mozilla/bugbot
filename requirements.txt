@@ -5,7 +5,6 @@ certifi==0.0.8
 chardet==1.0.1
 check
 httplib2==0.9
-keyring==5.0
 path.py==2.2.2
 pep8==0.6.1
 pyflakes==0.5.0
