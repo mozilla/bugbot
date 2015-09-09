@@ -17,7 +17,6 @@ import collections
 from datetime import datetime
 from argparse import ArgumentParser
 from bugzilla.agents import BMOAgent
-from bugzilla.utils import get_credentials
 import phonebook
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('templates'))
