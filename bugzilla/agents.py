@@ -1,5 +1,3 @@
-import urllib
-
 from bugzilla.models import *
 from bugzilla.utils import *
 
@@ -25,18 +23,18 @@ class BugzillaAgent(object):
     def get_bug(self, bug, include_fields='_default,token,cc,keywords,whiteboard,comments', exclude_fields=None, params={}):
         params['include_fields'] = [include_fields]
         params['exclude_fields'] = [exclude_fields]
+
         url = urljoin(self.API_ROOT, 'bug/%s?%s' % (bug, self.qs(**params)))
         return Bug.get(url)
 
     def get_bug_list(self, params={}):
-        params = urllib.urlencode(params) + '&Bugzilla_api_key=%s' % self.api_key
-        url = self.API_ROOT + 'bug/?' + params
+        url = urljoin(self.API_ROOT, 'bug/?%s' % (self.qs(**params)))
         return BugSearch.get(url).bugs
 
     def qs(self, **params):
         if self.api_key:
             params['api_key'] = [self.api_key]
-        return params
+        return qs(**params)
 
 
 class BMOAgent(BugzillaAgent):
