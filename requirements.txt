@@ -1,9 +1,7 @@
 Jinja2==2.6
 argparse==1.2.1
-bztools==0.0.1
 certifi==0.0.8
 chardet==1.0.1
-check
 httplib2==0.9
 path.py==2.2.2
 pep8==0.6.1
