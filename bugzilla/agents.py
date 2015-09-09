@@ -12,7 +12,7 @@ class InvalidAPI_ROOT(Exception):
 
 
 class BugzillaAgent(object):
-    def __init__(self, api_root=None, api_key=None)
+    def __init__(self, api_root=None, api_key=None):
 
         if not api_root:
             api_root = os.environ.get('BZ_API_ROOT')
