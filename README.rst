@@ -16,7 +16,7 @@ we'll have to do this the long way.
 
 #. (optional) Create your virtualenv using virtualenvwrapper::
 
-    mkvirtualenv --no-site-packages bztools
+    virtualenv --no-site-packages venv
 
 #. Install pip::
 
@@ -33,7 +33,7 @@ we'll have to do this the long way.
 
 Now you'll have ``bzattach`` installed in the ``/bin`` directory of your
 virtual environment.  To use the script, you'll have to activate this
-environment with ``workon bztools``.
+environment with ``workon venv`` or ``source venv/bin/activate``.
 
 Note to developers: if you make any changes to the bugzilla/ files (agents, models, utils) during
 work on other scripts, you will want to re-install the scripts as instructed above in order to pick
@@ -120,6 +120,6 @@ Cronjob::
 Shell script::
 
   #!/bin/bash
-  source $HOME/.virtualenvs/bztools/bin/activate
+  source $HOME/.virtualenvs/venv/bin/activate
   cd $HOME/bztools
   /usr/local/bin/python $HOME/bztools/scripts/query_creator.py
