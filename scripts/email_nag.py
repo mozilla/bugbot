@@ -310,6 +310,10 @@ if __name__ == '__main__':
                 bug = bmo.get_bug(b.id)
                 manual_notify[query]['bugs'].append(bug)
                 assignee = bug.assigned_to.name
+                if "@" not in assignee:
+                    print "Error - email address expect. Found '" + assignee + "' instead"
+                    print "Check that the authentication worked correctly"
+                    sys.exit(1)
                 if assignee in people.people_by_bzmail:
                     person = dict(people.people_by_bzmail[assignee])
                 else:
