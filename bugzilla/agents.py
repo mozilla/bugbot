@@ -1,5 +1,6 @@
-from bugzilla.models import *
-from bugzilla.utils import *
+import os
+from bugzilla.models import BugSearch, Bug
+from bugzilla.utils import urljoin, qs
 
 
 class InvalidAPI_ROOT(Exception):
