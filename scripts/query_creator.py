@@ -85,6 +85,8 @@ urls = [
 
 def createQuery(title, short_title, url, show_summary):
     file_name = queries_dir + str(datetime.date.today()) + '_' + short_title
+    if not os.path.exists(queries_dir):
+        os.makedirs(queries_dir)
     qf = open(file_name, 'w')
     qf.write("query_name = \'" + title + "\'\n")
     qf.write("query_url = \'" + url + "\'\n")
