@@ -85,7 +85,7 @@ Before running::
 {
   "ldap_username": "you@mozilla.com",
   "ldap_password": "xxxxxxxxxxxxxx",
-  "bugzilla_api_key": "xxxxxxxxxxxxxx"
+  "bz_api_key": "xxxxxxxxxxxxxx"
 }
  </pre>
 
@@ -99,7 +99,7 @@ The script does the following:
     {
         "ldap_username": "you@mozilla.com",
         "ldap_password": "xxxxxxxxxxxxxx",
-        "bugzilla_api_key": "xxxxxxxxxxxxxx"
+        "bz_api_key": "xxxxxxxxxxxxxx"
     }
 * Creates queries based on the day of the week the script is run
 * Polls the bugzilla API with each query supplied and builds a dictionary of bugs found per query
