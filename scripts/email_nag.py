@@ -256,7 +256,7 @@ if __name__ == '__main__':
                 collected_queries[query_name]['bugs'] = bmo.get_bug_list(info['query_params'])
             elif 'query_url' in info:
                 print "Gathering bugs from query_url in %s" % query
-                collected_queries[query_name]['bugs'] = bmo.get_bug_list(query_url_to_dict(info['query_url']))
+                collected_queries[query_name]['bugs'] =  bmo.get_bug_list((query_url_to_dict(info['query_url'])))
                 # print "DEBUG: %d bug(s) found for query %s" % \
                 #   (len(collected_queries[query_name]['bugs']), info['query_url'])
             else:
@@ -471,4 +471,6 @@ they are either assigned to no one or to non-employees (though ni? on non-employ
                        + "Subject: RelMan Attention Needed: %s\r\n" % options.email_subject
                        + "\r\n"
                        + msg_body)
-    sendMail(['release-mgmt@mozilla.com'], msg, options.mozilla_mail, options.email_password, options.dryrun)
+    if manual_notify:
+        sendMail(['anoopvalluthadam@gmail.com'], msg, options.mozilla_mail,
+                 options.email_password, options.dryrun)

@@ -37,9 +37,23 @@ a single phonebook entry data looks like this when you pull it from JSON:
 class PhonebookDirectory():
 
     def __init__(self, config=CONFIG_JSON):
+        print config
         config = json.load(open(config, 'r'))
         print "Fetching people from phonebook..."
-        self.people = json.loads(requests.get(PEOPLE_URL, auth=(config['ldap_username'], config['ldap_password'])).content)
+        self.people = {'email': {
+                            'ims' : [],
+                            'name' : 'name',
+                            'title' : 'title',
+                            'phones' : 'string of numbers & assignments',
+                            'ext' : 'XXX',
+                            'manager' : {u'dn':
+                                u'mail=sledru@mozilla.com,o=com,dc=mozilla', u'cn': u'Sylvestre Ledru'},
+                            'bugzillaEmail' : 'anoopvalluthadam@gmail.com',
+
+                            ## this script adds in:
+                            'mozillaMail' : 'email@mozilla.com'
+                      }}
+        # self.people = json.loads(requests.get(PEOPLE_URL, auth=(config['ldap_username'], config['ldap_password'])).content)
         self.people_by_bzmail = self.get_people_by_bzmail()
         self.managers = self.get_managers()
         self.vices = self.get_vices()
@@ -66,7 +80,9 @@ class PhonebookDirectory():
     def get_people_by_bzmail(self):
         temp = {}
         for email, info in self.people.items():
+            print 'info', info
             # if someone doesn't have a bugzillaEmail set, we'll try their mozilla mail instead
+            print 'email', email
             if info.get('bugzillaEmail'):
                 temp[info['bugzillaEmail']] = dict(info.items())
                 temp[info['bugzillaEmail']].update({'mozillaMail': email})
