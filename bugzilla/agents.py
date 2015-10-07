@@ -1,6 +1,6 @@
 import os
 from bugzilla.models import BugSearch, Bug
-from bugzilla.utils import urljoin, qs
+from bugzilla.utils import urljoin, qs, urllib
 
 
 class InvalidAPI_ROOT(Exception):
@@ -29,7 +29,12 @@ class BugzillaAgent(object):
         return Bug.get(url)
 
     def get_bug_list(self, params={}):
-        url = urljoin(self.API_ROOT, 'bug/?%s' % (self.qs(**params)))
+        if self.api_key:
+            params = urllib.urlencode(params) + '&api_key=%s' % self.api_key
+        else:
+            params = urllib.urlencode(params)
+        url = self.API_ROOT + 'bug/?' + params
+
         return BugSearch.get(url).bugs
 
     def qs(self, **params):
