@@ -4,6 +4,7 @@ import getpass
 import os
 import posixpath
 import urllib
+import json
 
 
 def urljoin(base, *args):
