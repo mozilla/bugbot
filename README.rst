@@ -54,13 +54,13 @@ Example::
 
     # Set whatever REST API options we want
     options = {
-        'changed_after':    '2010-12-24',
-        'changed_before':   '2010-12-26',
-        'changed_field':    'status',
-        'changed_field_to': 'RESOLVED',
-        'product':          'Core,Firefox',
-        'resolution':       'FIXED',
-        'include_fields':   '_default,attachments',
+        'changed_after':    ['2010-12-24'],
+        'changed_before':   ['2010-12-26'],
+        'changed_field':    ['status'],
+        'changed_field_to': ['RESOLVED'],
+        'product':          ['Core,Firefox'],
+        'resolution':       ['FIXED'],
+        'include_fields':   ['_default,attachments'],
     }
 
     # Get the bugs from the api
