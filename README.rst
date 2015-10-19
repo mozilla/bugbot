@@ -122,4 +122,4 @@ Shell script::
   #!/bin/bash
   source $HOME/.virtualenvs/venv/bin/activate
   cd $HOME/bztools
-  PYTHONPATH=. python $HOME/bztools/scripts/query_creator.py
+  PYTHONPATH=. python $HOME/bztools/auto_nag/scripts/query_creator.py
