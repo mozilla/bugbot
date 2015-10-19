@@ -9,7 +9,7 @@ path = lambda *p: os.path.join(root, *p)
 
 setup(
     name='bztools',
-    version=__import__('bugzilla').__version__,
+    version=__import__('auto_nag.bugzilla').__version__,
     description='Models and scripts to access the Bugzilla REST API.',
     long_description=open(path('README.rst')).read(),
     author='Jeff Balogh',

@@ -44,7 +44,7 @@ Usage
 
 Example::
 
-    from bugzilla.agents import BMOAgent
+    from auto_nag.bugzilla.agents import BMOAgent
 
     # We can use "None" for both instead to not authenticate
     api_key = 'xxx'
@@ -90,7 +90,7 @@ Before running::
  </pre>
 
 Do a dryrun::
-    python scripts/query_creator.py -d
+    python auto_nag/scripts/query_creator.py -d
 
 The script does the following:
 * Gathers the current list of employees and managers from Mozilla LDAP phonebook
