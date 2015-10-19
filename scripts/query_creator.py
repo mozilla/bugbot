@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import urllib2
+import requests
 import re
 import datetime
 import subprocess
@@ -16,13 +16,13 @@ queries_dir = os.getcwd() + "/queries/"
 
 def getTemplateValue(url):
     version_regex = re.compile(".*<p>(.*)</p>.*")
-    template_page = urllib2.urlopen(url).read().replace('\n', '')
+    template_page = str(requests.get(url).text.encode('utf-8')).replace('\n','')
     parsed_template = version_regex.match(template_page)
     return parsed_template.groups()[0]
 
 
 def getReportURL(approval_flag, span):
-    a = urllib2.urlopen("https://bugzilla.mozilla.org/page.cgi?id=release_tracking_report.html&q=" + approval_flag + "%3A%2B%3A" + span + "%3A0%3Aand%3A")
+    a = requests.get("https://bugzilla.mozilla.org/page.cgi?id=release_tracking_report.html&q=" + approval_flag + "%3A%2B%3A" + span + "%3A0%3Aand%3A")
     return a.url
 
 no_nag = ";field3-1-0=status_whiteboard;type3-1-0=notsubstring;value3-1-0=[no-nag]"
