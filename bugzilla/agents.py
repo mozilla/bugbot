@@ -1,4 +1,5 @@
 import os
+import re
 from bugzilla.models import BugSearch, Bug
 from bugzilla.utils import urljoin, qs
 
@@ -26,11 +27,27 @@ class BugzillaAgent(object):
         params['exclude_fields'] = [exclude_fields]
 
         url = urljoin(self.API_ROOT, 'bug/%s?%s' % (bug, self.qs(**params)))
-        return Bug.get(url)
+        try:
+            return Bug.get(url)
+        except Exception, e:
+            pattern = re.compile(
+                    r"https://bugzilla.mozilla.org*.+&api_key=(.*?)&"
+            )
+            api_key = pattern.findall(e.message)[0]
+            error = e.message.replace(api_key, '*'*len(api_key))
+            raise Exception(error)
 
     def get_bug_list(self, params={}):
         url = urljoin(self.API_ROOT, 'bug/?%s' % (self.qs(**params)))
-        return BugSearch.get(url).bugs
+        try:
+            return BugSearch.get(url).bugs
+        except Exception, e:
+            pattern = re.compile(
+                    r"https://bugzilla.mozilla.org*.+&api_key=(.*?)&"
+            )
+            api_key = pattern.findall(e.message)[0]
+            error = e.message.replace(api_key, '*'*len(api_key))
+            raise Exception(error)
 
     def qs(self, **params):
         if self.api_key:
