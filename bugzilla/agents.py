@@ -30,7 +30,9 @@ class BugzillaAgent(object):
         try:
             return Bug.get(url)
         except Exception, e:
-            pattern = re.compile(r"https://bugzilla.mozilla.org*.+&api_key=(.*?)&")
+            pattern = re.compile(
+                    r"https://bugzilla.mozilla.org*.+&api_key=(.*?)&"
+            )
             api_key = pattern.findall(e.message)[0]
             error = e.message.replace(api_key, '*'*len(api_key))
             raise Exception(error)    
@@ -40,7 +42,9 @@ class BugzillaAgent(object):
         try:
             return BugSearch.get(url).bugs
         except Exception, e:
-            pattern = re.compile(r"https://bugzilla.mozilla.org*.+&api_key=(.*?)&")
+            pattern = re.compile(
+                    r"https://bugzilla.mozilla.org*.+&api_key=(.*?)&"
+            )
             api_key = pattern.findall(e.message)[0]
             error = e.message.replace(api_key, '*'*len(api_key))
             raise Exception(error)
