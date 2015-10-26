@@ -1,6 +1,6 @@
 import os
 from auto_nag.bugzilla.models import BugSearch, Bug
-from auto_nag.bugzilla.utils import urljoin, qs
+from auto_nag.bugzilla.utils import urljoin, qs, hide_personal_info
 
 
 class InvalidAPI_ROOT(Exception):
@@ -26,11 +26,17 @@ class BugzillaAgent(object):
         params['exclude_fields'] = [exclude_fields]
 
         url = urljoin(self.API_ROOT, 'bug/%s?%s' % (bug, self.qs(**params)))
-        return Bug.get(url)
+        try:
+            return Bug.get(url)
+        except Exception, e:
+            raise Exception(hide_personal_info(str(e)))
 
     def get_bug_list(self, params={}):
         url = urljoin(self.API_ROOT, 'bug/?%s' % (self.qs(**params)))
-        return BugSearch.get(url).bugs
+        try:
+            return BugSearch.get(url).bugs
+        except Exception, e:
+            raise Exception(hide_personal_info(str(e)))
 
     def qs(self, **params):
         if self.api_key:
