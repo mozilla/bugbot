@@ -30,7 +30,7 @@ class TestQueryCreator:
 
     def test_getReportURL(self):
         """
-        Expectong proper URL with Bug numbers
+        Expecting proper URL with Bug numbers
         """
         url = 'https://wiki.mozilla.org/Template:CURRENT_CYCLE'
         cycle_span = getTemplateValue(url)
