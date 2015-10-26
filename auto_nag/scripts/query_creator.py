@@ -7,11 +7,7 @@ import subprocess
 import os
 import json
 from argparse import ArgumentParser
-
-CONFIG_JSON = os.getcwd() + "/auto_nag/scripts/configs/config.json"
-config = json.load(open(CONFIG_JSON, 'r'))
-scripts_dir = os.getcwd() + "/auto_nag/scripts/"
-queries_dir = os.getcwd() + "/queries/"
+from auto_nag.bugzilla.utils import get_config_path, get_project_root_path
 
 
 def getTemplateValue(url):
@@ -83,7 +79,7 @@ urls = [
 ]
 
 
-def createQuery(title, short_title, url, show_summary):
+def createQuery(queries_dir, title, short_title, url, show_summary):
     file_name = queries_dir + str(datetime.date.today()) + '_' + short_title
     if not os.path.exists(queries_dir):
         os.makedirs(queries_dir)
@@ -94,16 +90,16 @@ def createQuery(title, short_title, url, show_summary):
     return file_name
 
 
-def createQueriesList(print_all):
+def createQueriesList(queries_dir, print_all):
     queries = []
     weekday = datetime.datetime.today().weekday()
     for url in urls:
         if weekday >= 0 and weekday < 5 and url[0] == 5:
-            queries.append(createQuery(title=url[1][0], short_title=url[1][1], url=url[1][2], show_summary=url[1][3]))
+            queries.append(createQuery(queries_dir, title=url[1][0], short_title=url[1][1], url=url[1][2], show_summary=url[1][3]))
         if weekday == 0 and url[0] == 0:
-            queries.append(createQuery(title=url[1][0], short_title=url[1][1], url=url[1][2], show_summary=url[1][3]))
+            queries.append(createQuery(queries_dir, title=url[1][0], short_title=url[1][1], url=url[1][2], show_summary=url[1][3]))
         if weekday == 3 and url[0] == 3:
-            queries.append(createQuery(title=url[1][0], short_title=url[1][1], url=url[1][2], show_summary=url[1][3]))
+            queries.append(createQuery(queries_dir, title=url[1][0], short_title=url[1][1], url=url[1][2], show_summary=url[1][3]))
     print queries
     return queries
 
@@ -114,6 +110,12 @@ def cleanUp():
             os.remove(os.path.join(queries_dir, file))
 
 if __name__ == '__main__':
+    # basic setups
+    CONFIG_JSON = get_config_path()
+    config = json.load(open(CONFIG_JSON, 'r'))
+    scripts_dir = get_project_root_path() + "auto_nag/scripts/"
+    queries_dir = get_project_root_path() + "queries/"
+
     parser = ArgumentParser(__doc__)
     parser.set_defaults(
         queries_only=False,
@@ -122,7 +124,7 @@ if __name__ == '__main__':
                         help="just create and print queries")
 
     options, args = parser.parse_known_args()
-    queries = createQueriesList(print_all=options.queries_only)
+    queries = createQueriesList(queries_dir, print_all=options.queries_only)
     if options.queries_only:
         for url in urls:
             print url
@@ -142,8 +144,5 @@ if __name__ == '__main__':
         command.extend(['-s',  subject])
         # send all other args to email_nag script argparser
         command.extend(args)
-        print '$' * 100
-        print command
-        print '$' * 100
         subprocess.call(command)
         cleanUp()
