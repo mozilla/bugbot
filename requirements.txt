@@ -8,6 +8,6 @@ pep8==0.6.1
 pyflakes==0.5.0
 python-dateutil==1.5
 remoteobjects
-irequests==2.8.1
+requests==2.8.1
 simplejson==2.3.3
 wsgiref==0.1.2
