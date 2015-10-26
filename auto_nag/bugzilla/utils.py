@@ -6,6 +6,23 @@ import posixpath
 import urllib
 
 
+def get_project_root_path():
+    """
+    Get project root path
+    return:string: Project ROOT folder
+    """
+    pwd = os.getcwd()
+    return pwd.split('auto_nag')[0] + '/'
+
+
+def get_config_path():
+    """
+    Get config path location
+    return:string: config file location
+    """
+    return get_project_root_path() + 'auto_nag/scripts/configs/config.json'
+
+
 def urljoin(base, *args):
     """Remove any leading slashes so no subpaths look absolute."""
     return posixpath.join(base, *[str(s).lstrip('/') for s in args])
