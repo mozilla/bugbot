@@ -6,6 +6,7 @@ bug_number = 656222
 bmo = BMOAgent()
 bug = bmo.get_bug(bug_number)
 
+
 class TestModels:
     # Test bugzilla agent methods
     def test_BugSearch(self):
@@ -111,6 +112,7 @@ class TestModels:
         if bug.history:
             for attr in attrs:
                 assert hasattr(bug.history[0].changes[0], attr)
+
     def test_Changerepr(self):
         if bug.history:
             assert '<Change ' in repr(bug.history[0].changes[0])
