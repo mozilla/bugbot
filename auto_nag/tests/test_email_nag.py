@@ -1,4 +1,6 @@
 
+import datetime
+
 from auto_nag.bugzilla.utils import get_project_root_path
 from auto_nag.bugzilla.agents import BMOAgent
 from auto_nag.scripts.phonebook import PhonebookDirectory
@@ -9,25 +11,27 @@ from auto_nag.scripts.email_nag import (get_last_manager_comment,
 
 class TestEmailNag:
     def setUp(self):
-        bug_number = 656214
+        bug_number = 489656
         bmo = BMOAgent()
         self.bug = bmo.get_bug(bug_number)
         self.people = PhonebookDirectory(TEST=True)
-        assignee = self.bug.assigned_to.name
-        if assignee in self.people.people_by_bzmail:
-            self.person = dict(self.people.people_by_bzmail[assignee])
-        else:
-            self.person = None
+        assignee = 'email@example.com'
+        self.manager = {'mozillaMail': 'test@mozilla.com',
+                        'bugzillaEmail': 'demo@bugzilla.com'}
+        self.person = {'mozillaMail': 'test@mozilla.com',
+                        'bugzillaEmail': 'demo@bugzilla.com'}
 
     def test_get_last_manager_comment(self):
+        self.bug.comments[-1].creator.name = 'test@mozilla.com'
         last_mgr_comnt = get_last_manager_comment(self.bug.comments,
-                                                  'example@mozilla-test.com',
+                                                  self.manager,
                                                   self.person)
-        print last_mgr_comnt
+        assert isinstance(last_mgr_comnt, (datetime.datetime))
 
     def test_get_last_assignee_comment(self):
+        self.bug.comments[-1].creator.name = 'test@mozilla.com'
         lac = get_last_assignee_comment(self.bug.comments, self.person)
-        print lac
+        assert isinstance(lac, (datetime.datetime))
 
     def test_generateEmailOutput(self):
         query = {'Test': {'bugs': [self.bug], 'show_summary': '0'}}
