@@ -2,6 +2,7 @@ import base64
 from ConfigParser import ConfigParser
 import getpass
 import os
+import re
 import posixpath
 import urllib
 
@@ -30,6 +31,15 @@ def get_config_path():
 def urljoin(base, *args):
     """Remove any leading slashes so no subpaths look absolute."""
     return posixpath.join(base, *[str(s).lstrip('/') for s in args])
+
+
+def hide_personal_info(error):
+    """ Hides bugzilla user information from remoteobject error"""
+    pattern = re.compile(
+        r"https://bugzilla.mozilla.org*.+&api_key=(.*?)&")
+    api_key = pattern.findall(error)[0]
+    error_msg = error.replace(api_key, '*' * len(api_key))
+    return error_msg
 
 
 def qs(**kwargs):

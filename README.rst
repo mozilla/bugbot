@@ -104,7 +104,7 @@ The script does the following:
 * Creates queries based on the day of the week the script is run
 * Polls the bugzilla API with each query supplied and builds a dictionary of bugs found per query
 * For each bug, finds the assignee and if possible the assignee's manager - then adds the bug to the manager's bug bucket for later email notification
-* Goes through the manager dictionary and contructs an email with the bugs assigned to that manager's team members
+* Goes through the manager dictionary and constructs an email with the bugs assigned to that manager's team members
 * Outputs the message to console and waits for use input to either send/edit/cancel (save for manual notification)
 * At the end it provides a list of all bugs that were not emailed about and provides the url for bugzilla of that buglist
 
