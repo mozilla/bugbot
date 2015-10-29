@@ -12,7 +12,11 @@ def get_project_root_path():
     return:string: Project ROOT folder
     """
     pwd = os.getcwd()
-    return pwd.split('auto_nag')[0] + '/'
+    root_dir = pwd.split('auto_nag')[0]
+    if root_dir[-1] != '/':
+        # if the current dir is the ROOT, add /
+        root_dir += '/'
+    return root_dir
 
 
 def get_config_path():
