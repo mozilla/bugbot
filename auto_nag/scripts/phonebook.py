@@ -36,8 +36,6 @@ a single phonebook entry data looks like this when you pull it from JSON:
 
 class PhonebookDirectory():
     def __init__(self, TEST=False):
-        config = get_config_path()
-        config = json.load(open(config, 'r'))
         print "Fetching people from phonebook..."
         if TEST:
             manager = {u'dn': u'mail=manager@mozilla.com,o=com,dc=mozilla',
@@ -53,6 +51,8 @@ class PhonebookDirectory():
                                      # this script adds in:
                                      'mozillaMail': 'email@mozilla.com'}}
         else:
+            config = get_config_path()
+            config = json.load(open(config, 'r'))
             self.people = json.loads(requests.get(PEOPLE_URL,
                                                   auth=(config['ldap_username'],
                                                         config['ldap_password'])).content)
