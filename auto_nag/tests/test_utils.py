@@ -1,22 +1,9 @@
 
-try:
-    # If relman-auto-nag is installed
-    from auto_nag.bugzilla.utils import os
-    from auto_nag.bugzilla.utils import get_project_root_path, \
-        get_config_path, hide_personal_info
-except:
-    # If relman-auto-nag not installed, add project root directory into
-    # PYTHONPATH
-    import os
-    import inspect
-    import sys
-    currentdir = os.path.dirname(os.path.abspath(
-                                 inspect.getfile(inspect.currentframe())))
-    parentdir = os.path.dirname(currentdir)
-    sys.path.insert(0, parentdir)
-    from auto_nag.bugzilla.utils import get_project_root_path, \
-        get_config_path, hide_personal_info
-
+# If relman-auto-nag is installed
+from auto_nag.bugzilla.utils import os
+from auto_nag.bugzilla.utils import (get_project_root_path,
+                                     get_config_path,
+                                     hide_personal_info)
 
 class TestUtils:
     def test_get_project_root_path(self):

@@ -25,7 +25,6 @@ REPLY_TO_EMAIL = 'release-mgmt@mozilla.com'
 DEFAULT_CC = ['release-mgmt@mozilla.com']
 EMAIL_SUBJECT = ''
 SMTP = 'smtp.mozilla.org'
-people = phonebook.PhonebookDirectory()
 
 # TODO - Sort by who a bug is blocked on (thanks @dturner)
 # TODO - write tests!
@@ -33,7 +32,7 @@ people = phonebook.PhonebookDirectory()
 # TODO - should compare bugmail from API results to phonebook bugmail in to_lower()
 
 
-def get_last_manager_comment(comments, manager):
+def get_last_manager_comment(comments, manager, person):
     # go through in reverse order to get most recent
     for comment in comments[::-1]:
         if person is not None:
@@ -65,7 +64,8 @@ def query_url_to_dict(url):
     return d
 
 
-def generateEmailOutput(subject, queries, template, show_comment=False, manager_email=None, rollup=False, rollupEmail=None):
+def generateEmailOutput(subject, queries, template, people, show_comment=False,
+                        manager_email=None, rollup=False, rollupEmail=None):
     cclist = []
     toaddrs = []
     template_params = {}
@@ -165,6 +165,7 @@ def sendMail(toaddrs, msg, username, password, dryrun=False):
 
 
 if __name__ == '__main__':
+
     parser = ArgumentParser(__doc__)
     parser.set_defaults(
         dryrun=False,
@@ -216,6 +217,11 @@ if __name__ == '__main__':
                         help="don't wait for human verification of every email")
 
     options, args = parser.parse_known_args()
+
+    if options.dryrun:
+        people = phonebook.PhonebookDirectory(TEST=True)
+    else:
+        people = phonebook.PhonebookDirectory()
 
     try:
         int(options.days_since_comment)
@@ -327,7 +333,9 @@ if __name__ == '__main__':
                         if 'manager' in person and person['manager'] is not None:
                             manager_email = person['manager']['dn'].split('mail=')[1].split(',')[0]
                             manager = people.people[manager_email]
-                            last_manager_comment = get_last_manager_comment(bug.comments, people.people_by_bzmail[manager['bugzillaEmail']])
+                            last_manager_comment = get_last_manager_comment(bug.comments,
+                                                                            people.people_by_bzmail[manager['bugzillaEmail']],
+                                                                            person)
                             # set last_comment to the most recent of last_assignee and last_manager
                             if last_manager_comment is not None and last_comment is not None and last_manager_comment > last_comment:
                                 last_comment = last_manager_comment
@@ -396,6 +404,7 @@ if __name__ == '__main__':
         toaddrs, msg = generateEmailOutput(subject=options.email_subject,
                                            queries=manual_notify,
                                            template=options.template,
+                                           people=people,
                                            show_comment=options.show_comment,
                                            rollup=options.roll_up,
                                            rollupEmail=options.email_cc_list)
@@ -414,6 +423,7 @@ if __name__ == '__main__':
                     subject=options.email_subject,
                     manager_email=email,
                     queries=info['nagging'],
+                    people=people,
                     template=options.template,
                     show_comment=options.show_comment)
                 while True and not options.no_verification:
