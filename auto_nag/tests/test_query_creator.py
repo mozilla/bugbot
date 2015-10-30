@@ -41,12 +41,12 @@ class TestQueryCreator:
         unlanded_esr38_url = getReportURL("approval-mozilla-esr38",
                                           cycle_span)
 
-        unlanded_beta_url = unlanded_beta_url.split('=')
-        assert ',' in unlanded_beta_url[1]
-        unlanded_aurora_url = unlanded_aurora_url.split('=')
-        assert ',' in unlanded_aurora_url[1]
-        unlanded_esr38_url = unlanded_esr38_url.split('=')
-        assert ',' in unlanded_esr38_url[1]
+        url = unlanded_beta_url.split('=')
+        assert isinstance(int(url[1].split(',')[0]), (int))
+        url = unlanded_aurora_url.split('=')
+        assert isinstance(int(url[1].split(',')[0]), (int))
+        url = unlanded_esr38_url.split('=')
+        assert isinstance(int(url[1].split(',')[0]), (int))
 
     def test_createQueriesList(self):
         """
