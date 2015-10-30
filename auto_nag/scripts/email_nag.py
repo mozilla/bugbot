@@ -452,23 +452,23 @@ if __name__ == '__main__':
                             manual_notify[query]['bugs'].remove(bug)
                     counter = counter - sent_bugs
 
-if not options.roll_up:
-    emailed_bugs = []
-    # Send RelMan the manual notification list only when there are bugs that didn't go out
-    msg_body = """\n******************************************\nNo nag emails were generated for these bugs because
-they are either assigned to no one or to non-employees (though ni? on non-employees will get nagged).
-\nYou will need to look at the following bugs:\n******************************************\n\n"""
-    for k, v in manual_notify.items():
-        if len(v['bugs']) != 0:
-            for bug in v['bugs']:
-                if bug.id not in emailed_bugs:
-                    if k not in msg_body:
-                        msg_body += "\n=== %s ===\n" % k
-                    emailed_bugs.append(bug.id)
-                    msg_body += "http://bugzil.la/" + "%s -- assigned to: %s\n -- Last commented on: %s\n" % (bug.id, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
-                msg = ("From: %s\r\n" % REPLY_TO_EMAIL
-                       + "To: %s\r\n" % REPLY_TO_EMAIL
-                       + "Subject: RelMan Attention Needed: %s\r\n" % options.email_subject
-                       + "\r\n"
-                       + msg_body)
-    sendMail(['release-mgmt@mozilla.com'], msg, options.mozilla_mail, options.email_password, options.dryrun)
+    if not options.roll_up:
+        emailed_bugs = []
+        # Send RelMan the manual notification list only when there are bugs that didn't go out
+        msg_body = """\n******************************************\nNo nag emails were generated for these bugs because
+    they are either assigned to no one or to non-employees (though ni? on non-employees will get nagged).
+    \nYou will need to look at the following bugs:\n******************************************\n\n"""
+        for k, v in manual_notify.items():
+            if len(v['bugs']) != 0:
+                for bug in v['bugs']:
+                    if bug.id not in emailed_bugs:
+                        if k not in msg_body:
+                            msg_body += "\n=== %s ===\n" % k
+                        emailed_bugs.append(bug.id)
+                        msg_body += "http://bugzil.la/" + "%s -- assigned to: %s\n -- Last commented on: %s\n" % (bug.id, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
+                    msg = ("From: %s\r\n" % REPLY_TO_EMAIL
+                           + "To: %s\r\n" % REPLY_TO_EMAIL
+                           + "Subject: RelMan Attention Needed: %s\r\n" % options.email_subject
+                           + "\r\n"
+                           + msg_body)
+        sendMail(['release-mgmt@mozilla.com'], msg, options.mozilla_mail, options.email_password, options.dryrun)
