@@ -218,10 +218,7 @@ if __name__ == '__main__':
 
     options, args = parser.parse_known_args()
 
-    if options.dryrun:
-        people = phonebook.PhonebookDirectory(dryrun=True)
-    else:
-        people = phonebook.PhonebookDirectory()
+    people = phonebook.PhonebookDirectory(dryrun=options.dryrun)
 
     try:
         int(options.days_since_comment)
