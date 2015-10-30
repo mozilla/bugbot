@@ -1,0 +1,27 @@
+= Triage =
+{% for channel,info in channel_info.items() %}
+{% if info.needs_attention %}
+== {{ channel }} bugs needing attention ==
+# Keyworded with #relman/triage/defer-to-group using mediawiki bz extension
+<bugzilla>
+{
+ "id": {% for bug in info.needs_attention %}"{{ bug.id }},"{% endfor %}
+}
+</bugzilla>
+{% endif %}
+{% if info.qawanted %}
+== Tracking for {{ channel }} and QA Wanted for more than x days ==
+<bugzilla>
+{
+ "id": {% for bug in info.qawanted %}"{{ bug.id }},"{% endfor %}
+}
+</bugzilla>
+{% endif %}
+== Tracking {{ channel }} - {% if days_since_comment > -1 %}{{ days_since_comment }} days without assignee/manager comment{% endif %} ==
+{% for m in info.managers %}
+{# note: escaping the wiki bug template with '{{' and '}}"  #}
+=== {{ m.name }} ===
+    {% for bug in m.bugs %}* [https://bugzil.la/{{ bug.id }} {{ bug.id }}] - assignee : {{ bug.assigned_to.real_name }}{% if bug.keywords %} - keywords: {{ bug.keywords }}{% endif %}{% if bug.whiteboard %} - whiteboard: {{ bug.whiteboard }} {% endif %}
+    {% endfor %}
+{% endfor %}
+{% endfor %}
