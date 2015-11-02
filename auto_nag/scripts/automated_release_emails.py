@@ -4,7 +4,6 @@
 import requests
 import datetime
 import re
-import os
 import json
 import smtplib
 from auto_nag.bugzilla.utils import get_config_path
@@ -41,7 +40,7 @@ def getTemplateValue(url):
     return parsed_template.groups()[0]
 
 if __name__ == '__main__':
-    CONFIG_JSON =  get_config_path()
+    CONFIG_JSON = get_config_path()
     config = json.load(open(CONFIG_JSON, 'r'))
     # Grab the release date, the beta version number
     release_date = getTemplateValue("https://wiki.mozilla.org/Template:FIREFOX_SHIP_DATE")
