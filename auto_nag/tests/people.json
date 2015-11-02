@@ -1,0 +1,10 @@
+{"email": {"ims": [],
+           "name": "name",
+           "title": "vice/director test",
+           "phones": "string of numbers & assignments",
+           "ext": "XXX",
+           "manager": {"dn": "mail=manager@mozilla.com,o=com,dc=mozilla","cn":"Manager Name"},
+           "bugzillaEmail": "email@example.com",
+           "mozillaMail": "email@mozilla.com"
+          }
+}
