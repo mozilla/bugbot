@@ -10,7 +10,7 @@ class TestQueryCreator:
     def setUp(self):
         self.queries_dir = get_project_root_path() + 'queries/'
 
-    def test_1(self):
+    def test_1_getTemplateValue(self):
         """
         Tests for getTemplateValue,
         Expecting a VERSION number
@@ -19,7 +19,7 @@ class TestQueryCreator:
         beta_version = getTemplateValue(url)
         assert type(int(beta_version)) is not type(int)
 
-    def test_2(self):
+    def test_2_getReportURL(self):
         """
         Tests for getReportURL
         Expecting proper URL with Bug numbers
@@ -40,7 +40,7 @@ class TestQueryCreator:
         url = unlanded_esr38_url.split('=')
         assert isinstance(int(url[1].split(',')[0]), (int))
 
-    def test_3(self):
+    def test_3_createQueriesList(self):
         """
         Tests for createQueriesList, weekday < 5 and > 0
         Expecting list of queries
@@ -48,7 +48,7 @@ class TestQueryCreator:
         queries = createQueriesList(self.queries_dir, 4, True)
         assert queries
 
-    def test_4(self):
+    def test_4_createQueriesList(self):
         """
         Tests for createQueriesList, weekday=3
         Expecting list of queries
@@ -56,7 +56,7 @@ class TestQueryCreator:
         queries = createQueriesList(self.queries_dir, 3, True)
         assert queries
 
-    def test_5(self):
+    def test_5_createQueriesList(self):
         """
         Tests for createQueriesList, weekday=0
         Expecting list of queries
@@ -64,7 +64,7 @@ class TestQueryCreator:
         queries = createQueriesList(self.queries_dir, 0, True)
         assert queries
 
-    def test_6(self):
+    def test_6_cleanUp(self):
         """
         Tests for cleanUp
         Delete unnecessory folders
