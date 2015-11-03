@@ -8,6 +8,7 @@ from argparse import ArgumentParser
 
 from auto_nag.bugzilla.utils import get_config_path, get_project_root_path
 
+
 def createQuery(title, short_title, url, show_summary, cc, queries_dir):
     file_name = queries_dir + str(datetime.date.today()) + '_' + short_title
 
