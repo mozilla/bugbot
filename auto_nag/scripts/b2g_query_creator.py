@@ -6,13 +6,9 @@ import os
 import json
 from argparse import ArgumentParser
 
-CONFIG_JSON = os.getcwd() + "/scripts/configs/config.json"
-config = json.load(open(CONFIG_JSON, 'r'))
-scripts_dir = os.getcwd() + "/scripts/"
-queries_dir = os.getcwd() + "/queries/"
+from auto_nag.bugzilla.utils import get_config_path, get_project_root_path
 
-
-def createQuery(title, short_title, url, show_summary, cc):
+def createQuery(title, short_title, url, show_summary, cc, queries_dir):
     file_name = queries_dir + str(datetime.date.today()) + '_' + short_title
 
     qf = open(file_name, 'w')
@@ -25,7 +21,7 @@ def createQuery(title, short_title, url, show_summary, cc):
     return file_name
 
 
-def createQueriesList(print_all):
+def createQueriesList(print_all, queries_dir):
     queries = []
     weekday = datetime.datetime.today().weekday()
     for url in urls:
@@ -35,19 +31,29 @@ def createQueriesList(print_all):
             cc = None  # no cc
         # Every Weekday
         if weekday >= 0 and weekday < 5 and url[0] == 5:
-            queries.append(createQuery(title=url[1][0], short_title=url[1][1], url=url[1][2], show_summary=url[1][3], cc=cc))
+            queries.append(createQuery(title=url[1][0], short_title=url[1][1],
+                                       url=url[1][2], show_summary=url[1][3],
+                                       cc=cc, queries_dir=queries_dir))
         # Monday only emails
         if weekday == 0 and url[0] == 0:
-            queries.append(createQuery(title=url[1][0], short_title=url[1][1], url=url[1][2], show_summary=url[1][3], cc=cc))
+            queries.append(createQuery(title=url[1][0], short_title=url[1][1],
+                                       url=url[1][2], show_summary=url[1][3],
+                                       cc=cc, queries_dir=queries_dir))
         # Tuesday only emails
         if weekday == 1 and url[0] == 1:
-            queries.append(createQuery(title=url[1][0], short_title=url[1][1], url=url[1][2], show_summary=url[1][3], cc=cc))
+            queries.append(createQuery(title=url[1][0], short_title=url[1][1],
+                                       url=url[1][2], show_summary=url[1][3],
+                                       cc=cc, queries_dir=queries_dir))
         # Thursday only emails
         if weekday == 3 and url[0] == 3:
-            queries.append(createQuery(title=url[1][0], short_title=url[1][1], url=url[1][2], show_summary=url[1][3], cc=cc))
+            queries.append(createQuery(title=url[1][0], short_title=url[1][1],
+                                       url=url[1][2], show_summary=url[1][3],
+                                       cc=cc, queries_dir=queries_dir))
         # Friday only emails
         if weekday == 4 and url[0] == 4:
-            queries.append(createQuery(title=url[1][0], short_title=url[1][1], url=url[1][2], show_summary=url[1][3], cc=cc))
+            queries.append(createQuery(title=url[1][0], short_title=url[1][1],
+                                       url=url[1][2], show_summary=url[1][3],
+                                       cc=cc, queries_dir=queries_dir))
     return queries
 
 # ========================= CURRENT QUERIES ============================
@@ -103,6 +109,10 @@ def cleanUp():
             os.remove(os.path.join(queries_dir, file))
 
 if __name__ == '__main__':
+    CONFIG_JSON = get_config_path()
+    config = json.load(open(CONFIG_JSON, 'r'))
+    scripts_dir = get_project_root_path() + "auto_nag/scripts/"
+    queries_dir = get_project_root_path() + "queries/"
     parser = ArgumentParser(__doc__)
     parser.set_defaults(
         queries_only=False,
@@ -111,7 +121,8 @@ if __name__ == '__main__':
                         help="just create and print queries")
 
     options, args = parser.parse_known_args()
-    queries = createQueriesList(print_all=options.queries_only)
+    queries = createQueriesList(print_all=options.queries_only,
+                                queries_dir=queries_dir)
 
     if options.queries_only:
         for url in urls:
