@@ -104,10 +104,15 @@ def createQueriesList(queries_dir, print_all):
     return queries
 
 
-def cleanUp():
-    for file in os.listdir(queries_dir):
-        if file.startswith(str(datetime.date.today())):
-            os.remove(os.path.join(queries_dir, file))
+def cleanUp(queries_dir):
+    try:
+        for file in os.listdir(queries_dir):
+            if file.startswith(str(datetime.date.today())):
+                os.remove(os.path.join(queries_dir, file))
+        return True
+    except Exception as error:
+        print "Error: ", str(error)
+        return False
 
 if __name__ == '__main__':
     # basic setups
@@ -145,4 +150,4 @@ if __name__ == '__main__':
         # send all other args to email_nag script argparser
         command.extend(args)
         subprocess.call(command)
-        cleanUp()
+        cleanUp(queries_dir)
