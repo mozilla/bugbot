@@ -90,9 +90,8 @@ def createQuery(queries_dir, title, short_title, url, show_summary):
     return file_name
 
 
-def createQueriesList(queries_dir, print_all):
+def createQueriesList(queries_dir, weekday, print_all):
     queries = []
-    weekday = datetime.datetime.today().weekday()
     for url in urls:
         if weekday >= 0 and weekday < 5 and url[0] == 5:
             queries.append(createQuery(queries_dir, title=url[1][0], short_title=url[1][1], url=url[1][2], show_summary=url[1][3]))
@@ -129,7 +128,8 @@ if __name__ == '__main__':
                         help="just create and print queries")
 
     options, args = parser.parse_known_args()
-    queries = createQueriesList(queries_dir, print_all=options.queries_only)
+    weekday = datetime.datetime.today().weekday()
+    queries = createQueriesList(queries_dir, weekday, print_all=options.queries_only)
     if options.queries_only:
         for url in urls:
             print url
