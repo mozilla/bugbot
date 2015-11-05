@@ -1,35 +1,27 @@
 
-try:
-    # If relman-auto-nag is installed
-    from auto_nag.bugzilla.utils import os
-    from auto_nag.scripts.query_creator import (getTemplateValue, getReportURL,
-                                                createQueriesList)
-    import shutil
-except:
-    # If relman-auto-nag not installed, add project root directory into
-    # PYTHONPATH
-    import os
-    import sys
-    import inspect
-    import shutil
-    currentdir = os.path.dirname(os.path.abspath(
-                                 inspect.getfile(inspect.currentframe())))
-    parentdir = os.path.dirname(currentdir)
-    sys.path.insert(0, parentdir)
-    from auto_nag.scripts.query_creator import (getTemplateValue, getReportURL,
-                                                createQueriesList)
+from auto_nag.bugzilla.utils import os
+from auto_nag.bugzilla.utils import get_project_root_path
+from auto_nag.scripts.query_creator import (getTemplateValue, getReportURL,
+                                            createQueriesList, cleanUp)
+import shutil
+import datetime
 
 class TestQueryCreator:
-    def test_getTemplateValue(self):
+    def setUp(self):
+        self.queries_dir = get_project_root_path() + 'queries/'
+
+    def test_1_getTemplateValue(self):
         """
+        Tests for getTemplateValue,
         Expecting a VERSION number
         """
         url = "https://wiki.mozilla.org/Template:BETA_VERSION"
         beta_version = getTemplateValue(url)
         assert type(int(beta_version)) is not type(int)
 
-    def test_getReportURL(self):
+    def test_2_getReportURL(self):
         """
+        Tests for getReportURL
         Expecting proper URL with Bug numbers
         """
         url = 'https://wiki.mozilla.org/Template:CURRENT_CYCLE'
@@ -48,19 +40,35 @@ class TestQueryCreator:
         url = unlanded_esr38_url.split('=')
         assert isinstance(int(url[1].split(',')[0]), (int))
 
-    def test_createQueriesList(self):
+    def test_3_createQueriesList(self):
         """
+        Tests for createQueriesList, weekday < 5 and > 0
         Expecting list of queries
         """
-        queries_dir = os.path.dirname(os.path.realpath(__file__)) + '/queries/'
-        queries = createQueriesList(queries_dir, True)
+        queries = createQueriesList(self.queries_dir, 4, True)
         assert queries
 
-    def tearDown(self):
+    def test_4_createQueriesList(self):
         """
+        Tests for createQueriesList, weekday=3
+        Expecting list of queries
+        """
+        queries = createQueriesList(self.queries_dir, 3, True)
+        assert queries
+
+    def test_5_createQueriesList(self):
+        """
+        Tests for createQueriesList, weekday=0
+        Expecting list of queries
+        """
+        queries = createQueriesList(self.queries_dir, 0, True)
+        assert queries
+
+    def test_6_cleanUp(self):
+        """
+        Tests for cleanUp
         Delete unnecessory folders
         """
-        # createQueriesList creating this folder
-        queries_dir = os.path.dirname(os.path.realpath(__file__)) + '/queries/'
-        if os.path.isdir(queries_dir):
-            shutil.rmtree(queries_dir)
+        assert cleanUp(self.queries_dir)
+
+

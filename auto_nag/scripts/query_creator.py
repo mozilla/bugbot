@@ -90,9 +90,8 @@ def createQuery(queries_dir, title, short_title, url, show_summary):
     return file_name
 
 
-def createQueriesList(queries_dir, print_all):
+def createQueriesList(queries_dir, weekday, print_all):
     queries = []
-    weekday = datetime.datetime.today().weekday()
     for url in urls:
         if weekday >= 0 and weekday < 5 and url[0] == 5:
             queries.append(createQuery(queries_dir, title=url[1][0], short_title=url[1][1], url=url[1][2], show_summary=url[1][3]))
@@ -104,10 +103,15 @@ def createQueriesList(queries_dir, print_all):
     return queries
 
 
-def cleanUp():
-    for file in os.listdir(queries_dir):
-        if file.startswith(str(datetime.date.today())):
-            os.remove(os.path.join(queries_dir, file))
+def cleanUp(queries_dir):
+    try:
+        for file in os.listdir(queries_dir):
+            if file.startswith(str(datetime.date.today())):
+                os.remove(os.path.join(queries_dir, file))
+        return True
+    except Exception as error:
+        print "Error: ", str(error)
+        return False
 
 if __name__ == '__main__':
     # basic setups
@@ -124,7 +128,8 @@ if __name__ == '__main__':
                         help="just create and print queries")
 
     options, args = parser.parse_known_args()
-    queries = createQueriesList(queries_dir, print_all=options.queries_only)
+    weekday = datetime.datetime.today().weekday()
+    queries = createQueriesList(queries_dir, weekday, print_all=options.queries_only)
     if options.queries_only:
         for url in urls:
             print url
@@ -145,4 +150,4 @@ if __name__ == '__main__':
         # send all other args to email_nag script argparser
         command.extend(args)
         subprocess.call(command)
-        cleanUp()
+        cleanUp(queries_dir)
