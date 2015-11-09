@@ -11,3 +11,4 @@ remoteobjects
 requests==2.8.1
 simplejson==2.3.3
 wsgiref==0.1.2
+pexpect==3.1
