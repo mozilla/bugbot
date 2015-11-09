@@ -107,8 +107,8 @@ urls = [
 
 def cleanUp(queries_dir):
     try:
-        for file in os.listdir(queries_dir):
-            os.remove(os.path.join(queries_dir, file))
+        for _file in os.listdir(queries_dir):
+            os.remove(os.path.join(queries_dir, _file))
         return True
     except Exception as error:
         print 'Error: ', error
