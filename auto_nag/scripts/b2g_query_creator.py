@@ -108,8 +108,7 @@ urls = [
 def cleanUp(queries_dir):
     try:
         for file in os.listdir(queries_dir):
-            if file.startswith(str(datetime.date.today())):
-                os.remove(os.path.join(queries_dir, file))
+            os.remove(os.path.join(queries_dir, file))
         return True
     except Exception as error:
         print 'Error: ', error
