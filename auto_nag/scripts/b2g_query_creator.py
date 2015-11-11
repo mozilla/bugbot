@@ -11,7 +11,8 @@ from auto_nag.bugzilla.utils import get_config_path, get_project_root_path
 
 def createQuery(title, short_title, url, show_summary, cc, queries_dir):
     file_name = queries_dir + str(datetime.date.today()) + '_' + short_title
-
+    if not os.path.exists(queries_dir):
+        os.makedirs(queries_dir)
     qf = open(file_name, 'w')
     qf.write("query_name = \'" + title + "\'\n")
     qf.write("query_url = \'" + url + "\'\n")
@@ -104,11 +105,14 @@ urls = [
 ]
 
 
-def cleanUp():
-    for file in os.listdir(queries_dir):
-        if file.startswith(str(datetime.date.today())):
-            os.remove(os.path.join(queries_dir, file))
-
+def cleanUp(queries_dir):
+    try:
+        for _file in os.listdir(queries_dir):
+            os.remove(os.path.join(queries_dir, _file))
+        return True
+    except Exception as error:
+        print 'Error: ', error
+        return False
 if __name__ == '__main__':
     CONFIG_JSON = get_config_path()
     config = json.load(open(CONFIG_JSON, 'r'))
@@ -147,4 +151,4 @@ if __name__ == '__main__':
         # send all other args to email_nag script argparser
         command.extend(args)
         subprocess.call(command)
-        cleanUp()
+        cleanUp(queries_dir)
