@@ -129,7 +129,7 @@ def main():
 
     # Get the API root, default to bugzilla.mozilla.org
     API_ROOT = os.environ.get('BZ_API_ROOT',
-                              'https://api-dev.bugzilla.mozilla.org/latest/')
+                              'https://bugzilla.mozilla.org/bzapi/')
 
     # Authenticate
     username, password = get_credentials()
