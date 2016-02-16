@@ -48,7 +48,8 @@ class AttachmentAgent(BugzillaAgent):
             fields['flags'] = [Flag(type_id=REVIEW, status='?',
                                     requestee=User(name=reviewer))]
 
-        url = urljoin(self.API_ROOT, 'bug/%s/attachment?%s' % (bug_id, self.qs()))
+        url = urljoin(self.API_ROOT,
+                      'bug/%s/attachment?%s' % (bug_id, self.qs()))
         return Attachment(**fields).post_to(url)
 
     def _comment(self, bug_id, comment):
