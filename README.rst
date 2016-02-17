@@ -12,7 +12,7 @@ we'll have to do this the long way.
 
 #. Check out the code::
 
-    git clone git://github.com/mozilla/bztools.git
+    git clone git://github.com/mozilla/relman-auto-nag.git
 
 #. (optional) Create your virtualenv using virtualenvwrapper::
 
