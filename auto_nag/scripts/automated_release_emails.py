@@ -17,13 +17,13 @@ toaddrs = ['dev-planning@lists.mozilla.org', 'release-drivers@mozilla.com']
 
 def sendMail(toaddr, options):
     message = (
-        "From: %s\r\n" % options['username']
-        + "To: %s\r\n" % toaddr
-        + "CC: %s\r\n" % options['cclist']
-        + "Reply-To: %s\r\n" % REPLY_TO_EMAIL
-        + "Subject: %s\r\n" % options['subject']
-        + "\r\n"
-        + options['body'])
+        "From: %s\r\n" % options['username'] +
+        "To: %s\r\n" % toaddr +
+        "CC: %s\r\n" % options['cclist'] +
+        "Reply-To: %s\r\n" % REPLY_TO_EMAIL +
+        "Subject: %s\r\n" % options['subject'] +
+        "\r\n" +
+        options['body'])
 
     server = smtplib.SMTP_SSL(SMTP, 465)
     server.set_debuglevel(1)

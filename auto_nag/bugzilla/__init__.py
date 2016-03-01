@@ -1,10 +1,9 @@
-__all__ = ['models', 'utils', 'agents']
-
 import httplib
 from remoteobjects import http
 
 # Printing throws an error if we are printing using ascii
 import sys
+__all__ = ['models', 'utils', 'agents']
 reload(sys)
 sys.setdefaultencoding('utf-8')
 

@@ -139,12 +139,12 @@ def generateEmailOutput(subject, queries, template, people, show_comment=False,
     else:
         joined_to = ",".join(toaddrs)
     message = (
-        "From: %s\r\n" % REPLY_TO_EMAIL
-        + "To: %s\r\n" % joined_to
-        + "CC: %s\r\n" % ",".join(cclist)
-        + "Subject: %s\r\n" % subject
-        + "\r\n"
-        + message_body)
+        "From: %s\r\n" % REPLY_TO_EMAIL +
+        "To: %s\r\n" % joined_to +
+        "CC: %s\r\n" % ",".join(cclist) +
+        "Subject: %s\r\n" % subject +
+        "\r\n" +
+        message_body)
 
     toaddrs = toaddrs + cclist
 
@@ -473,9 +473,9 @@ if __name__ == '__main__':
                             msg_body += "\n=== %s ===\n" % k
                         emailed_bugs.append(bug.id)
                         msg_body += "http://bugzil.la/" + "%s -- assigned to: %s\n -- Last commented on: %s\n" % (bug.id, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
-                    msg = ("From: %s\r\n" % REPLY_TO_EMAIL
-                           + "To: %s\r\n" % REPLY_TO_EMAIL
-                           + "Subject: RelMan Attention Needed: %s\r\n" % options.email_subject
-                           + "\r\n"
-                           + msg_body)
+                    msg = ("From: %s\r\n" % REPLY_TO_EMAIL +
+                           "To: %s\r\n" % REPLY_TO_EMAIL +
+                           "Subject: RelMan Attention Needed: %s\r\n" % options.email_subject +
+                           "\r\n" +
+                           msg_body)
         sendMail(['release-mgmt@mozilla.com'], msg, options.mozilla_mail, options.email_password, options.dryrun)

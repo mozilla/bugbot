@@ -35,8 +35,8 @@ class PhonebookDirectory():
     def __init__(self, dryrun=False):
         print "Fetching people from phonebook..."
         if dryrun:
-            people_json = (get_project_root_path()
-                           + '/auto_nag/tests/people.json')
+            people_json = (get_project_root_path() +
+                           '/auto_nag/tests/people.json')
             with open(people_json, 'r') as pj:
                 self.people = json.load(pj)
         else:
