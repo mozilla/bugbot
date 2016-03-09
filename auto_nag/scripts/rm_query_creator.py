@@ -95,12 +95,12 @@ if __name__ == '__main__':
             "-m", config['ldap_username'],
             "-p", config['ldap_password'],
             "-b", config['bz_api_key'],
-            "-r", 
+            "-r",
             "-e", "release-mgmt@mozilla.com"]
         for query in queries:
             command.append('-q')
             command.append(query)
-        subject = datetime.datetime.today().strftime("%A %b %d") + " -- Fixed in %s, Affecting %s, %s or %s" % (central_version, aurora_version, beta_version, release_version) 
+        subject = datetime.datetime.today().strftime("%A %b %d") + " -- Fixed in %s, Affecting %s, %s or %s" % (central_version, aurora_version, beta_version, release_version)
         command.extend(['-s',  subject])
         # send all other args to email_nag script argparser
         command.extend(args)
