@@ -6,3 +6,4 @@ bztools.egg-info/
 dist/
 queries/
 scripts/configs/config.json
+auto_nag/scripts/configs/
