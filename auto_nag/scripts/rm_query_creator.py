@@ -95,7 +95,7 @@ if __name__ == '__main__':
             "-m", config['ldap_username'],
             "-p", config['ldap_password'],
             "-b", config['bz_api_key'],
-            "-r",
+            "-c",
             "-e", "release-mgmt@mozilla.com"]
         for query in queries:
             command.append('-q')

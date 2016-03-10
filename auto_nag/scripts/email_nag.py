@@ -65,7 +65,7 @@ def query_url_to_dict(url):
 
 
 def generateEmailOutput(subject, queries, template, people, show_comment=False,
-                        manager_email=None, rollup=False, rollupEmail=None):
+                        manager_email=None, rollup=False, rollupEmail=None, cc_only=False):
     cclist = []
     toaddrs = []
     template_params = {}
@@ -138,6 +138,10 @@ def generateEmailOutput(subject, queries, template, people, show_comment=False,
         joined_to = ",".join(rollupEmail)
     else:
         joined_to = ",".join(toaddrs)
+    if cc_only:
+        joined_to = ",".join(rollupEmail)
+        toaddrs = rollupEmail
+
     message = (
         "From: %s\r\n" % REPLY_TO_EMAIL +
         "To: %s\r\n" % joined_to +
@@ -154,6 +158,7 @@ def generateEmailOutput(subject, queries, template, people, show_comment=False,
 def sendMail(toaddrs, msg, username, password, dryrun=False):
     if dryrun:
         print "\n****************************\n* DRYRUN: not sending mail *\n****************************\n"
+        print "Receivers: %s" % (toaddrs)
         print msg
     else:
         server = smtplib.SMTP_SSL(SMTP, 465)
@@ -180,6 +185,7 @@ if __name__ == '__main__':
         keywords=None,
         email_subject=None,
         no_verification=False,
+        cc_only=False
         )
     parser.add_argument("-d", "--dryrun", dest="dryrun", action="store_true",
                         help="just do the query, and print emails to console without emailing anyone")
@@ -215,6 +221,8 @@ if __name__ == '__main__':
                         help="turn on verbose output")
     parser.add_argument("--no-verification", dest="no_verification", action="store_true",
                         help="don't wait for human verification of every email")
+    parser.add_argument("-c", "--cc-only", dest="cc_only", action="store_true",
+                        help="Only email addresses in cc will receive the email")
 
     options, args = parser.parse_known_args()
 
@@ -404,7 +412,8 @@ if __name__ == '__main__':
                                            people=people,
                                            show_comment=options.show_comment,
                                            rollup=options.roll_up,
-                                           rollupEmail=options.email_cc_list)
+                                           rollupEmail=options.email_cc_list,
+                                           cc_only=options.cc_only)
         if options.email_password is None or options.mozilla_mail is None:
             print "Please supply a username/password (-m, -p) for sending email"
             sys.exit(1)
@@ -422,7 +431,8 @@ if __name__ == '__main__':
                     queries=info['nagging'],
                     people=people,
                     template=options.template,
-                    show_comment=options.show_comment)
+                    show_comment=options.show_comment,
+                    cc_only=options.cc_only)
                 while True and not options.no_verification:
                     print "\nRelMan Nag is ready to send the following email:\n<------ MESSAGE BELOW -------->"
                     print msg
