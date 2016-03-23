@@ -404,7 +404,7 @@ if __name__ == '__main__':
                                         add_to_managers(person['mozillaMail'], query, info)
                                         print "%s's entry doesn't list a manager! Let's ask them to update phonebook but in the meantime they get the email directly." % person['name']
 
-    if options.roll_up:
+    if options.roll_up or options.cc_only:
         # only send one email
         toaddrs, msg = generateEmailOutput(subject=options.email_subject,
                                            queries=manual_notify,
@@ -469,7 +469,7 @@ if __name__ == '__main__':
                             manual_notify[query]['bugs'].remove(bug)
                     counter = counter - sent_bugs
 
-    if not options.roll_up:
+    if not options.roll_up and not options.cc_only:
         emailed_bugs = []
         # Send RelMan the manual notification list only when there are bugs that didn't go out
         msg_body = """\n******************************************\nNo nag emails were generated for these bugs because
