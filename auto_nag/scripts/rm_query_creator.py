@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
     options, args = parser.parse_known_args()
     weekday = datetime.datetime.today().weekday()
-    queries = createQueriesList(queries_dir, weekday,  print_all=options.queries_only)
+    queries = createQueriesList(queries_dir, weekday, urls, print_all=options.queries_only)
     if options.queries_only:
         for url in urls:
             print url
