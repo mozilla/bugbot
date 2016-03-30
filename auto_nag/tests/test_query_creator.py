@@ -2,7 +2,7 @@
 from auto_nag.bugzilla.utils import os
 from auto_nag.bugzilla.utils import get_project_root_path
 from auto_nag.scripts.query_creator import (getTemplateValue, getReportURL,
-                                            createQueriesList, cleanUp)
+                                            createQueriesList, cleanUp, urls)
 import shutil
 import datetime
 
@@ -45,7 +45,7 @@ class TestQueryCreator:
         Tests for createQueriesList, weekday < 5 and > 0
         Expecting list of queries
         """
-        queries = createQueriesList(self.queries_dir, 4, True)
+        queries = createQueriesList(self.queries_dir, 4, urls, True)
         assert queries
 
     def test_4_createQueriesList(self):
@@ -53,7 +53,7 @@ class TestQueryCreator:
         Tests for createQueriesList, weekday=3
         Expecting list of queries
         """
-        queries = createQueriesList(self.queries_dir, 3, True)
+        queries = createQueriesList(self.queries_dir, 3, urls, True)
         assert queries
 
     def test_5_createQueriesList(self):
@@ -61,7 +61,7 @@ class TestQueryCreator:
         Tests for createQueriesList, weekday=0
         Expecting list of queries
         """
-        queries = createQueriesList(self.queries_dir, 0, True)
+        queries = createQueriesList(self.queries_dir, 0, urls, True)
         assert queries
 
     def test_6_cleanUp(self):
@@ -70,5 +70,3 @@ class TestQueryCreator:
         Delete unnecessory folders
         """
         assert cleanUp(self.queries_dir)
-
-
