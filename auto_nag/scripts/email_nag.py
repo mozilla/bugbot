@@ -101,7 +101,8 @@ def generateEmailOutput(subject, queries, template, people, show_comment=False,
                         'summary': summary,
                         # 'comment': bug.comments[-1].creation_time.replace(tzinfo=None),
                         'assignee': bug.assigned_to.real_name,
-                        'flags': bug.flags
+                        'flags': bug.flags,
+                        'affected': bug.get_fx_affected_versions()
                     }
                 )
                 # more hacking for JS special casing

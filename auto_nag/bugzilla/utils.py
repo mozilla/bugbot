@@ -6,6 +6,7 @@ import re
 import posixpath
 import urllib
 import datetime
+import requests
 
 
 def get_project_root_path():
@@ -155,3 +156,30 @@ def cleanUp(queries_dir):
     except Exception as error:
         print "Error: ", str(error)
         return False
+
+
+def __getTemplateValue(url):
+    version_regex = re.compile(".*<p>(.*)</p>.*")
+    template_page = str(requests.get(url).text.encode('utf-8')).replace('\n', '')
+    parsed_template = version_regex.match(template_page)
+    return parsed_template.groups()[0]
+
+release_version = __getTemplateValue("https://wiki.mozilla.org/Template:RELEASE_VERSION")
+beta_version = __getTemplateValue("https://wiki.mozilla.org/Template:BETA_VERSION")
+aurora_version = __getTemplateValue("https://wiki.mozilla.org/Template:AURORA_VERSION")
+central_version = __getTemplateValue("https://wiki.mozilla.org/Template:CENTRAL_VERSION")
+
+
+def getVersions(channel=None):
+    if channel and isinstance(channel, basestring):
+        channel = channel.lower()
+        if channel == 'release':
+            return release_version
+        elif channel == 'aurora':
+            return aurora_version
+        elif channel == 'beta':
+            return beta_version
+        elif channel == 'central':
+            return central_version
+
+    return (release_version, beta_version, aurora_version, central_version)

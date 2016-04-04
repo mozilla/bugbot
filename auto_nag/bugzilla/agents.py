@@ -28,14 +28,14 @@ class BugzillaAgent(object):
         url = urljoin(self.API_ROOT, 'bug/%s?%s' % (bug, self.qs(**params)))
         try:
             return Bug.get(url)
-        except Exception, e:
+        except Exception as e:
             raise Exception(hide_personal_info(str(e)))
 
     def get_bug_list(self, params={}):
         url = urljoin(self.API_ROOT, 'bug/?%s' % (self.qs(**params)))
         try:
             return BugSearch.get(url).bugs
-        except Exception, e:
+        except Exception as e:
             raise Exception(hide_personal_info(str(e)))
 
     def qs(self, **params):

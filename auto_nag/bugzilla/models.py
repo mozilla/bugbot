@@ -1,7 +1,7 @@
 from remoteobjects import RemoteObject as RemoteObject_, fields
 
 from .fields import StringBoolean, Datetime
-
+from utils import getVersions
 
 # The datetime format is inconsistent.
 DATETIME_FORMAT_WITH_SECONDS = '%Y-%m-%d %H:%M:%S %z'
@@ -97,6 +97,14 @@ class Bug(RemoteObject):
 
     def __hash__(self):
         return self.id
+
+    def get_fx_affected_versions(self):
+        affected = []
+        for version in getVersions():
+            if self.api_data['cf_status_firefox' + version] == 'affected':
+                affected.append(version)
+
+        return affected
 
 
 class User(RemoteObject):
