@@ -1,26 +1,13 @@
 #!/usr/bin/python
 
-import requests
-import re
 import datetime
 import subprocess
 import json
 from argparse import ArgumentParser
 from auto_nag.bugzilla.utils import (get_config_path, get_project_root_path,
-                                     createQueriesList, cleanUp)
+                                     createQueriesList, cleanUp, getVersions)
 
-
-def getTemplateValue(url):
-    version_regex = re.compile(".*<p>(.*)</p>.*")
-    template_page = str(requests.get(url).text.encode('utf-8')).replace('\n', '')
-    parsed_template = version_regex.match(template_page)
-    return parsed_template.groups()[0]
-
-
-release_version = getTemplateValue("https://wiki.mozilla.org/Template:RELEASE_VERSION")
-beta_version = getTemplateValue("https://wiki.mozilla.org/Template:BETA_VERSION")
-aurora_version = getTemplateValue("https://wiki.mozilla.org/Template:AURORA_VERSION")
-central_version = getTemplateValue("https://wiki.mozilla.org/Template:CENTRAL_VERSION")
+release_version, beta_version, aurora_version, central_version = getVersions()
 
 fixed_without_uplifts_url = "https://bugzilla.mozilla.org/buglist.cgi?v4=affected&o5=equals&f1=cf_status_firefox" + central_version + "&o3=equals&v3=affected&o1=equals&j2=OR&resolution=---&resolution=FIXED&f4=cf_status_firefox" + beta_version + "&v5=affected&query_format=advanced&f3=cf_status_firefox" + aurora_version + "&f2=OP&o4=equals&f5=cf_status_firefox" + release_version + "&v1=fixed&f7=CP"
 
@@ -29,7 +16,7 @@ fixed_without_uplifts_url = "https://bugzilla.mozilla.org/buglist.cgi?v4=affecte
 # TODO - fix the 'untouched' queries
 
 urls = [
-    (5, ["Notify release managers when bugs are marked fixed in nightly but still affected for aurora, beta or release", "fixed_without_uplifts", fixed_without_uplifts_url, 0])
+    (5, ["Notify release managers when bugs are marked fixed in nightly but still affected for aurora, beta or release", "fixed_without_uplifts", fixed_without_uplifts_url, 1])
 ]
 
 
@@ -56,7 +43,7 @@ if __name__ == '__main__':
     else:
         command = [
             scripts_dir + "email_nag.py",
-            "-t", "daily_email",
+            "-t", "tracked_affected_email",
             "--no-verification",
             "-m", config['ldap_username'],
             "-p", config['ldap_password'],
