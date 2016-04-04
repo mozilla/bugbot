@@ -4,7 +4,7 @@ This email contains all the bugs which has been fixed in nightly but still affec
 {% for name, results in queries.items() %}== {{ name }} ==
 {% for bug in results.buglist -%}
 * https://bugzil.la/{{ bug.id }} - {{ bug.summary }}
-    - affected versions: {{ ', '.join(bug.affected) }}
+ - affected versions: {{ ', '.join(bug.affected) }}
 {% endfor %}
 {% endfor %}
 
