@@ -40,11 +40,16 @@ class PhonebookDirectory():
             with open(people_json, 'r') as pj:
                 self.people = json.load(pj)
         else:
-            config = get_config_path()
-            config = json.load(open(config, 'r'))
-            self.people = json.loads(requests.get(PEOPLE_URL,
-                                                  auth=(config['ldap_username'],
-                                                        config['ldap_password'])).content)
+            # when phonebook bug will be fixed: remove these lines and uncomment the following
+            people_json = (get_project_root_path() +
+                           '/auto_nag/scripts/configs/people.json')
+            with open(people_json, 'r') as pj:
+                self.people = json.load(pj)
+            #config = get_config_path()
+            #config = json.load(open(config, 'r'))
+            #self.people = json.loads(requests.get(PEOPLE_URL,
+            #                                      auth=(config['ldap_username'],
+            #                                            config['ldap_password'])).content)
         self.people_by_bzmail = self.get_people_by_bzmail()
         self.managers = self.get_managers()
         self.vices = self.get_vices()
