@@ -1,7 +1,6 @@
-import requests
 import json
 
-from auto_nag.bugzilla.utils import get_config_path, get_project_root_path
+from auto_nag.bugzilla.utils import get_project_root_path
 
 # NOTE: You must create a file for CONFIG_JSON with your LDAP auth in it like:
 # {
