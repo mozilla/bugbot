@@ -34,7 +34,7 @@ a single phonebook entry data looks like this when you pull it from JSON:
 class PhonebookDirectory():
     def __init__(self, dryrun=False):
         print "Fetching people from phonebook..."
-        if dryrun:
+        if False and dryrun:
             people_json = (get_project_root_path() +
                            '/auto_nag/tests/people.json')
             with open(people_json, 'r') as pj:
@@ -44,10 +44,15 @@ class PhonebookDirectory():
             people_json = (get_project_root_path() +
                            '/auto_nag/scripts/configs/people.json')
             with open(people_json, 'r') as pj:
-                self.people = json.load(pj)
-            #config = get_config_path()
-            #config = json.load(open(config, 'r'))
-            #self.people = json.loads(requests.get(PEOPLE_URL,
+                self.people = {}
+                entries = json.load(pj)
+                for entry in entries:
+                    self.people[entry['mail']] = entry
+                    if 'title' not in entry:
+                        entry['title'] = ''
+            # config = get_config_path()
+            # config = json.load(open(config, 'r'))
+            # self.people = json.loads(requests.get(PEOPLE_URL,
             #                                      auth=(config['ldap_username'],
             #                                            config['ldap_password'])).content)
         self.people_by_bzmail = self.get_people_by_bzmail()
