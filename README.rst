@@ -120,6 +120,8 @@ Cronjob::
 Shell script::
 
   #!/bin/bash
-  source $HOME/.virtualenvs/venv/bin/activate
-  cd $HOME/bztools
-  PYTHONPATH=. python $HOME/bztools/auto_nag/scripts/query_creator.py
+  PATH_SCRIPT=/home/sylvestre/dev/mozilla/relman-auto-nag/
+  . $PATH_SCRIPT/venv/bin/activate
+  cd $PATH_SCRIPT
+  PYTHONPATH=. python $PATH_SCRIPT/auto_nag/scripts/query_creator.py
+  PYTHONPATH=. python $PATH_SCRIPT/auto_nag/scripts/rm_query_creator.py
