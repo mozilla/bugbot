@@ -124,6 +124,9 @@ def generateEmailOutput(subject, queries, template, people, show_comment=False,
                 else:
                     addToAddrs(bug)
 
+    # Order by versions
+    template_params[query]['buglist'] = sorted(template_params[query]['buglist'], key=lambda p: p['affected'][0])
+
     message_body = template.render(queries=template_params, show_comment=show_comment)
     if manager_email is not None and manager_email not in cclist:
         cclist.append(manager_email)
