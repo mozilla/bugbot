@@ -1,7 +1,7 @@
 This tool is used by Mozilla release management to send emails to the Firefox developers. It will query the bugzilla.mozilla.org database and send emails to Mozilla developers and their managers (if Mozilla staff).
 
 
-This package currently uses [remoteobject](http://sixapart.github.com/remoteobjects/) models, Mozilla's [Bugzilla REST API](https://wiki.mozilla.org/Bugzilla:REST_API), and optionally the Mozilla LDAP [phonebook](https://github.com/mozilla/mobile-phonebook) (to access bug assignees' managers & Mozilla email addresses).
+This package currently uses [remoteobjects](https://github.com/saymedia/remoteobjects) models, Mozilla's [Bugzilla REST API](https://wiki.mozilla.org/Bugzilla:REST_API), and optionally the Mozilla LDAP [phonebook](https://github.com/mozilla/mobile-phonebook) (to access bug assignees' managers & Mozilla email addresses).
 
 
 Installation
