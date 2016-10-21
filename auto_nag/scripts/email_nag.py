@@ -313,7 +313,7 @@ if __name__ == '__main__':
 
     for query, info in collected_queries.items():
         if len(collected_queries[query]['bugs']) != 0:
-            manual_notify[query] = {'bugs': [],}
+            manual_notify[query] = {'bugs': []}
             for b in collected_queries[query]['bugs']:
                 counter = counter + 1
                 send_mail = True
