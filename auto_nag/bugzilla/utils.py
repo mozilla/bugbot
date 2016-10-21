@@ -123,14 +123,13 @@ FILE_TYPES = {
 }
 
 
-def createQuery(queries_dir, title, short_title, url, show_summary):
+def createQuery(queries_dir, title, short_title, url):
     file_name = queries_dir + str(datetime.date.today()) + '_' + short_title
     if not os.path.exists(queries_dir):
         os.makedirs(queries_dir)
     qf = open(file_name, 'w')
     qf.write("query_name = \'" + title + "\'\n")
     qf.write("query_url = \'" + url + "\'\n")
-    qf.write("show_summary = \'" + str(show_summary) + "\'\n")
     return file_name
 
 
@@ -138,11 +137,11 @@ def createQueriesList(queries_dir, weekday, urls, print_all):
     queries = []
     for url in urls:
         if weekday >= 0 and weekday < 5 and url[0] == 5:
-            queries.append(createQuery(queries_dir, title=url[1][0], short_title=url[1][1], url=url[1][2], show_summary=url[1][3]))
+            queries.append(createQuery(queries_dir, title=url[1][0], short_title=url[1][1], url=url[1][2]))
         if weekday == 0 and url[0] == 0:
-            queries.append(createQuery(queries_dir, title=url[1][0], short_title=url[1][1], url=url[1][2], show_summary=url[1][3]))
+            queries.append(createQuery(queries_dir, title=url[1][0], short_title=url[1][1], url=url[1][2]))
         if weekday == 3 and url[0] == 3:
-            queries.append(createQuery(queries_dir, title=url[1][0], short_title=url[1][1], url=url[1][2], show_summary=url[1][3]))
+            queries.append(createQuery(queries_dir, title=url[1][0], short_title=url[1][1], url=url[1][2]))
     print queries
     return queries
 

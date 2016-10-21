@@ -62,20 +62,20 @@ needinfo_esr45_url = "https://bugzilla.mozilla.org/buglist.cgi?f1=cf_tracking_fi
 # need same but for untouched
 
 urls = [
-    (5, ["Unlanded Beta " + beta_version + " Bugs", "unlanded_beta", unlanded_beta_url, 0]),
-    (5, ["Unlanded Aurora " + aurora_version + " Bugs", "unlanded_aurora", unlanded_aurora_url, 0]),
-    (5, ["Unlanded ESR45 Bugs", "unlanded_esr45", unlanded_esr45_url, 0]),
-    (5, ["Tracked or Nominated for Tracking with Need-Info? Beta " + beta_version + " Bugs", "needinfo_beta", needinfo_beta_url, 0]),
-    (5, ["Tracked or Nominated for Tracking with Need-Info? Aurora " + aurora_version + " Bugs", "needinfo_aurora", needinfo_aurora_url, 0]),
-    (5, ["Tracked or Nominated for Tracking with Need-Info? Nightly " + central_version + " Bugs", "needinfo_central", needinfo_central_url, 0]),
-    (5, ["Tracked or Nominated for Tracking with Need-Info? ESR45 Bugs", "needinfo_esr45", needinfo_esr45_url, 0]),
-    (0, ["Bugs Tracked for Beta " + beta_version, "tracking_beta", tracking_beta_url, 0]),
-    (0, ["Bugs Tracked for Aurora " + aurora_version, "tracking_aurora", tracking_aurora_url, 0]),
-    (0, ["Bugs Tracked for Nightly " + central_version, "tracking_central", tracking_central_url, 0]),
-    (0, ["Bugs Tracked for ESR45", "tracking_esr45", tracking_esr45_url, 0]),
-    (3, ["Tracked Beta " + beta_version + " Bugs, untouched this week", "untouched_tracking_beta", tracking_beta_touch_url, 0]),
-    (3, ["Tracked Aurora " + aurora_version + " Bugs, untouched this week", "untouched_tracking_aurora", tracking_aurora_touch_url, 0]),
-    (3, ["Tracked Nightly " + central_version + " Bugs, untouched this week", "untouched_tracking_nightly", tracking_central_touch_url, 0])
+    (5, ["Unlanded Beta " + beta_version + " Bugs", "unlanded_beta", unlanded_beta_url]),
+    (5, ["Unlanded Aurora " + aurora_version + " Bugs", "unlanded_aurora", unlanded_aurora_url]),
+    (5, ["Unlanded ESR45 Bugs", "unlanded_esr45", unlanded_esr45_url]),
+    (5, ["Tracked or Nominated for Tracking with Need-Info? Beta " + beta_version + " Bugs", "needinfo_beta", needinfo_beta_url]),
+    (5, ["Tracked or Nominated for Tracking with Need-Info? Aurora " + aurora_version + " Bugs", "needinfo_aurora", needinfo_aurora_url]),
+    (5, ["Tracked or Nominated for Tracking with Need-Info? Nightly " + central_version + " Bugs", "needinfo_central", needinfo_central_url]),
+    (5, ["Tracked or Nominated for Tracking with Need-Info? ESR45 Bugs", "needinfo_esr45", needinfo_esr45_url]),
+    (0, ["Bugs Tracked for Beta " + beta_version, "tracking_beta", tracking_beta_url]),
+    (0, ["Bugs Tracked for Aurora " + aurora_version, "tracking_aurora", tracking_aurora_url]),
+    (0, ["Bugs Tracked for Nightly " + central_version, "tracking_central", tracking_central_url]),
+    (0, ["Bugs Tracked for ESR45", "tracking_esr45", tracking_esr45_url]),
+    (3, ["Tracked Beta " + beta_version + " Bugs, untouched this week", "untouched_tracking_beta", tracking_beta_touch_url]),
+    (3, ["Tracked Aurora " + aurora_version + " Bugs, untouched this week", "untouched_tracking_aurora", tracking_aurora_touch_url]),
+    (3, ["Tracked Nightly " + central_version + " Bugs, untouched this week", "untouched_tracking_nightly", tracking_central_touch_url])
 ]
 
 

@@ -34,7 +34,7 @@ class TestEmailNag:
         assert isinstance(lac, (datetime.datetime))
 
     def test_generateEmailOutput(self):
-        query = {'Test': {'bugs': [self.bug], 'show_summary': '0'}}
+        query = {'Test': {'bugs': [self.bug]}}
         toaddrs, message = generateEmailOutput('Test', query, 'daily_email',
                                                self.people, False,
                                                'Test@test.com')
