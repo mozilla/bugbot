@@ -16,7 +16,7 @@ fixed_without_uplifts_url = "https://bugzilla.mozilla.org/buglist.cgi?v4=affecte
 # TODO - fix the 'untouched' queries
 
 urls = [
-    (5, ["Notify release managers when bugs are marked fixed in nightly but still affected for aurora, beta or release", "fixed_without_uplifts", fixed_without_uplifts_url, 1])
+    (5, ["Notify release managers when bugs are marked fixed in nightly but still affected for aurora, beta or release", "fixed_without_uplifts", fixed_without_uplifts_url])
 ]
 
 

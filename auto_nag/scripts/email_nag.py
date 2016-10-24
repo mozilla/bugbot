@@ -88,13 +88,11 @@ def generateEmailOutput(subject, queries, template, people, show_comment=False,
             template_params[query] = {'buglist': []}
         if len(queries[query]['bugs']) != 0:
             for bug in queries[query]['bugs']:
-                if 'show_summary' in queries[query]:
-                    if queries[query]['show_summary'] == '1':
-                        summary = bug.summary
-                    else:
-                        summary = ""
+                if 'groups' in bug.to_dict():
+                    # probably a security bug, don't leak the summary
+                    summary = ''
                 else:
-                    summary = ""
+                    summary = bug.summary
                 template_params[query]['buglist'].append(
                     {
                         'id': bug.id,
@@ -257,7 +255,6 @@ if __name__ == '__main__':
                 collected_queries[query_name] = {
                     'channel': info.get('query_channel', ''),
                     'bugs': [],
-                    'show_summary': info.get('show_summary', 0),
                     'cclist': options.email_cc_list,
                     }
             if 'cc' in info:
@@ -291,7 +288,6 @@ if __name__ == '__main__':
         if manager_email not in managers:
             managers[manager_email] = {}
             managers[manager_email]['nagging'] = {query: {'bugs': [bug],
-                                                          'show_summary': info.get('show_summary', 0),
                                                           'cclist': info.get('cclist', [])}, }
             return
         if 'nagging' in managers[manager_email]:
@@ -303,7 +299,6 @@ if __name__ == '__main__':
             else:
                 managers[manager_email]['nagging'][query] = {
                     'bugs': [bug],
-                    'show_summary': info.get('show_summary', 0),
                     'cclist': info.get('cclist', [])
                 }
                 if options.verbose:
@@ -311,7 +306,6 @@ if __name__ == '__main__':
                      and %s" % (query, bug.id, manager_email)
         else:
             managers[manager_email]['nagging'] = {query: {'bugs': [bug],
-                                                          'show_summary': info.get('show_summary', 0),
                                                           'cclist': info.get('cclist', [])}, }
             if options.verbose:
                 print "Creating query key %s for bug %s in nagging and \
@@ -319,7 +313,7 @@ if __name__ == '__main__':
 
     for query, info in collected_queries.items():
         if len(collected_queries[query]['bugs']) != 0:
-            manual_notify[query] = {'bugs': [], 'show_summary': info.get('show_summary', 0)}
+            manual_notify[query] = {'bugs': []}
             for b in collected_queries[query]['bugs']:
                 counter = counter + 1
                 send_mail = True
@@ -487,7 +481,12 @@ if __name__ == '__main__':
                         if k not in msg_body:
                             msg_body += "\n=== %s ===\n" % k
                         emailed_bugs.append(bug.id)
-                        msg_body += "http://bugzil.la/" + "%s -- assigned to: %s\n -- Last commented on: %s\n" % (bug.id, bug.assigned_to.real_name, bug.comments[-1].creation_time.replace(tzinfo=None))
+                        if 'groups' in bug.to_dict():
+                            summary = ''
+                        else:
+                            summary = ' %s\n' % bug.summary
+                        msg_body += "http://bugzil.la/%s -- assigned to: %s\n%s-- Last commented on: %s\n" % (
+                                bug.id, bug.assigned_to.real_name, summary, bug.comments[-1].creation_time.replace(tzinfo=None))
                     msg = ("From: %s\r\n" % REPLY_TO_EMAIL +
                            "To: %s\r\n" % REPLY_TO_EMAIL +
                            "Subject: RelMan Attention Needed: %s\r\n" % options.email_subject +
