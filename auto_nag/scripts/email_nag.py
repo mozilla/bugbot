@@ -123,7 +123,7 @@ def generateEmailOutput(subject, queries, template, people, show_comment=False,
                     addToAddrs(bug)
 
     # Order by versions
-    if 'affected' in template_params[query]['buglist']:
+    if 'affected' in template_params[query]['buglist'][0]:
         template_params[query]['buglist'] = sorted(template_params[query]['buglist'], key=lambda p: p['affected'][0])
 
     message_body = template.render(queries=template_params, show_comment=show_comment)
