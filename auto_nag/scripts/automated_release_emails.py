@@ -39,6 +39,7 @@ def getTemplateValue(url):
     parsed_template = version_regex.match(template_page)
     return parsed_template.groups()[0]
 
+
 if __name__ == '__main__':
     CONFIG_JSON = get_config_path()
     config = json.load(open(CONFIG_JSON, 'r'))

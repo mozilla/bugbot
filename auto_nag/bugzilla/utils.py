@@ -163,6 +163,7 @@ def __getTemplateValue(url):
     parsed_template = version_regex.match(template_page)
     return parsed_template.groups()[0]
 
+
 release_version = __getTemplateValue("https://wiki.mozilla.org/Template:RELEASE_VERSION")
 beta_version = __getTemplateValue("https://wiki.mozilla.org/Template:BETA_VERSION")
 aurora_version = __getTemplateValue("https://wiki.mozilla.org/Template:AURORA_VERSION")

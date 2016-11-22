@@ -21,6 +21,7 @@ def getReportURL(approval_flag, span):
     a = requests.get("https://bugzilla.mozilla.org/page.cgi?id=release_tracking_report.html&q=" + approval_flag + "%3A%2B%3A" + span + "%3A0%3Aand%3A")
     return a.url
 
+
 no_nag = ";field3-1-0=status_whiteboard;type3-1-0=notsubstring;value3-1-0=[no-nag]"
 beta_version = getTemplateValue("https://wiki.mozilla.org/Template:BETA_VERSION")
 aurora_version = getTemplateValue("https://wiki.mozilla.org/Template:AURORA_VERSION")
