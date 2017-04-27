@@ -12,8 +12,8 @@ release_version, beta_version, central_version = getVersions()
 fixed_without_uplifts_url = ("https://bugzilla.mozilla.org/buglist.cgi?"
                              "query_format=advanced&"
                              "resolution=---&resolution=FIXED&"
-                             # fixed in central
-                             "f1=cf_status_firefox" + central_version + "&o1=equals&v1=fixed&"
+                             # fixed or verified in central
+                             "f1=cf_status_firefox" + central_version + "&o1=anyexact&v1=fixed,verified&"
                              "f2=OP&j2=OR&"
                              # affected in beta
                              "f3=cf_status_firefox" + beta_version + "&o3=equals&v3=affected&"
