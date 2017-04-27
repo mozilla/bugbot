@@ -182,4 +182,4 @@ def getVersions(channel=None):
         elif channel == 'central':
             return central_version
 
-    return (release_version, beta_version, aurora_version, central_version)
+    return (release_version, beta_version, central_version)

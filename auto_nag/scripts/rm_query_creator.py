@@ -7,16 +7,27 @@ from argparse import ArgumentParser
 from auto_nag.bugzilla.utils import (get_config_path, get_project_root_path,
                                      createQueriesList, cleanUp, getVersions)
 
-release_version, beta_version, aurora_version, central_version = getVersions()
+release_version, beta_version, central_version = getVersions()
 
-fixed_without_uplifts_url = "https://bugzilla.mozilla.org/buglist.cgi?v4=affected&o5=equals&f1=cf_status_firefox" + central_version + "&o3=equals&v3=affected&o1=equals&j2=OR&resolution=---&resolution=FIXED&f4=cf_status_firefox" + beta_version + "&v5=affected&query_format=advanced&f3=cf_status_firefox" + aurora_version + "&f2=OP&o4=equals&f5=cf_status_firefox" + release_version + "&v1=fixed&f7=CP"
+fixed_without_uplifts_url = ("https://bugzilla.mozilla.org/buglist.cgi?"
+                             "query_format=advanced&"
+                             "resolution=---&resolution=FIXED&"
+                             # fixed in central
+                             "f1=cf_status_firefox" + central_version + "&o1=equals&v1=fixed&"
+                             "f2=OP&j2=OR&"
+                             # affected in beta
+                             "f3=cf_status_firefox" + beta_version + "&o3=equals&v3=affected&"
+                             # or affected in release
+                             "f4=cf_status_firefox" + release_version + "&o4=equals&v4=affected&"
+                             "f5=CP"
+                             )
 
 # TODO - sort the queries according to a priority flag
 # TODO - separate queries for sec bugs, for now hide summary
 # TODO - fix the 'untouched' queries
 
 urls = [
-    (5, ["Notify release managers when bugs are marked fixed in nightly but still affected for aurora, beta or release", "fixed_without_uplifts", fixed_without_uplifts_url])
+    (5, ["Notify release managers when bugs are marked fixed in nightly but still affected for beta or release", "fixed_without_uplifts", fixed_without_uplifts_url])
 ]
 
 
@@ -53,7 +64,7 @@ if __name__ == '__main__':
         for query in queries:
             command.append('-q')
             command.append(query)
-        subject = datetime.datetime.today().strftime("%A %b %d") + " -- Fixed in %s, Affecting %s, %s or %s" % (central_version, aurora_version, beta_version, release_version)
+        subject = datetime.datetime.today().strftime("%A %b %d") + " -- Fixed in %s, Affecting %s or %s" % (central_version, beta_version, release_version)
         command.extend(['-s',  subject])
         # send all other args to email_nag script argparser
         command.extend(args)
