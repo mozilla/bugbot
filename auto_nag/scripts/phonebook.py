@@ -31,7 +31,7 @@ a single phonebook entry data looks like this when you pull it from JSON:
 
 
 class PhonebookDirectory():
-    def __init__(self, dryrun=False):
+    def __init__(self, dryrun=False, isTest=False):
         print "Fetching people from phonebook..."
         if False and dryrun:
             people_json = (get_project_root_path() +
@@ -42,6 +42,9 @@ class PhonebookDirectory():
             # when phonebook bug will be fixed: remove these lines and uncomment the following
             people_json = (get_project_root_path() +
                            '/auto_nag/scripts/configs/people.json')
+            if isTest:
+                people_json = (get_project_root_path() +
+                               '/auto_nag/tests/people.json')
             with open(people_json, 'r') as pj:
                 self.people = {}
                 entries = json.load(pj)

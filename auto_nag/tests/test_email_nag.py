@@ -15,7 +15,7 @@ class TestEmailNag:
         bug_number = 489656
         bmo = BMOAgent()
         self.bug = bmo.get_bug(bug_number)
-        self.people = PhonebookDirectory(dryrun=True)
+        self.people = PhonebookDirectory(dryrun=True, isTest=True)
         hidden_dict = {
                 'id': 123456,
                 'summary': 'hide me',
