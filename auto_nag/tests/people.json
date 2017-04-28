@@ -1,10 +1,18 @@
-{"email": {"ims": [],
-           "name": "name",
-           "title": "vice/director test",
-           "phones": "string of numbers & assignments",
-           "ext": "XXX",
-           "manager": {"dn": "mail=manager@mozilla.com,o=com,dc=mozilla","cn":"Manager Name"},
-           "bugzillaEmail": "email@example.com",
-           "mozillaMail": "email@mozilla.com"
-          }
-}
+[
+    {
+        "bugzillaEmail": "foo1@mozilla.com",
+        "mail": "foo1@mozilla.com",
+        "manager": {
+            "cn": "Sylvestre Ledru",
+            "dn": "mail=email@example.com,o=com"
+        },
+        "name": "Calixte Denizet",
+        "title": "Release engineer"
+    },
+    {
+        "bugzillaEmail": "email@example.com",
+        "mail": "email@example.com",
+        "name": "Sylvestre Ledru",
+        "title": "Release mgmt lead / manager"
+    }
+]
