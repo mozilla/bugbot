@@ -1,4 +1,4 @@
-This email contains all the bugs which has been fixed in nightly but still affected in other channels.
+This email contains all the bugs which have been fixed in nightly but still affect other supported channels.
 
 = Queries =
 {% for name, results in queries.items() %}== {{ name }} ==
