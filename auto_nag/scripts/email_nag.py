@@ -86,6 +86,8 @@ def generateEmailOutput(subject, queries, template, people, show_comment=False,
                 cclist.append(qcc)
         if query not in template_params:
             template_params[query] = {'buglist': []}
+            if 'url' in queries[query]:
+                template_params[query]['query_url'] = queries[query]['url']
         if len(queries[query]['bugs']) != 0:
             for bug in queries[query]['bugs']:
                 if 'groups' in bug.to_dict():
@@ -266,6 +268,7 @@ if __name__ == '__main__':
             elif 'query_url' in info:
                 print "Gathering bugs from query_url in %s" % query
                 collected_queries[query_name]['bugs'] = bmo.get_bug_list(query_url_to_dict(info['query_url']))
+                collected_queries[query_name]['url'] = info['query_url']
                 # print "DEBUG: %d bug(s) found for query %s" % \
                 #   (len(collected_queries[query_name]['bugs']), info['query_url'])
             else:
@@ -314,6 +317,8 @@ if __name__ == '__main__':
     for query, info in collected_queries.items():
         if len(collected_queries[query]['bugs']) != 0:
             manual_notify[query] = {'bugs': []}
+            if 'url' in info:
+                manual_notify[query]['url'] = info['url']
             for b in collected_queries[query]['bugs']:
                 counter = counter + 1
                 send_mail = True
