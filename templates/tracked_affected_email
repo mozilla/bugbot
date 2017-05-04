@@ -2,6 +2,8 @@ This email contains all the bugs which have been fixed in nightly but still affe
 
 = Queries =
 {% for name, results in queries.items() %}== {{ name }} ==
+An up-to-date list can be found at {{ results.query_url }}
+
 {% for bug in results.buglist -%}
 * https://bugzil.la/{{ bug.id }} - {{ bug.summary }}
  - affected versions: {{ ', '.join(bug.affected) }}
