@@ -2,7 +2,8 @@
 from auto_nag.bugzilla.utils import os
 from auto_nag.bugzilla.utils import get_project_root_path
 from auto_nag.scripts.query_creator import (getTemplateValue, getReportURL,
-                                            createQueriesList, cleanUp, urls)
+                                            createQueriesList, cleanUp, urls,
+                                            esr_version)
 import shutil
 import datetime
 
@@ -28,16 +29,12 @@ class TestQueryCreator:
         cycle_span = getTemplateValue(url)
         unlanded_beta_url = getReportURL("approval-mozilla-beta",
                                          cycle_span)
-        unlanded_aurora_url = getReportURL("approval-mozilla-aurora",
-                                           cycle_span)
-        unlanded_esr45_url = getReportURL("approval-mozilla-esr45",
+        unlanded_esr_url = getReportURL("approval-mozilla-esr" + esr_version,
                                           cycle_span)
 
         url = unlanded_beta_url.split('=')
         assert isinstance(int(url[1].split(',')[0]), (int))
-        url = unlanded_aurora_url.split('=')
-        assert isinstance(int(url[1].split(',')[0]), (int))
-        url = unlanded_esr45_url.split('=')
+        url = unlanded_esr_url.split('=')
         assert isinstance(int(url[1].split(',')[0]), (int))
 
     def test_3_createQueriesList(self):
