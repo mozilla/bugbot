@@ -39,7 +39,9 @@ beta_version = getVersion(jsonContent, "LATEST_FIREFOX_DEVEL_VERSION")
 aurora_version = getVersion(jsonContent, "FIREFOX_AURORA")
 central_version = getVersion(jsonContent, "FIREFOX_NIGHTLY")
 esr_next_version = getVersion(jsonContent, "FIREFOX_ESR_NEXT")
-if not esr_next_version:
+if esr_next_version:
+    esr_version = esr_next_version
+else:
     # We are in a cycle where we don't have esr_next
     # For example, with 52.6, esr_next doesn't exist
     # But it will exist, once 60 is released
