@@ -367,11 +367,6 @@ if __name__ == '__main__':
                     if 'nobody' in assignee:
                         if options.verbose:
                             print "No one assigned to: %s, will be in the manual notification list..." % bug.id
-                    # TODO - get rid of this, SUCH A HACK!
-                    elif 'general@js.bugs' in assignee:
-                        if options.verbose:
-                            print "No one assigned to JS bug: %s, adding to Naveed's list..." % bug.id
-                        add_to_managers('nihsanullah@mozilla.com', query, info)
                     else:
                         if bug.assigned_to.real_name is not None:
                             if person is not None:
