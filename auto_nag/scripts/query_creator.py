@@ -8,6 +8,7 @@ import json
 from argparse import ArgumentParser
 from auto_nag.bugzilla.utils import (get_config_path, get_project_root_path,
                                      createQueriesList, cleanUp)
+from urllib2 import urlopen
 
 
 def getTemplateValue(url):
@@ -17,16 +18,36 @@ def getTemplateValue(url):
     return parsed_template.groups()[0]
 
 
+def loadJSON(url):
+    jsonurl = urlopen(url)
+    return json.loads(jsonurl.read())
+
+
+def getVersion(jsonVersion, key):
+    # In X.Y, we just need X
+    version = jsonVersion[key].split(".")
+    return version[0]
+
+
 def getReportURL(approval_flag, span):
     a = requests.get("https://bugzilla.mozilla.org/page.cgi?id=release_tracking_report.html&q=" + approval_flag + "%3A%2B%3A" + span + "%3A0%3Aand%3A")
     return a.url
 
 
 no_nag = ";field3-1-0=status_whiteboard;type3-1-0=notsubstring;value3-1-0=[no-nag]"
-beta_version = getTemplateValue("https://wiki.mozilla.org/Template:BETA_VERSION")
-aurora_version = getTemplateValue("https://wiki.mozilla.org/Template:AURORA_VERSION")
-central_version = getTemplateValue("https://wiki.mozilla.org/Template:CENTRAL_VERSION")
-esr_version = getTemplateValue("https://wiki.mozilla.org/Template:ESR_VERSION")
+jsonContent = loadJSON("https://product-details.mozilla.org/1.0/firefox_versions.json")
+beta_version = getVersion(jsonContent, "LATEST_FIREFOX_DEVEL_VERSION")
+aurora_version = getVersion(jsonContent, "FIREFOX_AURORA")
+central_version = getVersion(jsonContent, "FIREFOX_NIGHTLY")
+esr_next_version = getVersion(jsonContent, "FIREFOX_ESR_NEXT")
+if not len(esr_next_version):
+    # We are in a cycle where we don't have esr_next
+    # For example, with 52.6, esr_next doesn't exist
+    # But it will exist, once 60 is released
+    # esr_next will be 60
+    esr_version = getVersion(jsonContent, "FIREFOX_ESR")
+
+# TODO: We should have this in p-d at some point.
 cycle_span = getTemplateValue("https://wiki.mozilla.org/Template:CURRENT_CYCLE")
 
 unlanded_beta_url = getReportURL("approval-mozilla-beta", 	cycle_span) + ";field0-0-0=cf_status_firefox" + beta_version + ";type0-0-0=nowordssubstr;value0-0-0=unaffected,fixed,verified,wontfix,disabled" + ";field0-1-0=cf_tracking_firefox" + beta_version + ";type0-1-0=equals;value0-1-0=%2B;field0-2-0=status_whiteboard;type0-2-0=notsubstring;value0-2-0=[no-nag]"
