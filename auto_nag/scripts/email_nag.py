@@ -334,27 +334,6 @@ if __name__ == '__main__':
                 else:
                     person = None
 
-                # some security bugs get approval for landing a few weeks in
-                # the future, don't nag before we've reached the right time
-                if bug.whiteboard is not None and '[checkin on' in bug.whiteboard:
-                    try:
-                        month, day = map(int, bug.whiteboard.split('[checkin on ')[1].split(']')[0].split('/'))
-                    except (IndexError, ValueError):
-                        pass
-                    else:
-                        today = datetime.date.today()
-                        if month >= today.month:
-                            year = today.year
-                        else:
-                            year = today.year + 1
-                        checkin_date = datetime.date(year, month, day)
-                        if checkin_date > today:
-                            if options.verbose:
-                                print "Skipping bug %s since its checkin is scheduled for %s/%s" % (bug.id, month, day)
-                            send_mail = False
-                            counter = counter - 1
-                            manual_notify[query]['bugs'].remove(bug)
-
                 # kick bug out if days since comment check is on
                 if options.days_since_comment != -1:
                     # try to get last_comment by assignee & manager
