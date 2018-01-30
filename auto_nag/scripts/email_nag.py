@@ -116,7 +116,7 @@ def generateEmailOutput(subject, queries, template, people, show_comment=False,
                                 person = dict(people.people_by_bzmail[str(flag.requestee)])
                                 if person['mozillaMail'] not in toaddrs:
                                     toaddrs.append(person['mozillaMail'])
-                            except:
+                            except KeyError:
                                 if str(flag.requestee) not in toaddrs:
                                     toaddrs.append(str(flag.requestee))
                         else:
@@ -235,7 +235,7 @@ if __name__ == '__main__':
 
     try:
         int(options.days_since_comment)
-    except:
+    except ValueError:
         if options.days_since_comment is not None:
             parser.error("Need to provide a number for days \
                     since last comment value")
