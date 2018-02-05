@@ -9,6 +9,7 @@ from argparse import ArgumentParser
 from auto_nag.bugzilla.utils import (get_config_path, get_project_root_path,
                                      createQueriesList, cleanUp)
 from urllib2 import urlopen
+from auto_nag.common import getCurrentVersion
 
 
 def getTemplateValue(url):
@@ -18,34 +19,16 @@ def getTemplateValue(url):
     return parsed_template.groups()[0]
 
 
-def loadJSON(url):
-    return json.load(urlopen(url))
-
-
-def getVersion(jsonVersion, key):
-    # In X.Y, we just need X
-    version = jsonVersion[key].split(".")
-    return version[0]
-
-
 def getReportURL(approval_flag, span):
     a = requests.get("https://bugzilla.mozilla.org/page.cgi?id=release_tracking_report.html&q=" + approval_flag + "%3A%2B%3A" + span + "%3A0%3Aand%3A")
     return a.url
 
 
 no_nag = ";field3-1-0=status_whiteboard;type3-1-0=notsubstring;value3-1-0=[no-nag]"
-jsonContent = loadJSON("https://product-details.mozilla.org/1.0/firefox_versions.json")
-beta_version = getVersion(jsonContent, "LATEST_FIREFOX_DEVEL_VERSION")
-central_version = getVersion(jsonContent, "FIREFOX_NIGHTLY")
-esr_next_version = getVersion(jsonContent, "FIREFOX_ESR_NEXT")
-if esr_next_version:
-    esr_version = esr_next_version
-else:
-    # We are in a cycle where we don't have esr_next
-    # For example, with 52.6, esr_next doesn't exist
-    # But it will exist, once 60 is released
-    # esr_next will be 60
-    esr_version = getVersion(jsonContent, "FIREFOX_ESR")
+versions = getCurrentVersion()
+beta_version = versions['beta']
+central_version = versions['central']
+esr_version = versions['esr']
 
 # TODO: We should have this in p-d at some point.
 cycle_span = getTemplateValue("https://wiki.mozilla.org/Template:CURRENT_CYCLE")

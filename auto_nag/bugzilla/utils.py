@@ -7,6 +7,7 @@ import posixpath
 import urllib
 import datetime
 import requests
+from auto_nag.common import getCurrentVersion
 
 
 def get_project_root_path():
@@ -164,10 +165,11 @@ def __getTemplateValue(url):
     return parsed_template.groups()[0]
 
 
-release_version = __getTemplateValue("https://wiki.mozilla.org/Template:RELEASE_VERSION")
-beta_version = __getTemplateValue("https://wiki.mozilla.org/Template:BETA_VERSION")
-aurora_version = __getTemplateValue("https://wiki.mozilla.org/Template:AURORA_VERSION")
-central_version = __getTemplateValue("https://wiki.mozilla.org/Template:CENTRAL_VERSION")
+versions = getCurrentVersion()
+release_version = versions['release']
+beta_version = versions['beta']
+aurora_version = versions['aurora']
+central_version = versions['central']
 
 
 def getVersions(channel=None):

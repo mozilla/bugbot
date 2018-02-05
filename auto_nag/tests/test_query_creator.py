@@ -1,5 +1,4 @@
-
-from auto_nag.bugzilla.utils import os
+from auto_nag.common import getCurrentVersion
 from auto_nag.bugzilla.utils import get_project_root_path
 from auto_nag.scripts.query_creator import (getTemplateValue, getReportURL,
                                             createQueriesList, cleanUp, urls,
@@ -16,8 +15,8 @@ class TestQueryCreator:
         Tests for getTemplateValue,
         Expecting a VERSION number
         """
-        url = "https://wiki.mozilla.org/Template:BETA_VERSION"
-        beta_version = getTemplateValue(url)
+        versions = getCurrentVersion()
+        beta_version = versions["beta"]
         assert type(int(beta_version)) is not type(int)
 
     def test_2_getReportURL(self):
