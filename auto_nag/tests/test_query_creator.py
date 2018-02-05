@@ -3,8 +3,7 @@ from auto_nag.bugzilla.utils import get_project_root_path
 from auto_nag.scripts.query_creator import (getTemplateValue, getReportURL,
                                             createQueriesList, cleanUp, urls,
                                             esr_version)
-import shutil
-import datetime
+
 
 class TestQueryCreator:
     def setUp(self):
@@ -29,7 +28,7 @@ class TestQueryCreator:
         unlanded_beta_url = getReportURL("approval-mozilla-beta",
                                          cycle_span)
         unlanded_esr_url = getReportURL("approval-mozilla-esr" + esr_version,
-                                          cycle_span)
+                                        cycle_span)
 
         url = unlanded_beta_url.split('=')
         assert isinstance(int(url[1].split(',')[0]), (int))
