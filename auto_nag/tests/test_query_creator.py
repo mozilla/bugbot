@@ -9,13 +9,24 @@ class TestQueryCreator:
     def setUp(self):
         self.queries_dir = get_project_root_path() + 'queries/'
 
+    def test_0_getCurrentVersion(self):
+        versions = getCurrentVersion()
+        nightly_version = versions["central"]
+        assert type(int(nightly_version)) is not type(int)
+        beta_version = versions["beta"]
+        assert type(int(beta_version)) is not type(int)
+        release_version = versions["release"]
+        assert type(int(release_version)) is not type(int)
+        esr_version = versions["esr"]
+        assert type(int(esr_version)) is not type(int)
+
     def test_1_getTemplateValue(self):
         """
         Tests for getTemplateValue,
         Expecting a VERSION number
         """
-        versions = getCurrentVersion()
-        beta_version = versions["beta"]
+        url = "https://wiki.mozilla.org/Template:BETA_VERSION"
+        beta_version = getTemplateValue(url)
         assert type(int(beta_version)) is not type(int)
 
     def test_2_getReportURL(self):
