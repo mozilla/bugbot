@@ -7,7 +7,7 @@ import re
 import json
 import smtplib
 from auto_nag.bugzilla.utils import get_config_path
-from auto_nag.common import getCurrentVersion
+from auto_nag.common import get_current_versions
 
 REPLY_TO_EMAIL = 'release-mgmt@mozilla.com'
 SMTP = 'smtp.mozilla.org'
@@ -47,7 +47,7 @@ if __name__ == '__main__':
     # Grab the release date, the beta version number
 
     release_date = getTemplateValue("https://wiki.mozilla.org/Template:FIREFOX_SHIP_DATE")
-    versions = getCurrentVersion()
+    versions = get_current_versions()
     beta_version = versions['beta']
     current_version = versions['release']
     today = datetime.date.today()

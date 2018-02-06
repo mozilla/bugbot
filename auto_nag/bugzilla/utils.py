@@ -7,7 +7,7 @@ import posixpath
 import urllib
 import datetime
 import requests
-from auto_nag.common import getCurrentVersion
+from auto_nag.common import get_current_versions
 
 
 def get_project_root_path():
@@ -165,7 +165,7 @@ def __getTemplateValue(url):
     return parsed_template.groups()[0]
 
 
-versions = getCurrentVersion()
+versions = get_current_versions()
 release_version = versions['release']
 beta_version = versions['beta']
 central_version = versions['central']

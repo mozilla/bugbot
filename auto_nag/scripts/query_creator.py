@@ -9,7 +9,7 @@ from argparse import ArgumentParser
 from auto_nag.bugzilla.utils import (get_config_path, get_project_root_path,
                                      createQueriesList, cleanUp)
 from urllib2 import urlopen
-from auto_nag.common import getCurrentVersion
+from auto_nag.common import get_current_versions
 
 
 def getTemplateValue(url):
@@ -25,7 +25,7 @@ def getReportURL(approval_flag, span):
 
 
 no_nag = ";field3-1-0=status_whiteboard;type3-1-0=notsubstring;value3-1-0=[no-nag]"
-versions = getCurrentVersion()
+versions = get_current_versions()
 beta_version = versions['beta']
 central_version = versions['central']
 esr_version = versions['esr']

@@ -1,4 +1,4 @@
-from auto_nag.common import getCurrentVersion
+from auto_nag.common import get_current_versions
 from auto_nag.bugzilla.utils import get_project_root_path
 from auto_nag.scripts.query_creator import (getTemplateValue, getReportURL,
                                             createQueriesList, cleanUp, urls,
@@ -9,8 +9,8 @@ class TestQueryCreator:
     def setUp(self):
         self.queries_dir = get_project_root_path() + 'queries/'
 
-    def test_0_getCurrentVersion(self):
-        versions = getCurrentVersion()
+    def test_0_get_current_versions(self):
+        versions = get_current_versions()
         nightly_version = versions["central"]
         assert type(int(nightly_version)) is not type(int)
         beta_version = versions["beta"]

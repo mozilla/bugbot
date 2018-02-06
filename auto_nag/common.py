@@ -12,7 +12,7 @@ def getVersion(jsonVersion, key):
     return version[0]
 
 
-def getCurrentVersion():
+def get_current_versions():
     jsonContent = loadJSON("https://product-details.mozilla.org/1.0/firefox_versions.json")
     esr_next_version = getVersion(jsonContent, "FIREFOX_ESR_NEXT")
     if esr_next_version:
