@@ -8,7 +8,6 @@ import json
 from argparse import ArgumentParser
 from auto_nag.bugzilla.utils import (get_config_path, get_project_root_path,
                                      createQueriesList, cleanUp)
-from urllib2 import urlopen
 from auto_nag.common import get_current_versions
 
 
