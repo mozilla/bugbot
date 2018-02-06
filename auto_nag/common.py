@@ -25,7 +25,6 @@ def get_current_versions():
         esr_version = getVersion(jsonContent, "FIREFOX_ESR")
 
     return {"central": getVersion(jsonContent, "FIREFOX_NIGHTLY"),
-            "aurora": getVersion(jsonContent, "FIREFOX_AURORA"),
             "beta": getVersion(jsonContent, "LATEST_FIREFOX_DEVEL_VERSION"),
             "esr": esr_version,
             "release": getVersion(jsonContent, "LATEST_FIREFOX_VERSION"),
