@@ -168,7 +168,6 @@ def __getTemplateValue(url):
 versions = getCurrentVersion()
 release_version = versions['release']
 beta_version = versions['beta']
-aurora_version = versions['aurora']
 central_version = versions['central']
 
 
@@ -177,8 +176,6 @@ def getVersions(channel=None):
         channel = channel.lower()
         if channel == 'release':
             return release_version
-        elif channel == 'aurora':
-            return aurora_version
         elif channel == 'beta':
             return beta_version
         elif channel == 'central':
