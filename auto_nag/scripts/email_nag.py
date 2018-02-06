@@ -105,9 +105,6 @@ def generateEmailOutput(subject, queries, template, people, show_comment=False,
                         'affected': bug.get_fx_affected_versions()
                     }
                 )
-                # more hacking for JS special casing
-                if bug.assigned_to.name == 'general@js.bugs' and 'nihsanullah@mozilla.com' not in toaddrs:
-                    toaddrs.append('nihsanullah@mozilla.com')
                 # if needinfo? in flags, add the flag.requestee to the toaddrs instead of bug assignee
                 if bug.flags:
                     for flag in bug.flags:
