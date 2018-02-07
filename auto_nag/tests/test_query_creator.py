@@ -12,13 +12,13 @@ class TestQueryCreator:
     def test_0_get_current_versions(self):
         versions = get_current_versions()
         nightly_version = versions["central"]
-        assert type(int(nightly_version)) is not type(int)
+        assert type(int(nightly_version)) is int
         beta_version = versions["beta"]
-        assert type(int(beta_version)) is not type(int)
+        assert type(int(beta_version)) is int
         release_version = versions["release"]
-        assert type(int(release_version)) is not type(int)
+        assert type(int(release_version)) is int
         esr_version = versions["esr"]
-        assert type(int(esr_version)) is not type(int)
+        assert type(int(esr_version)) is int
 
     def test_1_getTemplateValue(self):
         """
