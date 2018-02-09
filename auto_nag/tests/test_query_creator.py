@@ -1,15 +1,24 @@
-
-from auto_nag.bugzilla.utils import os
+from auto_nag.common import get_current_versions
 from auto_nag.bugzilla.utils import get_project_root_path
 from auto_nag.scripts.query_creator import (getTemplateValue, getReportURL,
                                             createQueriesList, cleanUp, urls,
                                             esr_version)
-import shutil
-import datetime
+
 
 class TestQueryCreator:
     def setUp(self):
         self.queries_dir = get_project_root_path() + 'queries/'
+
+    def test_0_get_current_versions(self):
+        versions = get_current_versions()
+        nightly_version = versions["central"]
+        assert type(int(nightly_version)) is int
+        beta_version = versions["beta"]
+        assert type(int(beta_version)) is int
+        release_version = versions["release"]
+        assert type(int(release_version)) is int
+        esr_version = versions["esr"]
+        assert type(int(esr_version)) is int
 
     def test_1_getTemplateValue(self):
         """
@@ -30,7 +39,7 @@ class TestQueryCreator:
         unlanded_beta_url = getReportURL("approval-mozilla-beta",
                                          cycle_span)
         unlanded_esr_url = getReportURL("approval-mozilla-esr" + esr_version,
-                                          cycle_span)
+                                        cycle_span)
 
         url = unlanded_beta_url.split('=')
         assert isinstance(int(url[1].split(',')[0]), (int))
