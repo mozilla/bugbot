@@ -1,7 +1,7 @@
 import os
 import httplib2
 import urlparse
-from auto_nag.bugzilla.models import BugSearch, Bug
+from auto_nag.bugzilla.models import BugSearch
 from auto_nag.bugzilla.utils import urljoin, qs, hide_personal_info
 
 
