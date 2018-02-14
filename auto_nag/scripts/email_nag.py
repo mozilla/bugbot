@@ -36,7 +36,7 @@ def get_last_manager_comment(comments, manager, person):
     # go through in reverse order to get most recent
     for comment in comments[::-1]:
         if person is not None:
-            if comment.creator.name == manager['mozillaMail'] or comment.creator.name == manager['bugzillaEmail']:
+            if comment.creator == manager['mozillaMail'] or comment.creator == manager['bugzillaEmail']:
                 return comment.creation_time.replace(tzinfo=None)
     return None
 
@@ -45,7 +45,7 @@ def get_last_assignee_comment(comments, person):
     # go through in reverse order to get most recent
     for comment in comments[::-1]:
         if person is not None:
-            if comment.creator.name == person['mozillaMail'] or comment.creator.name == person['bugzillaEmail']:
+            if comment.creator == person['mozillaMail'] or comment.creator == person['bugzillaEmail']:
                 return comment.creation_time.replace(tzinfo=None)
     return None
 
@@ -90,7 +90,7 @@ def generateEmailOutput(subject, queries, template, people, show_comment=False,
                 template_params[query]['query_url'] = queries[query]['url']
         if len(queries[query]['bugs']) != 0:
             for bug in queries[query]['bugs']:
-                if 'groups' in bug.to_dict():
+                if bug.to_dict().get('groups', []):
                     # probably a security bug, don't leak the summary
                     summary = ''
                 else:

@@ -28,7 +28,7 @@ class TestUtils:
 
     def test_hide_personal_info(self):
         sample_exception = "Exception: 400 Bad Request requesting " + \
-            "BugSearch https://bugzilla.mozilla.org/bzapi/bug/?&" + \
+            "BugSearch https://bugzilla.mozilla.org/rest/bug?&" + \
             "changed_before=2010-12-26&product=Core,Firefox&" + \
             "changed_field=status&changed_after=2010-12-24&" + \
             "include_fields=_default,attachments&changed_field_to=" + \
