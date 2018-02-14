@@ -40,8 +40,11 @@ def hide_personal_info(error):
     """ Hides bugzilla user information from remoteobject error"""
     pattern = re.compile(
         r"https://bugzilla.mozilla.org*.+&api_key=(.*?)&")
-    api_key = pattern.findall(error)[0]
-    error_msg = error.replace(api_key, '*' * len(api_key))
+    try:
+        api_key = pattern.findall(error)[0]
+        error_msg = error.replace(api_key, '*' * len(api_key))
+    except IndexError:
+        error_msg = error
     return error_msg
 
 
