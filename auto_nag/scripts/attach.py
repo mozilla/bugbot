@@ -5,7 +5,7 @@ import itertools
 import os
 import argparse
 
-from auto_nag.bugzilla.models import Attachment, Flag, User, Comment
+from auto_nag.bugzilla.models import Attachment, Flag, Comment
 from auto_nag.bugzilla.agents import BugzillaAgent
 from auto_nag.bugzilla.utils import urljoin, get_credentials, FILE_TYPES
 
