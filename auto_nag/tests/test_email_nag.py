@@ -19,7 +19,7 @@ class TestEmailNag:
         hidden_dict = {
                 'id': 123456,
                 'summary': 'hide me',
-                'assigned_to': {'real_name': 'nobody'},
+                'assigned_to_detail': {'real_name': 'nobody'},
                 'groups': [{'name': 'security group'}]}
         hidden_dict.update({'cf_status_firefox' + version: '---'
                             for version in getVersions()})
@@ -31,14 +31,14 @@ class TestEmailNag:
                         'bugzillaEmail': 'demo@bugzilla.com'}
 
     def test_get_last_manager_comment(self):
-        self.bug.comments[-1].creator.name = 'test@mozilla.com'
+        self.bug.comments[-1].creator = 'test@mozilla.com'
         last_mgr_comnt = get_last_manager_comment(self.bug.comments,
                                                   self.manager,
                                                   self.person)
         assert isinstance(last_mgr_comnt, (datetime.datetime))
 
     def test_get_last_assignee_comment(self):
-        self.bug.comments[-1].creator.name = 'test@mozilla.com'
+        self.bug.comments[-1].creator = 'test@mozilla.com'
         lac = get_last_assignee_comment(self.bug.comments, self.person)
         assert isinstance(lac, (datetime.datetime))
 

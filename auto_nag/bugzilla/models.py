@@ -1,3 +1,5 @@
+import urlparse
+
 from remoteobjects import RemoteObject as RemoteObject_, fields
 
 from .fields import StringBoolean, Datetime
@@ -31,15 +33,33 @@ class RemoteObject(RemoteObject_):
     _location = property(_get_location, _set_location)
 
 
-class Bug(RemoteObject):
+class Comments(fields.List):
+    """This is a bit of a mix between Link and List, retrieving the comments
+    from an API call and then turning the returned data into a list of Comment
+    objets"""
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        if self.attrname not in instance.__dict__:
+            if instance._location is None:
+                raise AttributeError('Cannot find URL of %s relative to URL-less %s'
+                                     % (self.fld.cls.__name__, owner.__name__))
+            newurl = urlparse.urljoin(instance._location + '/', self.api_name)
+            value = RemoteObject.get(newurl, http=instance._http)
+            value = value.api_data['bugs'][str(instance.id)]['comments']
+            value = self.decode(value)
+            instance.__dict__[self.attrname] = value
+        return instance.__dict__[self.attrname]
 
+
+class Bug(RemoteObject):
     id = fields.Field()
     summary = fields.Field()
-    assigned_to = fields.Object('User')
-    creator = fields.Object('User')
+    assigned_to = fields.Object('User', api_name='assigned_to_detail')
+    creator = fields.Object('User', api_name='creator_detail')
     target_milestone = fields.Field()
     attachments = fields.List(fields.Object('Attachment'))
-    comments = fields.List(fields.Object('Comment'))
+    comments = Comments(fields.Object('Comment'), api_name='comment')
     history = fields.List(fields.Object('Changeset'))
     keywords = fields.List(fields.Object('Keyword'))
     status = fields.Field()
@@ -55,7 +75,7 @@ class Bug(RemoteObject):
     blocks = fields.List(fields.Field())
     depends_on = fields.List(fields.Field())
     url = fields.Field()
-    cc = fields.List(fields.Object('User'))
+    cc = fields.List(fields.Object('User'), api_name='cc_detail')
     keywords = fields.List(fields.Field())
     whiteboard = fields.Field()
 
@@ -63,7 +83,7 @@ class Bug(RemoteObject):
     platform = fields.Field()
     priority = fields.Field()
     product = fields.Field()
-    qa_contact = fields.Object('User')
+    qa_contact = fields.Object('User', api_name='qa_contact_detail')
     severity = fields.Field()
     see_also = fields.List(fields.Field())
     version = fields.Field()
@@ -165,7 +185,7 @@ class Attachment(RemoteObject):
 class Comment(RemoteObject):
 
     id = fields.Field()
-    creator = fields.Object('User')
+    creator = fields.Field()
     creation_time = Datetime(DATETIME_FORMAT_WITH_SECONDS)
     text = fields.Field()
     is_private = StringBoolean()
@@ -238,6 +258,15 @@ class Keyword(RemoteObject):
         return self.name.__hash__()
 
 
+class BugList(fields.List):
+    def __get__(self, obj, cls):
+        ret = super(BugList, self).__get__(obj, cls)
+        for bug in ret:
+            bug._location = urlparse.urljoin(obj._location, str(bug.id))
+            bug._http = obj._http
+        return ret
+
+
 class BugSearch(RemoteObject):
 
-    bugs = fields.List(fields.Object('Bug'))
+    bugs = BugList(fields.Object('Bug'))

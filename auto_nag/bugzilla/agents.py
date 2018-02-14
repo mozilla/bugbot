@@ -39,18 +39,18 @@ class BugzillaAgent(object):
         self.API_ROOT = api_root
         self.http = Http(api_key)
 
-    def get_bug(self, bug, include_fields='_default,token,cc,keywords,whiteboard,comments', exclude_fields=None, params={}):
+    def get_bug(self, bug, include_fields='_default', exclude_fields=None, params={}):
         params['include_fields'] = [include_fields]
         params['exclude_fields'] = [exclude_fields]
 
         url = urljoin(self.API_ROOT, 'bug/%s?%s' % (bug, qs(**params)))
         try:
-            return Bug.get(url, http=self.http)
+            return BugSearch.get(url, http=self.http).bugs[0]
         except Exception as e:
             raise Exception(hide_personal_info(str(e)))
 
     def get_bug_list(self, params={}):
-        url = urljoin(self.API_ROOT, 'bug/?%s' % (qs(**params)))
+        url = urljoin(self.API_ROOT, 'bug?%s' % (qs(**params)))
         try:
             return BugSearch.get(url, http=self.http).bugs
         except Exception as e:
@@ -59,4 +59,4 @@ class BugzillaAgent(object):
 
 class BMOAgent(BugzillaAgent):
     def __init__(self, api_key=None):
-        super(BMOAgent, self).__init__('https://bugzilla.mozilla.org/bzapi/', api_key)
+        super(BMOAgent, self).__init__('https://bugzilla.mozilla.org/rest/', api_key)
