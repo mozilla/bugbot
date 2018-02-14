@@ -46,7 +46,7 @@ class AttachmentAgent(BugzillaAgent):
 
         if reviewer is not None:
             fields['flags'] = [Flag(type_id=REVIEW, status='?',
-                                    requestee=User(name=reviewer))]
+                                    requestee=reviewer)]
 
         url = urljoin(self.API_ROOT, 'bug/%s/attachment?%s' % (bug_id, self.qs()))
         return Attachment(**fields).post_to(url)

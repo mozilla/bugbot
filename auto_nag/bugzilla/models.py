@@ -104,7 +104,7 @@ class Bug(RemoteObject):
     actual_time = fields.Field()
     deadline = Datetime(DATETIME_FORMAT_WITH_SECONDS)
     estimated_time = fields.Field()
-    # groups = fields.Field() # unimplemented
+    groups = fields.List(fields.Field())
     percentage_complete = fields.Field()
     remaining_time = fields.Field()
     work_time = fields.Field()
@@ -227,9 +227,9 @@ class Flag(RemoteObject):
 
     id = fields.Field()
     name = fields.Field()
-    setter = fields.Object('User')
+    setter = fields.Field()
     status = fields.Field()
-    requestee = fields.Object('User')
+    requestee = fields.Field()
     type_id = fields.Field()
 
     def __repr__(self):
