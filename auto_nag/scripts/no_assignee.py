@@ -106,8 +106,8 @@ def get_nobody(date='today', bug_ids=[]):
 
 
 def get_login_info():
-    CONFIG_JSON = get_config_path()
-    return json.load(open(CONFIG_JSON, 'r'))
+    with open(get_config_path(), 'r') as In:
+        return json.load(In)
 
 
 def get_email(bztoken, date, bug_ids=[]):
