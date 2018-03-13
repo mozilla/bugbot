@@ -10,8 +10,8 @@ import json
 from libmozdata.bugzilla import Bugzilla
 from libmozdata.connection import Query
 from libmozdata import hgmozilla, utils as lmdutils
-from ..bugzilla.utils import get_config_path
-from .. import mail
+from auto_nag.bugzilla.utils import get_config_path
+from auto_nag import mail
 
 
 TO = ['sylvestre@mozilla.com', 'calixte@mozilla.com']
