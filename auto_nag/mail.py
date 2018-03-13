@@ -26,6 +26,16 @@ def send(From, To, Subject, Body,
     if isinstance(Bcc, six.string_types):
         Bcc = [Bcc]
 
+    if dryrun:
+        print('\n****************************')
+        print('* DRYRUN: not sending mail *')
+        print('****************************\n')
+        print('Receivers: {}'.format(To + Cc + Bcc))
+        print('Subject: {}'.format(Subject))
+        print('Body:')
+        print(Body)
+        return
+
     subtype = 'html' if html else 'plain'
     message = MIMEMultipart()
     message['From'] = From
@@ -43,21 +53,6 @@ def send(From, To, Subject, Body,
             part['Content-Disposition'] = 'attachment; filename="%s"' % f
             message.attach(part)
 
-    sendMail(From, To, message.as_string(), login=login, dryrun=dryrun)
-
-
-def sendMail(From, To, msg, login={}, dryrun=False):
-    """Send an email
-    """
-    if dryrun:
-        print('\n****************************')
-        print('* DRYRUN: not sending mail *')
-        print('****************************\n')
-        print('Receivers: {}'.format(To))
-        print('Message:')
-        print(msg)
-        return
-
     mailserver = smtplib.SMTP(SMTP, PORT)
     mailserver.set_debuglevel(1)
     if login:
@@ -66,5 +61,5 @@ def sendMail(From, To, msg, login={}, dryrun=False):
         if username and password:
             mailserver.login(username, password)
 
-    mailserver.sendmail(From, To, msg)
+    mailserver.sendmail(From, To, message.as_string())
     mailserver.quit()

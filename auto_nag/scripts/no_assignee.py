@@ -10,8 +10,8 @@ import json
 from libmozdata.bugzilla import Bugzilla
 from libmozdata.connection import Query
 from libmozdata import hgmozilla, utils as lmdutils
-from auto_nag.bugzilla.utils import get_config_path
-from auto_nag import mail
+from ..bugzilla.utils import get_config_path
+from .. import mail
 
 
 TO = ['sylvestre@mozilla.com', 'calixte@mozilla.com']
@@ -106,8 +106,8 @@ def get_nobody(date='today', bug_ids=[]):
 
 
 def get_login_info():
-    with open(get_config_path(), 'r') as In:
-        return json.load(In)
+    CONFIG_JSON = get_config_path()
+    return json.load(open(CONFIG_JSON, 'r'))
 
 
 def get_email(bztoken, date, bug_ids=[]):
