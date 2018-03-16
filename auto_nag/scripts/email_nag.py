@@ -10,21 +10,21 @@ and to the assignee(s) or need-info? for each query
 """
 import sys
 import os
-import smtplib
 import subprocess
 import tempfile
 import collections
 from datetime import datetime
 from argparse import ArgumentParser
 from auto_nag.bugzilla.agents import BMOAgent
+from auto_nag import mail
 import phonebook
 from jinja2 import Environment, FileSystemLoader
+
 env = Environment(loader=FileSystemLoader('templates'))
 
 REPLY_TO_EMAIL = 'release-mgmt@mozilla.com'
 DEFAULT_CC = ['release-mgmt@mozilla.com']
 EMAIL_SUBJECT = ''
-SMTP = 'smtp.mozilla.org'
 
 # TODO - Sort by who a bug is blocked on (thanks @dturner)
 # TODO - write tests!
@@ -155,20 +155,6 @@ def generateEmailOutput(subject, queries, template, people, show_comment=False,
     toaddrs = toaddrs + cclist
 
     return toaddrs, message
-
-
-def sendMail(toaddrs, msg, username, password, dryrun=False):
-    if dryrun:
-        print "\n****************************\n* DRYRUN: not sending mail *\n****************************\n"
-        print "Receivers: %s" % (toaddrs)
-        print msg
-    else:
-        server = smtplib.SMTP_SSL(SMTP, 465)
-        server.set_debuglevel(1)
-        server.login(username, password)
-        # note: toaddrs is required for transport agents, the msg['To'] header is not modified
-        server.sendmail(username, toaddrs, msg)
-        server.quit()
 
 
 if __name__ == '__main__':
@@ -415,7 +401,10 @@ if __name__ == '__main__':
             sys.exit(1)
         if not options.dryrun:
             print "SENDING EMAIL"
-        sendMail(toaddrs, msg, options.mozilla_mail, options.email_password, options.dryrun)
+        mail.sendMail(options.mozilla_mail, toaddrs, msg,
+                      login={'ldap_username': options.mozilla_mail,
+                             'ldap_password': options.email_password},
+                      dryrun=options.dryrun)
     else:
         # Get yr nag on!
         for email, info in managers.items():
@@ -456,7 +445,10 @@ if __name__ == '__main__':
                         sys.exit(1)
                     if not options.dryrun:
                         print "SENDING EMAIL"
-                    sendMail(toaddrs, msg, options.mozilla_mail, options.email_password, options.dryrun)
+                    mail.sendMail(options.mozilla_mail, toaddrs, msg,
+                                  login={'ldap_username': options.mozilla_mail,
+                                         'ldap_password': options.email_password},
+                                  dryrun=options.dryrun)
                     sent_bugs = 0
                     for query, info in info['nagging'].items():
                         sent_bugs += len(info['bugs'])
@@ -489,4 +481,7 @@ if __name__ == '__main__':
                            "Subject: RelMan Attention Needed: %s\r\n" % options.email_subject +
                            "\r\n" +
                            msg_body)
-        sendMail(['release-mgmt@mozilla.com'], msg, options.mozilla_mail, options.email_password, options.dryrun)
+        mail.sendMail(options.mozilla_mail, ['release-mgmt@mozilla.com'], msg,
+                      login={'ldap_username': options.mozilla_mail,
+                             'ldap_password': options.email_password},
+                      dryrun=options.dryrun)
