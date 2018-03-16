@@ -90,7 +90,7 @@ def generateEmailOutput(subject, queries, template, people, show_comment=False,
                 template_params[query]['query_url'] = queries[query]['url']
         if len(queries[query]['bugs']) != 0:
             for bug in queries[query]['bugs']:
-                if bug.groups:
+                if 'groups' in bug and bug.groups:
                     # probably a security bug, don't leak the summary
                     summary = ''
                 else:
