@@ -18,8 +18,9 @@ TO = ['sylvestre@mozilla.com', 'calixte@mozilla.com']
 
 
 def get_bz_params(date, bug_ids=[]):
-    start_date = lmdutils.get_date_ymd(date)
-    end_date = start_date + relativedelta(days=1)
+    date = lmdutils.get_date_ymd(date)
+    start_date = date - relativedelta(days=1)
+    end_date = date + relativedelta(days=1)
     fields = ['id']
     regexp = 'http[s]?://hg\.mozilla\.org/(releases/)?mozilla-[^/]+/rev/[0-9a-f]+' # NOQA
     params = {'include_fields': fields,
