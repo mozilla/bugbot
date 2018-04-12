@@ -11,15 +11,13 @@ from libmozdata.bugzilla import Bugzilla
 from libmozdata.connection import Query
 from libmozdata import hgmozilla, utils as lmdutils
 from auto_nag.bugzilla.utils import get_config_path
-from auto_nag import mail
-
-
-TO = ['sylvestre@mozilla.com', 'calixte@mozilla.com']
+from auto_nag import mail, utils
 
 
 def get_bz_params(date, bug_ids=[]):
     date = lmdutils.get_date_ymd(date)
-    start_date = date - relativedelta(days=7)
+    lookup = utils.get_config('no_assignee', 'days_lookup', 7)
+    start_date = date - relativedelta(days=lookup)
     end_date = date + relativedelta(days=1)
     fields = ['id']
     regexp = 'http[s]?://hg\.mozilla\.org/(releases/)?mozilla-[^/]+/rev/[0-9a-f]+' # NOQA
@@ -130,7 +128,9 @@ def send_email(date='today', dryrun=False):
     date = lmdutils.get_date(date)
     title, body = get_email(login_info['bz_api_key'], date)
     if title:
-        mail.send(login_info['ldap_username'], TO, title, body,
+        mail.send(login_info['ldap_username'],
+                  utils.get_config('no_assignee', 'receivers', ['sylvestre@mozilla.com']),
+                  title, body,
                   html=True, login=login_info, dryrun=dryrun)
     else:
         print('NO-ASSIGNEE: No data for {}'.format(date))

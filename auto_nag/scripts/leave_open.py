@@ -9,15 +9,13 @@ import json
 from libmozdata.bugzilla import Bugzilla
 from libmozdata import utils as lmdutils
 from auto_nag.bugzilla.utils import get_config_path
-from auto_nag import mail
-
-
-TO = ['sylvestre@mozilla.com', 'calixte@mozilla.com']
+from auto_nag import mail, utils
 
 
 def get_bz_params(date):
     date = lmdutils.get_date_ymd(date)
-    start_date = date - relativedelta(days=7)
+    lookup = utils.get_config('leave_open', 'days_lookup', 7)
+    start_date = date - relativedelta(days=lookup)
     end_date = date + relativedelta(days=1)
     fields = ['id']
     params = {'include_fields': fields,
@@ -74,7 +72,9 @@ def send_email(date='today', dryrun=False):
     date = lmdutils.get_date(date)
     title, body = get_email(login_info['bz_api_key'], date)
     if title:
-        mail.send(login_info['ldap_username'], TO, title, body,
+        mail.send(login_info['ldap_username'],
+                  utils.get_config('leave_open', 'receivers', ['sylvestre@mozilla.com']),
+                  title, body,
                   html=True, login=login_info, dryrun=dryrun)
     else:
         print('LEAVE-OPEN: No data for {}'.format(date))
