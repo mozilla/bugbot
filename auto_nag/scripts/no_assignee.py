@@ -19,7 +19,7 @@ TO = ['sylvestre@mozilla.com', 'calixte@mozilla.com']
 
 def get_bz_params(date, bug_ids=[]):
     date = lmdutils.get_date_ymd(date)
-    start_date = date - relativedelta(days=1)
+    start_date = date - relativedelta(days=7)
     end_date = date + relativedelta(days=1)
     fields = ['id']
     regexp = 'http[s]?://hg\.mozilla\.org/(releases/)?mozilla-[^/]+/rev/[0-9a-f]+' # NOQA
@@ -133,7 +133,7 @@ def send_email(date='today', dryrun=False):
         mail.send(login_info['ldap_username'], TO, title, body,
                   html=True, login=login_info, dryrun=dryrun)
     else:
-        print('No data for {}'.format(date))
+        print('NO-ASSIGNEE: No data for {}'.format(date))
 
 
 if __name__ == '__main__':
