@@ -11,11 +11,14 @@ _CONFIG = None
 def _get_config():
     global _CONFIG
     if _CONFIG is None:
-        with open('./auto_nag/scripts/configs/tools.json', 'r') as In:
-            _CONFIG = json.load(In)
+        try:
+            with open('./auto_nag/scripts/configs/tools.json', 'r') as In:
+                _CONFIG = json.load(In)
+        except IOError:
+            _CONFIG = {}
     return _CONFIG
 
 
-def get_config(name, entry):
+def get_config(name, entry, default):
     conf = _get_config()
-    return conf.get(name, {}).get(entry)
+    return conf.get(name, {}).get(entry, default)

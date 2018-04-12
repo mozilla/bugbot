@@ -16,7 +16,7 @@ from auto_nag import mail, utils
 
 def get_bz_params(date, bug_ids=[]):
     date = lmdutils.get_date_ymd(date)
-    lookup = utils.get_config('no_assignee', 'days_lookup')
+    lookup = utils.get_config('no_assignee', 'days_lookup', 7)
     start_date = date - relativedelta(days=lookup)
     end_date = date + relativedelta(days=1)
     fields = ['id']
@@ -129,7 +129,7 @@ def send_email(date='today', dryrun=False):
     title, body = get_email(login_info['bz_api_key'], date)
     if title:
         mail.send(login_info['ldap_username'],
-                  utils.get_config('no_assignee', 'receivers'),
+                  utils.get_config('no_assignee', 'receivers', ['sylvestre@mozilla.com']),
                   title, body,
                   html=True, login=login_info, dryrun=dryrun)
     else:
