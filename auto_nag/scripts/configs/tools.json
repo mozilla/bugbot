@@ -16,5 +16,14 @@
             "sylvestre@mozilla.com"
         ],
         "days_lookup": 7
-    }
+    },
+    "regressions":
+    {
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "sylvestre@mozilla.com"
+        ],
+        "days_lookup": 7
+    }    
 }
