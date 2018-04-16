@@ -17,6 +17,8 @@ from auto_nag import mail, utils
 def get_bz_params(date, bug_ids=[]):
     date = lmdutils.get_date_ymd(date)
     lookup = utils.get_config('no_assignee', 'days_lookup', 7)
+    reporters = utils.get_config('no_assignee', 'reporter_exception', [])
+    reporters = ','.join(reporters)
     start_date = date - relativedelta(days=lookup)
     end_date = date + relativedelta(days=1)
     fields = ['id']
@@ -37,6 +39,10 @@ def get_bz_params(date, bug_ids=[]):
               'f4': 'resolution',
               'o4': 'changedbefore',
               'v4': end_date}
+    if reporters:
+        params.update({'f5': 'reporter',
+                       'o5': 'nowordssubstr',
+                       'v5': reporters})
 
     return params
 

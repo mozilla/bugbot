@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import json
+import re
 
 
 _CONFIG = None
@@ -13,7 +14,10 @@ def _get_config():
     if _CONFIG is None:
         try:
             with open('./auto_nag/scripts/configs/tools.json', 'r') as In:
-                _CONFIG = json.load(In)
+                data = In.read()
+                pat = re.compile(r'^[ \t]*//.*$', re.MULTILINE)
+                data = pat.sub('', data)
+                _CONFIG = json.loads(data)
         except IOError:
             _CONFIG = {}
     return _CONFIG
