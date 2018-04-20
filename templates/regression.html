@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <title>Bugs with missing regression keyword</title>
+  </head>
+  <body>
+    <p>Hi there,</p>
+    <p>The following bugs are probably a regression and don't have regression keyword:
+      <ul>
+        {% for bugid in bugids -%}
+        <li><a href="https://bugzil.la/{{ bugid }}">{{ bugid }}</a></li>
+        {% endfor -%}
+      </ul>
+    </p>
+    <p>Sincerely,<br>
+      Release Management Bot
+    </p>
+  </body>
+</html>
