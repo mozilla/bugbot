@@ -27,7 +27,8 @@
         "receivers":
         [
             "calixte@mozilla.com",
-            "sylvestre@mozilla.com"
+            "sylvestre@mozilla.com",
+            "mcastelluccio@mozilla.com"
         ],
         "days_lookup": 7
     }    
