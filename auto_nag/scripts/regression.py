@@ -27,6 +27,8 @@ def get_bz_params(date):
     lookup = utils.get_config('regressions', 'days_lookup', 7)
     prod_blacklist = utils.get_config('regressions', 'product_blacklist', [])
     prod_blacklist = ' '.join(prod_blacklist)
+    resolution_blacklist = utils.get_config('regressions', 'resolution_blacklist', [])
+    resolution_blacklist = ' '.join(resolution_blacklist)
     start_date = date - relativedelta(days=lookup)
     end_date = date + relativedelta(days=1)
     fields = ['id', 'keywords', 'cf_has_regression_range']
@@ -40,12 +42,15 @@ def get_bz_params(date):
               'f3': 'product',
               'o3': 'nowords',
               'v3': prod_blacklist,
-              'f4': 'longdesc',
-              'o4': 'changedafter',
-              'v4': start_date,
+              'f4': 'resolution',
+              'o4': 'nowords',
+              'v4': resolution_blacklist,
               'f5': 'longdesc',
-              'o5': 'changedbefore',
-              'v5': end_date}
+              'o5': 'changedafter',
+              'v5': start_date,
+              'f6': 'longdesc',
+              'o6': 'changedbefore',
+              'v6': end_date}
 
     return params
 
