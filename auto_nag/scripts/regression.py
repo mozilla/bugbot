@@ -25,6 +25,8 @@ REG_PAT = re.compile('(regression is)|(regression range)|(regressed build)|(mozr
 def get_bz_params(date):
     date = lmdutils.get_date_ymd(date)
     lookup = utils.get_config('regressions', 'days_lookup', 7)
+    prod_blacklist = utils.get_config('regressions', 'product_blacklist', [])
+    prod_blacklist = ' '.join(prod_blacklist)
     start_date = date - relativedelta(days=lookup)
     end_date = date + relativedelta(days=1)
     fields = ['id', 'keywords', 'cf_has_regression_range']
@@ -35,12 +37,15 @@ def get_bz_params(date):
               'f2': 'longdesc',
               'o2': 'anywordssubstr',
               'v2': 'regress caus',
-              'f3': 'longdesc',
-              'o3': 'changedafter',
-              'v3': start_date,
+              'f3': 'product',
+              'o3': 'nowords',
+              'v3': prod_blacklist,
               'f4': 'longdesc',
-              'o4': 'changedbefore',
-              'v4': end_date}
+              'o4': 'changedafter',
+              'v4': start_date,
+              'f5': 'longdesc',
+              'o5': 'changedbefore',
+              'v5': end_date}
 
     return params
 
