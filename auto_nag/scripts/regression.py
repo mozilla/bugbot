@@ -185,7 +185,7 @@ def send_email(date='today', dryrun=False):
     title, body = get_email(login_info['bz_api_key'], date)
     if title:
         mail.send(login_info['ldap_username'],
-                  utils.get_config('leave_open', 'receivers', ['sylvestre@mozilla.com']),
+                  utils.get_config('regressions', 'receivers', ['sylvestre@mozilla.com']),
                   title, body,
                   html=True, login=login_info, dryrun=dryrun)
     else:
