@@ -179,7 +179,7 @@ def get_email(bztoken, date):
         template = env.get_template('regression.html')
         body = template.render(date=date,
                                bugids=bugids)
-        title = 'Bugs with missing regression keyword for the {}'.format(date)
+        title = '[autonag] Bugs with missing regression keyword for the {}'.format(date)
         return title, body
     return None, None
 

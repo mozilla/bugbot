@@ -62,7 +62,7 @@ def get_email(bztoken, date):
         template = env.get_template('leave_open_email.html')
         body = template.render(date=date,
                                bugids=bugids)
-        title = 'Closed bugs with leave-open keyword for the {}'.format(date)
+        title = '[autonag] Closed bugs with leave-open keyword for the {}'.format(date)
         return title, body
     return None, None
 
