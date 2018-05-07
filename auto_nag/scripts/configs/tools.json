@@ -33,8 +33,12 @@
         "days_lookup": 7,
         "product_blacklist":
         [
-	    "SeaMonkey",
-	    "Thunderbird"
+	        "SeaMonkey",
+	        "Thunderbird"
+        ],
+        "resolution_blacklist":
+        [
+	        "DUPLICATE"
         ]
     }    
 }
