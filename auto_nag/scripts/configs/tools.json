@@ -34,11 +34,12 @@
         "product_blacklist":
         [
 	        "SeaMonkey",
-	        "Thunderbird"
+	        "Thunderbird",
+		"Release Engineering"
         ],
         "resolution_blacklist":
         [
 	        "DUPLICATE"
         ]
-    }    
+    }
 }
