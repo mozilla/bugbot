@@ -124,7 +124,7 @@ def get_email(bztoken, date, bug_ids=[]):
         body = template.render(date=date,
                                bugids=bugids)
 
-        title = 'Bugs with no assignees for the {}'.format(date)
+        title = '[autonag] Bugs with no assignees for the {}'.format(date)
         return title, body
     return None, None
 
