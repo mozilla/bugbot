@@ -35,7 +35,8 @@
         [
 	        "SeaMonkey",
 	        "Thunderbird",
-		"Release Engineering"
+		"Release Engineering",
+		"Webtools"
         ],
         "resolution_blacklist":
         [
