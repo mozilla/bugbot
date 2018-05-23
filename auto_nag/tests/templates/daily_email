@@ -4,7 +4,7 @@ NOTE: On Mondays, we send email to remind you of work tracked for upcoming relea
 * If you don't believe a bug should be tracked for release or your investigation is blocked, please comment in the bug and optionally reply to this email
 * If you're surprised that a bug is listed below, please make sure to check the version-specific status flags.
 * Investigations for Beta should be prioritized over Aurora, etc.
-* Stay abreast of where we are in the cycle by checking the calendar at http://bit.ly/1zUHw5G. Remember, beta 8 is the last opportunity for speculative fixes and we code freeze after beta 9.
+* Stay abreast of where we are in the cycle by checking the calendar at https://bit.ly/1zUHw5G. Remember, beta 8 is the last opportunity for speculative fixes and we code freeze after beta 9.
 
 = Queries =
 {% for name, results in queries.items() %}== {{ name }} ==
