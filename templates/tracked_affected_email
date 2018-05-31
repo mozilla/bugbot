@@ -12,3 +12,5 @@ An up-to-date list can be found at {{ results.query_url }}
 
 Sincerely,
 Release Management
+
+See the source / report issues on https://github.com/mozilla/relman-auto-nag/
