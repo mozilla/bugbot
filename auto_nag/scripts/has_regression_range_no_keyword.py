@@ -46,12 +46,23 @@ def get_bugs(date='today'):
         data.append(bug['id'])
 
     bugids = []
-    print(get_bz_params(date))
     Bugzilla(get_bz_params(date),
              bughandler=bug_handler,
              bugdata=bugids,
              timeout=TIMEOUT).get_data().wait()
+
     return sorted(bugids)
+
+
+def autofix(bugs):
+    bugs = list(map(str, bugs))
+    Bugzilla(bugs).put({
+        'keywords': {
+            'add': ['regression']
+            }
+        })
+
+    return bugs
 
 
 def get_login_info():
@@ -59,9 +70,11 @@ def get_login_info():
         return json.load(In)
 
 
-def get_email(bztoken, date):
+def get_email(bztoken, date, dryrun):
     Bugzilla.TOKEN = bztoken
     bugids = get_bugs(date=date)
+    if not dryrun:
+        bugids = autofix(bugids)
     if bugids:
         env = Environment(loader=FileSystemLoader('templates'))
         template = env.get_template('has_reg_range_email.html')
@@ -75,7 +88,7 @@ def get_email(bztoken, date):
 def send_email(date='today', dryrun=False):
     login_info = get_login_info()
     date = lmdutils.get_date(date)
-    title, body = get_email(login_info['bz_api_key'], date)
+    title, body = get_email(login_info['bz_api_key'], date, dryrun)
     if title:
         mail.send(login_info['ldap_username'],
                   utils.get_config('has_reg_range', 'receivers', ['sylvestre@mozilla.com']),
