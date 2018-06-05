@@ -49,14 +49,27 @@ def get_bugs(date='today'):
     return sorted(bugids)
 
 
+def autofix(bugs):
+    bugs = list(map(str, bugs))
+    Bugzilla(bugs).put({
+        'keywords': {
+            'remove': ['leave-open']
+            }
+        })
+
+    return bugs
+
+
 def get_login_info():
     with open(get_config_path(), 'r') as In:
         return json.load(In)
 
 
-def get_email(bztoken, date):
+def get_email(bztoken, date, dryrun):
     Bugzilla.TOKEN = bztoken
     bugids = get_bugs(date=date)
+    if not dryrun:
+        bugids = autofix(bugids)
     if bugids:
         env = Environment(loader=FileSystemLoader('templates'))
         template = env.get_template('leave_open_email.html')
@@ -70,7 +83,7 @@ def get_email(bztoken, date):
 def send_email(date='today', dryrun=False):
     login_info = get_login_info()
     date = lmdutils.get_date(date)
-    title, body = get_email(login_info['bz_api_key'], date)
+    title, body = get_email(login_info['bz_api_key'], date, dryrun)
     if title:
         mail.send(login_info['ldap_username'],
                   utils.get_config('leave_open', 'receivers', ['sylvestre@mozilla.com']),
