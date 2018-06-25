@@ -163,7 +163,7 @@ def get_reg(date='today'):
     reg_bugids = analyze_history(reg_bugids)
     reg_bugids |= bugids['regressions']
 
-    return sorted(reg_bugids)
+    return sorted(reg_bugids, reverse=True)
 
 
 def get_login_info():
