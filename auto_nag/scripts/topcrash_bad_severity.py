@@ -12,7 +12,7 @@ from auto_nag import mail, utils
 
 
 # https://bugzilla.mozilla.org/buglist.cgi?keywords=topcrash%2C%20&keywords_type=allwords&bug_severity=major&bug_severity=normal&bug_severity=minor&bug_severity=trivial&bug_severity=enhancement&resolution=---&query_format=advanced
-def get_bz_params(date):
+def get_bz_params():
     fields = ['id']
     params = {'include_fields': fields,
               'resolution': ['---'],
@@ -24,7 +24,7 @@ def get_bz_params(date):
     return params
 
 
-def get_bugs(date='today'):
+def get_bugs():
     # the search query can be long to evaluate
     TIMEOUT = 240
 
@@ -32,7 +32,7 @@ def get_bugs(date='today'):
         data.append(bug['id'])
 
     bugids = []
-    Bugzilla(get_bz_params(date),
+    Bugzilla(get_bz_params(),
              bughandler=bug_handler,
              bugdata=bugids,
              timeout=TIMEOUT).get_data().wait()
