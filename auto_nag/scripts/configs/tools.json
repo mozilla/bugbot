@@ -42,14 +42,21 @@
         "days_lookup": 7,
         "product_blacklist":
         [
-	        "SeaMonkey",
-	        "Thunderbird",
-		"Release Engineering",
-		"Webtools"
+            "SeaMonkey",
+            "Thunderbird",
+            "Release Engineering",
+            "Webtools"
         ],
         "resolution_blacklist":
         [
-	        "DUPLICATE"
+            "DUPLICATE"
+        ]
+    },
+    "auto_nag":
+    {
+        "no_mail_for_manager":
+        [
+            "jgriffiths@mozilla.com"
         ]
     }
 }

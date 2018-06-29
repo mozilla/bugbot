@@ -16,7 +16,7 @@ import collections
 from datetime import datetime
 from argparse import ArgumentParser
 from auto_nag.bugzilla.agents import BMOAgent
-from auto_nag import mail
+from auto_nag import mail, utils
 import phonebook
 from jinja2 import Environment, FileSystemLoader
 
@@ -410,6 +410,8 @@ if __name__ == '__main__':
         for email, info in managers.items():
             inp = ''
             if 'nagging' in info:
+                if email in utils.get_config('auto_nag', 'no_mail_for_manager', []):
+                    email = None
                 toaddrs, msg = generateEmailOutput(
                     subject=options.email_subject,
                     manager_email=email,
