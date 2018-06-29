@@ -40,17 +40,6 @@ def get_bugs():
     return sorted(bugids)
 
 
-def autofix(bugs):
-    bugs = list(map(str, bugs))
-    Bugzilla(bugs).put({
-        'keywords': {
-            'add': ['regression']
-            }
-        })
-
-    return bugs
-
-
 def get_login_info():
     with open(get_config_path(), 'r') as In:
         return json.load(In)
@@ -59,8 +48,6 @@ def get_login_info():
 def get_email(bztoken, date, dryrun):
     Bugzilla.TOKEN = bztoken
     bugids = get_bugs(date=date)
-    if not dryrun:
-        bugids = autofix(bugids)
     if bugids:
         env = Environment(loader=FileSystemLoader('templates'))
         template = env.get_template('topcrash_bad_severity.html')
