@@ -15,7 +15,7 @@ from auto_nag import mail, utils
 # https://bugzilla.mozilla.org/buglist.cgi?keywords=topcrash%2C%20&keywords_type=allwords&bug_severity=major&bug_severity=normal&bug_severity=minor&bug_severity=trivial&bug_severity=enhancement&resolution=---&query_format=advanced
 def get_bz_params(date):
     date = lmdutils.get_date_ymd(date)
-    lookup = utils.get_config('has_reg_range', 'days_lookup', 7)
+    lookup = utils.get_config('common', 'days_lookup', 7)
     start_date = date - relativedelta(days=lookup)
     end_date = date + relativedelta(days=1)
     fields = ['id']
@@ -82,11 +82,11 @@ def send_email(date='today', dryrun=False):
     title, body = get_email(login_info['bz_api_key'], date, dryrun)
     if title:
         mail.send(login_info['ldap_username'],
-                  utils.get_config('has_reg_range', 'receivers', ['sylvestre@mozilla.com']),
+                  utils.get_config('common', 'receivers', ['sylvestre@mozilla.com']),
                   title, body,
                   html=True, login=login_info, dryrun=dryrun)
     else:
-        print('HAS_REG_RANGE: No data for {}'.format(date))
+        print('TOPCRASH_BAD_SEVERITY: No data for {}'.format(date))
 
 
 if __name__ == '__main__':
