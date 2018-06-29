@@ -68,7 +68,7 @@ def get_email(bztoken, date, dryrun):
         bugids = autofix(bugids)
     if bugids:
         env = Environment(loader=FileSystemLoader('templates'))
-        template = env.get_template('topcrash_bas_severity.html')
+        template = env.get_template('topcrash_bad_severity.html')
         body = template.render(date=date,
                                bugids=bugids)
         title = '[autonag] Bugs with topcrash keyword but incorrect severity {}'.format(date)
