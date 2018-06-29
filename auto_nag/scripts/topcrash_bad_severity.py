@@ -3,7 +3,6 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import argparse
-from dateutil.relativedelta import relativedelta
 from jinja2 import Environment, FileSystemLoader
 import json
 from libmozdata.bugzilla import Bugzilla
@@ -14,10 +13,6 @@ from auto_nag import mail, utils
 
 # https://bugzilla.mozilla.org/buglist.cgi?keywords=topcrash%2C%20&keywords_type=allwords&bug_severity=major&bug_severity=normal&bug_severity=minor&bug_severity=trivial&bug_severity=enhancement&resolution=---&query_format=advanced
 def get_bz_params(date):
-    date = lmdutils.get_date_ymd(date)
-    lookup = utils.get_config('common', 'days_lookup', 7)
-    start_date = date - relativedelta(days=lookup)
-    end_date = date + relativedelta(days=1)
     fields = ['id']
     params = {'include_fields': fields,
               'resolution': ['---'],
