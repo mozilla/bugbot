@@ -77,14 +77,14 @@ Before running::
 2. Need a local config for phonebook auth with your LDAP info
 3. Need to generate an API key from bugzilla admin ( https://bugzilla.mozilla.org/userprefs.cgi?tab=apikey )
 
-<pre>
-# in scripts/configs/config.json
-{
-  "ldap_username": "you@mozilla.com",
-  "ldap_password": "xxxxxxxxxxxxxx",
-  "bz_api_key": "xxxxxxxxxxxxxx"
-}
- </pre>
+.. code-block:: bash
+
+    # in scripts/configs/config.json
+    {
+      "ldap_username": "you@mozilla.com",
+      "ldap_password": "xxxxxxxxxxxxxx",
+      "bz_api_key": "xxxxxxxxxxxxxx"
+    }
 
 Do a dryrun::
     python auto_nag/scripts/query_creator.py -d
