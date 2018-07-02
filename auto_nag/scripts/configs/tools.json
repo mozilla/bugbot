@@ -13,16 +13,7 @@
             "wptsync@mozilla.bugs"
         ]
     },
-    "leave_open":
-    {
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "sylvestre@mozilla.com"
-        ],
-        "days_lookup": 7
-    },
-    "has_reg_range":
+    "common":
     {
         "receivers":
         [

@@ -3,7 +3,6 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import argparse
-from dateutil.relativedelta import relativedelta
 from jinja2 import Environment, FileSystemLoader
 import json
 from libmozdata.bugzilla import Bugzilla
@@ -12,28 +11,20 @@ from auto_nag.bugzilla.utils import get_config_path
 from auto_nag import mail, utils
 
 
-def get_bz_params(date):
-    date = lmdutils.get_date_ymd(date)
-    lookup = utils.get_config('common', 'days_lookup', 7)
-    start_date = date - relativedelta(days=lookup)
-    end_date = date + relativedelta(days=1)
+# https://bugzilla.mozilla.org/buglist.cgi?keywords=topcrash%2C%20&keywords_type=allwords&bug_severity=major&bug_severity=normal&bug_severity=minor&bug_severity=trivial&bug_severity=enhancement&resolution=---&query_format=advanced
+def get_bz_params():
     fields = ['id']
     params = {'include_fields': fields,
-              'bug_status': ['RESOLVED', 'VERIFIED', 'CLOSED'],
-              'f1': 'keywords',
-              'o1': 'casesubstring',
-              'v1': 'leave-open',
-              'f2': 'resolution',
-              'o2': 'changedafter',
-              'v2': start_date,
-              'f3': 'resolution',
-              'o3': 'changedbefore',
-              'v3': end_date}
+              'resolution': ['---'],
+              "bug_severity": ["major", "normal", "minor", "trivial", "enhancement"],
+              'keywords': 'topcrash',
+              'keywords_type': 'allwords'
+              }
 
     return params
 
 
-def get_bugs(date='today'):
+def get_bugs():
     # the search query can be long to evaluate
     TIMEOUT = 240
 
@@ -41,23 +32,12 @@ def get_bugs(date='today'):
         data.append(bug['id'])
 
     bugids = []
-    Bugzilla(get_bz_params(date),
+    Bugzilla(get_bz_params(),
              bughandler=bug_handler,
              bugdata=bugids,
              timeout=TIMEOUT).get_data().wait()
 
     return sorted(bugids)
-
-
-def autofix(bugs):
-    bugs = list(map(str, bugs))
-    Bugzilla(bugs).put({
-        'keywords': {
-            'remove': ['leave-open']
-            }
-        })
-
-    return bugs
 
 
 def get_login_info():
@@ -68,14 +48,12 @@ def get_login_info():
 def get_email(bztoken, date, dryrun):
     Bugzilla.TOKEN = bztoken
     bugids = get_bugs(date=date)
-    if not dryrun:
-        bugids = autofix(bugids)
     if bugids:
         env = Environment(loader=FileSystemLoader('templates'))
-        template = env.get_template('leave_open_email.html')
+        template = env.get_template('topcrash_bad_severity.html')
         body = template.render(date=date,
                                bugids=bugids)
-        title = '[autonag] Closed bugs with leave-open keyword for the {}'.format(date)
+        title = '[autonag] Bugs with topcrash keyword but incorrect severity {}'.format(date)
         return title, body
     return None, None
 
@@ -90,11 +68,11 @@ def send_email(date='today', dryrun=False):
                   title, body,
                   html=True, login=login_info, dryrun=dryrun)
     else:
-        print('LEAVE-OPEN: No data for {}'.format(date))
+        print('TOPCRASH_BAD_SEVERITY: No data for {}'.format(date))
 
 
 if __name__ == '__main__':
-    description = 'Get the closed bugs with leave-open keyword'
+    description = 'Get the top crashes bug without a proper severity'
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('-d', '--dryrun', dest='dryrun',
                         action='store_true', default=False,

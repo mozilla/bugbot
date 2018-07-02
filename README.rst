@@ -1,7 +1,7 @@
 This tool is used by Mozilla release management to send emails to the Firefox developers. It will query the bugzilla.mozilla.org database and send emails to Mozilla developers and their managers (if Mozilla staff).
+The tool will also notify release managers about potential issues in bugzilla and autofix some categories of issues.
 
-
-This package currently uses [remoteobjects](https://github.com/saymedia/remoteobjects) models, Mozilla's [Bugzilla REST API](https://wiki.mozilla.org/Bugzilla:REST_API), and optionally the Mozilla LDAP [phonebook](https://github.com/mozilla/mobile-phonebook) (to access bug assignees' managers & Mozilla email addresses).
+This package currently uses `remoteobjects <https://github.com/saymedia/remoteobjects>`_ models, Mozilla's `Bugzilla REST API <https://wiki.mozilla.org/Bugzilla:REST_API>`_, and optionally the Mozilla LDAP `phonebook <https://github.com/mozilla/mobile-phonebook>`_ (to access bug assignees' managers & Mozilla email addresses).
 
 
 Installation
@@ -30,14 +30,11 @@ we'll have to do this the long way.
 
     python setup.py install
 
-
-Now you'll have ``bzattach`` installed in the ``/bin`` directory of your
-virtual environment.  To use the script, you'll have to activate this
-environment with ``workon venv`` or ``source venv/bin/activate``.
-
 Note to developers: if you make any changes to the bugzilla/ files (agents, models, utils) during
 work on other scripts, you will want to re-install the scripts as instructed above in order to pick
 up changes
+
+To run it into production, you will need the full list of employees + managers.
 
 Usage
 ----------
@@ -80,21 +77,20 @@ Before running::
 2. Need a local config for phonebook auth with your LDAP info
 3. Need to generate an API key from bugzilla admin ( https://bugzilla.mozilla.org/userprefs.cgi?tab=apikey )
 
-<pre>
-# in scripts/configs/config.json
-{
-  "ldap_username": "you@mozilla.com",
-  "ldap_password": "xxxxxxxxxxxxxx",
-  "bz_api_key": "xxxxxxxxxxxxxx"
-}
- </pre>
+.. code-block:: bash
+
+    # in scripts/configs/config.json
+    {
+      "ldap_username": "you@mozilla.com",
+      "ldap_password": "xxxxxxxxxxxxxx",
+      "bz_api_key": "xxxxxxxxxxxxxx"
+    }
 
 Do a dryrun::
     python auto_nag/scripts/query_creator.py -d
 
 The script does the following:
-* Gathers the current list of employees and managers from Mozilla LDAP phonebook
-** you will need a local config for phonebook auth with your LDAP info::
+* you will need a local config for smtp auth with your LDAP info::
     # in scripts/configs/config.json
     {
         "ldap_username": "you@mozilla.com",
@@ -112,16 +108,7 @@ The script does the following:
 Running on a server
 -------------------
 
-This needs to run on a private server because it will have login for LDAP and bugzilla key so it can't currently be shared access.
+This needs to run on a private server because it will have login for smtp and bugzilla key so it can't currently be shared access.
 
 Cronjob::
-  00 14 * * 1-5 $HOME/bin/run_autonags.sh > $HOME/logs/user/autonag.log
-
-Shell script::
-
-  #!/bin/bash
-  PATH_SCRIPT=/home/sylvestre/dev/mozilla/relman-auto-nag/
-  . $PATH_SCRIPT/venv/bin/activate
-  cd $PATH_SCRIPT
-  PYTHONPATH=. python $PATH_SCRIPT/auto_nag/scripts/query_creator.py
-  PYTHONPATH=. python $PATH_SCRIPT/auto_nag/scripts/rm_query_creator.py
+  00 14 * * 1-5 $HOME/run_autonags.sh > $HOME/logs/user/autonag.log

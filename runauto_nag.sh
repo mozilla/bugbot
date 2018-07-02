@@ -8,3 +8,4 @@ PYTHONPATH=. python -m auto_nag.scripts.no_assignee
 PYTHONPATH=. python -m auto_nag.scripts.leave_open
 PYTHONPATH=. python -m auto_nag.scripts.regression
 PYTHONPATH=. python -m auto_nag.scripts.has_regression_range_no_keyword
+PYTHONPATH=. python -m auto_nag.scripts.topcrash_bad_severity

@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <title>[autonag] Bugs with topcrash keyword but incorrect severity</title>
+  </head>
+  <body>
+    <p>Hi there,</p>
+    <p>The following bugs have topcrash as keyword but the severity isn't high enough:
+      <ul>
+        {% for bugid in bugids -%}
+        <li><a href="https://bugzil.la/{{ bugid }}">{{ bugid }}</a></li>
+        {% endfor -%}
+      </ul>
+    </p>
+    <p>Sincerely,<br>
+      Release Management Bot
+    </p>
+  </body>
+</html>
