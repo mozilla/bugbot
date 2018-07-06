@@ -12,6 +12,7 @@ from libmozdata.connection import Query
 from libmozdata import hgmozilla, utils as lmdutils
 from auto_nag.bugzilla.utils import get_config_path
 from auto_nag import mail, utils
+from auto_nag.scripts.common import get_login_info
 
 
 def get_bz_params(date, bug_ids=[]):
@@ -108,11 +109,6 @@ def get_nobody(date='today', bug_ids=[]):
     bugids = filter_from_hg(revisions)
 
     return bugids
-
-
-def get_login_info():
-    with open(get_config_path(), 'r') as In:
-        return json.load(In)
 
 
 def get_email(bztoken, date, bug_ids=[]):

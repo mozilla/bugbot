@@ -10,6 +10,7 @@ from libmozdata.bugzilla import Bugzilla
 from libmozdata import utils as lmdutils
 from auto_nag.bugzilla.utils import get_config_path
 from auto_nag import mail, utils
+from auto_nag.scripts.common import get_login_info
 
 
 # https://bugzilla.mozilla.org/buglist.cgi?resolution=---&resolution=FIXED&resolution=INVALID&resolution=WONTFIX&resolution=DUPLICATE&resolution=WORKSFORME&resolution=INCOMPLETE&resolution=SUPPORT&resolution=EXPIRED&resolution=MOVED&v1=yes&f1=cf_has_regression_range&keywords_type=nowords&keywords=regression%2C%20&o1=equals&query_format=advanced&list_id=14173174
@@ -63,11 +64,6 @@ def autofix(bugs):
         })
 
     return bugs
-
-
-def get_login_info():
-    with open(get_config_path(), 'r') as In:
-        return json.load(In)
 
 
 def get_email(bztoken, date, dryrun):

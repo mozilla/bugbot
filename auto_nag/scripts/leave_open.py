@@ -10,6 +10,7 @@ from libmozdata.bugzilla import Bugzilla
 from libmozdata import utils as lmdutils
 from auto_nag.bugzilla.utils import get_config_path
 from auto_nag import mail, utils
+from auto_nag.scripts.common import get_login_info
 
 
 def get_bz_params(date):
@@ -58,11 +59,6 @@ def autofix(bugs):
         })
 
     return bugs
-
-
-def get_login_info():
-    with open(get_config_path(), 'r') as In:
-        return json.load(In)
 
 
 def get_email(bztoken, date, dryrun):

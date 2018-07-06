@@ -11,6 +11,7 @@ from libmozdata import utils as lmdutils
 import re
 from auto_nag.bugzilla.utils import get_config_path
 from auto_nag import mail, utils
+from auto_nag.scripts.common import get_login_info
 
 
 COMMENTS_PAT = re.compile('^>.*[\n]?', re.MULTILINE)
@@ -164,12 +165,6 @@ def get_reg(date='today'):
     reg_bugids |= bugids['regressions']
 
     return sorted(reg_bugids, reverse=True)
-
-
-def get_login_info():
-    with open(get_config_path(), 'r') as In:
-        return json.load(In)
-
 
 def get_email(bztoken, date):
     Bugzilla.TOKEN = bztoken
