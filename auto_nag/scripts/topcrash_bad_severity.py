@@ -47,7 +47,7 @@ def get_login_info():
 
 def get_email(bztoken, date, dryrun):
     Bugzilla.TOKEN = bztoken
-    bugids = get_bugs(date=date)
+    bugids = get_bugs()
     if bugids:
         env = Environment(loader=FileSystemLoader('templates'))
         template = env.get_template('topcrash_bad_severity.html')
