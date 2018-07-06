@@ -5,6 +5,7 @@
 from auto_nag.bugzilla.utils import get_config_path
 import json
 
+
 def get_login_info():
     with open(get_config_path(), 'r') as In:
         return json.load(In)

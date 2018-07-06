@@ -6,11 +6,9 @@ import argparse
 from dateutil.relativedelta import relativedelta
 import functools
 from jinja2 import Environment, FileSystemLoader
-import json
 from libmozdata.bugzilla import Bugzilla
 from libmozdata.connection import Query
 from libmozdata import hgmozilla, utils as lmdutils
-from auto_nag.bugzilla.utils import get_config_path
 from auto_nag import mail, utils
 from auto_nag.scripts.common import get_login_info
 
