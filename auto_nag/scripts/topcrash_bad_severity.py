@@ -7,7 +7,7 @@ from jinja2 import Environment, FileSystemLoader
 from libmozdata.bugzilla import Bugzilla
 from libmozdata import utils as lmdutils
 from auto_nag import mail, utils
-from auto_nag.scripts.common import get_login_info
+from auto_nag.scripts.common import get_login_info, send_email
 
 
 # https://bugzilla.mozilla.org/buglist.cgi?keywords=topcrash%2C%20&keywords_type=allwords&bug_severity=major&bug_severity=normal&bug_severity=minor&bug_severity=trivial&bug_severity=enhancement&resolution=---&query_format=advanced
@@ -39,30 +39,17 @@ def get_bugs():
     return sorted(bugids)
 
 
-def get_email(bztoken, date, dryrun):
+def get_email(bztoken, date, template, title, bug_ids=[]):
     Bugzilla.TOKEN = bztoken
     bugids = get_bugs()
     if bugids:
         env = Environment(loader=FileSystemLoader('templates'))
-        template = env.get_template('topcrash_bad_severity.html')
+        template = env.get_template(template)
         body = template.render(date=date,
                                bugids=bugids)
-        title = '[autonag] Bugs with topcrash keyword but incorrect severity {}'.format(date)
+        title = title.format(date)
         return title, body
     return None, None
-
-
-def send_email(date='today', dryrun=False):
-    login_info = get_login_info()
-    date = lmdutils.get_date(date)
-    title, body = get_email(login_info['bz_api_key'], date, dryrun)
-    if title:
-        mail.send(login_info['ldap_username'],
-                  utils.get_config('common', 'receivers', ['sylvestre@mozilla.com']),
-                  title, body,
-                  html=True, login=login_info, dryrun=dryrun)
-    else:
-        print('TOPCRASH_BAD_SEVERITY: No data for {}'.format(date))
 
 
 if __name__ == '__main__':
@@ -75,4 +62,11 @@ if __name__ == '__main__':
                         action='store', default='today',
                         help='Date for the query')
     args = parser.parse_args()
-    send_email(date=args.date, dryrun=args.dryrun)
+
+    login_info = get_login_info()
+    date = lmdutils.get_date(args.date)
+    template='topcrash_bad_severity.html'
+    subject='[autonag] Bugs with topcrash keyword but incorrect severity {}'
+    title, body = get_email(login_info['bz_api_key'], date, template, subject)
+
+    send_email(category="TOPCRASH_BAD_SEVERITY", date=date, template=template , title=title, dryrun=args.dryrun)

@@ -8,7 +8,7 @@ from jinja2 import Environment, FileSystemLoader
 from libmozdata.bugzilla import Bugzilla
 from libmozdata import utils as lmdutils
 from auto_nag import mail, utils
-from auto_nag.scripts.common import get_login_info
+from auto_nag.scripts.common import get_login_info, send_email
 
 
 def get_bz_params(date):
@@ -59,32 +59,19 @@ def autofix(bugs):
     return bugs
 
 
-def get_email(bztoken, date, dryrun):
+def get_email(bztoken, date, template, title, dryrun, bug_ids=[]):
     Bugzilla.TOKEN = bztoken
     bugids = get_bugs(date=date)
     if not dryrun:
         bugids = autofix(bugids)
     if bugids:
         env = Environment(loader=FileSystemLoader('templates'))
-        template = env.get_template('leave_open_email.html')
+        template = env.get_template(template)
         body = template.render(date=date,
                                bugids=bugids)
-        title = '[autonag] Closed bugs with leave-open keyword for the {}'.format(date)
+        title = title.format(date)
         return title, body
     return None, None
-
-
-def send_email(date='today', dryrun=False):
-    login_info = get_login_info()
-    date = lmdutils.get_date(date)
-    title, body = get_email(login_info['bz_api_key'], date, dryrun)
-    if title:
-        mail.send(login_info['ldap_username'],
-                  utils.get_config('common', 'receivers', ['sylvestre@mozilla.com']),
-                  title, body,
-                  html=True, login=login_info, dryrun=dryrun)
-    else:
-        print('LEAVE-OPEN: No data for {}'.format(date))
 
 
 if __name__ == '__main__':
@@ -97,4 +84,11 @@ if __name__ == '__main__':
                         action='store', default='today',
                         help='Date for the query')
     args = parser.parse_args()
-    send_email(date=args.date, dryrun=args.dryrun)
+
+    login_info = get_login_info()
+    date = lmdutils.get_date(args.date)
+    template='leave_open_email.html'
+    subject='[autonag] Closed bugs with leave-open keyword for the {}'
+    title, body = get_email(login_info['bz_api_key'], date, template, subject, dryrun=args.dryrun)
+
+    send_email(category="LEAVE-OPEN", date=args.date, dryrun=args.dryrun)

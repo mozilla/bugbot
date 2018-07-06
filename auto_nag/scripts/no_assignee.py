@@ -10,7 +10,7 @@ from libmozdata.bugzilla import Bugzilla
 from libmozdata.connection import Query
 from libmozdata import hgmozilla, utils as lmdutils
 from auto_nag import mail, utils
-from auto_nag.scripts.common import get_login_info
+from auto_nag.scripts.common import get_login_info, send_email
 
 
 def get_bz_params(date, bug_ids=[]):
@@ -108,32 +108,18 @@ def get_nobody(date='today', bug_ids=[]):
 
     return bugids
 
-
-def get_email(bztoken, date, bug_ids=[]):
+def get_email(bztoken, date, template, title, bug_ids=[]):
     Bugzilla.TOKEN = bztoken
     bugids = get_nobody(date, bug_ids=bug_ids)
     if bugids:
         env = Environment(loader=FileSystemLoader('templates'))
-        template = env.get_template('no_assignee_email.html')
+        template = env.get_template(template)
         body = template.render(date=date,
                                bugids=bugids)
 
-        title = '[autonag] Bugs with no assignees for the {}'.format(date)
+        title = title.format(date)
         return title, body
     return None, None
-
-
-def send_email(date='today', dryrun=False):
-    login_info = get_login_info()
-    date = lmdutils.get_date(date)
-    title, body = get_email(login_info['bz_api_key'], date)
-    if title:
-        mail.send(login_info['ldap_username'],
-                  utils.get_config('no_assignee', 'receivers', ['sylvestre@mozilla.com']),
-                  title, body,
-                  html=True, login=login_info, dryrun=dryrun)
-    else:
-        print('NO-ASSIGNEE: No data for {}'.format(date))
 
 
 if __name__ == '__main__':
@@ -146,4 +132,11 @@ if __name__ == '__main__':
                         action='store', default='today',
                         help='Date for the query')
     args = parser.parse_args()
-    send_email(date=args.date, dryrun=args.dryrun)
+
+    login_info = get_login_info()
+    date = lmdutils.get_date(args.date)
+    template='no_assignee_email.html'
+    subject='[autonag] Bugs with no assignees for the {}'
+    title, body = get_email(login_info['bz_api_key'], date, template, subject)
+
+    send_email(category="NO-ASSIGNEE", date=date, template=template , title=title, dryrun=args.dryrun)
