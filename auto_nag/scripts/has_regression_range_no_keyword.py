@@ -7,7 +7,7 @@ from dateutil.relativedelta import relativedelta
 from jinja2 import Environment, FileSystemLoader
 from libmozdata.bugzilla import Bugzilla
 from libmozdata import utils as lmdutils
-from auto_nag import mail, utils
+from auto_nag import utils
 from auto_nag.scripts.common import get_login_info, send_email
 
 
@@ -92,8 +92,8 @@ if __name__ == '__main__':
 
     login_info = get_login_info()
     date = lmdutils.get_date(args.date)
-    template='has_reg_range_email.html'
-    subject='[autonag] Bugs with has_regression_range=yes but no regression keyword {}'
+    template = 'has_reg_range_email.html'
+    subject = '[autonag] Bugs with has_regression_range=yes but no regression keyword {}'
     title, body = get_email(login_info['bz_api_key'], date, template, subject, dryrun=args.dryrun)
 
-    send_email(category="HAS_REG_RANGE", date=date, template=template , title=title, dryrun=args.dryrun)
+    send_email(category="HAS_REG_RANGE", date=date, template=template, title=title, body=body, dryrun=args.dryrun)

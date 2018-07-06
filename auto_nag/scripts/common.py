@@ -3,8 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.bugzilla.utils import get_config_path
-from libmozdata.bugzilla import Bugzilla
-from libmozdata import utils as lmdutils
+from auto_nag import mail, utils
 import json
 
 
@@ -13,11 +12,11 @@ def get_login_info():
         return json.load(In)
 
 
-def send_email(category="UNDEFINED", date='today', dryrun=False, template='', title=''):
+def send_email(category="UNDEFINED", date='today', dryrun=False, template='', title='', body=''):
     login_info = get_login_info()
     if title:
         mail.send(login_info['ldap_username'],
-                  utils.get_config('no_assignee', 'receivers', ['sylvestre@mozilla.com']),
+                  utils.get_config('no_assignee', 'receivers', ['sledru@mozilla.com']),
                   title, body,
                   html=True, login=login_info, dryrun=dryrun)
     else:

@@ -32,7 +32,7 @@ a single phonebook entry data looks like this when you pull it from JSON:
 
 class PhonebookDirectory():
     def __init__(self, dryrun=False, isTest=False):
-        print "Fetching people from phonebook..."
+        print("Fetching people from phonebook...")
         if False and dryrun:
             people_json = (get_project_root_path() +
                            '/auto_nag/tests/people.json')

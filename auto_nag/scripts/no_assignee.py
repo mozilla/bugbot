@@ -9,7 +9,7 @@ from jinja2 import Environment, FileSystemLoader
 from libmozdata.bugzilla import Bugzilla
 from libmozdata.connection import Query
 from libmozdata import hgmozilla, utils as lmdutils
-from auto_nag import mail, utils
+from auto_nag import utils
 from auto_nag.scripts.common import get_login_info, send_email
 
 
@@ -108,6 +108,7 @@ def get_nobody(date='today', bug_ids=[]):
 
     return bugids
 
+
 def get_email(bztoken, date, template, title, bug_ids=[]):
     Bugzilla.TOKEN = bztoken
     bugids = get_nobody(date, bug_ids=bug_ids)
@@ -135,8 +136,8 @@ if __name__ == '__main__':
 
     login_info = get_login_info()
     date = lmdutils.get_date(args.date)
-    template='no_assignee_email.html'
-    subject='[autonag] Bugs with no assignees for the {}'
+    template = 'no_assignee_email.html'
+    subject = '[autonag] Bugs with no assignees for the {}'
     title, body = get_email(login_info['bz_api_key'], date, template, subject)
 
-    send_email(category="NO-ASSIGNEE", date=date, template=template , title=title, dryrun=args.dryrun)
+    send_email(category="NO-ASSIGNEE", date=date, template=template, title=title, body=body, dryrun=args.dryrun)

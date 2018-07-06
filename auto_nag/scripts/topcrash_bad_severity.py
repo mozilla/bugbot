@@ -6,7 +6,6 @@ import argparse
 from jinja2 import Environment, FileSystemLoader
 from libmozdata.bugzilla import Bugzilla
 from libmozdata import utils as lmdutils
-from auto_nag import mail, utils
 from auto_nag.scripts.common import get_login_info, send_email
 
 
@@ -65,8 +64,8 @@ if __name__ == '__main__':
 
     login_info = get_login_info()
     date = lmdutils.get_date(args.date)
-    template='topcrash_bad_severity.html'
-    subject='[autonag] Bugs with topcrash keyword but incorrect severity {}'
+    template = 'topcrash_bad_severity.html'
+    subject = '[autonag] Bugs with topcrash keyword but incorrect severity {}'
     title, body = get_email(login_info['bz_api_key'], date, template, subject)
 
-    send_email(category="TOPCRASH_BAD_SEVERITY", date=date, template=template , title=title, dryrun=args.dryrun)
+    send_email(category="TOPCRASH_BAD_SEVERITY", date=date, template=template, title=title, body=body, dryrun=args.dryrun)
