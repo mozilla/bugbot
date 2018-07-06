@@ -45,9 +45,9 @@ def get_login_info():
         return json.load(In)
 
 
-def get_email(bztoken, date, dryrun):
+def get_email(bztoken, dryrun):
     Bugzilla.TOKEN = bztoken
-    bugids = get_bugs(date=date)
+    bugids = get_bugs()
     if bugids:
         env = Environment(loader=FileSystemLoader('templates'))
         template = env.get_template('topcrash_bad_severity.html')
@@ -61,7 +61,7 @@ def get_email(bztoken, date, dryrun):
 def send_email(date='today', dryrun=False):
     login_info = get_login_info()
     date = lmdutils.get_date(date)
-    title, body = get_email(login_info['bz_api_key'], date, dryrun)
+    title, body = get_email(login_info['bz_api_key'], dryrun)
     if title:
         mail.send(login_info['ldap_username'],
                   utils.get_config('common', 'receivers', ['sylvestre@mozilla.com']),
