@@ -4,8 +4,13 @@ PATH_SCRIPT="$( cd "$(dirname "$0")" ; pwd -P )"
 cd $PATH_SCRIPT
 PYTHONPATH=. python -m auto_nag.scripts.query_creator
 PYTHONPATH=. python -m auto_nag.scripts.rm_query_creator
+# very common
 PYTHONPATH=. python -m auto_nag.scripts.no_assignee
+# very common
 PYTHONPATH=. python -m auto_nag.scripts.leave_open
+# very common
 PYTHONPATH=. python -m auto_nag.scripts.regression
+# common
 PYTHONPATH=. python -m auto_nag.scripts.has_regression_range_no_keyword
+# Pretty rare
 PYTHONPATH=. python -m auto_nag.scripts.topcrash_bad_severity
