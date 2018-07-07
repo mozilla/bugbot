@@ -5,12 +5,11 @@
 import argparse
 from dateutil.relativedelta import relativedelta
 from jinja2 import Environment, FileSystemLoader
-import json
 from libmozdata.bugzilla import Bugzilla
 from libmozdata import utils as lmdutils
 import re
-from auto_nag.bugzilla.utils import get_config_path
-from auto_nag import mail, utils
+from auto_nag import utils
+from auto_nag.scripts.common import get_login_info, send_email
 
 
 COMMENTS_PAT = re.compile('^>.*[\n]?', re.MULTILINE)
@@ -166,35 +165,17 @@ def get_reg(date='today'):
     return sorted(reg_bugids, reverse=True)
 
 
-def get_login_info():
-    with open(get_config_path(), 'r') as In:
-        return json.load(In)
-
-
-def get_email(bztoken, date):
+def get_email(bztoken, date, template, title, bug_ids=[]):
     Bugzilla.TOKEN = bztoken
     bugids = get_reg(date=date)
     if bugids:
         env = Environment(loader=FileSystemLoader('templates'))
-        template = env.get_template('regression.html')
+        template = env.get_template(template)
         body = template.render(date=date,
                                bugids=bugids)
-        title = '[autonag] Bugs with missing regression keyword for the {}'.format(date)
+        title = title.format(date)
         return title, body
     return None, None
-
-
-def send_email(date='today', dryrun=False):
-    login_info = get_login_info()
-    date = lmdutils.get_date(date)
-    title, body = get_email(login_info['bz_api_key'], date)
-    if title:
-        mail.send(login_info['ldap_username'],
-                  utils.get_config('regressions', 'receivers', ['sylvestre@mozilla.com']),
-                  title, body,
-                  html=True, login=login_info, dryrun=dryrun)
-    else:
-        print('REGRESSION: No data for {}'.format(date))
 
 
 if __name__ == '__main__':
@@ -207,4 +188,11 @@ if __name__ == '__main__':
                         action='store', default='today',
                         help='Date for the query')
     args = parser.parse_args()
-    send_email(date=args.date, dryrun=args.dryrun)
+
+    login_info = get_login_info()
+    date = lmdutils.get_date(args.date)
+    template = 'regression.html'
+    subject = '[autonag] Bugs with missing regression keyword for the {}'
+    title, body = get_email(login_info['bz_api_key'], date, template, subject)
+
+    send_email(category="REGRESSION", date=date, template=template, title=title, body=body, dryrun=args.dryrun)

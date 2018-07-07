@@ -246,25 +246,25 @@ if __name__ == '__main__':
                 for c in info.get('cc').split(','):
                     collected_queries[query_name]['cclist'].append(c)
             if 'query_params' in info:
-                print "Gathering bugs from query_params in %s" % query
+                print("Gathering bugs from query_params in %s" % query)
                 collected_queries[query_name]['bugs'] = bmo.get_bug_list(info['query_params'])
             elif 'query_url' in info:
-                print "Gathering bugs from query_url in %s" % query
+                print("Gathering bugs from query_url in %s" % query)
                 collected_queries[query_name]['bugs'] = bmo.get_bug_list(query_url_to_dict(info['query_url']))
                 collected_queries[query_name]['url'] = info['query_url']
                 # print "DEBUG: %d bug(s) found for query %s" % \
                 #   (len(collected_queries[query_name]['bugs']), info['query_url'])
             else:
-                print "Error - no valid query params or url in the config file"
+                print("Error - no valid query params or url in the config file")
                 sys.exit(1)
         else:
-            print "Not a valid path: %s" % query
+            print("Not a valid path: %s" % query)
     total_bugs = 0
     for channel in collected_queries.keys():
         total_bugs += len(collected_queries[channel]['bugs'])
 
-    print "Found %s bugs total for %s queries" % (total_bugs, len(collected_queries.keys()))
-    print "Queries to collect: %s" % collected_queries.keys()
+    print("Found %s bugs total for %s queries" % (total_bugs, len(collected_queries.keys())))
+    print("Queries to collect: %s" % collected_queries.keys())
 
     managers = people.managers
     manual_notify = {}
@@ -280,22 +280,22 @@ if __name__ == '__main__':
             if query in managers[manager_email]['nagging']:
                 managers[manager_email]['nagging'][query]['bugs'].append(bug)
                 if options.verbose:
-                    print "Adding %s to %s in nagging for %s" % \
-                        (bug.id, query, manager_email)
+                    print("Adding %s to %s in nagging for %s" %
+                          (bug.id, query, manager_email))
             else:
                 managers[manager_email]['nagging'][query] = {
                     'bugs': [bug],
                     'cclist': info.get('cclist', [])
                 }
                 if options.verbose:
-                    print "Adding new query key %s for bug %s in nagging \
-                     and %s" % (query, bug.id, manager_email)
+                    print("Adding new query key %s for bug %s in nagging \
+                     and %s" % (query, bug.id, manager_email))
         else:
             managers[manager_email]['nagging'] = {query: {'bugs': [bug],
                                                           'cclist': info.get('cclist', [])}, }
             if options.verbose:
-                print "Creating query key %s for bug %s in nagging and \
-                    %s" % (query, bug.id, manager_email)
+                print("Creating query key %s for bug %s in nagging and \
+                    %s" % (query, bug.id, manager_email))
 
     for query, info in collected_queries.items():
         if len(collected_queries[query]['bugs']) != 0:
@@ -309,8 +309,8 @@ if __name__ == '__main__':
                 manual_notify[query]['bugs'].append(bug)
                 assignee = bug.assigned_to.name
                 if "@" not in assignee:
-                    print "Error - expected email address, found %r instead in bug %s" % (assignee, b.id)
-                    print "Check that the authentication worked correctly"
+                    print("Error - expected email address, found %r instead in bug %s" % (assignee, b.id))
+                    print("Check that the authentication worked correctly")
                     sys.exit(1)
                 if assignee in people.people_by_bzmail:
                     person = dict(people.people_by_bzmail[assignee])
@@ -338,18 +338,18 @@ if __name__ == '__main__':
                         timedelta = datetime.now() - last_comment
                         if timedelta.days <= int(options.days_since_comment):
                             if options.verbose:
-                                print "Skipping bug %s since it's had an assignee or manager comment within the past %s days" % (bug.id, options.days_since_comment)
+                                print("Skipping bug %s since it's had an assignee or manager comment within the past %s days" % (bug.id, options.days_since_comment))
                             send_mail = False
                             counter = counter - 1
                             manual_notify[query]['bugs'].remove(bug)
                         else:
                             if options.verbose:
-                                print "This bug needs notification, it's been %s since last comment of note" % timedelta.days
+                                print("This bug needs notification, it's been %s since last comment of note" % timedelta.days)
 
                 if send_mail:
                     if 'nobody' in assignee:
                         if options.verbose:
-                            print "No one assigned to: %s, will be in the manual notification list..." % bug.id
+                            print("No one assigned to: %s, will be in the manual notification list..." % bug.id)
                     else:
                         if bug.assigned_to.real_name is not None:
                             if person is not None:
@@ -369,7 +369,7 @@ if __name__ == '__main__':
                                                 add_to_managers(assignee, query, info)
                                             else:
                                                 if options.verbose:
-                                                    print "%s has a V-level for a manager, and is not in the manager list" % assignee
+                                                    print("%s has a V-level for a manager, and is not in the manager list" % assignee)
                                                 managers[person['mozillaMail']] = {}
                                                 add_to_managers(person['mozillaMail'], query, info)
                                         else:
@@ -380,11 +380,11 @@ if __name__ == '__main__':
                                                 if manager_email in managers:
                                                     add_to_managers(manager_email, query, info)
                                             else:
-                                                print "Manager could not be found: %s" % manager_email
+                                                print("Manager could not be found: %s" % manager_email)
                                     # if you don't have a manager listed, but are an employee, we'll nag you anyway
                                     else:
                                         add_to_managers(person['mozillaMail'], query, info)
-                                        print "%s's entry doesn't list a manager! Let's ask them to update phonebook but in the meantime they get the email directly." % person['name']
+                                        print("%s's entry doesn't list a manager! Let's ask them to update phonebook but in the meantime they get the email directly." % person['name'])
 
     if options.roll_up or options.cc_only:
         # only send one email
@@ -397,10 +397,10 @@ if __name__ == '__main__':
                                            rollupEmail=options.email_cc_list,
                                            cc_only=options.cc_only)
         if options.email_password is None or options.mozilla_mail is None:
-            print "Please supply a username/password (-m, -p) for sending email"
+            print("Please supply a username/password (-m, -p) for sending email")
             sys.exit(1)
         if not options.dryrun:
-            print "SENDING EMAIL"
+            print("SENDING EMAIL")
         mail.sendMail(options.mozilla_mail, toaddrs, msg,
                       login={'ldap_username': options.mozilla_mail,
                              'ldap_password': options.email_password},
@@ -421,9 +421,9 @@ if __name__ == '__main__':
                     show_comment=options.show_comment,
                     cc_only=options.cc_only)
                 while True and not options.no_verification:
-                    print "\nRelMan Nag is ready to send the following email:\n<------ MESSAGE BELOW -------->"
-                    print msg
-                    print "<------- END MESSAGE -------->\nWould you like to send now?"
+                    print("\nRelMan Nag is ready to send the following email:\n<------ MESSAGE BELOW -------->")
+                    print(msg)
+                    print("<------- END MESSAGE -------->\nWould you like to send now?")
                     inp = raw_input('\n Please select y/Y to send, v/V to edit, or n/N to skip and continue to next email: ')
 
                     if inp != 'v' and inp != 'V':
@@ -443,10 +443,10 @@ if __name__ == '__main__':
 
                 if inp == 'y' or inp == 'Y' or options.no_verification:
                     if options.email_password is None or options.mozilla_mail is None:
-                        print "Please supply a username/password (-m, -p) for sending email"
+                        print("Please supply a username/password (-m, -p) for sending email")
                         sys.exit(1)
                     if not options.dryrun:
-                        print "SENDING EMAIL"
+                        print("SENDING EMAIL")
                     mail.sendMail(options.mozilla_mail, toaddrs, msg,
                                   login={'ldap_username': options.mozilla_mail,
                                          'ldap_password': options.email_password},

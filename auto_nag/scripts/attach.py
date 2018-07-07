@@ -19,17 +19,17 @@ class AttachmentAgent(BugzillaAgent):
                reviewer=None, comment='', content_type='text/plain'):
         """Create an attachment, add a comment, obsolete other attachments."""
 
-        print 'Adding "%s" to %s' % (filename, bug_id)
+        print('Adding "%s" to %s' % (filename, bug_id))
         self._attach(bug_id, filename, description, patch,
                      reviewer, content_type)
 
         bug = self.get_bug(bug_id)
 
         if comment:
-            print 'Adding the comment'
+            print('Adding the comment')
             self._comment(bug_id, comment)
 
-        print 'Finding attachments to make obsolete...'
+        print('Finding attachments to make obsolete...')
         self.obsolete(bug)
 
     def _attach(self, bug_id, filename, description, is_patch=False,
@@ -64,10 +64,10 @@ class AttachmentAgent(BugzillaAgent):
         if not attachments:
             return
 
-        print "What attachments do you want to obsolete?"
+        print("What attachments do you want to obsolete?")
         msg = '[{index}] {a.id}: "{a.description}" ({a.file_name})'
         for index, a in enumerate(attachments):
-            print msg.format(index=index, a=a)
+            print(msg.format(index=index, a=a))
 
         numbers = raw_input('Enter the numbers (space-separated) of '
                             'attachments to make obsolete:\n').split()
@@ -84,7 +84,7 @@ class AttachmentAgent(BugzillaAgent):
 
     def _obsolete(self, attachment):
         """Mark an attachment obsolete."""
-        print "Obsoleting", attachment
+        print("Obsoleting", attachment)
         attachment.is_obsolete = True
         attachment._location += '?%s' % self.qs()
         attachment.put()

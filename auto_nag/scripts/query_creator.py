@@ -91,7 +91,7 @@ if __name__ == '__main__':
     queries = createQueriesList(queries_dir, weekday, urls, print_all=options.queries_only)
     if options.queries_only:
         for url in urls:
-            print url
+            print(url)
     else:
         command = [
             scripts_dir + "email_nag.py",
