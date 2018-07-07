@@ -16,4 +16,5 @@ PYTHONPATH=. python -m auto_nag.scripts.has_regression_range_no_keyword
 PYTHONPATH=. python -m auto_nag.scripts.topcrash_bad_severity
 # Pretty rare
 PYTHONPATH=. python -m auto_nag.scripts.feature_regression
-
+# Pretty common
+PYTHONPATH=. python -m auto_nag.scripts.unaffected_affected_no_reg
