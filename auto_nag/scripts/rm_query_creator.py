@@ -7,13 +7,13 @@ from argparse import ArgumentParser
 from auto_nag.bugzilla.utils import (get_config_path, get_project_root_path,
                                      createQueriesList, cleanUp, getVersions)
 
-release_version, beta_version, central_version = getVersions()
+release_version, beta_version, nightly_version = getVersions()
 
 fixed_without_uplifts_url = ("https://bugzilla.mozilla.org/buglist.cgi?"
                              "query_format=advanced&"
                              "resolution=---&resolution=FIXED&"
                              # fixed or verified in central
-                             "f1=cf_status_firefox" + central_version + "&o1=anyexact&v1=fixed,verified&"
+                             "f1=cf_status_firefox" + nightly_version + "&o1=anyexact&v1=fixed,verified&"
                              "f2=OP&j2=OR&"
                              # affected in beta
                              "f3=cf_status_firefox" + beta_version + "&o3=equals&v3=affected&"
@@ -64,7 +64,7 @@ if __name__ == '__main__':
         for query in queries:
             command.append('-q')
             command.append(query)
-        subject = datetime.datetime.today().strftime("%A %b %d") + " -- Fixed in %s, Affecting %s or %s" % (central_version, beta_version, release_version)
+        subject = datetime.datetime.today().strftime("%A %b %d") + " -- Fixed in %s, Affecting %s or %s" % (nightly_version, beta_version, release_version)
         command.extend(['-s',  subject])
         # send all other args to email_nag script argparser
         command.extend(args)
