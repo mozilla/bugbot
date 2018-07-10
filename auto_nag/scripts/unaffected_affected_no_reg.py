@@ -34,8 +34,7 @@ def get_bz_params():
               'o4': 'anyexact',
               'v4': ['fixed', 'verified'],
               'f5': 'CP'
-
-    }
+              }
 
     return params
 

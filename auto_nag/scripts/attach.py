@@ -36,12 +36,12 @@ class AttachmentAgent(BugzillaAgent):
                 reviewer=None, content_type='text/plain'):
         """Create a new attachment."""
         fields = {
-            'data':         base64.b64encode(open(filename).read()),
-            'encoding':     'base64',
-            'file_name':    filename,
+            'data': base64.b64encode(open(filename).read()),
+            'encoding': 'base64',
+            'file_name': filename,
             'content_type': content_type,
-            'description':  description,
-            'is_patch':     is_patch,
+            'description': description,
+            'is_patch': is_patch,
         }
 
         if reviewer is not None:

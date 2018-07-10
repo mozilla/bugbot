@@ -58,8 +58,8 @@ def autofix(bugs):
     Bugzilla(bugs).put({
         'keywords': {
             'add': ['regression']
-            }
-        })
+        }
+    })
 
     return bugs
 

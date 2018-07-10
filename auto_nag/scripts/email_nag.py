@@ -174,7 +174,7 @@ if __name__ == '__main__':
         email_subject=None,
         no_verification=False,
         cc_only=False
-        )
+    )
     parser.add_argument("-d", "--dryrun", dest="dryrun", action="store_true",
                         help="just do the query, and print emails to console without emailing anyone")
     parser.add_argument("-m", "--mozilla-email", dest="mozilla_mail",
@@ -241,7 +241,7 @@ if __name__ == '__main__':
                     'channel': info.get('query_channel', ''),
                     'bugs': [],
                     'cclist': options.email_cc_list,
-                    }
+                }
             if 'cc' in info:
                 for c in info.get('cc').split(','):
                     collected_queries[query_name]['cclist'].append(c)
@@ -477,7 +477,7 @@ if __name__ == '__main__':
                         else:
                             summary = ' %s\n' % bug.summary
                         msg_body += "https://bugzil.la/%s -- assigned to: %s\n%s-- Last commented on: %s\n" % (
-                                bug.id, bug.assigned_to.real_name, summary, bug.comments[-1].creation_time.replace(tzinfo=None))
+                            bug.id, bug.assigned_to.real_name, summary, bug.comments[-1].creation_time.replace(tzinfo=None))
                     msg = ("From: %s\r\n" % REPLY_TO_EMAIL +
                            "To: %s\r\n" % REPLY_TO_EMAIL +
                            "Subject: RelMan Attention Needed: %s\r\n" % options.email_subject +
