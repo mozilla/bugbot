@@ -24,7 +24,7 @@ def get_bz_params():
               'o1': 'isempty',
               'product': ['Core', 'DevTools', 'Firefox', 'Firefox for Android', 'Testing', 'Toolkit', 'WebExtensions'],
               'version': beta_version + ' Branch'
-    }
+              }
 
     return params
 
@@ -44,12 +44,14 @@ def get_bugs():
 
     return sorted(bugids)
 
+
 def autofix(bugs):
     bugs = list(map(str, bugs))
     Bugzilla(bugs).put({
         'cf_status_firefox' + beta_version: ['affected']
     })
     return bugs
+
 
 def get_email(bztoken, date, template, title, bug_ids=[], dryrun=True):
     Bugzilla.TOKEN = bztoken
