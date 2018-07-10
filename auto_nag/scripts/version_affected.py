@@ -10,31 +10,21 @@ from auto_nag.scripts.common import get_login_info, send_email
 from auto_nag.bugzilla.utils import getVersions
 
 
-release_version, beta_version, nightly_version = getVersions()
+release_version, beta_version, central_version = getVersions()
 
 
-# https://bugzilla.mozilla.org/buglist.cgi?f1=cf_status_firefox62&f2=cf_status_firefox61&keywords=regression%2C%20&keywords_type=nowords&o1=anyexact&o2=equals&query_format=advanced&resolution=---&v1=affected%2C%20fixed&v2=unaffected&columnlist=product%2Ccomponent%2Cassigned_to%2Cbug_status%2Cresolution%2Cshort_desc%2Cchangeddate%2Ccf_status_firefox59%2Ccf_status_firefox60%2Ccf_status_firefox61%2Ccf_status_firefox62%2Ccf_status_firefox63&list_id=14223570
+# https://bugzilla.mozilla.org/buglist.cgi?o1=isempty&version=62%20Branch&short_desc_type=notregexp&f1=cf_status_firefox62&short_desc=.%2ARisk%20Assessment.%2A&resolution=---&query_format=advanced&product=Core&product=DevTools&product=Firefox&product=Firefox%20for%20Android&product=Testing&product=Toolkit&product=WebExtensions&list_id=14223824
 def get_bz_params():
     fields = ['id']
     params = {'include_fields': fields,
-              'keywords': 'regression',
-              'keywords_type': 'nowords',
-              # not affecting release
-              'f1': 'cf_status_firefox' + release_version,
-              'o1': 'anyexact',
-              'v1': 'unaffected',
-              'f2': 'OP',
-              'j2': 'OR',
-              # affected in beta
-              'f3': 'cf_status_firefox' + beta_version,
-              'o3': 'anyexact',
-              'v3': ['fixed', 'verified'],
-              # affected in nightly
-              'f4': 'cf_status_firefox' + nightly_version,
-              'o4': 'anyexact',
-              'v4': ['fixed', 'verified'],
-              'f5': 'CP'
-              }
+              'resolution': ['---', 'FIXED'],
+              'short_desc': '.*Risk Assessment.*',
+              'short_desc_type': 'notregexp',
+              'f1': 'cf_status_firefox' + beta_version,
+              'o1': 'isempty',
+              'product': ['Core', 'DevTools', 'Firefox', 'Firefox for Android', 'Testing', 'Toolkit', 'WebExtensions'],
+              'version': beta_version + ' Branch'
+    }
 
     return params
 
@@ -54,10 +44,18 @@ def get_bugs():
 
     return sorted(bugids)
 
+def autofix(bugs):
+    bugs = list(map(str, bugs))
+    Bugzilla(bugs).put({
+        'cf_status_firefox' + beta_version: ['affected']
+    })
+    return bugs
 
-def get_email(bztoken, date, template, title, bug_ids=[]):
+def get_email(bztoken, date, template, title, bug_ids=[], dryrun=True):
     Bugzilla.TOKEN = bztoken
     bugids = get_bugs()
+#    if not dryrun:
+#        bugids = autofix(bugids)
     if bugids:
         env = Environment(loader=FileSystemLoader('templates'))
         template = env.get_template(template)
@@ -70,7 +68,7 @@ def get_email(bztoken, date, template, title, bug_ids=[]):
 
 
 if __name__ == '__main__':
-    description = 'Bug not affecting the release but affecting beta or nightly without the regression keyword',
+    description = 'Bug with Version set but not status_firefox',
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('-d', '--dryrun', dest='dryrun',
                         action='store_true', default=False,
@@ -82,8 +80,8 @@ if __name__ == '__main__':
 
     login_info = get_login_info()
     date = lmdutils.get_date(args.date)
-    template = 'unaffected-affected-no-reg.html'
-    subject = '[autonag] Bug not affecting the release but affecting beta or nightly without the regression keyword {}'
-    title, body = get_email(login_info['bz_api_key'], date, template, subject)
+    template = 'version_affected.html'
+    subject = '[autonag] Bug with Version set but not status_firefox' + beta_version + ' {}'
+    title, body = get_email(login_info['bz_api_key'], date, template, subject, dryrun=args.dryrun)
 
-    send_email(category="UNAFFECTED_AFFECTED_NO_REG", date=date, template=template, title=title, body=body, dryrun=args.dryrun)
+    send_email(category="VERSION_AFFECTED", date=date, template=template, title=title, body=body, dryrun=args.dryrun)
