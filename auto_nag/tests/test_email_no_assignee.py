@@ -3,11 +3,11 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-from auto_nag.scripts.no_assignee import get_nobody
+from auto_nag.scripts.no_assignee import NoAssignee
 
 
 class TestEmailNoAssignee:
 
     def test_nobody(self):
-        bugids = get_nobody('2011-01-01', bug_ids=[229367, 400095])
+        bugids = NoAssignee().get_bugs('2011-01-01', bug_ids=[229367, 400095])
         assert bugids == [229367]

@@ -3,12 +3,14 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-from auto_nag.scripts.regression import find_bug_reg
+from auto_nag.scripts.regression import Regression
 
 
 class TestRegression:
 
     def test_find_bug_reg(self):
+        r = Regression()
+        
         com = """Comment on attachment 8969768 [details]
 Bug 1455726: Disable emails to release+tcstaging.
 
@@ -23,7 +25,7 @@ Approval Request Comment
 [Why is the change risky/not risky?]: only impacts staging releases
 [String changes made/needed]: no"""
 
-        assert find_bug_reg(com) == '1455678'
+        assert r.find_bug_reg(com) == '1455678'
 
         com = """Comment on attachment 8969768 [details]
 Bug 1455726: Disable emails to release+tcstaging.
@@ -39,7 +41,7 @@ Approval Request Comment
 [Why is the change risky/not risky?]: only impacts staging releases
 [String changes made/needed]: no"""
 
-        assert find_bug_reg(com) == ''
+        assert r.find_bug_reg(com) == ''
 
         com = """Comment on attachment 8969768 [details]
 Bug 1455726: Disable emails to release+tcstaging.
@@ -55,4 +57,4 @@ Approval Request Comment
 [Why is the change risky/not risky?]: only impacts staging releases
 [String changes made/needed]: no"""
 
-        assert find_bug_reg(com) == '1455678'
+        assert r.find_bug_reg(com) == '1455678'
