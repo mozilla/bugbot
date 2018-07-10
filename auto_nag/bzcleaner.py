@@ -54,6 +54,9 @@ class BzCleaner(object):
 
         return start_date, end_date
 
+    def get_config(self, entry, default=None):
+        return utils.get_config(self.name(), entry, default=default)
+
     def get_bz_params(self, date):
         """Get the Bugzilla parameters for the search query"""
         return {}
@@ -86,9 +89,6 @@ class BzCleaner(object):
 
     def get_bugs(self, date='today', bug_ids=[]):
         """Get the bugs"""
-        # the search query can be long to evaluate
-        TIMEOUT = 240
-
         bugids = self.get_data()
         params = self.get_bz_params(date)
         self.amend_bzparams(params, bug_ids)
@@ -96,7 +96,7 @@ class BzCleaner(object):
         Bugzilla(params,
                  bughandler=self.bughandler,
                  bugdata=bugids,
-                 timeout=TIMEOUT).get_data().wait()
+                 timeout=utils.get_config('common', 'bz_query_timeout')).get_data().wait()
 
         return sorted(bugids) if isinstance(bugids, list) else bugids
 
@@ -140,8 +140,7 @@ class BzCleaner(object):
         title, body = self.get_email(login_info['bz_api_key'], date, dryrun)
         if title:
             mail.send(login_info['ldap_username'],
-                      utils.get_config('common', 'receivers', [
-                                       'sylvestre@mozilla.com']),
+                      utils.get_config(self.name(), 'receivers'),
                       title, body,
                       html=True, login=login_info, dryrun=dryrun)
         else:

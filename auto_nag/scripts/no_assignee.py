@@ -7,7 +7,6 @@ from libmozdata import hgmozilla
 from libmozdata.bugzilla import Bugzilla
 from libmozdata.connection import Query
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag import utils
 
 
 class NoAssignee(BzCleaner):
@@ -29,7 +28,7 @@ class NoAssignee(BzCleaner):
 
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
-        reporters = utils.get_config('no_assignee', 'reporter_exception', [])
+        reporters = self.get_config('reporter_exception', default=[])
         reporters = ','.join(reporters)
         regexp = 'http[s]?://hg\.mozilla\.org/(releases/)?mozilla-[^/]+/rev/[0-9a-f]+'  # NOQA
         params = {'resolution': 'FIXED',

@@ -5,7 +5,6 @@
 from libmozdata.bugzilla import Bugzilla
 import re
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag import utils
 
 
 COMMENTS_PAT = re.compile('^>.*[\n]?', re.MULTILINE)
@@ -41,11 +40,9 @@ class Regression(BzCleaner):
 
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
-        prod_blacklist = utils.get_config(
-            'regressions', 'product_blacklist', [])
+        prod_blacklist = self.get_config('product_blacklist', default=[])
         prod_blacklist = ' '.join(prod_blacklist)
-        resolution_blacklist = utils.get_config(
-            'regressions', 'resolution_blacklist', [])
+        resolution_blacklist = self.get_config('resolution_blacklist', default=[])
         resolution_blacklist = ' '.join(resolution_blacklist)
         fields = ['keywords', 'cf_has_regression_range']
         params = {'include_fields': fields,

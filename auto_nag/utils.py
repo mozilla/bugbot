@@ -23,6 +23,8 @@ def _get_config():
     return _CONFIG
 
 
-def get_config(name, entry, default):
+def get_config(name, entry, default=None):
     conf = _get_config()
+    if name not in conf:
+        name = 'common'
     return conf.get(name, {}).get(entry, default)

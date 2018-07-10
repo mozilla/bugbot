@@ -410,7 +410,7 @@ if __name__ == '__main__':
         for email, info in managers.items():
             inp = ''
             if 'nagging' in info:
-                if email in utils.get_config('auto_nag', 'no_mail_for_manager', []):
+                if email in utils.get_config('auto_nag', 'no_mail_for_manager', default=[]):
                     email = None
                 toaddrs, msg = generateEmailOutput(
                     subject=options.email_subject,
