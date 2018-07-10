@@ -10,7 +10,7 @@ from auto_nag.scripts.common import get_login_info, send_email
 from auto_nag.bugzilla.utils import getVersions
 
 
-release_version, beta_version, nightly_version = getVersions()
+release_version, beta_version, central_version = getVersions()
 
 
 # https://bugzilla.mozilla.org/buglist.cgi?f1=cf_status_firefox62&f2=cf_status_firefox61&keywords=regression%2C%20&keywords_type=nowords&o1=anyexact&o2=equals&query_format=advanced&resolution=---&v1=affected%2C%20fixed&v2=unaffected&columnlist=product%2Ccomponent%2Cassigned_to%2Cbug_status%2Cresolution%2Cshort_desc%2Cchangeddate%2Ccf_status_firefox59%2Ccf_status_firefox60%2Ccf_status_firefox61%2Ccf_status_firefox62%2Ccf_status_firefox63&list_id=14223570
@@ -30,7 +30,7 @@ def get_bz_params():
               'o3': 'anyexact',
               'v3': ['fixed', 'verified'],
               # affected in nightly
-              'f4': 'cf_status_firefox' + nightly_version,
+              'f4': 'cf_status_firefox' + central_version,
               'o4': 'anyexact',
               'v4': ['fixed', 'verified'],
               'f5': 'CP'
