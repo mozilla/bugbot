@@ -10,7 +10,7 @@ install:
     - pip install flake8
 
 script:
-    - flake8 auto_nag/ --exclude=auto_nag/tests/ --max-line-length=2000
+    - flake8 auto_nag/ --exclude=auto_nag/tests/
     - tox -e $TOX_ENV
 
 after_success:

@@ -53,8 +53,8 @@ def autofix(bugs):
     Bugzilla(bugs).put({
         'keywords': {
             'remove': ['leave-open']
-            }
-        })
+        }
+    })
 
     return bugs
 

@@ -115,15 +115,15 @@ def get_credentials(username=None):
 
 
 FILE_TYPES = {
-    'text':  'text/plain',
-    'html':  'text/html',
-    'xml':   'application/xml',
-    'gif':   'image/gif',
-    'jpg':   'image/jpeg',
-    'png':   'image/png',
-    'svg':   'image/svg+xml',
+    'text': 'text/plain',
+    'html': 'text/html',
+    'xml': 'application/xml',
+    'gif': 'image/gif',
+    'jpg': 'image/jpeg',
+    'png': 'image/png',
+    'svg': 'image/svg+xml',
     'binary': 'application/octet-stream',
-    'xul':    'application/vnd.mozilla.xul+xml',
+    'xul': 'application/vnd.mozilla.xul+xml',
 }
 
 
@@ -146,7 +146,7 @@ def createQueriesList(queries_dir, weekday, urls, print_all):
             queries.append(createQuery(queries_dir, title=url[1][0], short_title=url[1][1], url=url[1][2]))
         if weekday == 3 and url[0] == 3:
             queries.append(createQuery(queries_dir, title=url[1][0], short_title=url[1][1], url=url[1][2]))
-    print queries
+    print(queries)
     return queries
 
 
@@ -157,7 +157,7 @@ def cleanUp(queries_dir):
                 os.remove(os.path.join(queries_dir, file))
         return True
     except Exception as error:
-        print "Error: ", str(error)
+        print("Error: ", str(error))
         return False
 
 

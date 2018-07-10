@@ -65,7 +65,7 @@ if __name__ == '__main__':
             command.append('-q')
             command.append(query)
         subject = datetime.datetime.today().strftime("%A %b %d") + " -- Fixed in %s, Affecting %s or %s" % (central_version, beta_version, release_version)
-        command.extend(['-s',  subject])
+        command.extend(['-s', subject])
         # send all other args to email_nag script argparser
         command.extend(args)
         subprocess.call(command)
