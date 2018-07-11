@@ -28,7 +28,7 @@ class UnaffAffNoReg(BzCleaner):
 
     def get_bz_params(self, date):
         release_version, beta_version, central_version = getVersions()
-        params = {'keywords': 'regression',
+        params = {'keywords': ['regression', 'feature'],
                   'keywords_type': 'nowords',
                   # not affecting release
                   'f1': 'cf_status_firefox' + release_version,
