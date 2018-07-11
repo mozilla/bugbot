@@ -41,3 +41,7 @@ PYTHONPATH=. python -m auto_nag.scripts.unaffected_affected_no_reg
 # Version is set but status_firefox isn't
 # Very common
 PYTHONPATH=. python -m auto_nag.scripts.version_affected
+
+# Bug is tracked for a release but the bug severity is small
+# pretty common
+PYTHONPATH=. python -m auto_nag.scripts.tracked_bad_severity
