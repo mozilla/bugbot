@@ -23,6 +23,16 @@
         "days_lookup": 7,
         "bz_query_timeout": 240
     },
+    "unaffected_affected_no_reg":
+    {
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "sylvestre@mozilla.com",
+            "mcastelluccio@mozilla.com"
+        ],
+        "days_lookup": 7
+    },
     "regression":
     {
         "receivers":
