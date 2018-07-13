@@ -38,10 +38,10 @@ class VersionAffected(BzCleaner):
 
         return params
 
-    def get_autofix_change(self):
-        return {
-            'cf_status_firefox' + self.beta_version: 'affected'
-        }
+#    def get_autofix_change(self):
+#        return {
+#            'cf_status_firefox' + self.beta_version: 'affected'
+#        }
 
 
 if __name__ == '__main__':
