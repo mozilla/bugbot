@@ -21,7 +21,7 @@ class TestBZClearner(unittest.TestCase):
         assert BzCleaner().subject() == ''
 
     def test_email_subject(self):
-        assert "[autonag]" in BzCleaner().get_email_subject(None)
+        assert '[autonag]' in BzCleaner().get_email_subject(None)
 
     def test_ignore_date(self):
         self.assertFalse(BzCleaner().ignore_date())
@@ -29,7 +29,7 @@ class TestBZClearner(unittest.TestCase):
 class TestBZClearnerClass(unittest.TestCase):
 
     def test_description(self):
-        assert "Bug tracked" in TrackedBadSeverity().description()
+        assert 'Bug tracked' in TrackedBadSeverity().description()
 
     def test_name(self):
         assert TrackedBadSeverity().name() == 'tracked_bad_severity'
@@ -38,13 +38,13 @@ class TestBZClearnerClass(unittest.TestCase):
         assert TrackedBadSeverity().template() == 'tracked-bad-severity.html'
 
     def test_subject(self):
-        assert "Bug tracked" in TrackedBadSeverity().subject()
+        assert 'Bug tracked' in TrackedBadSeverity().subject()
 
     def test_get_bz_params(self):
         p = TrackedBadSeverity().get_bz_params(None)
-        assert p['f1'] == "OP"
-        assert "cf_tracking_firefox" in p['f3']
-        assert "enhancement" in p['bug_severity']
+        assert p['f1'] == 'OP'
+        assert 'cf_tracking_firefox' in p['f3']
+        assert 'enhancement' in p['bug_severity']
 
     def test_ignore_date(self):
         self.assertTrue(TrackedBadSeverity().ignore_date())
