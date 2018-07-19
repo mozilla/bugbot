@@ -10,7 +10,7 @@ class TestRegression:
 
     def test_find_bug_reg(self):
         r = Regression()
-        
+
         com = """Comment on attachment 8969768 [details]
 Bug 1455726: Disable emails to release+tcstaging.
 

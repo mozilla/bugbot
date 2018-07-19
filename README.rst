@@ -112,3 +112,11 @@ This needs to run on a private server because it will have login for smtp and bu
 
 Cronjob::
   00 14 * * 1-5 $HOME/run_autonags.sh > $HOME/logs/user/autonag.log
+
+
+Running the testsuite
+---------------------
+
+.. code-block:: bash
+
+    tox -e py27
