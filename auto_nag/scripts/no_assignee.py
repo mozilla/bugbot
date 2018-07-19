@@ -33,6 +33,8 @@ class NoAssignee(BzCleaner):
         regexp = 'http[s]?://hg\.mozilla\.org/(releases/)?mozilla-[^/]+/rev/[0-9a-f]+'  # NOQA
         params = {'resolution': 'FIXED',
                   'bug_status': ['RESOLVED', 'VERIFIED'],
+                  'keywords': 'meta',
+                  'keywords_type': 'nowords',
                   'f1': 'assigned_to',
                   'o1': 'equals',
                   'v1': 'nobody@mozilla.org',
