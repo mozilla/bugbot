@@ -476,7 +476,7 @@ if __name__ == '__main__':
                             summary = ''
                         else:
                             summary = ' %s\n' % bug.summary
-                        msg_body += "https://bugzil.la/%s -- assigned to: %s\n%s-- Last commented on: %s\n" % (
+                        msg_body += "https://bugzilla.mozilla.org/%s -- assigned to: %s\n%s-- Last commented on: %s\n" % (
                             bug.id, bug.assigned_to.real_name, summary, bug.comments[-1].creation_time.replace(tzinfo=None))
                     msg = ("From: %s\r\n" % REPLY_TO_EMAIL +
                            "To: %s\r\n" % REPLY_TO_EMAIL +
