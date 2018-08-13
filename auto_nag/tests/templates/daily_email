@@ -9,7 +9,7 @@ NOTE: On Mondays, we send email to remind you of work tracked for upcoming relea
 = Queries =
 {% for name, results in queries.items() %}== {{ name }} ==
 {% for bug in results.buglist -%}
-* https://bugzil.la/{{ bug.id }} - {{ bug.summary }}{% if bug.flags != None %} {% for flag in bug.flags %}{% if flag.name == 'needinfo' %}(needinfo? {{ flag.requestee }}){% endif %}{% endfor %}{% endif %} - (assigned to {{ bug.assignee }})
+* https://bugzilla.mozilla.org/{{ bug.id }} - {{ bug.summary }}{% if bug.flags != None %} {% for flag in bug.flags %}{% if flag.name == 'needinfo' %}(needinfo? {{ flag.requestee }}){% endif %}{% endfor %}{% endif %} - (assigned to {{ bug.assignee }})
 {% endfor %}
 {% endfor %}
 
