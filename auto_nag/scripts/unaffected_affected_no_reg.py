@@ -30,6 +30,8 @@ class UnaffAffNoReg(BzCleaner):
         release_version, beta_version, central_version = getVersions()
         params = {'keywords': ['regression', 'feature'],
                   'keywords_type': 'nowords',
+                  'short_desc_type': 'notregexp',
+                  'short_desc': '.*([pP]ermafailing|[pP]erma-failing|[pP]erma |[iI]ntermittent |[bB]uild bustage|[bB]ustages on).*',
                   # not affecting release
                   'f1': 'cf_status_firefox' + release_version,
                   'o1': 'anyexact',
