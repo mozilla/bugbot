@@ -31,7 +31,16 @@
             "sylvestre@mozilla.com",
             "mcastelluccio@mozilla.com"
         ],
-        "days_lookup": 7
+        "days_lookup": 7,
+        "word_blacklist":
+        [
+            "[pP]ermafailing",
+            "[pP]erma-failing",
+            "[pP]erma ",
+            "[iI]ntermittent ",
+            "[bB]uild bustage",
+            "[bB]ustages on"
+        ]
     },
     "regression":
     {

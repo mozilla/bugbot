@@ -27,9 +27,13 @@ class UnaffAffNoReg(BzCleaner):
         return True
 
     def get_bz_params(self, date):
+        word_blacklist = self.get_config('word_blacklist', default=[])
+        word_blacklist = '.*(' + '|'.join(word_blacklist) + ').*'
         release_version, beta_version, central_version = getVersions()
         params = {'keywords': ['regression', 'feature'],
                   'keywords_type': 'nowords',
+                  'short_desc_type': 'notregexp',
+                  'short_desc': word_blacklist,
                   # not affecting release
                   'f1': 'cf_status_firefox' + release_version,
                   'o1': 'anyexact',
