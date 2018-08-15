@@ -39,7 +39,8 @@
             "[pP]erma ",
             "[iI]ntermittent ",
             "[bB]uild bustage",
-            "[bB]ustages on"
+            "[bB]ustages on",
+            "[bB]ustage "
         ]
     },
     "regression":
