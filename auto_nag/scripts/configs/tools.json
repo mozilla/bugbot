@@ -6,7 +6,7 @@
             "calixte@mozilla.com",
             "sylvestre@mozilla.com"
         ],
-        "days_lookup": 7,
+        "days_lookup": 45,
         "reporter_exception":
         // the bugs where the reporter is in this list are not retrieved
         [
