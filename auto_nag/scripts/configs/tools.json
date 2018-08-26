@@ -35,12 +35,11 @@
         "word_blacklist":
         [
             "[pP]ermafailing",
-            "[pP]erma-failing",
+            "[pP]erma-fail",
             "[pP]erma ",
             "[iI]ntermittent ",
             "[bB]uild bustage",
-            "[bB]ustages on",
-            "[bB]ustage "
+            "^[bB]ustage"
         ]
     },
     "regression":
