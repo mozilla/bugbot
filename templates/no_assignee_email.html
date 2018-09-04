@@ -8,8 +8,18 @@
     <p>Hi there,</p>
     <p>The following bugs have no assignees and a patch which landed in m-c:
       <ul>
-        {% for bugid in bugids -%}
+        {% for bugid, email in bugids.items() -%}
+        {% if not email -%}
         <li><a href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a></li>
+        {% endif -%}
+        {% endfor -%}
+      </ul>
+      and these one have been auto-fixed:
+      <ul>
+        {% for bugid, email in bugids.items() -%}
+        {% if email -%}
+        <li><a href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a> assigned to {{ email }}</li>
+        {% endif -%}
         {% endfor -%}
       </ul>
     </p>
