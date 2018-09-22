@@ -68,7 +68,8 @@ class NoAssignee(BzCleaner):
             return False
         if attachment['is_patch'] == 1:
             return True
-        if attachment['content_type'] == 'text/x-phabricator-request':
+        if attachment['content_type'] in ['text/x-phabricator-request',
+                                          'text/x-review-board-request']:
             return True
 
         return False
