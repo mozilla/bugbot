@@ -47,7 +47,7 @@ class BzCleaner(object):
     def get_dates(self, date):
         """Get the dates for the bugzilla query (changedafter and changedbefore fields)"""
         date = lmdutils.get_date_ymd(date)
-        lookup = utils.get_config('common', 'days_lookup', 7)
+        lookup = utils.get_config(self.name(), 'days_lookup', 7)
         start_date = date - relativedelta(days=lookup)
         end_date = date + relativedelta(days=1)
 
@@ -95,7 +95,7 @@ class BzCleaner(object):
         Bugzilla(params,
                  bughandler=self.bughandler,
                  bugdata=bugids,
-                 timeout=utils.get_config('common', 'bz_query_timeout')).get_data().wait()
+                 timeout=utils.get_config(self.name(), 'bz_query_timeout')).get_data().wait()
 
         return sorted(bugids) if isinstance(bugids, list) else bugids
 
