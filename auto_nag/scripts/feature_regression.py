@@ -11,7 +11,7 @@ class FeatureRegression(BzCleaner):
         super(FeatureRegression, self).__init__()
 
     def description(self):
-        return 'Get the top crashes bug without a proper severity'
+        return 'Get the bug with both feature and regression keywords'
 
     def name(self):
         return 'feature_regression'
