@@ -44,6 +44,10 @@ class BzCleaner(object):
         """Should we ignore the date ?"""
         return False
 
+    def ignore_bug_summary(self):
+        """Should we ignore the bug summary ?"""
+        return True
+
     def get_dates(self, date):
         """Get the dates for the bugzilla query (changedafter and changedbefore fields)"""
         date = lmdutils.get_date_ymd(date)
@@ -66,7 +70,10 @@ class BzCleaner(object):
 
     def bughandler(self, bug, data):
         """bug handler for the Bugzilla query"""
-        data.append(bug['id'])
+        if self.ignore_bug_summary():
+            data.append(bug['id'])
+        else:
+            data.append((bug['id'], bug['summary']))
 
     def amend_bzparams(self, params, bug_ids):
         """Amend the Bugzilla params"""
@@ -81,10 +88,13 @@ class BzCleaner(object):
             else:
                 params['include_fields'] = [fields, 'id']
         else:
-            params['include_fields'] = 'id'
+            params['include_fields'] = ['id']
 
         if bug_ids:
             params['bug_id'] = bug_ids
+
+        if not self.ignore_bug_summary():
+            params['include_fields'].append('summary')
 
     def get_bugs(self, date='today', bug_ids=[]):
         """Get the bugs"""
@@ -99,6 +109,11 @@ class BzCleaner(object):
 
         return sorted(bugids) if isinstance(bugids, list) else bugids
 
+    def get_list_bugs(self, bugs):
+        if self.ignore_bug_summary():
+            return list(map(str, bugs))
+        return [str(x) for x, _ in bugs]
+
     def get_autofix_change(self):
         """Get the change to do to autofix the bugs"""
         return {}
@@ -107,7 +122,8 @@ class BzCleaner(object):
         """Autofix the bugs according to what is returned by get_autofix_change"""
         change = self.get_autofix_change()
         if change:
-            Bugzilla(bugs).put(change)
+            bugids = self.get_list_bugs(bugs)
+            Bugzilla(bugids).put(change)
 
         return bugs
 
@@ -121,7 +137,6 @@ class BzCleaner(object):
         Bugzilla.TOKEN = bztoken
         bugids = self.get_bugs(date=date, bug_ids=bug_ids)
         if not dryrun:
-            bugids = list(map(str, bugids))
             bugids = self.autofix(bugids)
         if bugids:
             env = Environment(loader=FileSystemLoader('templates'))

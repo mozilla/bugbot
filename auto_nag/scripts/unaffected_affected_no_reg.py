@@ -26,6 +26,9 @@ class UnaffAffNoReg(BzCleaner):
     def ignore_date(self):
         return True
 
+    def ignore_bug_summary(self):
+        return False
+
     def get_bz_params(self, date):
         word_blacklist = self.get_config('word_blacklist', default=[])
         word_blacklist = '.*(' + '|'.join(word_blacklist) + ').*'
