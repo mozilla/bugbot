@@ -38,6 +38,9 @@ class Regression(BzCleaner):
     def subject(self):
         return 'Bugs with missing regression keyword'
 
+    def ignore_bug_summary(self):
+        return False
+
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
         prod_blacklist = self.get_config('product_blacklist', default=[])
@@ -69,7 +72,8 @@ class Regression(BzCleaner):
 
     def get_data(self):
         return {'regressions': set(),
-                'others': []}
+                'others': [],
+                'summaries': {}}
 
     def bughandler(self, bug, data):
         keywords = bug.get('keywords', [])
@@ -81,6 +85,7 @@ class Regression(BzCleaner):
                 data['regressions'].add(bug['id'])
             else:
                 data['others'].append(bug['id'])
+        data['summaries'][bug['id']] = bug['summary']
 
     def clean_comment(self, comment):
         return COMMENTS_PAT.sub('', comment)
@@ -157,6 +162,7 @@ class Regression(BzCleaner):
         reg_bugids = {bugid for bugid, reg in data.items() if reg}
         reg_bugids = self.analyze_history(reg_bugids)
         reg_bugids |= bugids['regressions']
+        reg_bugids = [(n, bugids['summaries'][n]) for n in reg_bugids]
 
         return sorted(reg_bugids, reverse=True)
 
