@@ -9,7 +9,7 @@
     <p>The following bugs are probably a regression and don't have regression keyword:
       <ul>
         {% for bugid in bugids -%}
-        <li><a href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a></li>
+        <li><a href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a>: {{ summary|e }}</li>
         {% endfor -%}
       </ul>
     </p>

@@ -38,6 +38,9 @@ class Regression(BzCleaner):
     def subject(self):
         return 'Bugs with missing regression keyword'
 
+    def ignore_bug_summary(self):
+        return False
+
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
         prod_blacklist = self.get_config('product_blacklist', default=[])
