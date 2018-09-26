@@ -14,6 +14,17 @@ SMTP = 'smtp.mozilla.org'
 PORT = 465
 
 
+def replaceUnicode(s):
+    ss = ''
+    for c in s:
+        n = ord(c)
+        if n <= 128:
+            ss += c
+        else:
+            ss += '&#' + str(n) + ';'
+    return ss
+
+
 def send(From, To, Subject, Body,
          Cc=[], Bcc=[], html=False,
          files=[], login={}, dryrun=False):
@@ -34,6 +45,8 @@ def send(From, To, Subject, Body,
     message['Cc'] = ', '.join(Cc)
     message['Bcc'] = ', '.join(Bcc)
 
+    if subtype == 'html':
+        Body = replaceUnicode(Body)
     message.attach(MIMEText(Body, subtype))
 
     for f in files:
