@@ -57,6 +57,10 @@ class BzCleaner(object):
 
         return start_date, end_date
 
+    def get_extra_for_template(self):
+        """Get extra data to put in the template"""
+        return {}
+
     def get_config(self, entry, default=None):
         return utils.get_config(self.name(), entry, default=default)
 
@@ -142,7 +146,8 @@ class BzCleaner(object):
             env = Environment(loader=FileSystemLoader('templates'))
             template = env.get_template(self.template())
             body = template.render(date=date,
-                                   bugids=bugids)
+                                   bugids=bugids,
+                                   extra=self.get_extra_for_template())
             return self.get_email_subject(date), body
         return None, None
 

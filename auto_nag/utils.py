@@ -28,3 +28,15 @@ def get_config(name, entry, default=None):
     if name not in conf:
         name = 'common'
     return conf.get(name, {}).get(entry, default)
+
+
+def get_signatures(sgns):
+    res = set()
+    sgns = map(lambda x: x.strip(), sgns.split('[@'))
+    for s in filter(None, sgns):
+        try:
+            i = s.rindex(']')
+            res.add(s[:i].strip())
+        except ValueError:
+            res.add(s)
+    return res
