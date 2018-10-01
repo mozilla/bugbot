@@ -132,7 +132,7 @@ class NoCrashes(BzCleaner):
         return res
 
     def get_autofix_change(self):
-        return {'comment': {'body': 'Closing because no crashes reported since {} weeks.'.format(self.nweeks)},
+        return {'comment': {'body': 'Closing because no crashes reported for {} weeks.'.format(self.nweeks)},
                 'status': 'RESOLVED',
                 'resolution': 'WONTFIX'}
 
