@@ -45,3 +45,11 @@ PYTHONPATH=. python -m auto_nag.scripts.version_affected
 # Bug is tracked for a release but the bug severity is small
 # pretty common
 PYTHONPATH=. python -m auto_nag.scripts.tracked_bad_severity
+
+# Detect one word summary
+# a bit rare
+PYTHONPATH=. python -m auto_nag.scripts.one_word_summary
+
+# Closes crash bug without any crashes for the last 12 weeks
+# pretty common
+PYTHONPATH=. python -m auto_nag.scripts.no_crashes
