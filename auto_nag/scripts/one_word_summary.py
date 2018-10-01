@@ -30,7 +30,6 @@ class OneWordSummary(BzCleaner):
 
     def get_bz_params(self, date):
         return {'resolution': ['---'],
-                'bug_status': ['UNCONFIRMED', 'NEW', 'ASSIGNED', 'REOPENED'],
                 'short_desc': '^[a-zA-Z0-9_]+$',
                 'short_desc_type': 'regexp'}
 
