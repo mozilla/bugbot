@@ -69,5 +69,18 @@
         [
             "jgriffiths@mozilla.com"
         ]
+    },
+    "nocrashes":
+    {
+        "number_of_weeks": 12,
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "sylvestre@mozilla.com"
+        ],
+        "reporter_exception":
+        [
+            "intermittent-bug-filer@mozilla.bugs"
+        ]
     }
 }
