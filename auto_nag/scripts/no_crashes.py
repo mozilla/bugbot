@@ -39,6 +39,8 @@ class NoCrashes(BzCleaner):
         date = lmdutils.get_date_ymd(date) - relativedelta(weeks=self.nweeks)
         reporters = self.get_config('reporter_exception', default=[])
         reporters = ','.join(reporters)
+        keywords = self.get_config('keyword_exception', default=[])
+        keywords = ','.join(keywords)
         fields = ['cf_crash_signature']
         params = {'include_fields': fields,
                   'resolution': '---',
@@ -46,10 +48,16 @@ class NoCrashes(BzCleaner):
                   'o1': 'isnotempty',
                   'f2': 'creation_ts',
                   'o2': 'lessthan',
-                  'v2': date}
+                  'v2': date,
+                  'f3': 'last_change_time',
+                  'o3': 'lessthan',
+                  'v3': date}
 
         if reporters:
-            params.update({'f3': 'reporter', 'o3': 'nowordssubstr', 'v3': reporters})
+            params.update({'f4': 'reporter', 'o4': 'nowordssubstr', 'v4': reporters})
+
+        if keywords:
+            params.update({'f5': 'keywords', 'o5': 'nowords', 'v5': keywords})
 
         return params
 
@@ -89,7 +97,7 @@ class NoCrashes(BzCleaner):
 
         def handler(json, data):
             del json['hits']
-            for facet in json['facets']['signature']:
+            for facet in json['facets'].get('signature', {}):
                 data.remove(facet['term'])
 
         date = lmdutils.get_date_ymd(date) - relativedelta(weeks=self.nweeks)
@@ -124,7 +132,7 @@ class NoCrashes(BzCleaner):
         return res
 
     def get_autofix_change(self):
-        return {'comment': {'body': 'Closing because no crashes reported since {} weeks.'.format(self.nweeks)},
+        return {'comment': {'body': 'Closing because no crashes reported for {} weeks.'.format(self.nweeks)},
                 'status': 'RESOLVED',
                 'resolution': 'WONTFIX'}
 

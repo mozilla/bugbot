@@ -81,6 +81,10 @@
         "reporter_exception":
         [
             "intermittent-bug-filer@mozilla.bugs"
+        ],
+        "keyword_exception":
+        [
+            "testcase"
         ]
     }
 }
