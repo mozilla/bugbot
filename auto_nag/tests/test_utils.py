@@ -23,7 +23,7 @@ class TestUtils:
     def test_get_config_path(self):
         cpath = get_config_path()
         # remove 'not' when running locally
-        # 'not' helps to pass CI checks while commiting
+        # 'not' helps to pass CI checks while committing
         assert not os.path.exists(cpath)
 
     def test_hide_personal_info(self):

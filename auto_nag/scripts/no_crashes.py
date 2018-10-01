@@ -114,17 +114,17 @@ class NoCrashes(BzCleaner):
 
     def get_bugs_without_crashes(self, data):
         # data['ids'] contains bugid => set(...signatures...)
-        # data['signatures'] is a set of signatures with no crashes
+        # data['signatures'] is a set of signatures with no crash
         res = []
         signatures = data['signatures']
         for bugid, bug_sgns in data['ids'].items():
             if bug_sgns < signatures:
-                # all the signatures in the bug have no crashes
+                # all the signatures in the bug have no crash
                 res.append(bugid)
         return res
 
     def get_autofix_change(self):
-        return {'comment': {'body': 'Closing because no crashes reported since {} weeks.'.format(self.nweeks)},
+        return {'comment': {'body': 'Closing because no crash reported since {} weeks.'.format(self.nweeks)},
                 'status': 'RESOLVED',
                 'resolution': 'WONTFIX'}
 

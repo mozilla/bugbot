@@ -2,11 +2,11 @@
 <html lang="en-us">
   <head>
     <meta charset="utf-8">
-    <title>[autonag] Bugs with no crashes in last {{ extra['nweeks'] }} weeks</title>
+    <title>[autonag] Bugs with no crash in last {{ extra['nweeks'] }} weeks</title>
   </head>
   <body>
     <p>Hi there,</p>
-    <p>The following bugs have no crashes in last {{ extra['nweeks'] }} weeks:
+    <p>The following bugs have no crash in last {{ extra['nweeks'] }} weeks:
       <ul>
         {% for bugid in bugids -%}
         <li><a href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a></li>
