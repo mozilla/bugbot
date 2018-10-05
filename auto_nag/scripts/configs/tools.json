@@ -85,6 +85,12 @@
         "keyword_exception":
         [
             "testcase"
+        ],
+        "product_blacklist":
+        [
+            "SeaMonkey",
+            "Thunderbird",
+            "MailNews"
         ]
     }
 }

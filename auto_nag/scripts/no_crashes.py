@@ -41,6 +41,8 @@ class NoCrashes(BzCleaner):
         reporters = ','.join(reporters)
         keywords = self.get_config('keyword_exception', default=[])
         keywords = ','.join(keywords)
+        prod_blacklist = self.get_config('product_blacklist', default=[])
+        prod_blacklist = ','.join(prod_blacklist)
         fields = ['cf_crash_signature']
         params = {'include_fields': fields,
                   'resolution': '---',
@@ -49,15 +51,18 @@ class NoCrashes(BzCleaner):
                   'f2': 'creation_ts',
                   'o2': 'lessthan',
                   'v2': date,
-                  'f3': 'last_change_time',
-                  'o3': 'lessthan',
-                  'v3': date}
+                  'f3': 'days_elapsed',
+                  'o3': 'greaterthan',
+                  'v3': self.nweeks * 7}
 
         if reporters:
             params.update({'f4': 'reporter', 'o4': 'nowordssubstr', 'v4': reporters})
 
         if keywords:
             params.update({'f5': 'keywords', 'o5': 'nowords', 'v5': keywords})
+
+        if prod_blacklist:
+            params.update({'f6': 'product', 'o6': 'nowords', 'v6': prod_blacklist})
 
         return params
 
