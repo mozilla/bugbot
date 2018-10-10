@@ -72,12 +72,15 @@ class BzCleaner(object):
         """Get the data structure to use in the bughandler"""
         return []
 
+    def get_summary(self, bug):
+        return '' if bug['groups'] else bug['summary']
+
     def bughandler(self, bug, data):
         """bug handler for the Bugzilla query"""
         if self.ignore_bug_summary():
             data.append(bug['id'])
         else:
-            data.append((bug['id'], bug['summary']))
+            data.append((bug['id'], self.get_summary(bug)))
 
     def amend_bzparams(self, params, bug_ids):
         """Amend the Bugzilla params"""
@@ -98,7 +101,7 @@ class BzCleaner(object):
             params['bug_id'] = bug_ids
 
         if not self.ignore_bug_summary():
-            params['include_fields'].append('summary')
+            params['include_fields'] += ['summary', 'groups']
 
     def get_bugs(self, date='today', bug_ids=[]):
         """Get the bugs"""

@@ -85,7 +85,7 @@ class Regression(BzCleaner):
                 data['regressions'].add(bug['id'])
             else:
                 data['others'].append(bug['id'])
-        data['summaries'][bug['id']] = bug['summary']
+        data['summaries'][bug['id']] = self.get_summary(bug)
 
     def clean_comment(self, comment):
         return COMMENTS_PAT.sub('', comment)
