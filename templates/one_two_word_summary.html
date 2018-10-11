@@ -2,11 +2,11 @@
 <html lang="en-us">
   <head>
     <meta charset="utf-8">
-    <title>[autonag] Bugs only one word in the summary</title>
+    <title>[autonag] Bugs only one or two words in the summary</title>
   </head>
   <body>
     <p>Hi there,</p>
-    <p>The following bugs have only one word in the summary:
+    <p>The following bugs have only one or two words in the summary:
       <ul>
         {% for bugid, summary in bugids -%}
         <li><a href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a>: {{ summary|e }}</li>
