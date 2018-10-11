@@ -26,13 +26,14 @@ class OneTwoWordSummary(BzCleaner):
         return False
 
     def get_bz_params(self, date):
-	days_lookup = self.get_config('days_lookup', default=7)
-        return {'resolution': ['---', 'FIXED'],
-                'short_desc': '^([a-zA-Z0-9_]+ [a-zA-Z0-9_]+|[a-zA-Z0-9_]+)$',
-                'short_desc_type': 'regexp',
-                'f1': 'days_elapsed',
-                'o1': 'lessthan',
-                'v1': days_lookup,
+        days_lookup = self.get_config('days_lookup', default=7)
+        return {
+            'resolution': ['---', 'FIXED'],
+            'short_desc': '^([a-zA-Z0-9_]+ [a-zA-Z0-9_]+|[a-zA-Z0-9_]+)$',
+            'short_desc_type': 'regexp',
+            'f1': 'days_elapsed',
+            'o1': 'lessthan',
+            'v1': days_lookup,
         }
 
 
