@@ -129,6 +129,7 @@ class NoAssignee(BzCleaner):
             res += c if c.isalpha() else ' '
         res = res.split(' ')
         res = filter(None, res)
+        res = map(lambda s: s.lower(), res)
         res = set(res)
 
         if len(res) >= 2:
@@ -161,7 +162,7 @@ class NoAssignee(BzCleaner):
                     continue
                 real_name = self.clean_name(bz_info[creator])
                 for name in patchers_name:
-                    if len(name | real_name) >= 2:
+                    if len(name & real_name) >= 2:
                         return creator
 
         return None
