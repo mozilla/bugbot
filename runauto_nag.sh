@@ -53,3 +53,7 @@ PYTHONPATH=. python -m auto_nag.scripts.one_two_word_summary
 # Closes crash bug without any crashes for the last 12 weeks
 # pretty common
 PYTHONPATH=. python -m auto_nag.scripts.no_crashes
+
+# Notify bugs tracked with P4 or P5 priorities for the ongoing releases
+# Pretty common
+PYTHONPATH=. python -m auto_nag.scripts.mismatch-priority-tracking
