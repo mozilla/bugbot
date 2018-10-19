@@ -29,7 +29,7 @@ class MismatchPrioTrack(BzCleaner):
     def get_bz_params(self, date):
 
         release_version, beta_version, central_version = getVersions()
-        params = {'bug_status': ['---', 'FIXED',
+        params = {'resolution': ['---', 'FIXED',
                                  'INVALID', 'WONTFIX',
                                  'DUPLICATE', 'WORKSFORME',
                                  'INCOMPLETE', 'SUPPORT',
