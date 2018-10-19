@@ -36,7 +36,6 @@ class MismatchPrioTrack(BzCleaner):
                                  'EXPIRED', 'MOVED'],
                   'j_top': 'OR',
                   'priority': ['p4', 'p5'],
-                  'short_desc_type': 'allwordssubstr',
                   'f1': 'cf_tracking_firefox' + release_version,
                   'o1': 'anyexact',
                   'v1': ['+', 'blocking'],
