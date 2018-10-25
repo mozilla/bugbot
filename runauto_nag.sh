@@ -58,3 +58,7 @@ python -m auto_nag.scripts.no_crashes
 # Notify bugs tracked with P4 or P5 priorities for the ongoing releases
 # Pretty common
 python -m auto_nag.scripts.mismatch-priority-tracking
+
+# Bugs where the reporter has a needinfo
+# Pretty common
+python -m auto_nag.scripts.reporter_with_ni
