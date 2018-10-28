@@ -38,7 +38,6 @@ class oldP1Bug(BzCleaner):
             'f1': 'days_elapsed',
             'o1': 'greaterthan',
             'v1': self.nweeks * 7,
-            'include_fields': ['creator', 'flags'],
         }
 
         return params
