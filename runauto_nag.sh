@@ -62,3 +62,7 @@ python -m auto_nag.scripts.mismatch-priority-tracking
 # Bugs where the reporter has a needinfo
 # Pretty common
 python -m auto_nag.scripts.reporter_with_ni
+
+# P1 bug with no activity for more than 24 weeks
+# Pretty common
+python -m auto_nag.scripts.old_p1_bug
