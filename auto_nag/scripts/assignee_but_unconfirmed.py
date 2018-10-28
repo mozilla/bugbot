@@ -32,10 +32,11 @@ class assigneeButUnconfirmed(BzCleaner):
             'product': ['Core', 'DevTools', 'Firefox'],
             'emailtype1': 'notequals',
             'email1': 'nobody@mozilla.org',
+            'emailassigned_to1': '1',
             'emailtype2': 'notregexp',
             'email2': '.*@.*.bugs',
+            'emailassigned_to2': '1',
         }
-
         return params
 
     def get_autofix_change(self):
