@@ -37,8 +37,7 @@ class oldP1Bug(BzCleaner):
             'product': ['Core', 'DevTools', 'Firefox'],
             'f1': 'days_elapsed',
             'o1': 'greaterthan',
-            'v1': self.nweeks * 7,
-            'bug_id': '86950'
+            'v1': self.nweeks * 7
         }
 
         return params
