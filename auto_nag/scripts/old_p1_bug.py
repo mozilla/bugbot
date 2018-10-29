@@ -44,7 +44,7 @@ class oldP1Bug(BzCleaner):
         return params
 
     def get_autofix_change(self):
-        return {'comment': {'body': 'Moving to p3 because no activity for at least {} weeks.'.format(self.nweeks)},
+        return {'comment': {'body': 'Moving to p3 because no activity for at least {} weeks.\nSee https://github.com/mozilla/bug-handling/blob/master/policy/triage-bugzilla.md#how-do-you-triage for more information'.format(self.nweeks)},
                 'priority': 'p3'
                 }
 
