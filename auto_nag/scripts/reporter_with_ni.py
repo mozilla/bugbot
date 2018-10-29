@@ -33,6 +33,7 @@ class ReporterWithNI(BzCleaner):
     def get_bz_params(self, date):
         params = {
             'resolution': '---',
+            'product': ['Core', 'DevTools', 'Firefox'],
             'f1': 'flagtypes.name',
             'o1': 'substring',
             'v1': 'needinfo?',
