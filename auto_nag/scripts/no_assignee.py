@@ -36,7 +36,7 @@ class NoAssignee(BzCleaner):
         reporters = self.get_config('reporter_exception', default=[])
         reporters = ','.join(reporters)
         regexp = (
-            'http[s]?://hg\.mozilla\.org/(releases/)?mozilla-[^/]+/rev/[0-9a-f]+'
+            r'http[s]?://hg\.mozilla\.org/(releases/)?mozilla-[^/]+/rev/[0-9a-f]+'
         )
         params = {
             'resolution': 'FIXED',

@@ -9,16 +9,16 @@ from auto_nag.bzcleaner import BzCleaner
 
 COMMENTS_PAT = re.compile('^>.*[\n]?', re.MULTILINE)
 HAS_UPLIFT_PAT = re.compile(
-    '(Feature/Bug causing the regression)|(feature/regressing bug #)', re.I)
+    r'(Feature/Bug causing the regression)|(feature/regressing bug #)', re.I)
 UPLIFT1_PAT = re.compile(
-    '[\[]?Feature/Bug causing the regression[\]]?:\n*(?:(?:[ \t]*)|(?:[^0-9]*bug[ \t]*))([0-9]+)[^\n]*$', re.MULTILINE | re.I)
+    r'[\[]?Feature/Bug causing the regression[\]]?:\n*(?:(?:[ \t]*)|(?:[^0-9]*bug[ \t]*))([0-9]+)[^\n]*$', re.MULTILINE | re.I)
 UPLIFT2_PAT = re.compile(
-    '[\[]?Bug caused by[\]]? \(feature/regressing bug #\):\n*(?:(?:[ \t]*)|(?:[^0-9]*bug[ \t]*))([0-9]+)[^\n]*$', re.MULTILINE | re.I)
+    r'[\[]?Bug caused by[\]]? \(feature/regressing bug #\):\n*(?:(?:[ \t]*)|(?:[^0-9]*bug[ \t]*))([0-9]+)[^\n]*$', re.MULTILINE | re.I)
 REG_BY_BUG_PAT = re.compile(
-    '[ \t]regress[^0-9\.,;\n]+(?:bug[ \t]*)([0-9]+)(?:[^\.\n\?]*[\.\n])?', re.I)
+    r'[ \t]regress[^0-9\.,;\n]+(?:bug[ \t]*)([0-9]+)(?:[^\.\n\?]*[\.\n])?', re.I)
 CAUSED_BY_PAT = re.compile('caused by bug[ \t]*([0-9]+)', re.I)
 REG_PAT = re.compile(
-    '(regression is)|(regression range)|(regressed build)|(mozregression)|(this is a regression)|(this regression)|(is a recent regression)|(regression version is)|(regression[- ]+window)', re.I)
+    r'(regression is)|(regression range)|(regressed build)|(mozregression)|(this is a regression)|(this regression)|(is a recent regression)|(regression version is)|(regression[- ]+window)', re.I)
 
 
 class Regression(BzCleaner):
