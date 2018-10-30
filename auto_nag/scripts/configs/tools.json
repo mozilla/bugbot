@@ -21,7 +21,18 @@
             "sylvestre@mozilla.com"
         ],
         "days_lookup": 7,
-        "bz_query_timeout": 240
+        "bz_query_timeout": 240,
+        "products":
+        [
+            "Core",
+            "DevTools",
+            "Firefox",
+            "Firefox for Android",
+            "Firefox Build System",
+            "Testing",
+            "Toolkit",
+            "WebExtensions"
+            ]
     },
     "unaffected_affected_no_reg":
     {
