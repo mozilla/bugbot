@@ -5,7 +5,7 @@ cd $PATH_SCRIPT
 export PYTHONPATH=.
 # Nag to developers
 # Daily
-python -m auto_nag.scripts.query_creator -d
+python -m auto_nag.scripts.query_creator
 
 # What is fixed in nightly but affecting beta or release
 # Daily
