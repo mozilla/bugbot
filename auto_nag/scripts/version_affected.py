@@ -6,6 +6,7 @@ from auto_nag.bugzilla.utils import getVersions
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag import utils
 
+
 class VersionAffected(BzCleaner):
 
     def __init__(self):
