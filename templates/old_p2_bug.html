@@ -2,11 +2,11 @@
 <html lang="en-us">
   <head>
     <meta charset="utf-8">
-    <title>[autonag] Get old P2 bugs with no activity for the last {{ extra['nyears'] }} weeks</title>
+    <title>[autonag] Get old P2 bugs with no activity for the last {{ extra['nyears'] }} year(s)</title>
   </head>
   <body>
     <p>Hi there,</p>
-    <p>The following bugs have a p2 priority but no activity activity in last {{ extra['nyears'] }} weeks:
+    <p>The following bugs have a p2 priority but no activity activity in last {{ extra['nyears'] }} year()s:
       <ul>
         {% for bugid, summary in bugids -%}
         <li><a href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a>: {{ summary|e }}</li>

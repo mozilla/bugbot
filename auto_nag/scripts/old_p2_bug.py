@@ -6,14 +6,14 @@ from auto_nag.bzcleaner import BzCleaner
 from auto_nag import utils
 
 
-class oldP1Bug(BzCleaner):
+class oldP2Bug(BzCleaner):
 
     def __init__(self):
-        super(oldP1Bug, self).__init__()
-        self.nweeks = utils.get_config(self.name(), 'number_of_weeks', 104)
+        super(oldP2Bug, self).__init__()
+        self.nweeks = utils.get_config(self.name(), 'number_of_weeks', 52)
 
     def description(self):
-        return 'Get old P2 bugs with no activity for the last {} years'.format(self.nweeks/52)
+        return 'Get old P2 bugs with no activity for the last {} year(s)'.format(self.nweeks/52)
 
     def name(self):
         return 'old-p2-bug'
@@ -43,10 +43,10 @@ class oldP1Bug(BzCleaner):
         return params
 
     def get_autofix_change(self):
-        return {'comment': {'body': 'Moving to p3 because no activity for at least {} years.\nSee https://github.com/mozilla/bug-handling/blob/master/policy/triage-bugzilla.md#how-do-you-triage for more information'.format(self.nweeks/52)},
+        return {'comment': {'body': 'Moving to p3 because no activity for at least {} year(s).\nSee https://github.com/mozilla/bug-handling/blob/master/policy/triage-bugzilla.md#how-do-you-triage for more information'.format(self.nweeks/52)},
                 'priority': 'p3'
                 }
 
 
 if __name__ == '__main__':
-    oldP1Bug().run()
+    oldP2Bug().run()
