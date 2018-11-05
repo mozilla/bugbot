@@ -6,27 +6,26 @@ from auto_nag.bzcleaner import BzCleaner
 from auto_nag import utils
 
 
-class oldP1Bug(BzCleaner):
+class oldP2Bug(BzCleaner):
 
     def __init__(self):
-        super(oldP1Bug, self).__init__()
-        self.nweeks = utils.get_config(self.name(), 'number_of_weeks', 24)
-        self.products = utils.get_config('common', 'products')
+        super(oldP2Bug, self).__init__()
+        self.nweeks = utils.get_config(self.name(), 'number_of_weeks', 52)
 
     def description(self):
-        return 'Get old P1 bugs with no activity for the last {} weeks'.format(self.nweeks)
+        return 'Get old P2 bugs with no activity for the last {} year(s)'.format(self.nweeks/52)
 
     def name(self):
-        return 'old-p1-bug'
+        return 'old-p2-bug'
 
     def template(self):
-        return 'old_p1_bug.html'
+        return 'old_p2_bug.html'
 
     def subject(self):
         return self.description()
 
     def get_extra_for_template(self):
-        return {'nweeks': self.nweeks}
+        return {'nyears': self.nweeks/52}
 
     def ignore_bug_summary(self):
         return False
@@ -34,20 +33,20 @@ class oldP1Bug(BzCleaner):
     def get_bz_params(self, date):
         params = {
             'resolution': '---',
-            'priority': 'p1',
-            'product': self.products,
+            'priority': 'p2',
+            'product': ['Core', 'DevTools', 'Firefox'],
             'f1': 'days_elapsed',
             'o1': 'greaterthan',
-            'v1': self.nweeks * 7,
+            'v1': self.nweeks * 7
         }
 
         return params
 
     def get_autofix_change(self):
-        return {'comment': {'body': 'Moving to p3 because no activity for at least {} weeks.\nSee https://github.com/mozilla/bug-handling/blob/master/policy/triage-bugzilla.md#how-do-you-triage for more information'.format(self.nweeks)},
+        return {'comment': {'body': 'Moving to p3 because no activity for at least {} year(s).\nSee https://github.com/mozilla/bug-handling/blob/master/policy/triage-bugzilla.md#how-do-you-triage for more information'.format(self.nweeks/52)},
                 'priority': 'p3'
                 }
 
 
 if __name__ == '__main__':
-    oldP1Bug().run()
+    oldP2Bug().run()

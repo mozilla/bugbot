@@ -5,7 +5,7 @@ cd $PATH_SCRIPT
 export PYTHONPATH=.
 # Nag to developers
 # Daily
-python -m auto_nag.scripts.query_creator -d
+python -m auto_nag.scripts.query_creator
 
 # What is fixed in nightly but affecting beta or release
 # Daily
@@ -66,6 +66,10 @@ python -m auto_nag.scripts.reporter_with_ni
 # P1 bug with no activity for more than 24 weeks (with autofix)
 # Pretty common
 python -m auto_nag.scripts.old_p1_bug
+
+# P2 bug with no activity for more than 1 years (with autofix)
+# Pretty common
+python -m auto_nag.scripts.old_p2_bug
 
 # Unconfirmed bugs with an assignee (with autofix)
 # Pretty common
