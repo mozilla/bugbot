@@ -13,7 +13,7 @@ class oldP2Bug(BzCleaner):
         self.nweeks = utils.get_config(self.name(), 'number_of_weeks', 52)
 
     def description(self):
-        return 'Get old P2 bugs with no activity for the last {} year(s)'.format(self.nweeks/52)
+        return 'Get old P2 bugs with no activity for the last {} year(s)'.format(self.nweeks / 52)
 
     def name(self):
         return 'old-p2-bug'
@@ -25,7 +25,7 @@ class oldP2Bug(BzCleaner):
         return self.description()
 
     def get_extra_for_template(self):
-        return {'nyears': self.nweeks/52}
+        return {'nyears': self.nweeks / 52}
 
     def ignore_bug_summary(self):
         return False
@@ -43,7 +43,7 @@ class oldP2Bug(BzCleaner):
         return params
 
     def get_autofix_change(self):
-        return {'comment': {'body': 'Moving to p3 because no activity for at least {} year(s).\nSee https://github.com/mozilla/bug-handling/blob/master/policy/triage-bugzilla.md#how-do-you-triage for more information'.format(self.nweeks/52)},
+        return {'comment': {'body': 'Moving to p3 because no activity for at least {} year(s).\nSee https://github.com/mozilla/bug-handling/blob/master/policy/triage-bugzilla.md#how-do-you-triage for more information'.format(self.nweeks / 52)},
                 'priority': 'p3'
                 }
 
