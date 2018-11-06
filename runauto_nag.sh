@@ -67,10 +67,14 @@ python -m auto_nag.scripts.reporter_with_ni
 # Pretty common
 python -m auto_nag.scripts.old_p1_bug
 
-# P2 bug with no activity for more than 1 years (with autofix)
-# Pretty common
-python -m auto_nag.scripts.old_p2_bug
-
 # Unconfirmed bugs with an assignee (with autofix)
 # Pretty common
 python -m auto_nag.scripts.assignee_but_unconfirmed
+
+# Notify bugs in untriaged with an important severity
+python -m auto_nag.scripts.untriage_important_sev
+
+# P2 bug with no activity for more than 1 years (with autofix)
+# Pretty common
+python -m auto_nag.scripts.old_p2_bug -d
+
