@@ -2,14 +2,14 @@ Jinja2==2.6
 argparse==1.2.1
 certifi==0.0.8
 chardet==1.0.1
-httplib2==0.9
+httplib2>=0.9.1
 libmozdata>=0.1.41
 path.py==2.2.2
 pep8==0.6.1
 pyflakes==0.5.0
-python-dateutil==1.5
+python-dateutil>=2.5.2
 remoteobjects
-requests==2.8.1
+requests>=2.20.0
 simplejson==2.3.3
 wsgiref==0.1.2
 pexpect==3.1
