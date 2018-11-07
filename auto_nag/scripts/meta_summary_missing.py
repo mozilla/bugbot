@@ -33,7 +33,7 @@ class MetaSummaryMissing(BzCleaner):
             'resolution': ['---', 'FIXED'],
             'keywords': 'meta',
             'keywords_type': 'allwords',
-            'short_desc': '(\[meta\]|\[tracking\])',
+            'short_desc': r'(\[meta\]|\[tracking\])',
             'short_desc_type': 'notregexp',
             'f1': 'days_elapsed',
             'o1': 'lessthan',
