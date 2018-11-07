@@ -11,7 +11,7 @@ class UntriagedWithImportantSev(BzCleaner):
         super(UntriagedWithImportantSev, self).__init__()
 
     def description(self):
-        return 'Get bugs in untriagged with an important severity'
+        return 'Get bugs in untriaged with an important severity'
 
     def name(self):
         return 'untriage_important_sev'
