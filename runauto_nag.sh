@@ -78,6 +78,10 @@ python -m auto_nag.scripts.untriage_important_sev
 # Pretty common
 python -m auto_nag.scripts.meta_summary_missing
 
+# List bug without the meta keyword with [meta] in the title (with autofix)
+# Pretty common
+python -m auto_nag.scripts.summary_meta_missing
+
 # P2 bug with no activity for more than 1 years (with autofix)
 # Pretty common
 python -m auto_nag.scripts.old_p2_bug -d
