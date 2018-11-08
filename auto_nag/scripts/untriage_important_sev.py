@@ -3,12 +3,14 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.bzcleaner import BzCleaner
+from auto_nag import utils
 
 
 class UntriagedWithImportantSev(BzCleaner):
 
     def __init__(self):
         super(UntriagedWithImportantSev, self).__init__()
+        self.products = utils.get_config('common', 'products')
 
     def description(self):
         return 'Get bugs in untriaged with an important severity'
@@ -30,7 +32,7 @@ class UntriagedWithImportantSev(BzCleaner):
             'resolution': ['---'],
             'bug_severity': ['blocker', 'critical', 'major'],
             'component': 'Untriaged',
-            'product': 'Firefox',
+            'product': self.products,
         }
 
 

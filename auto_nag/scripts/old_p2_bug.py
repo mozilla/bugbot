@@ -11,6 +11,7 @@ class oldP2Bug(BzCleaner):
     def __init__(self):
         super(oldP2Bug, self).__init__()
         self.nweeks = utils.get_config(self.name(), 'number_of_weeks', 52)
+        self.products = utils.get_config('common', 'products')
 
     def description(self):
         return 'Get old P2 bugs with no activity for the last {} year(s)'.format(self.nweeks / 52)
@@ -34,7 +35,7 @@ class oldP2Bug(BzCleaner):
         params = {
             'resolution': '---',
             'priority': 'p2',
-            'product': ['Core', 'DevTools', 'Firefox'],
+            'product': self.products,
             'f1': 'days_elapsed',
             'o1': 'greaterthan',
             'v1': self.nweeks * 7
