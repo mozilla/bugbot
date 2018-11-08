@@ -11,6 +11,7 @@ class ReporterWithNI(BzCleaner):
     def __init__(self):
         super(ReporterWithNI, self).__init__()
         self.nweeks = utils.get_config(self.name(), 'number_of_weeks', 12)
+        self.products = utils.get_config('common', 'products')
 
     def description(self):
         return 'Get bugs where the reporter has a needinfo and no activity for the last {} weeks'.format(self.nweeks)
@@ -33,7 +34,7 @@ class ReporterWithNI(BzCleaner):
     def get_bz_params(self, date):
         params = {
             'resolution': '---',
-            'product': ['Core', 'DevTools', 'Firefox'],
+            'product': self.products,
             'f1': 'flagtypes.name',
             'o1': 'substring',
             'v1': 'needinfo?',
