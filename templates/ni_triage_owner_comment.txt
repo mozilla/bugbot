@@ -1,0 +1,2 @@
+The priority flag is not set for this bug and there is no activity for {{ extra['nweeks'] }} week{% if extra['nweeks'] > 1 -%}s{% endif -%}.
+{{ nickname }}, could you have a look please ?

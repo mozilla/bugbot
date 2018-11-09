@@ -110,6 +110,20 @@
             "MailNews"
         ]
     },
+    "ni-triage-owner":
+    {
+        "number_of_weeks": 2,
+        "days_lookup": 183,
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "sylvestre@mozilla.com"
+        ],
+        "owners":
+        {
+            "overholt@mozilla.com": ":overholt"
+        }
+    },
     "ni-from-manager":
     {
         "receivers":
