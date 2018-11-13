@@ -5,6 +5,7 @@
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag import utils
 
+
 class OneTwoWordSummary(BzCleaner):
 
     def __init__(self):
