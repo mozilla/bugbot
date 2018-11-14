@@ -16,9 +16,6 @@ class VersionAffected(BzCleaner):
 
     def description(self):
         return 'Bug with version set but not status_firefox'
-    
-    def (self):
-        return 'Bug with version set but not status_firefox'
 
     def name(self):
         return 'version_affected'
