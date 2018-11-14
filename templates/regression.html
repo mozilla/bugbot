@@ -1,23 +1,7 @@
-<!doctype html>
-<html lang="en-us">
-  <head>
-    <meta charset="utf-8">
-    <title>[autonag] Bugs with missing regression keyword</title>
-  </head>
-  <body>
-    <p>Hi there,</p>
-    <p>The following bugs are probably a regression and don't have regression keyword:
-      <ul>
-        {% for bugid, summary in bugids -%}
-        <li><a href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a>: {{ summary|e }}</li>
-        {% endfor -%}
-      </ul>
-    </p>
-    <p>Sincerely,<br>
-      Release Management Bot
-    </p>
-    <p>
-      See the source / report issues on the <a href="https://github.com/mozilla/relman-auto-nag/">GitHub repo</a>
-    </p>
-  </body>
-</html>
+<p>The following bugs are probably a regression and don't have regression keyword:
+  <ul>
+    {% for bugid, summary in bugids -%}
+    <li><a href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a>: {{ summary|e }}</li>
+    {% endfor -%}
+  </ul>
+</p>

@@ -1,23 +1,7 @@
-<!doctype html>
-<html lang="en-us">
-  <head>
-    <meta charset="utf-8">
-    <title>[autonag] Bugs with no crashes in last {{ extra['nweeks'] }} weeks</title>
-  </head>
-  <body>
-    <p>Hi there,</p>
-    <p>The following bugs have no crashes in last {{ extra['nweeks'] }} weeks:
-      <ul>
-        {% for bugid in bugids -%}
-        <li><a href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a></li>
-        {% endfor -%}
-      </ul>
-    </p>
-    <p>Sincerely,<br>
-      Release Management Bot
-    </p>
-    <p>
-      See the source / report issues on the <a href="https://github.com/mozilla/relman-auto-nag/">GitHub repo</a>
-    </p>
-  </body>
-</html>
+<p>The following bugs have no crashes in last {{ extra['nweeks'] }} weeks:
+  <ul>
+    {% for bugid in bugids -%}
+    <li><a href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a></li>
+    {% endfor -%}
+  </ul>
+</p>
