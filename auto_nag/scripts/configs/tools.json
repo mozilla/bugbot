@@ -17,7 +17,8 @@
     {
         "receivers":
         [
-            "calixte@mozilla.com"
+            "calixte@mozilla.com",
+            "sylvestre@mozilla.com"
         ],
         "days_lookup": 7,
         "bz_query_timeout": 240,
