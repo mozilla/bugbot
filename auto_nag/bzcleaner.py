@@ -148,9 +148,11 @@ class BzCleaner(object):
         if bugids:
             env = Environment(loader=FileSystemLoader('templates'))
             template = env.get_template(self.template())
-            body = template.render(date=date,
-                                   bugids=bugids,
-                                   extra=self.get_extra_for_template())
+            message = template.render(date=date,
+                                      bugids=bugids,
+                                      extra=self.get_extra_for_template())
+            common = env.get_template('common.html')
+            body = common.render(message=message)
             return self.get_email_subject(date), body
         return None, None
 
