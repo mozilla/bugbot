@@ -90,10 +90,10 @@ class Nag(object):
             body = common.render(message=m['body'])
             mail.send(
                 From,
-                list(sorted(m['to'])),
+                sorted(m['to']),
                 title,
                 body,
-                Cc=list(sorted(Cc)),
+                Cc=sorted(Cc),
                 html=True,
                 login=login_info,
                 dryrun=dryrun,

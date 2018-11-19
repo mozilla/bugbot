@@ -57,7 +57,7 @@ class People:
         """Get the release managers as defined in configs/rm.json"""
         if not self.release_managers:
             with open('./auto_nag/scripts/configs/rm.json', 'r') as In:
-                self.release_managers = set(x for x in json.load(In))
+                self.release_managers = set(json.load(In))
         return self.release_managers
 
     def get_directors(self):

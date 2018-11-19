@@ -294,9 +294,8 @@ class BzCleaner(object):
             '--dryrun',
             dest='dryrun',
             action='store_true',
-            default=False,
             help='Just do the query, and print emails to console without emailing anyone',
-        )  # NOQA
+        )
 
         if not self.ignore_date():
             parser.add_argument(
