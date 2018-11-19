@@ -1,0 +1,9 @@
+<p>The following {{ plural('bug is', data, pword='bugs are') }} tracked or nominated for tracking with a needinfo? in {{ extra['channel'] }} {{ extra['version'] }}:
+  <ul>
+    {% for info in data -%}
+    <li>
+      <a href="https://bugzilla.mozilla.org/{{ info['id'] }}">{{ info['id'] }}</a>: {{ info['summary'] | e }} {{ extra['needinfos'][info['id']] | e }} (assigned to {{ extra['assignees'][info['id']] | e }})
+    </li>
+    {% endfor -%}
+  </ul>
+</p>

@@ -1,0 +1,7 @@
+<p>The following {{ plural('bug', data) }} {{ plural('has', data, pword='have') }} an unlanded patch or some flags not up-to-date:
+  <ul>
+    {% for info in data -%}
+    <li><a href="https://bugzilla.mozilla.org/{{ info['id'] }}">{{ info['id'] }}</a>: {{ info['summary'] | e }} (assigned to {{ info['to'] | e }}).</li>
+    {% endfor -%}
+  </ul>
+</p>

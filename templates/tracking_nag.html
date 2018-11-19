@@ -1,0 +1,7 @@
+<p>The following {{ plural('bug is', data, pword='bugs are') }} tracked in {{ extra['channel'] }} {{ extra['version'] }}{% if extra['touch'] %} and untouched this week{% endif -%}:
+  <ul>
+    {% for info in data -%}
+    <li><a href="https://bugzilla.mozilla.org/{{ info['id'] }}">{{ info['id'] }}</a>: {{ info['summary'] | e }} (assigned to {{ info['To'] | e }}).</li>
+    {% endfor -%}
+  </ul>
+</p>

@@ -1,0 +1,11 @@
+<p>The following {{ plural('bug has', bugids, pword='bugs have') }} a needinfo from a manager or a director and no activity for the last {{ extra['nweeks'] }} {{ plural('week', extra['nweeks']) }}:
+  <ul>
+    <li>When the bug is red, then the needinfo is on a person with no manager.</li>
+    {% for bugid, summary in bugids -%}
+    <li><a {% if str(bugid) in no_manager %}style="color:red;" {% endif %}href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a>: {{ summary | e }} {{ needinfos[str(bugid)] | e }}
+    <br>
+    &mdash; Last commented on: {{ last_comment[str(bugid)] }}
+    </li>
+    {% endfor -%}
+  </ul>
+</p>
