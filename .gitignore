@@ -9,3 +9,4 @@ queries/
 scripts/configs/config.json
 auto_nag/scripts/configs/*
 !auto_nag/scripts/configs/tools.json
+!auto_nag/scripts/configs/rm.json
