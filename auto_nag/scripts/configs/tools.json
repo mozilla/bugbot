@@ -78,8 +78,14 @@
     {
         "no_mail_for_manager":
         [
-            "jgriffiths@mozilla.com"
-        ]
+        ],
+        "cc":
+        [
+            "release-mgmt@mozilla.com",
+            "tgrabowski@mozilla.com",
+            "yor@mozilla.com"
+        ],
+        "from": "release-mgmt@mozilla.com"
     },
     "nocrashes":
     {
@@ -103,5 +109,19 @@
             "Thunderbird",
             "MailNews"
         ]
+    },
+    "ni-from-manager":
+    {
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "sylvestre@mozilla.com"
+        ],
+        "white-list":
+        [
+            "aoverholt@mozilla.com"
+        ],
+        "days_lookup": 183,
+        "number_of_weeks": 1
     }
 }

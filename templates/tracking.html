@@ -1,0 +1,12 @@
+<p>The following {{ plural('bug is', bugids, pword='bugs are') }} tracked in {{ extra['channel'] }} {{ extra['version'] }}{% if extra['untouched'] %} and untouched this week{% endif -%}:
+  <ul>
+    <li>When the bug is red, then the assignee has no manager.</li>
+    {% for bugid, summary in bugids -%}
+    <li>
+      <a {% if str(bugid) in no_manager %}style="color:red;" {% endif %}href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a>: {{ summary | e }} (assigned to {{ assignees[str(bugid)] | e }})
+      <br>
+      &mdash; Last commented on: {{ last_comment[str(bugid)] }}
+    </li>
+    {% endfor -%}
+  </ul>
+</p>

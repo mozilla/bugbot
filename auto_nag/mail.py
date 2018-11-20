@@ -25,11 +25,19 @@ def replaceUnicode(s):
     return ss
 
 
-def send(From, To, Subject, Body,
-         Cc=[], Bcc=[], html=False,
-         files=[], login={}, dryrun=False):
+def send(
+    From, To, Subject, Body, Cc=[], Bcc=[], html=False, files=[], login={}, dryrun=False
+):
     """Send an email
     """
+
+    # just to send a dryrun email
+    # special = '<p><b>To: {}</b></p><p><b>Cc: {}</b></p>'.format(To, Cc)
+    # i = Body.index('<body>') + len('<body>')
+    # Body = Body[:i] + special + Body[i:]
+    # To = ['cdenizet@mozilla.com']
+    # Cc = []
+
     if isinstance(To, six.string_types):
         To = [To]
     if isinstance(Cc, six.string_types):

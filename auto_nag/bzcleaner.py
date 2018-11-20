@@ -3,20 +3,23 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import argparse
+import dateutil.parser
 from dateutil.relativedelta import relativedelta
 from jinja2 import Environment, FileSystemLoader
-import json
 from libmozdata.bugzilla import Bugzilla
 from libmozdata import utils as lmdutils
 import six
-from auto_nag.bugzilla.utils import get_config_path
 from auto_nag import mail, utils
+from auto_nag.nag_me import Nag
 
 
 class BzCleaner(object):
-
     def __init__(self):
-        pass
+        super(BzCleaner, self).__init__()
+        self.last_comment = {}
+        self.no_manager = set()
+        self.assignees = {}
+        self.needinfos = {}
 
     def description(self):
         """Get the description for the help"""
@@ -48,6 +51,34 @@ class BzCleaner(object):
         """Should we ignore the bug summary ?"""
         return True
 
+    def must_run(self, date):
+        return True
+
+    def add_no_manager(self, bugid):
+        self.no_manager.add(str(bugid))
+
+    def add_assignee(self, bugid, name):
+        self.assignees[str(bugid)] = name
+
+    def add_needinfo(self, bugid, name):
+        bugid = str(bugid)
+        if bugid in self.needinfos:
+            self.needinfos[bugid].add(name)
+        else:
+            self.needinfos[bugid] = set([name])
+
+    def get_needinfo_for_template(self):
+        res = {}
+        for bugid, ni in self.needinfos.items():
+            res[bugid] = '(' + ', '.join('needinfo? ' + x for x in sorted(ni)) + ')'
+        return res
+
+    def has_assignee(self):
+        return False
+
+    def has_needinfo(self):
+        return False
+
     def get_dates(self, date):
         """Get the dates for the bugzilla query (changedafter and changedbefore fields)"""
         date = lmdutils.get_date_ymd(date)
@@ -73,14 +104,29 @@ class BzCleaner(object):
         return []
 
     def get_summary(self, bug):
-        return '' if bug['groups'] else bug['summary']
+        return '...' if bug['groups'] else bug['summary']
 
     def bughandler(self, bug, data):
         """bug handler for the Bugzilla query"""
+        if isinstance(self, Nag):
+            bug = self.set_people_to_nag(bug)
+            if not bug:
+                return
+
         if self.ignore_bug_summary():
             data.append(bug['id'])
         else:
             data.append((bug['id'], self.get_summary(bug)))
+
+        if self.has_assignee():
+            real = bug['assigned_to_detail']['real_name']
+            bugid = str(bug['id'])
+            self.add_assignee(bugid, real)
+
+        if self.has_needinfo():
+            bugid = str(bug['id'])
+            for flag in utils.get_needinfo(bug):
+                self.add_needinfo(bugid, flag['requestee'])
 
     def amend_bzparams(self, params, bug_ids):
         """Amend the Bugzilla params"""
@@ -103,18 +149,69 @@ class BzCleaner(object):
         if not self.ignore_bug_summary():
             params['include_fields'] += ['summary', 'groups']
 
+        if self.has_assignee() and 'assigned_to' not in params['include_fields']:
+            params['include_fields'].append('assigned_to')
+
+        if self.has_needinfo() and 'flags' not in params['include_fields']:
+            params['include_fields'].append('flags')
+
     def get_bugs(self, date='today', bug_ids=[]):
         """Get the bugs"""
         bugids = self.get_data()
         params = self.get_bz_params(date)
         self.amend_bzparams(params, bug_ids)
 
-        Bugzilla(params,
-                 bughandler=self.bughandler,
-                 bugdata=bugids,
-                 timeout=utils.get_config(self.name(), 'bz_query_timeout')).get_data().wait()
+        Bugzilla(
+            params,
+            bughandler=self.bughandler,
+            bugdata=bugids,
+            timeout=utils.get_config(self.name(), 'bz_query_timeout'),
+        ).get_data().wait()
+
+        self.get_comments(bugids)
 
         return sorted(bugids) if isinstance(bugids, list) else bugids
+
+    def get_comment_data(self):
+        return None
+
+    def commenthandler(self, bug, bugid, data):
+        return
+
+    def _commenthandler(self, *args):
+        if len(args) == 2:
+            bug, bugid = args
+            data = None
+        else:
+            bug, bugid, data = args
+
+        comments = bug['comments']
+        if self.has_last_comment_time():
+            if comments:
+                # get the timestamp of the last comment
+                self.last_comment[bugid] = str(
+                    dateutil.parser.parse(comments[-1]['time'])
+                )
+            else:
+                self.last_comment[bugid] = ''
+
+        if data is not None:
+            self.commenthandler(bug, bugid, data)
+
+    def get_comments(self, bugids):
+        """Get the bugs comments"""
+        data = self.get_comment_data()
+        if data is not None or self.has_last_comment_time():
+            bugids = self.get_list_bugs(bugids)
+            Bugzilla(
+                bugids=bugids, commenthandler=self._commenthandler, commentdata=data
+            ).get_data().wait()
+
+    def has_last_comment_time(self):
+        return False
+
+    def get_last_comment_time(self):
+        return self.last_comment
 
     def get_list_bugs(self, bugs):
         if self.ignore_bug_summary():
@@ -134,11 +231,6 @@ class BzCleaner(object):
 
         return bugs
 
-    def get_login_info(self):
-        """Get the login info"""
-        with open(get_config_path(), 'r') as In:
-            return json.load(In)
-
     def get_email(self, bztoken, date, dryrun, bug_ids=[]):
         """Get title and body for the email"""
         Bugzilla.TOKEN = bztoken
@@ -146,11 +238,20 @@ class BzCleaner(object):
         if not dryrun:
             bugids = self.autofix(bugids)
         if bugids:
+            extra = self.get_extra_for_template()
             env = Environment(loader=FileSystemLoader('templates'))
             template = env.get_template(self.template())
-            message = template.render(date=date,
-                                      bugids=bugids,
-                                      extra=self.get_extra_for_template())
+            message = template.render(
+                date=date,
+                bugids=bugids,
+                extra=extra,
+                str=str,
+                plural=utils.plural,
+                no_manager=self.no_manager,
+                last_comment=self.last_comment,
+                assignees=self.assignees,
+                needinfos=self.get_needinfo_for_template(),
+            )
             common = env.get_template('common.html')
             body = common.render(message=message)
             return self.get_email_subject(date), body
@@ -158,15 +259,26 @@ class BzCleaner(object):
 
     def send_email(self, date='today', dryrun=False):
         """Send the email"""
-        login_info = self.get_login_info()
         if date:
             date = lmdutils.get_date(date)
+            if not self.must_run(lmdutils.get_date_ymd(date)):
+                return
+
+        login_info = utils.get_login_info()
         title, body = self.get_email(login_info['bz_api_key'], date, dryrun)
         if title:
-            mail.send(login_info['ldap_username'],
-                      utils.get_config(self.name(), 'receivers'),
-                      title, body,
-                      html=True, login=login_info, dryrun=dryrun)
+            mail.send(
+                login_info['ldap_username'],
+                utils.get_config(self.name(), 'receivers'),
+                title,
+                body,
+                html=True,
+                login=login_info,
+                dryrun=dryrun,
+            )
+
+            if isinstance(self, Nag):
+                self.send_mails(date, title, dryrun=dryrun)
         else:
             name = self.name().upper()
             if date:
@@ -177,14 +289,23 @@ class BzCleaner(object):
     def get_args_parser(self):
         """Get the argumends from the command line"""
         parser = argparse.ArgumentParser(description=self.description())
-        parser.add_argument('-d', '--dryrun', dest='dryrun',
-                            action='store_true', default=False,
-                            help='Just do the query, and print emails to console without emailing anyone')  # NOQA
+        parser.add_argument(
+            '-d',
+            '--dryrun',
+            dest='dryrun',
+            action='store_true',
+            help='Just do the query, and print emails to console without emailing anyone',
+        )
 
         if not self.ignore_date():
-            parser.add_argument('-D', '--date', dest='date',
-                                action='store', default='today',
-                                help='Date for the query')
+            parser.add_argument(
+                '-D',
+                '--date',
+                dest='date',
+                action='store',
+                default='today',
+                help='Date for the query',
+            )
 
         return parser
 
