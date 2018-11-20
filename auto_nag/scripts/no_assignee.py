@@ -14,7 +14,6 @@ HG_MAIL = re.compile(r'^([^<]*)<([^>]+)>$')
 
 
 class NoAssignee(BzCleaner):
-
     def __init__(self):
         super(NoAssignee, self).__init__()
         self.hgdata = {}
@@ -35,9 +34,7 @@ class NoAssignee(BzCleaner):
         start_date, end_date = self.get_dates(date)
         reporters = self.get_config('reporter_exception', default=[])
         reporters = ','.join(reporters)
-        regexp = (
-            r'http[s]?://hg\.mozilla\.org/(releases/)?mozilla-[^/]+/rev/[0-9a-f]+'
-        )
+        regexp = r'http[s]?://hg\.mozilla\.org/(releases/)?mozilla-[^/]+/rev/[0-9a-f]+'
         params = {
             'resolution': 'FIXED',
             'bug_status': ['RESOLVED', 'VERIFIED'],
@@ -68,8 +65,10 @@ class NoAssignee(BzCleaner):
             return False
         if attachment['is_patch'] == 1:
             return True
-        if attachment['content_type'] in ['text/x-phabricator-request',
-                                          'text/x-review-board-request']:
+        if attachment['content_type'] in [
+            'text/x-phabricator-request',
+            'text/x-review-board-request',
+        ]:
             return True
 
         return False
@@ -206,10 +205,13 @@ class NoAssignee(BzCleaner):
 
         return self.hgdata
 
-    def autofix(self, bugs):
+    def autofix(self, bugs, dryrun):
         for bugid, email in self.hgdata.items():
             if email:
-                Bugzilla([bugid]).put({'assigned_to': email})
+                if dryrun:
+                    print('Auto assign {}: {}'.format(bugid, email))
+                else:
+                    Bugzilla([bugid]).put({'assigned_to': email})
         return self.hgdata
 
     def get_bugs(self, date='today', bug_ids=[]):

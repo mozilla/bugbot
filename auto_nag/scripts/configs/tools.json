@@ -121,7 +121,11 @@
         ],
         "owners":
         {
-            "overholt@mozilla.com": ":overholt"
+            "overholt@mozilla.com":
+            {
+                "nick": ":overholt",
+                "max_ni": 3
+            }
         }
     },
     "ni-from-manager":

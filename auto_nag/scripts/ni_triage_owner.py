@@ -7,15 +7,17 @@ from auto_nag import utils
 
 
 class NiTriageOwner(BzCleaner):
-
-    def __init__(self, mail_owner, nick_owner):
+    def __init__(self, mail_owner, nick_owner, max_ni):
         super(NiTriageOwner, self).__init__()
         self.nweeks = utils.get_config(self.name(), 'number_of_weeks', 2)
         self.mail = mail_owner
         self.nick = nick_owner
+        self.max_ni = max_ni
 
     def description(self):
-        return 'Get bugs an empty priority flag and no activity for {} weeks'.format(self.nweeks)
+        return 'Get bugs an empty priority flag and no activity for {} weeks'.format(
+            self.nweeks
+        )
 
     def name(self):
         return 'ni-triage-owner'
@@ -38,6 +40,9 @@ class NiTriageOwner(BzCleaner):
     def ignore_bug_summary(self):
         return False
 
+    def get_max_ni(self):
+        return self.max_ni
+
     def get_mail_to_auto_ni(self, bug):
         # when triage_owner and triage_owner_detail will be available
         # in Bugzilla, then we could use that stuff and remove "else".
@@ -48,12 +53,11 @@ class NiTriageOwner(BzCleaner):
             mail = self.mail
             nick = self.nick
 
-        return {'mail': mail,
-                'nickname': nick}
+        return {'mail': mail, 'nickname': nick}
 
     def get_bz_params(self, date):
         start_date, _ = self.get_dates(date)
-        fields = ['product', 'component']
+        fields = ['product', 'component', 'triage_owner']
         params = {
             'triage_owner': self.mail,
             'include_fields': fields,
@@ -74,5 +78,5 @@ class NiTriageOwner(BzCleaner):
 
 if __name__ == '__main__':
     owners = utils.get_config('ni-triage-owner', 'owners', {})
-    for mail, nick in owners.items():
-        NiTriageOwner(mail, nick).run()
+    for mail, info in owners.items():
+        NiTriageOwner(mail, info['nick'], int(info['max_ni'])).run()
