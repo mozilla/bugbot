@@ -86,7 +86,7 @@ python -m auto_nag.scripts.summary_meta_missing
 # Pretty common
 python -m auto_nag.scripts.old_p2_bug -d
 
-# List reopened bugs with invalid nightly status flag 
+# List reopened bugs with invalid nightly status flag
 # Pretty common
 python -m auto_nag.scripts.nightly_reopened
 
