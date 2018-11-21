@@ -86,7 +86,12 @@ python -m auto_nag.scripts.summary_meta_missing
 # Pretty common
 python -m auto_nag.scripts.old_p2_bug -d
 
+# List reopened bugs with invalid nightly status flag 
+# Pretty common
+python -m auto_nag.scripts.nightly_reopened
+
 # Needinfo the triage owner when we find bugs without the priority set
 # Pretty common
 # Only on Andrew for now
 python -m auto_nag.scripts.ni_triage_owner
+
