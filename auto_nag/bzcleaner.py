@@ -20,6 +20,7 @@ class BzCleaner(object):
         self.no_manager = set()
         self.assignees = {}
         self.needinfos = {}
+        self.auto_needinfo = {}
 
     def description(self):
         """Get the description for the help"""
@@ -27,6 +28,10 @@ class BzCleaner(object):
 
     def name(self):
         """Get the tool name"""
+        return ''
+
+    def needinfo_template(self):
+        """Get the txt template filename"""
         return ''
 
     def template(self):
@@ -79,6 +84,12 @@ class BzCleaner(object):
     def has_needinfo(self):
         return False
 
+    def get_mail_to_auto_ni(self, bug):
+        return None
+
+    def get_max_ni(self):
+        return -1
+
     def get_dates(self, date):
         """Get the dates for the bugzilla query (changedafter and changedbefore fields)"""
         date = lmdutils.get_date_ymd(date)
@@ -90,6 +101,10 @@ class BzCleaner(object):
 
     def get_extra_for_template(self):
         """Get extra data to put in the template"""
+        return {}
+
+    def get_extra_for_needinfo_template(self):
+        """Get extra data to put in the needinfo template"""
         return {}
 
     def get_config(self, entry, default=None):
@@ -112,6 +127,11 @@ class BzCleaner(object):
             bug = self.set_people_to_nag(bug)
             if not bug:
                 return
+
+        auto_ni = self.get_mail_to_auto_ni(bug)
+        if auto_ni:
+            bugid = str(bug['id'])
+            self.auto_needinfo[bugid] = auto_ni
 
         if self.ignore_bug_summary():
             data.append(bug['id'])
@@ -218,16 +238,58 @@ class BzCleaner(object):
             return list(map(str, bugs))
         return [str(x) for x, _ in bugs]
 
+    def set_needinfo(self, bugs, dryrun):
+        template_name = self.needinfo_template()
+        assert bool(template_name)
+        env = Environment(loader=FileSystemLoader('templates'))
+        template = env.get_template(template_name)
+        bugids = self.get_list_bugs(bugs)
+        num_ni = self.get_max_ni()
+        for bugid in bugids:
+            if bugid not in self.auto_needinfo:
+                continue
+
+            ni = self.auto_needinfo[bugid]
+            comment = template.render(
+                nickname=ni['nickname'], extra=self.get_extra_for_needinfo_template()
+            )
+            data = {
+                'comment': {'body': comment},
+                'flags': [
+                    {
+                        'name': 'needinfo',
+                        'requestee': ni['mail'],
+                        'status': '?',
+                        'new': 'true',
+                    }
+                ],
+            }
+            if dryrun:
+                print('Auto needinfo {}: {}'.format(bugid, data))
+            else:
+                Bugzilla(bugids=[bugid]).put(data)
+            if num_ni == 1:
+                break
+            num_ni -= 1
+
     def get_autofix_change(self):
         """Get the change to do to autofix the bugs"""
         return {}
 
-    def autofix(self, bugs):
+    def autofix(self, bugs, dryrun):
         """Autofix the bugs according to what is returned by get_autofix_change"""
+        if self.auto_needinfo:
+            self.set_needinfo(bugs, dryrun)
+
         change = self.get_autofix_change()
         if change:
             bugids = self.get_list_bugs(bugs)
-            Bugzilla(bugids).put(change)
+            if dryrun:
+                print(
+                    'The bugs: {}\n will be autofixed with:\n{}'.format(bugids, change)
+                )
+            else:
+                Bugzilla(bugids).put(change)
 
         return bugs
 
@@ -235,8 +297,7 @@ class BzCleaner(object):
         """Get title and body for the email"""
         Bugzilla.TOKEN = bztoken
         bugids = self.get_bugs(date=date, bug_ids=bug_ids)
-        if not dryrun:
-            bugids = self.autofix(bugids)
+        bugids = self.autofix(bugids, dryrun)
         if bugids:
             extra = self.get_extra_for_template()
             env = Environment(loader=FileSystemLoader('templates'))
