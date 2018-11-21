@@ -41,10 +41,10 @@ class MismatchPrioTrack(BzCleaner):
                   'v1': ['+', 'blocking'],
                   'f2': 'cf_tracking_firefox' + beta_version,
                   'o2': 'anyexact',
-                  'v2': ['+', 'blocking'],
+                  'v2': ['blocking'],
                   'f3': 'cf_tracking_firefox' + central_version,
                   'o3': 'anyexact',
-                  'v3': ['+', 'blocking'],
+                  'v3': ['blocking'],
                   }
 
         return params
