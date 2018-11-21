@@ -121,8 +121,14 @@ class BzCleaner(object):
     def get_summary(self, bug):
         return '...' if bug['groups'] else bug['summary']
 
+    def handle_bug(self, bug):
+        """Implement this function to get all the bugs from the query"""
+        pass
+
     def bughandler(self, bug, data):
         """bug handler for the Bugzilla query"""
+        self.handle_bug(bug)
+
         if isinstance(self, Nag):
             bug = self.set_people_to_nag(bug)
             if not bug:
@@ -272,6 +278,10 @@ class BzCleaner(object):
                 break
             num_ni -= 1
 
+    def has_individual_autofix(self):
+        """Check if the autofix is the same for all bugs or different for each bug"""
+        return False
+
     def get_autofix_change(self):
         """Get the change to do to autofix the bugs"""
         return {}
@@ -283,13 +293,25 @@ class BzCleaner(object):
 
         change = self.get_autofix_change()
         if change:
-            bugids = self.get_list_bugs(bugs)
-            if dryrun:
-                print(
-                    'The bugs: {}\n will be autofixed with:\n{}'.format(bugids, change)
-                )
+            if not self.has_individual_autofix():
+                bugids = self.get_list_bugs(bugs)
+                if dryrun:
+                    print(
+                        'The bugs: {}\n will be autofixed with:\n{}'.format(
+                            bugids, change
+                        )
+                    )
+                else:
+                    Bugzilla(bugids).put(change)
             else:
-                Bugzilla(bugids).put(change)
+                if dryrun:
+                    for bugid, ch in change.items():
+                        print(
+                            'The bug: {} will be autofixed with: {}'.format(bugid, ch)
+                        )
+                else:
+                    for bugid, ch in change.items():
+                        Bugzilla([str(bugid)]).put(ch)
 
         return bugs
 
