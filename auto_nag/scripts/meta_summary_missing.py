@@ -7,10 +7,10 @@ from auto_nag import utils
 
 
 class MetaSummaryMissing(BzCleaner):
-
     def __init__(self):
         super(MetaSummaryMissing, self).__init__()
         self.products = utils.get_config('common', 'products')
+        self.autofix_meta = {}
 
     def description(self):
         return 'Get bugs with the meta keyword but not [meta] in the title'
@@ -27,9 +27,22 @@ class MetaSummaryMissing(BzCleaner):
     def ignore_bug_summary(self):
         return False
 
+    def get_autofix_change(self):
+        return self.autofix_meta
+
+    def has_individual_autofix(self):
+        return True
+
+    def handle_bug(self, bug):
+        bugid = str(bug['id'])
+        summary = bug['summary']
+        self.autofix_meta[bugid] = {'summary': '[meta] ' + summary}
+
     def get_bz_params(self, date):
         days_lookup = self.get_config('days_lookup', default=180)
+        fields = ['summary']
         return {
+            'include_fields': fields,
             'resolution': ['---', 'FIXED'],
             'keywords': 'meta',
             'keywords_type': 'allwords',
