@@ -86,3 +86,7 @@ python -m auto_nag.scripts.old_p2_bug -d
 # Pretty common
 # Only on Andrew for now
 python -m auto_nag.scripts.ni_triage_owner
+
+# List reopened bugs with invalid nightly status flag 
+# Pretty common
+python -m auto_nag.scripts.nightly_reopened
