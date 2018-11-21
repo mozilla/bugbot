@@ -42,12 +42,12 @@ class NightlyReopened(BzCleaner):
             'f2': self.beta,
             'o2': 'anyexact',
             'v2': unaffected,
-            'f2': self.release,
-            'o2': 'anyexact',
-            'v2': unaffected,
-            'f2': self.esr,
-            'o2': 'anyexact',
-            'v2': unaffected,
+            'f3': self.release,
+            'o3': 'anyexact',
+            'v3': unaffected,
+            'f4': self.esr,
+            'o4': 'anyexact',
+            'v4': unaffected,
         }
 
         return params
