@@ -136,14 +136,14 @@ class BzCleaner(object):
         if not data:
             return
 
-        mail = data['mail']
-        if mail in self.auto_needinfo:
+        ni_mail = data['mail']
+        if ni_mail in self.auto_needinfo:
             max_ni = self.get_max_ni()
-            info = self.auto_needinfo[mail]
+            info = self.auto_needinfo[ni_mail]
             if max_ni <= 0 or len(info['bugids']) < max_ni:
                 info['bugids'].append(str(bugid))
         else:
-            self.auto_needinfo[mail] = {
+            self.auto_needinfo[ni_mail] = {
                 'nickname': data['nickname'],
                 'bugids': [str(bugid)],
             }
@@ -285,7 +285,7 @@ class BzCleaner(object):
         env = Environment(loader=FileSystemLoader('templates'))
         template = env.get_template(template_name)
 
-        for mail, info in self.auto_needinfo.items():
+        for ni_mail, info in self.auto_needinfo.items():
             nick = info['nickname']
             for bugid in info['bugids']:
                 comment = template.render(
@@ -298,7 +298,7 @@ class BzCleaner(object):
                     'flags': [
                         {
                             'name': 'needinfo',
-                            'requestee': mail,
+                            'requestee': ni_mail,
                             'status': '?',
                             'new': 'true',
                         }
