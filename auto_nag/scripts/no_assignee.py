@@ -208,6 +208,7 @@ class NoAssignee(BzCleaner):
     def autofix(self, bugs, dryrun):
         for bugid, email in self.hgdata.items():
             if email:
+                self.has_autofix = True
                 if dryrun:
                     print('Auto assign {}: {}'.format(bugid, email))
                 else:
