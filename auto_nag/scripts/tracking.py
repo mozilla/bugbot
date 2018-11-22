@@ -95,25 +95,22 @@ class Tracking(BzCleaner, Nag):
             'f1': tracking,
             'o1': 'equals',
             'v1': tracking_value,
-            'f2': 'status_whiteboard',
-            'o2': 'notsubstring',
-            'v2': '[no-nag]',
-            'f3': status,
-            'o3': 'nowordssubstr',
-            'v3': ','.join(['wontfix', 'fixed', 'disabled', 'verified', 'unaffected']),
+            'f2': status,
+            'o2': 'nowordssubstr',
+            'v2': ','.join(['wontfix', 'fixed', 'disabled', 'verified', 'unaffected']),
         }
 
         if self.channel == 'central':
             tracking = utils.get_flag(self.versions['beta'], 'tracking', 'beta')
-            params.update({'f4': tracking, 'o4': 'notequals', 'v4': '+'})
+            params.update({'f3': tracking, 'o3': 'notequals', 'v3': '+'})
         elif self.channel != 'esr':
             approval = utils.get_flag(v, 'approval', self.channel)
             params.update(
-                {'f4': 'flagtypes.name', 'o4': 'notsubstring', 'v4': approval + '?'}
+                {'f3': 'flagtypes.name', 'o3': 'notsubstring', 'v3': approval + '?'}
             )
 
         if self.untouched:
-            params.update({'f5': 'days_elapsed', 'o5': 'greaterthan', 'v5': 3})
+            params.update({'f4': 'days_elapsed', 'o4': 'greaterthan', 'v4': 3})
 
         return params
 

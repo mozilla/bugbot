@@ -67,9 +67,6 @@ class Unlanded(BzCleaner, Nag):
             'f2': tracking,
             'o2': 'equals',
             'v2': '+',
-            'f3': 'status_whiteboard',
-            'o3': 'notsubstring',
-            'v3': '[no-nag]',
         }
 
         return params

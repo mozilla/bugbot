@@ -7,7 +7,6 @@ from auto_nag import utils
 
 
 class assigneeButUnconfirmed(BzCleaner):
-
     def __init__(self):
         super(assigneeButUnconfirmed, self).__init__()
         self.products = utils.get_config('common', 'products')
