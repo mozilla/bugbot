@@ -11,8 +11,8 @@ class LeaveOpenNoActivity(BzCleaner):
     def __init__(self):
         super(LeaveOpenNoActivity, self).__init__()
         self.people = People()
-        self.nmonths = utils.get_config(self.name(), 'months_lookup', 6)
-        self.max_ni = utils.get_config(self.name(), 'max_ni', 3)
+        self.nmonths = utils.get_config(self.name(), 'months_lookup')
+        self.max_ni = utils.get_config(self.name(), 'max_ni')
 
     def description(self):
         return 'Get bugs with leave-open keyword and no activity for the last {} months'.format(
