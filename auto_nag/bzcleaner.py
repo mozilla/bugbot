@@ -16,6 +16,7 @@ from auto_nag.nag_me import Nag
 class BzCleaner(object):
     def __init__(self):
         super(BzCleaner, self).__init__()
+        self.has_autofix = False
         self.last_comment = {}
         self.no_manager = set()
         self.assignees = {}
@@ -44,9 +45,10 @@ class BzCleaner(object):
 
     def get_email_subject(self, date):
         """Get the email subject with a date or not"""
+        af = '[autofix]' if self.has_autofix else ''
         if date:
-            return '[autonag] {} for the {}'.format(self.subject(), date)
-        return '[autonag] {}'.format(self.subject())
+            return '[autonag]{} {} for the {}'.format(af, self.subject(), date)
+        return '[autonag]{} {}'.format(af, self.subject())
 
     def ignore_date(self):
         """Should we ignore the date ?"""
@@ -271,6 +273,7 @@ class BzCleaner(object):
             if bugid not in self.auto_needinfo:
                 continue
 
+            self.has_autofix = True
             ni = self.auto_needinfo[bugid]
             comment = template.render(
                 nickname=ni['nickname'], extra=self.get_extra_for_needinfo_template()
@@ -309,6 +312,7 @@ class BzCleaner(object):
 
         change = self.get_autofix_change()
         if change:
+            self.has_autofix = True
             if not self.has_individual_autofix():
                 bugids = self.get_list_bugs(bugs)
                 if dryrun:
