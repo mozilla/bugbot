@@ -14,6 +14,7 @@ _CONFIG = None
 _CYCLE_SPAN = None
 _NEXT_RELEASE = None
 TEMPLATE_PAT = re.compile(r'<p>(.*)</p>', re.DOTALL)
+BZ_FIELD_PAT = re.compile(r'^[fovj]([0-9]+)$')
 
 
 def _get_config():
@@ -115,3 +116,13 @@ def get_needinfo(bug):
     for flag in bug.get('flags', []):
         if flag.get('name', '') == 'needinfo' and flag['status'] == '?':
             yield flag
+
+
+def get_last_field_num(params):
+    s = set()
+    for k in params.keys():
+        m = BZ_FIELD_PAT.match(k)
+        if m:
+            s.add(int(m.group(1)))
+
+    return max(s) + 1 if s else 1

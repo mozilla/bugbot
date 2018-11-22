@@ -57,6 +57,11 @@ class BzCleaner(object):
         return True
 
     def must_run(self, date):
+        """Check if the tool must run for this date"""
+        return True
+
+    def filter_no_nag_keyword(self):
+        """If True, then remove the bugs with [no-nag] in whiteboard from the bug list"""
         return True
 
     def add_no_manager(self, bugid):
@@ -180,6 +185,17 @@ class BzCleaner(object):
 
         if self.has_needinfo() and 'flags' not in params['include_fields']:
             params['include_fields'].append('flags')
+
+        if self.filter_no_nag_keyword():
+            n = utils.get_last_field_num(params)
+            n = str(n)
+            params.update(
+                {
+                    'f' + n: 'status_whiteboard',
+                    'o' + n: 'notsubstring',
+                    'v' + n: '[no-nag]',
+                }
+            )
 
     def get_bugs(self, date='today', bug_ids=[]):
         """Get the bugs"""
