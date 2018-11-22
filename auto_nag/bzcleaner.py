@@ -132,6 +132,22 @@ class BzCleaner(object):
         """Implement this function to get all the bugs from the query"""
         pass
 
+    def add_auto_ni(self, bugid, data):
+        if not data:
+            return
+
+        mail = data['mail']
+        if mail in self.auto_needinfo:
+            max_ni = self.get_max_ni()
+            info = self.auto_needinfo[mail]
+            if max_ni <= 0 or len(info['bugids']) < max_ni:
+                info['bugids'].append(str(bugid))
+        else:
+            self.auto_needinfo[mail] = {
+                'nickname': data['nickname'],
+                'bugids': [str(bugid)],
+            }
+
     def bughandler(self, bug, data):
         """bug handler for the Bugzilla query"""
         self.handle_bug(bug)
@@ -142,9 +158,7 @@ class BzCleaner(object):
                 return
 
         auto_ni = self.get_mail_to_auto_ni(bug)
-        if auto_ni:
-            bugid = str(bug['id'])
-            self.auto_needinfo[bugid] = auto_ni
+        self.add_auto_ni(bug['id'], auto_ni)
 
         if self.ignore_bug_summary():
             data.append(bug['id'])
@@ -263,39 +277,37 @@ class BzCleaner(object):
         return [str(x) for x, _ in bugs]
 
     def set_needinfo(self, bugs, dryrun):
+        if not self.auto_needinfo:
+            return
+
         template_name = self.needinfo_template()
         assert bool(template_name)
         env = Environment(loader=FileSystemLoader('templates'))
         template = env.get_template(template_name)
-        bugids = self.get_list_bugs(bugs)
-        num_ni = self.get_max_ni()
-        for bugid in bugids:
-            if bugid not in self.auto_needinfo:
-                continue
 
-            self.has_autofix = True
-            ni = self.auto_needinfo[bugid]
-            comment = template.render(
-                nickname=ni['nickname'], extra=self.get_extra_for_needinfo_template()
-            )
-            data = {
-                'comment': {'body': comment},
-                'flags': [
-                    {
-                        'name': 'needinfo',
-                        'requestee': ni['mail'],
-                        'status': '?',
-                        'new': 'true',
-                    }
-                ],
-            }
-            if dryrun:
-                print('Auto needinfo {}: {}'.format(bugid, data))
-            else:
-                Bugzilla(bugids=[bugid]).put(data)
-            if num_ni == 1:
-                break
-            num_ni -= 1
+        for mail, info in self.auto_needinfo.items():
+            nick = info['nickname']
+            for bugid in info['bugids']:
+                comment = template.render(
+                    nickname=nick,
+                    extra=self.get_extra_for_needinfo_template(),
+                    plural=utils.plural,
+                )
+                data = {
+                    'comment': {'body': comment},
+                    'flags': [
+                        {
+                            'name': 'needinfo',
+                            'requestee': mail,
+                            'status': '?',
+                            'new': 'true',
+                        }
+                    ],
+                }
+                if dryrun:
+                    print('Auto needinfo {}: {}'.format(bugid, data))
+                else:
+                    Bugzilla(bugids=[bugid]).put(data)
 
     def has_individual_autofix(self):
         """Check if the autofix is the same for all bugs or different for each bug"""
@@ -307,8 +319,7 @@ class BzCleaner(object):
 
     def autofix(self, bugs, dryrun):
         """Autofix the bugs according to what is returned by get_autofix_change"""
-        if self.auto_needinfo:
-            self.set_needinfo(bugs, dryrun)
+        self.set_needinfo(bugs, dryrun)
 
         change = self.get_autofix_change()
         if change:
