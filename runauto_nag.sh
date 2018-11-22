@@ -95,3 +95,6 @@ python -m auto_nag.scripts.nightly_reopened
 # Only on Andrew for now
 python -m auto_nag.scripts.ni_triage_owner
 
+# Needinfo the assignee or the triage owner when a bug has leave-open keyword an no activty
+# Pretty common
+python -m auto_nag.scripts.leave_open_no_activity
