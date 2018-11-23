@@ -1,0 +1,7 @@
+<p>The following {{ plural('bug has', bugids, pword='bugs have') }} meta keyword, not depending on bugs and no activity for the last {{ extra['nmonths'] }} months:
+  <ul>
+    {% for bugid, summary in bugids -%}
+    <li><a href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a>: {{ summary | e }}</li>
+    {% endfor -%}
+  </ul>
+</p>
