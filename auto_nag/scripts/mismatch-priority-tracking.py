@@ -7,7 +7,6 @@ from auto_nag.bugzilla.utils import getVersions
 
 
 class MismatchPrioTrack(BzCleaner):
-
     def __init__(self):
         super(MismatchPrioTrack, self).__init__()
 
@@ -27,25 +26,34 @@ class MismatchPrioTrack(BzCleaner):
         return True
 
     def get_bz_params(self, date):
-
         release_version, beta_version, central_version = getVersions()
-        params = {'resolution': ['---', 'FIXED',
-                                 'INVALID', 'WONTFIX',
-                                 'DUPLICATE', 'WORKSFORME',
-                                 'INCOMPLETE', 'SUPPORT',
-                                 'EXPIRED', 'MOVED'],
-                  'j_top': 'OR',
-                  'priority': ['p4', 'p5'],
-                  'f1': 'cf_tracking_firefox' + release_version,
-                  'o1': 'anyexact',
-                  'v1': ['+', 'blocking'],
-                  'f2': 'cf_tracking_firefox' + beta_version,
-                  'o2': 'anyexact',
-                  'v2': ['blocking'],
-                  'f3': 'cf_tracking_firefox' + central_version,
-                  'o3': 'anyexact',
-                  'v3': ['blocking'],
-                  }
+        params = {
+            'resolution': [
+                '---',
+                'FIXED',
+                'INVALID',
+                'WONTFIX',
+                'DUPLICATE',
+                'WORKSFORME',
+                'INCOMPLETE',
+                'SUPPORT',
+                'EXPIRED',
+                'MOVED',
+            ],
+            'priority': ['P4', 'P5'],
+            'j1': 'OR',
+            'f1': 'OP',
+            'f2': 'cf_tracking_firefox' + release_version,
+            'o2': 'anyexact',
+            'v2': ','.join(['+', 'blocking']),
+            'f3': 'cf_tracking_firefox' + beta_version,
+            'o3': 'anyexact',
+            'v3': 'blocking',
+            'f4': 'cf_tracking_firefox' + central_version,
+            'o4': 'anyexact',
+            'v4': 'blocking',
+            'f5': 'CP',
+        }
 
         return params
 
