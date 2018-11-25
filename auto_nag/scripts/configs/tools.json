@@ -159,7 +159,7 @@
             "calixte@mozilla.com",
             "sylvestre@mozilla.com"
         ],
-        "months_lookup": 6,
+        "months_lookup": 12,
         "max_ni": 3
     }
 }
