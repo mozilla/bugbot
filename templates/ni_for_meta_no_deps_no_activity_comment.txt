@@ -1,0 +1,2 @@
+The meta keyword is there, the bug doesn't depend on other bugs and there is no activity for {{ extra['nmonths'] }} {{ plural('month', extra['nmonths']) }}.
+:{{ nickname }}, maybe it's time to close this bug?

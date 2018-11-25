@@ -98,3 +98,7 @@ python -m auto_nag.scripts.ni_triage_owner
 # Needinfo the assignee or the triage owner when a bug has leave-open keyword an no activty
 # Pretty common
 python -m auto_nag.scripts.leave_open_no_activity
+
+# Needinfo the triage owner or the assignee when we find meta bugs not depending on bugs and no activity
+# Pretty common
+python -m auto_nag.scripts.meta_no_deps_no_activity
