@@ -26,6 +26,7 @@
         [
             "Core",
             "DevTools",
+            "External Software Affecting Firefox",
             "Firefox",
             "Firefox for Android",
             "Firefox Build System",
