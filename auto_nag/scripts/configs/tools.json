@@ -33,7 +33,7 @@
             "Testing",
             "Toolkit",
             "WebExtensions"
-            ]
+         ]
     },
     "unaffected_affected_no_reg":
     {
@@ -63,13 +63,6 @@
             "mcastelluccio@mozilla.com"
         ],
         "days_lookup": 7,
-        "product_blacklist":
-        [
-            "SeaMonkey",
-            "Thunderbird",
-            "Release Engineering",
-            "Webtools"
-        ],
         "resolution_blacklist":
         [
             "DUPLICATE"
@@ -103,12 +96,6 @@
         "keyword_exception":
         [
             "testcase"
-        ],
-        "product_blacklist":
-        [
-            "SeaMonkey",
-            "Thunderbird",
-            "MailNews"
         ]
     },
     "ni-triage-owner":

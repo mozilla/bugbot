@@ -45,6 +45,9 @@ class TrackedNeedinfo(BzCleaner, Nag):
     def has_needinfo(self):
         return True
 
+    def has_default_products(self):
+        return False
+
     def must_run(self, date):
         weekday = date.weekday()
         # no nagging the week-end

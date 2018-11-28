@@ -39,6 +39,9 @@ class Unlanded(BzCleaner, Nag):
     def has_last_comment_time(self):
         return True
 
+    def has_default_products(self):
+        return False
+
     def set_people_to_nag(self, bug):
         assignee = bug['assigned_to']
         bugid = str(bug['id'])

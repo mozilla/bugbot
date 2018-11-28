@@ -9,20 +9,27 @@ from auto_nag.bzcleaner import BzCleaner
 
 COMMENTS_PAT = re.compile('^>.*[\n]?', re.MULTILINE)
 HAS_UPLIFT_PAT = re.compile(
-    r'(Feature/Bug causing the regression)|(feature/regressing bug #)', re.I)
+    r'(Feature/Bug causing the regression)|(feature/regressing bug #)', re.I
+)
 UPLIFT1_PAT = re.compile(
-    r'[\[]?Feature/Bug causing the regression[\]]?:\n*(?:(?:[ \t]*)|(?:[^0-9]*bug[ \t]*))([0-9]+)[^\n]*$', re.MULTILINE | re.I)
+    r'[\[]?Feature/Bug causing the regression[\]]?:\n*(?:(?:[ \t]*)|(?:[^0-9]*bug[ \t]*))([0-9]+)[^\n]*$',
+    re.MULTILINE | re.I,
+)
 UPLIFT2_PAT = re.compile(
-    r'[\[]?Bug caused by[\]]? \(feature/regressing bug #\):\n*(?:(?:[ \t]*)|(?:[^0-9]*bug[ \t]*))([0-9]+)[^\n]*$', re.MULTILINE | re.I)
+    r'[\[]?Bug caused by[\]]? \(feature/regressing bug #\):\n*(?:(?:[ \t]*)|(?:[^0-9]*bug[ \t]*))([0-9]+)[^\n]*$',
+    re.MULTILINE | re.I,
+)
 REG_BY_BUG_PAT = re.compile(
-    r'[ \t]regress[^0-9\.,;\n]+(?:bug[ \t]*)([0-9]+)(?:[^\.\n\?]*[\.\n])?', re.I)
+    r'[ \t]regress[^0-9\.,;\n]+(?:bug[ \t]*)([0-9]+)(?:[^\.\n\?]*[\.\n])?', re.I
+)
 CAUSED_BY_PAT = re.compile('caused by bug[ \t]*([0-9]+)', re.I)
 REG_PAT = re.compile(
-    r'(regression is)|(regression range)|(regressed build)|(mozregression)|(this is a regression)|(this regression)|(is a recent regression)|(regression version is)|(regression[- ]+window)', re.I)
+    r'(regression is)|(regression range)|(regressed build)|(mozregression)|(this is a regression)|(this regression)|(is a recent regression)|(regression version is)|(regression[- ]+window)',
+    re.I,
+)
 
 
 class Regression(BzCleaner):
-
     def __init__(self):
         super(Regression, self).__init__()
 
@@ -43,37 +50,32 @@ class Regression(BzCleaner):
 
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
-        prod_blacklist = self.get_config('product_blacklist', default=[])
-        prod_blacklist = ' '.join(prod_blacklist)
         resolution_blacklist = self.get_config('resolution_blacklist', default=[])
         resolution_blacklist = ' '.join(resolution_blacklist)
         fields = ['keywords', 'cf_has_regression_range']
-        params = {'include_fields': fields,
-                  'f1': 'keywords',
-                  'o1': 'notsubstring',
-                  'v1': 'regression',
-                  'f2': 'longdesc',
-                  'o2': 'anywordssubstr',
-                  'v2': 'regress caus',
-                  'f3': 'product',
-                  'o3': 'nowords',
-                  'v3': prod_blacklist,
-                  'f4': 'resolution',
-                  'o4': 'nowords',
-                  'v4': resolution_blacklist,
-                  'f5': 'longdesc',
-                  'o5': 'changedafter',
-                  'v5': start_date,
-                  'f6': 'longdesc',
-                  'o6': 'changedbefore',
-                  'v6': end_date}
+        params = {
+            'include_fields': fields,
+            'f1': 'keywords',
+            'o1': 'notsubstring',
+            'v1': 'regression',
+            'f2': 'longdesc',
+            'o2': 'anywordssubstr',
+            'v2': 'regress caus',
+            'f3': 'resolution',
+            'o3': 'nowords',
+            'v3': resolution_blacklist,
+            'f4': 'longdesc',
+            'o4': 'changedafter',
+            'v4': start_date,
+            'f5': 'longdesc',
+            'o5': 'changedbefore',
+            'v5': end_date,
+        }
 
         return params
 
     def get_data(self):
-        return {'regressions': set(),
-                'others': [],
-                'summaries': {}}
+        return {'regressions': set(), 'others': [], 'summaries': {}}
 
     def bughandler(self, bug, data):
         keywords = bug.get('keywords', [])
@@ -131,28 +133,32 @@ class Regression(BzCleaner):
                     break
 
         data = {bugid: False for bugid in bugids}
-        Bugzilla(bugids=bugids,
-                 commenthandler=comment_handler,
-                 commentdata=data,
-                 comment_include_fields=['text']).get_data().wait()
+        Bugzilla(
+            bugids=bugids,
+            commenthandler=comment_handler,
+            commentdata=data,
+            comment_include_fields=['text'],
+        ).get_data().wait()
 
         return data
 
     def analyze_history(self, bugids):
-
         def history_handler(history, data):
             bugid = int(history['id'])
             for h in history['history']:
                 changes = h.get('changes', [])
                 for change in changes:
-                    if change['field_name'] == 'keywords' and change['removed'] == 'regression':
+                    if (
+                        change['field_name'] == 'keywords'
+                        and change['removed'] == 'regression'
+                    ):
                         data.add(bugid)
                         return
 
         data = set()
-        Bugzilla(bugids=bugids,
-                 historyhandler=history_handler,
-                 historydata=data).get_data().wait()
+        Bugzilla(
+            bugids=bugids, historyhandler=history_handler, historydata=data
+        ).get_data().wait()
 
         return bugids - data
 

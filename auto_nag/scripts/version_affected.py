@@ -4,15 +4,12 @@
 
 from auto_nag.bugzilla.utils import getVersions
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag import utils
 
 
 class VersionAffected(BzCleaner):
-
     def __init__(self):
         super(VersionAffected, self).__init__()
         _, self.beta_version, _ = getVersions()
-        self.products = utils.get_config('common', 'products')
 
     def description(self):
         return 'Bug with version set but not status_firefox'
@@ -27,15 +24,17 @@ class VersionAffected(BzCleaner):
         return self.description()
 
     def get_bz_params(self, date):
-        params = {'resolution': ['---', 'FIXED'],
-                  'short_desc': '.*Risk Assessment.*',
-                  'short_desc_type': 'notregexp',
-                  'f1': 'cf_status_firefox' + self.beta_version,
-                  'o1': 'isempty',
-                  'product': self.products,
-                  'version': self.beta_version + ' Branch'}
+        params = {
+            'resolution': ['---', 'FIXED'],
+            'short_desc': '.*Risk Assessment.*',
+            'short_desc_type': 'notregexp',
+            'f1': 'cf_status_firefox' + self.beta_version,
+            'o1': 'isempty',
+            'version': self.beta_version + ' Branch',
+        }
 
         return params
+
 
 #    def get_autofix_change(self):
 #        return {

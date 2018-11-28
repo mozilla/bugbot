@@ -7,14 +7,14 @@ from auto_nag import utils
 
 
 class oldP2Bug(BzCleaner):
-
     def __init__(self):
         super(oldP2Bug, self).__init__()
         self.nweeks = utils.get_config(self.name(), 'number_of_weeks', 52)
-        self.products = utils.get_config('common', 'products')
 
     def description(self):
-        return 'Get old P2 bugs with no activity for the last {} year(s)'.format(self.nweeks / 52)
+        return 'Get old P2 bugs with no activity for the last {} year(s)'.format(
+            self.nweeks / 52
+        )
 
     def name(self):
         return 'old-p2-bug'
@@ -35,18 +35,22 @@ class oldP2Bug(BzCleaner):
         params = {
             'resolution': '---',
             'priority': 'p2',
-            'product': self.products,
             'f1': 'days_elapsed',
             'o1': 'greaterthan',
-            'v1': self.nweeks * 7
+            'v1': self.nweeks * 7,
         }
 
         return params
 
     def get_autofix_change(self):
-        return {'comment': {'body': 'Moving to p3 because no activity for at least {} year(s).\nSee https://github.com/mozilla/bug-handling/blob/master/policy/triage-bugzilla.md#how-do-you-triage for more information'.format(self.nweeks / 52)},
-                'priority': 'p3'
-                }
+        return {
+            'comment': {
+                'body': 'Moving to p3 because no activity for at least {} year(s).\nSee https://github.com/mozilla/bug-handling/blob/master/policy/triage-bugzilla.md#how-do-you-triage for more information'.format(
+                    self.nweeks / 52
+                )
+            },
+            'priority': 'p3',
+        }
 
 
 if __name__ == '__main__':

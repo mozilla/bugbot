@@ -57,6 +57,9 @@ class Tracking(BzCleaner, Nag):
     def has_last_comment_time(self):
         return True
 
+    def has_default_products(self):
+        return False
+
     def get_extra_for_template(self):
         return {
             'channel': self.channel,

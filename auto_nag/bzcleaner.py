@@ -128,6 +128,9 @@ class BzCleaner(object):
     def get_summary(self, bug):
         return '...' if bug['groups'] else bug['summary']
 
+    def has_default_products(self):
+        return True
+
     def handle_bug(self, bug):
         """Implement this function to get all the bugs from the query"""
         pass
@@ -217,6 +220,9 @@ class BzCleaner(object):
                     'v' + n: '[no-nag]',
                 }
             )
+
+        if self.has_default_products():
+            params['product'] = utils.get_config('common', 'products')
 
     def get_bugs(self, date='today', bug_ids=[]):
         """Get the bugs"""

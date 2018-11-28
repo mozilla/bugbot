@@ -3,14 +3,11 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag import utils
 
 
 class MetaSummaryMissing(BzCleaner):
-
     def __init__(self):
         super(MetaSummaryMissing, self).__init__()
-        self.products = utils.get_config('common', 'products')
 
     def description(self):
         return 'Get bugs without the meta keyword but with [meta] in the title'
@@ -38,15 +35,10 @@ class MetaSummaryMissing(BzCleaner):
             'f1': 'days_elapsed',
             'o1': 'lessthan',
             'v1': days_lookup,
-            'product': self.products,
         }
 
     def get_autofix_change(self):
-        return {
-            'keywords': {
-                'add': ['meta']
-            }
-        }
+        return {'keywords': {'add': ['meta']}}
 
 
 if __name__ == '__main__':
