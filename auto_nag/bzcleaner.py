@@ -132,11 +132,16 @@ class BzCleaner(object):
         """Implement this function to get all the bugs from the query"""
         pass
 
+    def get_auto_ni_blacklist(self):
+        return set()
+
     def add_auto_ni(self, bugid, data):
         if not data:
             return
 
         ni_mail = data['mail']
+        if ni_mail in self.get_auto_ni_blacklist():
+            return
         if ni_mail in self.auto_needinfo:
             max_ni = self.get_max_ni()
             info = self.auto_needinfo[ni_mail]
