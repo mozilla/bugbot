@@ -9,6 +9,11 @@
     <p>Sincerely,<br>
       Release Management Bot
     </p>
+    {% if query_url -%}
+    <p>
+      See the search query on <a href="{{ query_url }}">Bugzilla</a>.
+    </p>
+    {% endif %}
     <p>
       See the source / report issues on the <a href="https://github.com/mozilla/relman-auto-nag/">GitHub repo</a>
     </p>
