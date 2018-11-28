@@ -150,6 +150,10 @@
             "calixte@mozilla.com",
             "sylvestre@mozilla.com"
         ],
+        "blacklist":
+        [
+            "sdeckelmann@mozilla.com"
+        ],
         "months_lookup": 6,
         "max_ni": 3
     },
@@ -159,6 +163,10 @@
         [
             "calixte@mozilla.com",
             "sylvestre@mozilla.com"
+        ],
+        "blacklist":
+        [
+            "sdeckelmann@mozilla.com"
         ],
         "months_lookup": 12,
         "max_ni": 3
