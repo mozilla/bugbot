@@ -7,10 +7,8 @@ from auto_nag import utils
 
 
 class OneTwoWordSummary(BzCleaner):
-
     def __init__(self):
         super(OneTwoWordSummary, self).__init__()
-        self.products = utils.get_config('common', 'products')
 
     def description(self):
         return 'Get bugs with only one or two words in the summary'
@@ -31,7 +29,6 @@ class OneTwoWordSummary(BzCleaner):
         days_lookup = self.get_config('days_lookup', default=7)
         return {
             'resolution': ['---'],
-            'product': self.products,
             'short_desc': '^([a-zA-Z0-9_]+ [a-zA-Z0-9_]+|[a-zA-Z0-9_]+)$',
             'short_desc_type': 'regexp',
             'f1': 'days_elapsed',

@@ -7,14 +7,14 @@ from auto_nag import utils
 
 
 class ReporterWithNI(BzCleaner):
-
     def __init__(self):
         super(ReporterWithNI, self).__init__()
         self.nweeks = utils.get_config(self.name(), 'number_of_weeks', 12)
-        self.products = utils.get_config('common', 'products')
 
     def description(self):
-        return 'Get bugs where the reporter has a needinfo and no activity for the last {} weeks'.format(self.nweeks)
+        return 'Get bugs where the reporter has a needinfo and no activity for the last {} weeks'.format(
+            self.nweeks
+        )
 
     def name(self):
         return 'reporter-with-ni'
@@ -23,7 +23,9 @@ class ReporterWithNI(BzCleaner):
         return 'reporter_with_ni.html'
 
     def subject(self):
-        return 'Bugs where the reporter has a needinfo and no activity for the last {} weeks'.format(self.nweeks)
+        return 'Bugs where the reporter has a needinfo and no activity for the last {} weeks'.format(
+            self.nweeks
+        )
 
     def get_extra_for_template(self):
         return {'nweeks': self.nweeks}
@@ -34,7 +36,6 @@ class ReporterWithNI(BzCleaner):
     def get_bz_params(self, date):
         params = {
             'resolution': '---',
-            'product': self.products,
             'f1': 'flagtypes.name',
             'o1': 'substring',
             'v1': 'needinfo?',

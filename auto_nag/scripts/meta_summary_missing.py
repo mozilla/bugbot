@@ -9,7 +9,6 @@ from auto_nag import utils
 class MetaSummaryMissing(BzCleaner):
     def __init__(self):
         super(MetaSummaryMissing, self).__init__()
-        self.products = utils.get_config('common', 'products')
         self.autofix_meta = {}
 
     def description(self):
@@ -51,7 +50,6 @@ class MetaSummaryMissing(BzCleaner):
             'f1': 'days_elapsed',
             'o1': 'lessthan',
             'v1': days_lookup,
-            'product': self.products,
         }
 
 

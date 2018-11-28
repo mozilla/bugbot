@@ -11,7 +11,6 @@ from auto_nag import utils
 
 
 class NoCrashes(BzCleaner):
-
     def __init__(self):
         super(NoCrashes, self).__init__()
         self.nweeks = utils.get_config(self.name(), 'number_of_weeks', 12)
@@ -32,8 +31,7 @@ class NoCrashes(BzCleaner):
         return {'nweeks': self.nweeks}
 
     def get_data(self):
-        return {'signatures': set(),
-                'ids': {}}
+        return {'signatures': set(), 'ids': {}}
 
     def get_bz_params(self, date):
         date = lmdutils.get_date_ymd(date) - relativedelta(weeks=self.nweeks)
@@ -41,28 +39,25 @@ class NoCrashes(BzCleaner):
         reporters = ','.join(reporters)
         keywords = self.get_config('keyword_exception', default=[])
         keywords = ','.join(keywords)
-        prod_blacklist = self.get_config('product_blacklist', default=[])
-        prod_blacklist = ','.join(prod_blacklist)
         fields = ['cf_crash_signature']
-        params = {'include_fields': fields,
-                  'resolution': '---',
-                  'f1': 'cf_crash_signature',
-                  'o1': 'isnotempty',
-                  'f2': 'creation_ts',
-                  'o2': 'lessthan',
-                  'v2': date,
-                  'f3': 'days_elapsed',
-                  'o3': 'greaterthan',
-                  'v3': self.nweeks * 7}
+        params = {
+            'include_fields': fields,
+            'resolution': '---',
+            'f1': 'cf_crash_signature',
+            'o1': 'isnotempty',
+            'f2': 'creation_ts',
+            'o2': 'lessthan',
+            'v2': date,
+            'f3': 'days_elapsed',
+            'o3': 'greaterthan',
+            'v3': self.nweeks * 7,
+        }
 
         if reporters:
             params.update({'f4': 'reporter', 'o4': 'nowordssubstr', 'v4': reporters})
 
         if keywords:
             params.update({'f5': 'keywords', 'o5': 'nowords', 'v5': keywords})
-
-        if prod_blacklist:
-            params.update({'f6': 'product', 'o6': 'nowords', 'v6': prod_blacklist})
 
         return params
 
@@ -99,7 +94,6 @@ class NoCrashes(BzCleaner):
             signatures.add(s)
 
     def get_stats(self, signatures, date):
-
         def handler(json, data):
             del json['hits']
             for facet in json['facets'].get('signature', {}):
@@ -108,19 +102,21 @@ class NoCrashes(BzCleaner):
         date = lmdutils.get_date_ymd(date) - relativedelta(weeks=self.nweeks)
         search_date = SuperSearch.get_search_date(date)
         chunks, size = self.chunkify(signatures)
-        base = {'date': search_date,
-                'signature': '',
-                '_result_number': 0,
-                '_facets': 'signature',
-                '_facets_size': size}
+        base = {
+            'date': search_date,
+            'signature': '',
+            '_result_number': 0,
+            '_facets': 'signature',
+            '_facets_size': size,
+        }
 
         searches = []
         for chunk in chunks:
             params = base.copy()
             params['signature'] = ['=' + x for x in chunk]
-            searches.append(SuperSearch(params=params,
-                                        handler=handler,
-                                        handlerdata=signatures))
+            searches.append(
+                SuperSearch(params=params, handler=handler, handlerdata=signatures)
+            )
 
         for s in searches:
             s.wait()
@@ -137,9 +133,15 @@ class NoCrashes(BzCleaner):
         return res
 
     def get_autofix_change(self):
-        return {'comment': {'body': 'Closing because no crashes reported for {} weeks.'.format(self.nweeks)},
-                'status': 'RESOLVED',
-                'resolution': 'WONTFIX'}
+        return {
+            'comment': {
+                'body': 'Closing because no crashes reported for {} weeks.'.format(
+                    self.nweeks
+                )
+            },
+            'status': 'RESOLVED',
+            'resolution': 'WONTFIX',
+        }
 
     def get_bugs(self, date='today', bug_ids=[]):
         data = super(NoCrashes, self).get_bugs(date=date, bug_ids=bug_ids)

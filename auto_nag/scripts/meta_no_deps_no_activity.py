@@ -59,9 +59,7 @@ class MetaNoDepsNoActivity(BzCleaner):
 
     def get_bz_params(self, date):
         fields = ['assigned_to', 'triage_owner']
-        products = utils.get_config(self.name(), 'products')
         params = {
-            'product': products,
             'include_fields': fields,
             'resolution': '---',
             'f1': 'keywords',
