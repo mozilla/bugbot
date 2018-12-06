@@ -1,0 +1,7 @@
+<p>The following bugs have been closed although the stalled keyword is there:
+  <ul>
+    {% for bugid in bugids -%}
+    <li><a href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a></li>
+    {% endfor -%}
+  </ul>
+</p>
