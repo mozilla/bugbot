@@ -157,5 +157,14 @@
         ],
         "months_lookup": 12,
         "max_ni": 3
+    },
+    "stalled":
+    {
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "sylvestre@mozilla.com"
+        ],
+        "days_lookup": 100
     }
 }
