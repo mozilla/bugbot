@@ -87,7 +87,7 @@ class Nag(object):
         for m in mails:
             Cc = Default_Cc.copy()
             Cc.add(m['manager'])
-            body = common.render(message=m['body'])
+            body = common.render(message=m['body'], query_url=None)
             mail.send(
                 From,
                 sorted(m['to']),

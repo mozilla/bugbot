@@ -229,6 +229,7 @@ class BzCleaner(object):
         bugids = self.get_data()
         params = self.get_bz_params(date)
         self.amend_bzparams(params, bug_ids)
+        self.query_url = utils.get_bz_search_url(params)
 
         Bugzilla(
             params,
@@ -378,7 +379,7 @@ class BzCleaner(object):
                 needinfos=self.get_needinfo_for_template(),
             )
             common = env.get_template('common.html')
-            body = common.render(message=message)
+            body = common.render(message=message, query_url=self.query_url)
             return self.get_email_subject(date), body
         return None, None
 

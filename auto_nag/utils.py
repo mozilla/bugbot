@@ -7,6 +7,12 @@ import json
 import re
 import requests
 import six
+
+try:
+    from urllib.parse import urlencode
+except ImportError:
+    from urllib import urlencode
+
 from auto_nag.bugzilla.utils import get_config_path
 
 
@@ -126,3 +132,7 @@ def get_last_field_num(params):
             s.add(int(m.group(1)))
 
     return max(s) + 1 if s else 1
+
+
+def get_bz_search_url(params):
+    return 'https://bugzilla.mozilla.org/buglist.cgi?' + urlencode(params, doseq=True)
