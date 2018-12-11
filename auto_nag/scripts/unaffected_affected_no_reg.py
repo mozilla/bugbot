@@ -7,7 +7,6 @@ from auto_nag.bugzilla.utils import getVersions
 
 
 class UnaffAffNoReg(BzCleaner):
-
     def __init__(self):
         super(UnaffAffNoReg, self).__init__()
 
@@ -33,25 +32,28 @@ class UnaffAffNoReg(BzCleaner):
         word_blacklist = self.get_config('word_blacklist', default=[])
         word_blacklist = '.*(' + '|'.join(word_blacklist) + ').*'
         release_version, beta_version, central_version = getVersions()
-        params = {'keywords': ['regression', 'feature'],
-                  'keywords_type': 'nowords',
-                  'short_desc_type': 'notregexp',
-                  'short_desc': word_blacklist,
-                  # not affecting release
-                  'f1': 'cf_status_firefox' + release_version,
-                  'o1': 'anyexact',
-                  'v1': 'unaffected',
-                  'f2': 'OP',
-                  'j2': 'OR',
-                  # affected in beta
-                  'f3': 'cf_status_firefox' + beta_version,
-                  'o3': 'anyexact',
-                  'v3': ['fixed', 'verified'],
-                  # affected in nightly
-                  'f4': 'cf_status_firefox' + central_version,
-                  'o4': 'anyexact',
-                  'v4': ['fixed', 'verified'],
-                  'f5': 'CP'}
+        value = ','.join(['fixed', 'verified'])
+        params = {
+            'keywords': ['regression', 'feature'],
+            'keywords_type': 'nowords',
+            'short_desc_type': 'notregexp',
+            'short_desc': word_blacklist,
+            # not affecting release
+            'f1': 'cf_status_firefox' + release_version,
+            'o1': 'anyexact',
+            'v1': 'unaffected',
+            'f2': 'OP',
+            'j2': 'OR',
+            # affected in beta
+            'f3': 'cf_status_firefox' + beta_version,
+            'o3': 'anyexact',
+            'v3': value,
+            # affected in nightly
+            'f4': 'cf_status_firefox' + central_version,
+            'o4': 'anyexact',
+            'v4': value,
+            'f5': 'CP',
+        }
 
         return params
 

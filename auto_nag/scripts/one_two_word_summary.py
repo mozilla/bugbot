@@ -27,7 +27,7 @@ class OneTwoWordSummary(BzCleaner):
     def get_bz_params(self, date):
         days_lookup = self.get_config('days_lookup', default=7)
         return {
-            'resolution': ['---'],
+            'resolution': '---',
             'short_desc': '^([a-zA-Z0-9_]+ [a-zA-Z0-9_]+|[a-zA-Z0-9_]+)$',
             'short_desc_type': 'regexp',
             'f1': 'days_elapsed',
