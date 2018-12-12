@@ -106,3 +106,7 @@ python -m auto_nag.scripts.meta_no_deps_no_activity
 # Bug tracked in nightly, beta and release but with a weak priority
 # Pretty rare
 python -m auto_nag.scripts.tracked_bad_priority
+
+# Bug closed with the stalled keyword
+# Pretty rare
+python -m auto_nag.scripts.stalled
