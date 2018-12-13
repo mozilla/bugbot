@@ -28,7 +28,7 @@ class TrackedBadPriority(BzCleaner):
     def get_bz_params(self, date):
         release_version, beta_version, central_version = getVersions()
         params = {
-            'priority': ['P3', 'P4', 'P5'],
+            'priority': ['--', 'P3', 'P4', 'P5'],
             'resolution': '---',
             'f1': 'cf_tracking_firefox' + release_version,
             'o1': 'anyexact',
