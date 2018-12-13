@@ -1,0 +1,7 @@
+<p>The following bugs have a missing beta status:
+  <ul>
+    {% for bugid, summary in bugids -%}
+    <li><a href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a>: {{ summary | e }}</li>
+    {% endfor -%}
+  </ul>
+</p>

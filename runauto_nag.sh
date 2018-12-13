@@ -110,3 +110,7 @@ python -m auto_nag.scripts.tracked_bad_priority
 # Bug closed with the stalled keyword
 # Pretty rare
 python -m auto_nag.scripts.stalled
+
+# Bugs with missing beta status
+# Pretty rare
+python -m auto_nag.scripts.missing_beta_status
