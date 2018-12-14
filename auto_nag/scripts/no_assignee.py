@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import functools
+from Levenshtein import jaro_winkler
 from libmozdata import hgmozilla
 from libmozdata.bugzilla import Bugzilla, BugzillaUser
 from libmozdata.connection import Query
@@ -11,6 +12,7 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 HG_MAIL = re.compile(r'^([^<]*)<([^>]+)>$')
+ALNUM = re.compile(r'[\W_]+', re.UNICODE)
 
 
 class NoAssignee(BzCleaner):
@@ -78,6 +80,14 @@ class NoAssignee(BzCleaner):
         nightly_pats = Bugzilla.get_landing_patterns(channels=['nightly'])
 
         def comment_handler(bug, bugid, data):
+            commenters = data[bugid]['commenters']
+            for comment in bug['comments']:
+                commenter = comment['author']
+                if commenter in commenters:
+                    commenters[commenter] += 1
+                else:
+                    commenters[commenter] = 1
+
             r = Bugzilla.get_landing_comments(bug['comments'], [], nightly_pats)
             data[bugid]['revisions'] = [i['revision'] for i in r]
 
@@ -87,13 +97,14 @@ class NoAssignee(BzCleaner):
                     data[bugid]['creators'].add(attachment['creator'])
 
         revisions = {
-            str(bugid): {'revisions': [], 'creators': set()} for bugid in bugids
+            str(bugid): {'revisions': [], 'creators': set(), 'commenters': {}}
+            for bugid in bugids
         }
         Bugzilla(
             bugids=bugids,
             commenthandler=comment_handler,
             commentdata=revisions,
-            comment_include_fields=['text'],
+            comment_include_fields=['text', 'author'],
             attachmenthandler=attachment_handler,
             attachmentdata=revisions,
         ).get_data().wait()
@@ -110,6 +121,7 @@ class NoAssignee(BzCleaner):
         users = set()
         for info in bzdata.values():
             users |= info['creators']
+            users |= set(info['commenters'].keys())
 
         data = {}
 
@@ -136,33 +148,55 @@ class NoAssignee(BzCleaner):
 
         return set()
 
-    def find_assignee(self, creators, patchers, bz_info):
+    def clean_mail(self, mail):
+        return ALNUM.sub('', mail)
+
+    def find_assignee(self, bz_patchers, hg_patchers, bz_commenters, bz_info):
         """Find a potential assignee.
            If an email is common between patchers (people who made patches on bugzilla)
-           and hg creators then return this email.
+           and hg patchers then return this email.
            If "Foo Bar [:foobar]" made a patch and his hg name is "Bar Foo" return the
            corresponding Bugzilla email.
         """
-        if not creators:
-            return None
+        if not bz_patchers:
+            # we've no patch in the bug
+            # so try to find an assignee in the commenters
+            bz_patchers = set(bz_commenters.keys())
 
-        patchers_mail = set(mail for _, mail in patchers)
-        common = creators & patchers_mail
+        potential = set()
+        hg_patchers_mail = set(mail for _, mail in hg_patchers)
+        common = bz_patchers & hg_patchers_mail
         if len(common) == 1:
             # there is a common email between Bz patchers & Hg email
             return list(common)[0]
 
-        if len(common) == 0:
-            # here we try to find at least 2 common elements
-            # in the creator real name and in the hg author name
-            patchers_name = [self.clean_name(name) for name, _ in patchers]
-            for creator in creators:
-                if creator not in bz_info:
-                    continue
-                real_name = self.clean_name(bz_info[creator])
-                for name in patchers_name:
-                    if len(name & real_name) >= 2:
-                        return creator
+        # here we try to find at least 2 common elements
+        # in the creator real name and in the hg author name
+        hg_patchers_name = [self.clean_name(name) for name, _ in hg_patchers]
+        for bz_patcher in bz_patchers:
+            if bz_patcher not in bz_info:
+                continue
+            real_name = self.clean_name(bz_info[bz_patcher])
+            for name in hg_patchers_name:
+                if len(name & real_name) >= 2:
+                    potential.add(bz_patcher)
+
+        # try to find similarities between email in using Jaro-Winkler metric
+        for b in bz_patchers:
+            _b = self.clean_mail(b)
+            for h in hg_patchers_mail:
+                _h = self.clean_mail(h)
+                d = 1 - jaro_winkler(_b, _h)
+                if d <= 0.2:
+                    potential.add(b)
+
+        if potential:
+            potential = list(potential)
+            if len(potential) == 1:
+                return potential[0]
+            return max(
+                ((p, bz_commenters.get(p, 0)) for p in potential), key=lambda x: x[1]
+            )[0]
 
         return None
 
@@ -170,11 +204,14 @@ class NoAssignee(BzCleaner):
         """Set the bugs where an easy assignee can be set.
         """
         for bugid, info in bzdata.items():
-            creators = info['creators']
             if bugid not in self.hgdata:
                 continue
+            creators = info['creators']
+            commenters = info['commenters']
             patchers = self.hgdata[bugid]
-            self.hgdata[bugid] = self.find_assignee(creators, patchers, user_info)
+            self.hgdata[bugid] = self.find_assignee(
+                creators, patchers, commenters, user_info
+            )
 
     def filter_from_hg(self, bzdata, user_info):
         """Get the bugs where an associated revision contains
