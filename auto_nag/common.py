@@ -1,5 +1,8 @@
 import json
-from urllib2 import urlopen
+try:
+    from urllib.request import urlopen
+except ImportError:
+    from urllib2 import urlopen
 
 
 def loadJSON(url):

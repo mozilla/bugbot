@@ -10,7 +10,7 @@ pyflakes==0.5.0
 python-dateutil>=2.5.2
 remoteobjects
 requests>=2.20.0
-simplejson==2.3.3
-wsgiref==0.1.2
 pexpect==3.1
 python-Levenshtein>=0.12.0
+https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.0.0/en_core_web_sm-2.0.0.tar.gz#egg=en-core-web-sm
+https://github.com/marco-c/bugbug/archive/a464840ca14d7172deed5336b66c2105865506e2.tar.gz#egg=bugbug

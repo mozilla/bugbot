@@ -1,10 +1,16 @@
 import base64
-from ConfigParser import ConfigParser
+try:
+    from configparser import ConfigParser
+except ImportError:
+    from ConfigParser import ConfigParser
 import getpass
 import os
 import re
 import posixpath
-import urllib
+try:
+    from urllib.parse import quote
+except ImportError:
+    from urllib import quote
 import datetime
 import requests
 from auto_nag.common import get_current_versions

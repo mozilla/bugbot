@@ -94,6 +94,9 @@ class BzCleaner(object):
     def get_mail_to_auto_ni(self, bug):
         return None
 
+    def all_include_fields(self):
+        return False
+
     def get_max_ni(self):
         return -1
 
@@ -185,30 +188,31 @@ class BzCleaner(object):
 
     def amend_bzparams(self, params, bug_ids):
         """Amend the Bugzilla params"""
-        if 'include_fields' in params:
-            fields = params['include_fields']
-            if isinstance(fields, list):
-                if 'id' not in fields:
-                    fields.append('id')
-            elif isinstance(fields, six.string_types):
-                if fields != 'id':
+        if not self.all_include_fields():
+            if 'include_fields' in params:
+                fields = params['include_fields']
+                if isinstance(fields, list):
+                    if 'id' not in fields:
+                        fields.append('id')
+                elif isinstance(fields, six.string_types):
+                    if fields != 'id':
+                        params['include_fields'] = [fields, 'id']
+                else:
                     params['include_fields'] = [fields, 'id']
             else:
-                params['include_fields'] = [fields, 'id']
-        else:
-            params['include_fields'] = ['id']
+                params['include_fields'] = ['id']
+
+            if not self.ignore_bug_summary():
+                params['include_fields'] += ['summary', 'groups']
+
+            if self.has_assignee() and 'assigned_to' not in params['include_fields']:
+                params['include_fields'].append('assigned_to')
+
+            if self.has_needinfo() and 'flags' not in params['include_fields']:
+                params['include_fields'].append('flags')
 
         if bug_ids:
             params['bug_id'] = bug_ids
-
-        if not self.ignore_bug_summary():
-            params['include_fields'] += ['summary', 'groups']
-
-        if self.has_assignee() and 'assigned_to' not in params['include_fields']:
-            params['include_fields'].append('assigned_to')
-
-        if self.has_needinfo() and 'flags' not in params['include_fields']:
-            params['include_fields'].append('flags')
 
         if self.filter_no_nag_keyword():
             n = utils.get_last_field_num(params)

@@ -1,14 +1,18 @@
-import httplib
-from remoteobjects import http
+try:
+    import httplib
+    from remoteobjects import http
 
-# Printing throws an error if we are printing using ascii
-import sys
-__all__ = ['models', 'utils', 'agents']
-reload(sys)
-sys.setdefaultencoding('utf-8')
+    # Printing throws an error if we are printing using ascii
+    import sys
+    __all__ = ['models', 'utils', 'agents']
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
 
-# Monkey patch remoteobjects to accept 202 status codes.
-http.HttpObject.response_has_content[httplib.ACCEPTED] = False
+    # Monkey patch remoteobjects to accept 202 status codes.
+    http.HttpObject.response_has_content[httplib.ACCEPTED] = False
+except ModuleNotFoundError:
+    # Python 3
+    pass
 
 
 VERSION = (0, 0, 1)
