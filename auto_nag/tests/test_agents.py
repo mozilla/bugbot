@@ -75,4 +75,4 @@ class TestAgent:
         bmo = BMOAgent('wrong_api_key_test')
         # Get the bugs from the api
         bug = bmo.get_bug(656222)
-        print bug
+        print(bug)

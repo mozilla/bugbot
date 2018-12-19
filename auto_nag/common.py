@@ -1,5 +1,5 @@
 import json
-from urllib2 import urlopen
+from urllib.request import urlopen
 
 
 def loadJSON(url):

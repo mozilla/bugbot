@@ -1,18 +1,16 @@
-sudo: required
 language: python
 env:
-    - TOX_ENV=py27
+    - TOX_ENV=py36
 python:
-  - "2.7"
+  - "3.6"
 
 install:
-    - travis_retry pip install tox coveralls
-    - pip install flake8
+    - pip install -r requirements-dev.txt
 
 script:
     - flake8 auto_nag/ --exclude=auto_nag/tests/
     - tox -e $TOX_ENV
 
 after_success:
-    - travis_retry pip install coveralls; coveralls;
+    - coveralls
 

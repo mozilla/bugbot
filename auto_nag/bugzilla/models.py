@@ -1,4 +1,4 @@
-import urlparse
+from urllib.parse import urlparse
 
 from remoteobjects import RemoteObject as RemoteObject_, fields
 

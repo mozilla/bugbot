@@ -1,10 +1,10 @@
 import base64
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 import getpass
 import os
 import re
 import posixpath
-import urllib
+import urllib.parse
 import datetime
 import requests
 from auto_nag.common import get_current_versions
@@ -51,11 +51,11 @@ def hide_personal_info(error):
 def qs(**kwargs):
     """Build a URL query string."""
     url = ''
-    for k, v in kwargs.iteritems():
+    for k, v in kwargs.items():
         if k == 'username' or k == 'password':
             pass
         for value in v:
-            url += '&%s=%s' % (urllib.quote(k), value)
+            url += '&%s=%s' % (urllib.parse.quote(k), value)
     return url
 
 

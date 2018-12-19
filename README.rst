@@ -63,10 +63,10 @@ Example::
     # Get the bugs from the api
     buglist = bmo.get_bug_list(options)
 
-    print "Found %s bugs" % (len(buglist))
+    print("Found %s bugs" % (len(buglist)))
 
     for bug in buglist:
-        print bug
+        print(bug)
 
 Query Creator, Automated Nagging Script
 ---------------------------------------

@@ -10,7 +10,5 @@ pyflakes==0.5.0
 python-dateutil>=2.5.2
 remoteobjects
 requests>=2.20.0
-simplejson==2.3.3
-wsgiref==0.1.2
 pexpect==3.1
 python-Levenshtein>=0.12.0
