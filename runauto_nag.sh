@@ -19,8 +19,7 @@ python -m auto_nag.scripts.no_assignee
 # very common
 python -m auto_nag.scripts.leave_open
 
-# Try to detect potential regressions by looking at comments
-# very common
+# Try to detect potential regressions using bugbug
 python3 -m auto_nag.scripts.regression
 
 # hasRegressionRange is set but no regression keyword
