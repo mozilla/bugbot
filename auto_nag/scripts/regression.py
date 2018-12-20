@@ -4,17 +4,10 @@
 
 from libmozdata.bugzilla import Bugzilla
 from auto_nag.bzcleaner import BzCleaner
-try:
-    import lzma
-except ImportError:
-    from backports import lzma
+import lzma
 import shutil
-from bugbug import bugzilla
 from bugbug.models.regression import RegressionModel
-try:
-    from urllib.request import urlretrieve
-except ImportError:
-    from urllib import urlretrieve
+from urllib.request import urlretrieve
 import requests
 
 
