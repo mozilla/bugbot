@@ -41,9 +41,12 @@ class MissingBetaStatus(BzCleaner):
         central = bug[self.status_central]
         release = bug[self.status_release]
 
-        if central == release:
+        if central == release and release != "verified":
             self.autofix_status[bugid] = {self.status_beta: central}
         else:
+            # if the two status are different, we don't know what to set
+            # if this verified on nightly and release, we cannot say
+            # per say if this is verified
             self.autofix_status[bugid] = {self.status_beta: '?'}
 
     def get_bz_params(self, date):
