@@ -10,7 +10,7 @@ try:
 
     # Monkey patch remoteobjects to accept 202 status codes.
     http.HttpObject.response_has_content[httplib.ACCEPTED] = False
-except ModuleNotFoundError:
+except ImportError:
     # Python 3
     pass
 
