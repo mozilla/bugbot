@@ -61,7 +61,7 @@ def qs(**kwargs):
         if k == 'username' or k == 'password':
             pass
         for value in v:
-            url += '&%s=%s' % (urllib.quote(k), value)
+            url += '&%s=%s' % (quote(k), value)
     return url
 
 
