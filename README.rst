@@ -30,10 +30,6 @@ we'll have to do this the long way.
 
     pip3 install -r requirements.txt
 
-#. Install the Spacy English model::
-
-    python3 -m spacy download en
-
 #. Run setup.py so the scripts are installed to your bin directory::
 
     python setup.py install
