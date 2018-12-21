@@ -3,7 +3,7 @@ argparse==1.2.1
 certifi>=2017.4.17
 chardet<3.1.0,>=3.0.2
 httplib2>=0.9.1
-libmozdata>=0.1.41
+libmozdata>=0.1.44
 path.py==2.2.2
 pep8==0.6.1
 pyflakes==0.5.0
