@@ -54,7 +54,8 @@ python -m auto_nag.scripts.one_two_word_summary
 # pretty common
 python -m auto_nag.scripts.no_crashes
 
-# Notify bugs tracked with P4 or P5 priorities for the ongoing releases
+# Notify bugs tracked (+ or blocking)
+# with P3, P4 or P5 priorities for the ongoing releases
 # Pretty common
 python -m auto_nag.scripts.mismatch-priority-tracking
 
@@ -101,10 +102,6 @@ python -m auto_nag.scripts.leave_open_no_activity
 # Needinfo the triage owner or the assignee when we find meta bugs not depending on bugs and no activity
 # Pretty common
 python -m auto_nag.scripts.meta_no_deps_no_activity
-
-# Bug tracked in nightly, beta and release but with a weak priority
-# Pretty rare
-python -m auto_nag.scripts.tracked_bad_priority
 
 # Bug closed with the stalled keyword
 # Pretty rare
