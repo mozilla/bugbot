@@ -43,16 +43,12 @@ class MismatchPrioTrackESR(BzCleaner):
                 'MOVED',
             ],
             'priority': ['P3', 'P4', 'P5'],
-            'f1': 'OP',
-            'f2': utils.get_flag(esr_version, 'tracking', 'esr'),
+            'f1': utils.get_flag(esr_version, 'tracking', 'esr'),
+            'o1': 'anyexact',
+            'v1': ','.join(['+', 'blocking']),
+            'f2': utils.get_flag(esr_version, 'status', 'esr'),
             'o2': 'anyexact',
-            'v2': ','.join(['+', 'blocking']),
-            'f3': utils.get_flag(esr_version, 'status', 'esr'),
-            'o3': 'anyexact',
-            'v3': value,
-            'o4': 'anyexact',
-            'f5': 'CP',
-            'o6': 'notsubstring',
+            'v2': value,
         }
         return params
 

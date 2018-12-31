@@ -42,16 +42,12 @@ class MismatchPrioTrackRelease(BzCleaner):
                 'MOVED',
             ],
             'priority': ['P3', 'P4', 'P5'],
-            'f1': 'OP',
-            'f2': 'cf_tracking_firefox' + release_version,
+            'f1': 'cf_tracking_firefox' + release_version,
+            'o1': 'anyexact',
+            'v1': ','.join(['+', 'blocking']),
+            'f2': 'cf_status_firefox' + release_version,
             'o2': 'anyexact',
-            'v2': ','.join(['+', 'blocking']),
-            'f3': 'cf_status_firefox' + release_version,
-            'o3': 'anyexact',
-            'v3': value,
-            'o4': 'anyexact',
-            'f5': 'CP',
-            'o6': 'notsubstring',
+            'v2': value,
         }
         return params
 
