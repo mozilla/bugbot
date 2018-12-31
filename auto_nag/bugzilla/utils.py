@@ -180,6 +180,7 @@ beta_version = versions['beta']
 central_version = versions['central']
 esr_version = "esr" + versions['esr']
 
+
 def getVersions(channel=None):
     if channel and isinstance(channel, basestring):
         channel = channel.lower()
