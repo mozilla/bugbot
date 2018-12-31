@@ -178,7 +178,7 @@ versions = get_current_versions()
 release_version = versions['release']
 beta_version = versions['beta']
 central_version = versions['central']
-esr_version = 'esr' + versions['esr']
+esr_version = versions['esr']
 
 
 def getVersions(channel=None):

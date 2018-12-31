@@ -4,6 +4,7 @@
 
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.bugzilla.utils import getVersions
+from auto_nag import utils
 
 
 class MismatchPrioTrackESR(BzCleaner):
@@ -43,10 +44,10 @@ class MismatchPrioTrackESR(BzCleaner):
             ],
             'priority': ['P3', 'P4', 'P5'],
             'f1': 'OP',
-            'f2': 'cf_tracking_firefox_' + esr_version,
+            'f2': utils.get_flag(esr_version, 'tracking', 'esr'),
             'o2': 'anyexact',
             'v2': ','.join(['+', 'blocking']),
-            'f3': 'cf_status_firefox_' + esr_version,
+            'f3': utils.get_flag(esr_version, 'status', 'esr'),
             'o3': 'anyexact',
             'v3': value,
             'o4': 'anyexact',
