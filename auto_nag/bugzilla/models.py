@@ -124,7 +124,7 @@ class Bug(RemoteObject):
             if "esr" in version:
                 version = "_" + version
             if ('cf_status_firefox' + version in self.api_data and
-                self.api_data['cf_status_firefox' + version] == 'affected'):
+               self.api_data['cf_status_firefox' + version] == 'affected'):
                 affected.append(version)
 
         return affected
