@@ -9,7 +9,7 @@ from auto_nag.bzcleaner import BzCleaner
 class VersionAffected(BzCleaner):
     def __init__(self):
         super(VersionAffected, self).__init__()
-        _, self.beta_version, _ = getVersions()
+        _, self.beta_version, _, _ = getVersions()
 
     def description(self):
         return 'Bug with version set but not status_firefox'

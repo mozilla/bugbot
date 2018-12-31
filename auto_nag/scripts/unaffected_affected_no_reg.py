@@ -31,7 +31,7 @@ class UnaffAffNoReg(BzCleaner):
     def get_bz_params(self, date):
         word_blacklist = self.get_config('word_blacklist', default=[])
         word_blacklist = '.*(' + '|'.join(word_blacklist) + ').*'
-        release_version, beta_version, central_version = getVersions()
+        release_version, beta_version, central_version, _ = getVersions()
         value = ','.join(['fixed', 'verified'])
         params = {
             'keywords': ['regression', 'feature'],

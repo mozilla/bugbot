@@ -7,7 +7,7 @@ from argparse import ArgumentParser
 from auto_nag.bugzilla.utils import (get_config_path, get_project_root_path,
                                      createQueriesList, cleanUp, getVersions)
 
-release_version, beta_version, central_version = getVersions()
+release_version, beta_version, central_version, esr_version = getVersions()
 
 fixed_without_uplifts_url = ("https://bugzilla.mozilla.org/buglist.cgi?"
                              "query_format=advanced&"
