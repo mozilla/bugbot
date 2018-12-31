@@ -64,6 +64,5 @@ class MismatchPrioTrackNightly(BzCleaner):
         }
 
 
-
 if __name__ == '__main__':
     MismatchPrioTrackNightly().run()

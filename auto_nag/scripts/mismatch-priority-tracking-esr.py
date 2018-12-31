@@ -65,6 +65,5 @@ class MismatchPrioTrackESR(BzCleaner):
         }
 
 
-
 if __name__ == '__main__':
     MismatchPrioTrackESR().run()

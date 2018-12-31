@@ -1,6 +1,6 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
-# You can obtain one at http://mozilla.org/MPL/2.0/.
+# You can obtain one at http://mozilla.org/MPL/
 
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.bugzilla.utils import getVersions
@@ -62,7 +62,6 @@ class MismatchPrioTrackRelease(BzCleaner):
             },
             'priority': 'p1',
         }
-
 
 
 if __name__ == '__main__':
