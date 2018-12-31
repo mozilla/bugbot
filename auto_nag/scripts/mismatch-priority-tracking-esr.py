@@ -28,7 +28,7 @@ class MismatchPrioTrackESR(BzCleaner):
 
     def get_bz_params(self, date):
         _, _, _, esr_version = getVersions()
-        value = ','.join(['', 'affected'])
+        value = ','.join(['---', 'affected'])
         params = {
             'resolution': [
                 '---',

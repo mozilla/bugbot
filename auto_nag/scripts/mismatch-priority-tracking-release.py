@@ -27,7 +27,7 @@ class MismatchPrioTrackRelease(BzCleaner):
 
     def get_bz_params(self, date):
         release_version, _, _, _ = getVersions()
-        value = ','.join(['', 'affected'])
+        value = ','.join(['---', 'affected'])
         params = {
             'resolution': [
                 '---',

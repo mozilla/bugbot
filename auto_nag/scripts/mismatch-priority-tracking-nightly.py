@@ -27,7 +27,7 @@ class MismatchPrioTrackNightly(BzCleaner):
 
     def get_bz_params(self, date):
         _, _, central_version, _ = getVersions()
-        value = ','.join(['', 'affected'])
+        value = ','.join(['---', 'affected'])
         params = {
             'resolution': [
                 '---',
