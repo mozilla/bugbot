@@ -155,7 +155,7 @@ class NoCrashes(BzCleaner):
         try:
             self.get_stats(data['signatures'], date)
         except SocorroError:
-            print('An error occured when getting data from Socorro')
+            print('An error occurred when getting data from Socorro. Execution ended.')
             sys.exit(1)
 
         bugids = self.get_bugs_without_crashes(data)
