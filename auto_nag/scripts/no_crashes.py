@@ -5,9 +5,14 @@
 from dateutil.relativedelta import relativedelta
 from libmozdata.socorro import SuperSearch
 from libmozdata import utils as lmdutils
+import sys
 
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag import utils
+
+
+class SocorroError(Exception):
+    pass
 
 
 class NoCrashes(BzCleaner):
@@ -95,6 +100,8 @@ class NoCrashes(BzCleaner):
 
     def get_stats(self, signatures, date):
         def handler(json, data):
+            if json['errors']:
+                raise SocorroError()
             del json['hits']
             for facet in json['facets'].get('signature', {}):
                 data.remove(facet['term'])
@@ -145,7 +152,12 @@ class NoCrashes(BzCleaner):
 
     def get_bugs(self, date='today', bug_ids=[]):
         data = super(NoCrashes, self).get_bugs(date=date, bug_ids=bug_ids)
-        self.get_stats(data['signatures'], date)
+        try:
+            self.get_stats(data['signatures'], date)
+        except SocorroError:
+            print('An error occurred when getting data from Socorro. Execution ended.')
+            sys.exit(1)
+
         bugids = self.get_bugs_without_crashes(data)
 
         return sorted(bugids)
