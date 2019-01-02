@@ -26,7 +26,8 @@ class TrackedBadSeverity(BzCleaner):
         return True
 
     def get_bz_params(self, date):
-        release_version, beta_version, central_version = getVersions()
+        # TODO add support for ESR here?
+        release_version, beta_version, central_version, esr_version = getVersions()
         value = ','.join(['affected', 'fixed'])
         params = {
             'bug_severity': ['normal', 'minor', 'trivial', 'enhancement'],

@@ -178,6 +178,7 @@ versions = get_current_versions()
 release_version = versions['release']
 beta_version = versions['beta']
 central_version = versions['central']
+esr_version = versions['esr']
 
 
 def getVersions(channel=None):
@@ -189,5 +190,7 @@ def getVersions(channel=None):
             return beta_version
         elif channel == 'central':
             return central_version
+        elif channel == 'esr':
+            return esr_version
 
-    return (release_version, beta_version, central_version)
+    return (release_version, beta_version, central_version, esr_version)

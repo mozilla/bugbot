@@ -121,7 +121,10 @@ class Bug(RemoteObject):
     def get_fx_affected_versions(self):
         affected = []
         for version in getVersions():
-            if self.api_data['cf_status_firefox' + version] == 'affected':
+            if "esr" in version:
+                version = "_" + version
+            if ('cf_status_firefox' + version in self.api_data and
+               self.api_data['cf_status_firefox' + version] == 'affected'):
                 affected.append(version)
 
         return affected
