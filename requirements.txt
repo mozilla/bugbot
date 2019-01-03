@@ -13,4 +13,4 @@ requests>=2.20.0
 pexpect==3.1
 python-Levenshtein>=0.12.0
 https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.0.0/en_core_web_sm-2.0.0.tar.gz#egg=en-core-web-sm
-https://github.com/marco-c/bugbug/archive/0d5e28058dad16de3684879bd49ccc02d8082ee6.tar.gz#egg=bugbug
+https://github.com/marco-c/bugbug/archive/628f25576ce8d1314b4bb1e08fb63d5c3b2e8125.tar.gz#egg=bugbug
