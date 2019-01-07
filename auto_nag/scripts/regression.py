@@ -46,7 +46,7 @@ class Regression(BzCleaner):
         return 'regression.html'
 
     def subject(self):
-        return 'Bugs with missing regression keyword'
+        return '[Using ML] Bugs with missing regression keyword'
 
     def ignore_bug_summary(self):
         return False
