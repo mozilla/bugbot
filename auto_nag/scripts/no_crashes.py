@@ -68,9 +68,9 @@ class NoCrashes(BzCleaner):
 
     def chunkify(self, signatures):
         """Make some chunks with signatures,
-           the total length of each chunk must be <= 2048"""
+           the total length of each chunk must be <= 1536"""
         total = sum(len(s) for s in signatures)
-        M = 2048
+        M = 1536
         n = total / M + 1
         res = [[M, []] for _ in range(n)]
         for s in signatures:
@@ -122,7 +122,12 @@ class NoCrashes(BzCleaner):
             params = base.copy()
             params['signature'] = ['=' + x for x in chunk]
             searches.append(
-                SuperSearch(params=params, handler=handler, handlerdata=signatures)
+                SuperSearch(
+                    params=params,
+                    handler=handler,
+                    handlerdata=signatures,
+                    raise_error=True,
+                )
             )
 
         for s in searches:
