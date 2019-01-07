@@ -52,7 +52,7 @@ python -m auto_nag.scripts.one_two_word_summary
 
 # Closes crash bug without any crashes for the last 12 weeks
 # pretty common
-python -m auto_nag.scripts.no_crashes
+#python -m auto_nag.scripts.no_crashes
 
 # Notify bugs tracked (+ or blocking)
 # with P3, P4 or P5 priorities for the ongoing releases
