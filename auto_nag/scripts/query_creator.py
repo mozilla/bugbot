@@ -32,9 +32,6 @@ esr_version = versions['esr']
 # TODO: We should have this in p-d at some point.
 cycle_span = getTemplateValue("https://wiki.mozilla.org/Template:CURRENT_CYCLE")
 
-unlanded_beta_url = getReportURL("approval-mozilla-beta", cycle_span) + ";field0-0-0=cf_status_firefox" + beta_version + ";type0-0-0=nowordssubstr;value0-0-0=unaffected,fixed,verified,wontfix,disabled" + ";field0-1-0=cf_tracking_firefox" + beta_version + ";type0-1-0=equals;value0-1-0=%2B;field0-2-0=status_whiteboard;type0-2-0=notsubstring;value0-2-0=[no-nag]"
-unlanded_esr_url = getReportURL("approval-mozilla-esr" + esr_version, cycle_span) + ";field0-0-0=cf_status_firefox_esr" + esr_version + ";type0-0-0=nowordssubstr;value0-0-0=unaffected,fixed,verified,wontfix,disabled" + ";field0-1-0=cf_tracking_firefox_esr" + esr_version + ";type0-1-0=equals;value0-1-0=%2B;field0-2-0=status_whiteboard;type0-2-0=notsubstring;value0-2-0=[no-nag]"
-
 tracking_beta_url = "https://bugzilla.mozilla.org/buglist.cgi?type1-0-0=equals;type0-1-0=notequals;type0-5-0=notequals;value0-5-0=disabled;value0-4-0=verified;field0-1-0=cf_status_firefox" + beta_version + ";field0-0-0=cf_tracking_firefox" + beta_version + ";field2-0-0=flagtypes.name;value0-3-0=unaffected;value0-6-0=verified%20disabled;value0-1-0=wontfix;field0-5-0=cf_status_firefox" + beta_version + ";type0-0-0=equals;value0-0-0=%2B;type0-2-0=notequals;negate1=1;field0-3-0=cf_status_firefox" + beta_version + ";type0-4-0=notequals;value2-0-0=approval-mozilla-beta%3F;field0-6-0=cf_status_firefox" + beta_version + ";type2-0-0=notsubstring;value0-2-0=fixed;type0-3-0=notequals;value1-0-0=core-security;field0-2-0=cf_status_firefox" + beta_version + ";field0-4-0=cf_status_firefox" + beta_version + ";type0-6-0=notequals;field1-0-0=bug_group;field2-1-0=status_whiteboard;type2-1-0=notsubstring;value2-1-0=[no-nag]"
 
 tracking_central_url = "https://bugzilla.mozilla.org/buglist.cgi?negate1=1;field0-3-0=cf_status_firefox" + central_version + ";type1-0-0=equals;type0-1-0=notequals;type0-5-0=notequals;value0-5-0=disabled;value0-4-0=verified;type3-0-0=notequals;field0-1-0=cf_status_firefox" + central_version + ";field0-0-0=cf_tracking_firefox" + central_version + ";type0-4-0=notequals;value3-0-0=%2B;field0-6-0=cf_status_firefox" + central_version + ";value0-3-0=unaffected;field3-0-0=cf_tracking_firefox" + beta_version + ";value0-2-0=fixed;value0-6-0=verified%20disabled;value0-1-0=wontfix;type0-3-0=notequals;value1-0-0=core-security;field0-2-0=cf_status_firefox" + central_version + ";field0-5-0=cf_status_firefox" + central_version + ";field0-4-0=cf_status_firefox" + central_version + ";type0-6-0=notequals;type0-0-0=equals;value0-0-0=%2B;type0-2-0=notequals;field1-0-0=bug_group;field2-1-0=status_whiteboard;type2-1-0=notsubstring;value2-1-0=[no-nag]"
@@ -59,8 +56,6 @@ needinfo_esr_url = "https://bugzilla.mozilla.org/buglist.cgi?f1=cf_tracking_fire
 # need same but for untouched
 
 urls = [
-    (5, ["Unlanded Beta " + beta_version + " Bugs", "unlanded_beta", unlanded_beta_url]),
-    (5, ["Unlanded ESR" + esr_version + " Bugs", "unlanded_esr", unlanded_esr_url]),
     (5, ["Tracked or Nominated for Tracking with Need-Info? Beta " + beta_version + " Bugs", "needinfo_beta", needinfo_beta_url]),
     (5, ["Tracked or Nominated for Tracking with Need-Info? Nightly " + central_version + " Bugs", "needinfo_central", needinfo_central_url]),
     (5, ["Tracked or Nominated for Tracking with Need-Info? ESR" + esr_version + " Bugs", "needinfo_esr", needinfo_esr_url]),
