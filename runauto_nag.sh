@@ -3,6 +3,10 @@ PATH_SCRIPT="$( cd "$(dirname "$0")" ; pwd -P )"
 . $PATH_SCRIPT/venv/bin/activate
 cd $PATH_SCRIPT
 export PYTHONPATH=.
+# Not up-to-date release date
+# Daily
+python -m auto_nag.next_release
+
 # Nag to developers
 # Daily
 python -m auto_nag.scripts.query_creator
