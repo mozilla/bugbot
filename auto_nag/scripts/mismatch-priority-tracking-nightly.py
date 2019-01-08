@@ -54,7 +54,7 @@ class MismatchPrioTrackNightly(BzCleaner):
     def get_autofix_change(self):
         return {
             'comment': {
-                'body': 'Changing the priority to p2 as the bug is tracked by a release manager for the current nightly.\nSee https://github.com/mozilla/bug-handling/blob/master/policy/triage-bugzilla.md#how-do-you-triage for more information'
+                'body': 'Changing the priority to p2 as the bug is tracked by a release manager for the current nightly.\nSee [How Do You Triage](https://github.com/mozilla/bug-handling/blob/master/policy/triage-bugzilla.md#how-do-you-triage) for more information'
             },
             'priority': 'p2',
         }
