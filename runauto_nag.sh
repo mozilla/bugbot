@@ -122,3 +122,7 @@ python -m auto_nag.scripts.stalled
 # Bugs with missing beta status
 # Pretty rare
 python -m auto_nag.scripts.missing_beta_status
+
+# has an unlanded patch or some flags not up-to-date
+# Pretty rare
+python -m auto_nag.scripts.unlanded
