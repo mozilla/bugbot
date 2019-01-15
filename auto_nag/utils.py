@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import json
+from libmozdata import release_calendar as rc
 import re
 import requests
 import six
@@ -13,7 +14,6 @@ except ImportError:
     from urllib import urlencode
 
 from auto_nag.bugzilla.utils import get_config_path
-from . import next_release
 
 
 _CONFIG = None
@@ -83,7 +83,7 @@ def get_cycle_span():
 
 
 def get_next_release_date():
-    return next_release.get_date()
+    return rc.get_next_release_date()
 
 
 def get_report_bugs(channel):
