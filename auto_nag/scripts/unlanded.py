@@ -28,11 +28,6 @@ class Unlanded(BzCleaner, Nag):
     def subject(self):
         return self.description()
 
-    def must_run(self, date):
-        weekday = date.weekday()
-        # no nagging the week-end
-        return weekday <= 4
-
     def ignore_bug_summary(self):
         return False
 
@@ -43,6 +38,10 @@ class Unlanded(BzCleaner, Nag):
         return False
 
     def set_people_to_nag(self, bug):
+        priority = self.get_priority(bug)
+        if not self.filter_bug(priority):
+            return None
+
         assignee = bug['assigned_to']
         bugid = str(bug['id'])
         real = bug['assigned_to_detail']['real_name']
@@ -59,17 +58,17 @@ class Unlanded(BzCleaner, Nag):
         else:
             bug_ids = utils.get_report_bugs(self.channel)
         status = utils.get_flag(version, 'status', self.channel)
-        tracking = utils.get_flag(version, 'tracking', self.channel)
-        fields = ['assigned_to']
+        self.tracking = utils.get_flag(version, 'tracking', self.channel)
+        fields = ['assigned_to', self.tracking]
         params = {
             'include_fields': fields,
             'bug_id': ','.join(bug_ids),
             'f1': status,
             'o1': 'nowordssubstr',
             'v1': ','.join(['unaffected', 'fixed', 'verified', 'wontfix', 'disabled']),
-            'f2': tracking,
-            'o2': 'equals',
-            'v2': '+',
+            'f2': self.tracking,
+            'o2': 'anywords',
+            'v2': ','.join(['+', 'blocking']),
         }
 
         return params

@@ -42,15 +42,6 @@ class Tracking(BzCleaner, Nag):
 
         return 'Bugs which are tracked in {} {}'.format(self.channel, self.version)
 
-    def must_run(self, date):
-        weekday = date.weekday()
-        if self.untouched:
-            # only thursday
-            return weekday == 3
-        else:
-            # only monday
-            return weekday == 0
-
     def ignore_bug_summary(self):
         return False
 
@@ -71,6 +62,10 @@ class Tracking(BzCleaner, Nag):
         return self.get_extra_for_template()
 
     def set_people_to_nag(self, bug):
+        priority = self.get_priority(bug)
+        if not self.filter_bug(priority):
+            return None
+
         assignee = bug['assigned_to']
         bugid = str(bug['id'])
         real = bug['assigned_to_detail']['real_name']
@@ -82,7 +77,7 @@ class Tracking(BzCleaner, Nag):
         }
 
         self.add_assignee(bugid, real)
-        if not self.add(assignee, bug_data):
+        if not self.add(assignee, bug_data, priority=priority):
             self.add_no_manager(bugid)
 
         return bug
@@ -90,13 +85,15 @@ class Tracking(BzCleaner, Nag):
     def get_bz_params(self, date):
         v = self.versions[self.channel]
         status = utils.get_flag(v, 'status', self.channel)
-        tracking = utils.get_flag(v, 'tracking', self.channel)
-        tracking_value = '+' if self.channel != 'esr' else self.versions['beta'] + '+'
-        fields = ['assigned_to']
+        self.tracking = utils.get_flag(v, 'tracking', self.channel)
+        tracking_value = (
+            '+,blocking' if self.channel != 'esr' else self.versions['beta'] + '+'
+        )
+        fields = ['assigned_to', self.tracking]
         params = {
             'include_fields': fields,
-            'f1': tracking,
-            'o1': 'equals',
+            'f1': self.tracking,
+            'o1': 'anywords',
             'v1': tracking_value,
             'f2': status,
             'o2': 'nowordssubstr',
@@ -105,7 +102,7 @@ class Tracking(BzCleaner, Nag):
 
         if self.channel == 'central':
             tracking = utils.get_flag(self.versions['beta'], 'tracking', 'beta')
-            params.update({'f3': tracking, 'o3': 'notequals', 'v3': '+'})
+            params.update({'f3': tracking, 'o3': 'nowordssubstr', 'v3': '+,blocking'})
         elif self.channel != 'esr':
             approval = utils.get_flag(v, 'approval', self.channel)
             params.update(

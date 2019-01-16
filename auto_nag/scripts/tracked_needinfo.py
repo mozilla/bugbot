@@ -48,11 +48,6 @@ class TrackedNeedinfo(BzCleaner, Nag):
     def has_default_products(self):
         return False
 
-    def must_run(self, date):
-        weekday = date.weekday()
-        # no nagging the week-end
-        return weekday <= 4
-
     def get_extra_for_template(self):
         return {'channel': self.channel, 'version': self.version}
 
@@ -65,12 +60,16 @@ class TrackedNeedinfo(BzCleaner, Nag):
         }
 
     def set_people_to_nag(self, bug):
+        priority = self.get_priority(bug)
+        if not self.filter_bug(priority):
+            return None
+
         bugid = str(bug['id'])
         has_manager = False
         for flag in utils.get_needinfo(bug):
             requestee = flag['requestee']
             bug_data = {'id': bugid, 'summary': self.get_summary(bug), 'to': requestee}
-            if self.add(requestee, bug_data):
+            if self.add(requestee, bug_data, priority=priority):
                 has_manager = True
 
         if not has_manager:
@@ -80,15 +79,15 @@ class TrackedNeedinfo(BzCleaner, Nag):
 
     def get_bz_params(self, date):
         status = utils.get_flag(self.version, 'status', self.channel)
-        tracking = utils.get_flag(self.version, 'tracking', self.channel)
-        fields = ['assigned_to', 'flags']
+        self.tracking = utils.get_flag(self.version, 'tracking', self.channel)
+        fields = ['assigned_to', 'flags', self.tracking]
         params = {
             'include_fields': fields,
             'resolution': '---',
             'bug_status': ','.join(['UNCONFIRMED', 'NEW', 'ASSIGNED', 'REOPENED']),
-            'f1': tracking,
+            'f1': self.tracking,
             'o1': 'anywords',
-            'v1': '+,?',
+            'v1': ','.join(['+', '?', 'blocking']),
             'f2': 'flagtypes.name',
             'o2': 'equals',
             'v2': 'needinfo?',

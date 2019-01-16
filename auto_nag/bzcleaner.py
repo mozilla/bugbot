@@ -402,8 +402,12 @@ class BzCleaner(object):
         """Send the email"""
         if date:
             date = lmdutils.get_date(date)
-            if not self.must_run(lmdutils.get_date_ymd(date)):
+            d = lmdutils.get_date_ymd(date)
+            if not self.must_run(d):
                 return
+
+            if isinstance(self, Nag):
+                self.nag_date = d
 
         login_info = utils.get_login_info()
         title, body = self.get_email(login_info['bz_api_key'], date, dryrun)
@@ -419,7 +423,7 @@ class BzCleaner(object):
             )
 
             if isinstance(self, Nag):
-                self.send_mails(date, title, dryrun=dryrun)
+                self.send_mails(title, dryrun=dryrun)
         else:
             name = self.name().upper()
             if date:

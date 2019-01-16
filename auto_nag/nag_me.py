@@ -25,17 +25,66 @@ class Nag(object):
     def get_cc():
         return set(utils.get_config('auto_nag', 'cc', []))
 
+    def get_priority(self, bug):
+        tracking = bug[self.tracking]
+        if tracking == 'blocking':
+            return 'high'
+        return 'normal'
+
+    def filter_bug(self, priority):
+        days = (utils.get_next_release_date() - self.nag_date).days
+        weekday = self.nag_date.weekday()
+        Mon = 0
+        Thu = 2
+        if priority == 'high':
+            if days >= 20:
+                return weekday == Thu
+            if 5 <= days < 20:
+                return weekday in {Mon, Thu}
+            return True
+        elif priority == 'normal':
+            if days >= 15:
+                return weekday == Thu
+            if 3 <= days < 15:
+                return weekday in {Mon, Thu}
+            return True
+
+        return weekday == Mon
+
     def get_people(self):
         return self.people
 
     def set_people_to_nag(self, bug):
         return bug
 
-    def add(self, person, bug_data):
+    def escalation(self, person, priority):
+        days = (utils.get_next_release_date() - self.nag_date).days
+        if priority == 'high':
+            if days >= 20:
+                return self.people.get_nth_manager_mail(person, 1)
+            elif 15 <= days < 20:
+                return self.people.get_nth_manager_mail(person, 2)
+            elif 5 <= days < 15:
+                return self.people.get_director_mail(person)
+            else:
+                return self.people.get_vp_mail(person)
+        elif priority == 'normal':
+            if days >= 15:
+                return self.people.get_nth_manager_mail(person, 1)
+            elif 10 <= days < 15:
+                return self.people.get_nth_manager_mail(person, 2)
+            elif 3 <= days < 10:
+                return self.people.get_director_mail(person)
+            else:
+                return self.people.get_vp_mail(person)
+
+        return self.people.get_nth_manager_mail(person, 1)
+
+    def add(self, person, bug_data, priority='default'):
         if not self.people.is_mozilla(person):
             return False
 
-        manager = self.people.get_manager_mail(person)
+        manager = self.escalation(person, priority)
         person = self.people.get_moz_mail(person)
 
         if manager in self.data:
@@ -72,8 +121,7 @@ class Nag(object):
             mail, self.black_list
         )
 
-    def send_mails(self, date, title, dryrun=False):
-        self.nag_date = date
+    def send_mails(self, title, dryrun=False):
         if not self.send_nag_mail:
             return
 

@@ -49,7 +49,14 @@ class NiFromManager(BzCleaner, Nag):
     def has_needinfo(self):
         return True
 
+    def get_priority(self, bug):
+        return 'normal'
+
     def set_people_to_nag(self, bug):
+        priority = self.get_priority(bug)
+        if not self.filter_bug(priority):
+            return None
+
         bugid = str(bug['id'])
         has_manager = False
         accepted = False

@@ -134,6 +134,43 @@ class People:
 
         return None
 
+    def get_nth_manager_mail(self, mail, rank):
+        """Get the manager of the person with this mail"""
+        for _ in range(rank):
+            prev = mail
+            mail = self.get_manager_mail(mail)
+            if not mail or mail == prev:
+                return prev
+        return mail
+
+    def get_director_mail(self, mail):
+        """Get the director of the person with this mail"""
+        directors = self.get_directors()
+        while True:
+            prev = mail
+            mail = self.get_manager_mail(mail)
+            if not mail:
+                break
+            if mail in directors:
+                return mail
+            if mail == prev:
+                break
+        return None
+
+    def get_vp_mail(self, mail):
+        """Get the director of the person with this mail"""
+        vps = self.get_vps()
+        while True:
+            prev = mail
+            mail = self.get_manager_mail(mail)
+            if not mail:
+                break
+            if mail in vps:
+                return mail
+            if mail == prev:
+                break
+        return None
+
     def get_moz_mail(self, mail):
         """Get the manager of the person with this mail"""
         person = self._get_people_by_bzmail().get(mail, None)
