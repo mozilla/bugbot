@@ -35,7 +35,7 @@ class Nag(object):
         days = (utils.get_next_release_date() - self.nag_date).days
         weekday = self.nag_date.weekday()
         Mon = 0
-        Thu = 2
+        Thu = 3
         if priority == 'high':
             if days >= 20:
                 return weekday == Thu
