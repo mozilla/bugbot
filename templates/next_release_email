@@ -1,0 +1,14 @@
+{% if bad_date_nrd -%}
+<p>
+The next release date ({{ bad_date_nrd }}) is not up-to-date:<br>
+<a href="https://wiki.mozilla.org/Template:NextReleaseDate">https://wiki.mozilla.org/Template:NextReleaseDate</a><br>
+and it should be {{ next_date }} (see <a href="https://wiki.mozilla.org/Release_Management/Calendar">release calendar</a>).
+</p>
+{%- endif -%}
+{%- if bad_date_ro -%}
+<p>
+The next release date ({{ bad_date_ro }}) is not up-to-date :<br>
+<a href="https://wiki.mozilla.org/Release_Management/Release_owners">https://wiki.mozilla.org/Release_Management/Release_owners</a>
+and it should be {{ next_date }} (see <a href="https://wiki.mozilla.org/Release_Management/Calendar">release calendar</a>).
+</p>
+{%- endif -%}

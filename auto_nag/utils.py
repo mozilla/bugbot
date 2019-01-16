@@ -2,8 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import dateutil.parser
 import json
+from libmozdata import release_calendar as rc
 import re
 import requests
 import six
@@ -18,7 +18,6 @@ from auto_nag.bugzilla.utils import get_config_path
 
 _CONFIG = None
 _CYCLE_SPAN = None
-_NEXT_RELEASE = None
 TEMPLATE_PAT = re.compile(r'<p>(.*)</p>', re.DOTALL)
 BZ_FIELD_PAT = re.compile(r'^[fovj]([0-9]+)$')
 
@@ -84,13 +83,7 @@ def get_cycle_span():
 
 
 def get_next_release_date():
-    global _NEXT_RELEASE
-    if _NEXT_RELEASE is None:
-        url = 'https://wiki.mozilla.org/Template:NextReleaseDate'
-        template_page = str(requests.get(url).text.encode('utf-8'))
-        m = TEMPLATE_PAT.search(template_page)
-        _NEXT_RELEASE = dateutil.parser.parse(m.group(1).strip())
-    return _NEXT_RELEASE
+    return rc.get_next_release_date()
 
 
 def get_report_bugs(channel):

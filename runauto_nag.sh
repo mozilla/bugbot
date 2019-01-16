@@ -12,6 +12,10 @@ if test ! -f auto_nag/scripts/configs/people.json; then
     exit -1
 fi
 export PYTHONPATH=.
+# Not up-to-date release date
+# Daily
+python -m auto_nag.next_release
+
 # Nag to developers
 # Daily
 python -m auto_nag.scripts.query_creator

@@ -176,5 +176,14 @@
             "sylvestre@mozilla.com"
         ],
         "days_lookup": 100
+    },
+    "next-release":
+    {
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "sylvestre@mozilla.com",
+            "release-mgmt@mozilla.com"
+        ]
     }
 }
