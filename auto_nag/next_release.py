@@ -21,7 +21,7 @@ def send_mail(next_date, bad_date_nrd, bad_date_ro, dryrun=False):
         next_date=next_date, bad_date_nrd=bad_date_nrd, bad_date_ro=bad_date_ro
     )
     common = env.get_template('common.html')
-    body = common.render(message=message)
+    body = common.render(message=message, has_table=False)
     mail.send(
         login_info['ldap_username'],
         utils.get_config('next-release', 'receivers'),

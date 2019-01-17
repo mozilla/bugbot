@@ -1,7 +1,24 @@
 <p>The following {{ plural('bug is', data, pword='bugs are') }} tracked in {{ extra['channel'] }} {{ extra['version'] }}{% if extra['touch'] %} and untouched this week{% endif -%}:
-  <ul>
-    {% for info in data -%}
-    <li><a href="https://bugzilla.mozilla.org/{{ info['id'] }}">{{ info['id'] }}</a>: {{ info['summary'] | e }} (assigned to {{ info['To'] | e }}).</li>
-    {% endfor -%}
-  </ul>
+  <table border="1">
+    <thead>
+      <tr>
+        <th>Bug</th><th>Summary</th><th>Assignee</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for info in data -%}
+      <tr>
+        <td>
+          <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ info['id'] }}">{{ info['id'] }}</a>
+        </td>
+        <td>
+          {{ info['summary'] | e }}
+        </td>
+        <td>
+          {{ info['To'] | e }}
+        </td>
+      </tr>
+      {% endfor -%}
+    </tbody>
+  </table>
 </p>

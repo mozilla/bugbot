@@ -1,12 +1,27 @@
-<p>The following {{ plural('bug is', bugids, pword='bugs are') }} tracked in {{ extra['channel'] }} {{ extra['version'] }}{% if extra['untouched'] %} and untouched this week{% endif -%}:
-  <ul>
-    <li>When the bug is red, then the assignee has no manager.</li>
-    {% for bugid, summary in bugids -%}
-    <li>
-      <a {% if str(bugid) in no_manager %}style="color:red;" {% endif %}href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a>: {{ summary | e }} (assigned to {{ assignees[str(bugid)] | e }})
-      <br>
-      &mdash; Last commented on: {{ last_comment[str(bugid)] }}
-    </li>
-    {% endfor -%}
-  </ul>
+<p>The following {{ plural('bug is', bugids, pword='bugs are') }} tracked in {{ extra['channel'] }} {{ extra['version'] }}{% if extra['untouched'] %} and untouched this week{% endif %} (when the bug is red, then the assignee is a person with no manager):
+  <table border="1">
+    <thead>
+      <tr>
+        <th>Bug</th><th>Summary</th><th>Assignee</th><th>Last comment</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for bugid, summary in bugids -%}
+      <tr>
+        <td {% if str(bugid) in no_manager %}style="background:red;"{% endif %}>
+          <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+        </td>
+        <td>
+          {{ summary | e }}
+        </td>
+        <td>
+          {{ assignees[str(bugid)] | e }}
+        </td>
+        <td>
+          {{ last_comment[str(bugid)] }}
+        </td>
+      </tr>
+      {% endfor -%}
+    </tbody>
+  </table>
 </p>

@@ -52,6 +52,7 @@ class NiFromManager(BzCleaner, Nag):
     def set_people_to_nag(self, bug):
         bugid = str(bug['id'])
         has_manager = False
+        accepted = False
         for flag in bug['flags']:
             if (
                 flag.get('name', '') == 'needinfo'
@@ -60,6 +61,7 @@ class NiFromManager(BzCleaner, Nag):
             ):
                 requestee = flag['requestee']
                 if self.is_under(requestee):
+                    accepted = True
                     bug_data = {
                         'id': bugid,
                         'summary': self.get_summary(bug),
@@ -69,10 +71,10 @@ class NiFromManager(BzCleaner, Nag):
                     if self.add(requestee, bug_data):
                         has_manager = True
 
-        if not has_manager:
+        if accepted and not has_manager:
             self.add_no_manager(bugid)
 
-        return bug
+        return bug if accepted else None
 
     def get_bz_params(self, date):
         start_date, _ = self.get_dates(date)
