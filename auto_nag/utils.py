@@ -40,7 +40,11 @@ def get_config(name, entry, default=None):
     conf = _get_config()
     if name not in conf:
         name = 'common'
-    return conf.get(name, {}).get(entry, default)
+    tool_conf = conf[name]
+    if entry in tool_conf:
+        return tool_conf[entry]
+    tool_conf = conf['common']
+    return tool_conf.get(entry, default)
 
 
 def get_signatures(sgns):
