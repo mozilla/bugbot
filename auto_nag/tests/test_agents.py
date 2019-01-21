@@ -26,13 +26,13 @@ class TestAgent:
     def test_get_bug_list(self):
         # Set whatever REST API options we want
         options = {
-            'changed_after':    ['2012-12-24'],
-            'changed_before':   ['2012-12-27'],
-            'changed_field':    ['status'],
-            'changed_field_to': ['RESOLVED'],
-            'product':          ['Firefox'],
-            'resolution':       ['FIXED'],
-            'include_fields':   ['attachments'],
+            'chfieldfrom': ['2012-12-24'],
+            'chfieldto': ['2012-12-27'],
+            'chfield': ['bug_status'],
+            'chfieldvalue': ['RESOLVED'],
+            'product': ['Firefox'],
+            'resolution': ['FIXED'],
+            'include_fields': ['attachments'],
         }
         # Load our agent for BMO
         bmo = BMOAgent()
@@ -54,13 +54,13 @@ class TestAgent:
         """ Wrong API Key, it should raise an Error"""
         # Set whatever REST API options we want
         options = {
-            'changed_after':    ['2012-12-24'],
-            'changed_before':   ['2012-12-27'],
-            'changed_field':    ['status'],
-            'changed_field_to': ['RESOLVED'],
-            'product':          ['Firefox'],
-            'resolution':       ['FIXED'],
-            'include_fields':   ['attachments'],
+            'chfieldfrom': ['2012-12-24'],
+            'chfieldto': ['2012-12-27'],
+            'chfield': ['bug_status'],
+            'chfieldvalue': ['RESOLVED'],
+            'product': ['Firefox'],
+            'resolution': ['FIXED'],
+            'include_fields': ['attachments'],
         }
         # Load our agent for BMO
         bmo = BMOAgent('wrong_api_key_test')

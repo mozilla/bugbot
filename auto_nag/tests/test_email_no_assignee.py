@@ -11,4 +11,5 @@ class TestEmailNoAssignee(unittest.TestCase):
 
     def test_nobody(self):
         bugids = NoAssignee().get_bugs('2011-01-01', bug_ids=[229367, 400095])
-        assert bugids == {'229367': None}
+        assert bugids == {'229367': 'smontagu@smontagu.org'}
+
