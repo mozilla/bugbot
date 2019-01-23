@@ -76,7 +76,7 @@ class MultiNaggers(object):
         for manager, m in all_mails.items():
             Cc = Default_Cc.copy()
             Cc.add(manager)
-            body = common.render(message=m['body'])
+            body = common.render(message=m['body'], has_table=True)
             mail.send(
                 From,
                 list(sorted(m['to'])),

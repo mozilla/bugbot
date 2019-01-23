@@ -70,6 +70,8 @@ class BzCleaner(object):
         self.no_manager.add(str(bugid))
 
     def add_assignee(self, bugid, name):
+        if name == 'Nobody; OK to take it and work on it':
+            name = 'nobody'
         self.assignees[str(bugid)] = name
 
     def add_needinfo(self, bugid, name):
@@ -82,7 +84,7 @@ class BzCleaner(object):
     def get_needinfo_for_template(self):
         res = {}
         for bugid, ni in self.needinfos.items():
-            res[bugid] = '(' + ', '.join('needinfo? ' + x for x in sorted(ni)) + ')'
+            res[bugid] = list(sorted(ni))
         return res
 
     def has_assignee(self):
@@ -268,9 +270,9 @@ class BzCleaner(object):
         if self.has_last_comment_time():
             if comments:
                 # get the timestamp of the last comment
-                self.last_comment[bugid] = str(
-                    dateutil.parser.parse(comments[-1]['time'])
-                )
+                self.last_comment[bugid] = dateutil.parser.parse(
+                    comments[-1]['time']
+                ).strftime('%Y-%m-%d %H:%M:%S (UTC+0)')
             else:
                 self.last_comment[bugid] = ''
 
@@ -388,7 +390,11 @@ class BzCleaner(object):
                 needinfos=self.get_needinfo_for_template(),
             )
             common = env.get_template('common.html')
-            body = common.render(message=message, query_url=self.query_url)
+            body = common.render(
+                message=message,
+                query_url=self.query_url,
+                has_table='<thead>' in message,
+            )
             return self.get_email_subject(date), body
         return None, None
 

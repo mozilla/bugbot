@@ -1,7 +1,24 @@
 <p>The following {{ plural('bug has', data, pword='bugs have') }} a needinfo from a release manager or a director and no activity for the last {{ extra['nweeks'] }} {{ plural('week', extra['nweeks']) }}:
-  <ul>
-    {% for info in data -%}
-    <li><a href="https://bugzilla.mozilla.org/{{ info['id'] }}">{{ info['id'] }}</a>: {{ info['summary'] | e }} (needinfo? {{ info['to'] | e }} from {{ info['from'] | e }}).</li>
-    {% endfor -%}
-  </ul>
+  <table border="1">
+    <thead>
+      <tr>
+        <th>Bug</th><th>Summary</th><th>Needinfos</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for info in data -%}
+      <tr>
+        <td>
+          <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ info['id'] }}">{{ info['id'] }}</a>
+        </td>
+        <td>
+          {{ info['summary'] | e }}
+        </td>
+        <td>
+          <a href="mailto:{{ info['to'] | e }}">{{ info['to'] | e }}</a> from {{ info['from'] | e }}</a>
+        </td>
+      </tr>
+      {% endfor -%}
+    </tbody>
+  </table>
 </p>
