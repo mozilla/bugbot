@@ -243,8 +243,13 @@ class BzCleaner(object):
         ).get_data().wait()
 
         self.get_comments(bugids)
-
-        return sorted(bugids) if isinstance(bugids, list) else bugids
+        return (
+            sorted(
+                bugids, reverse=utils.get_config(self.name(), 'reverse_order', False)
+            )
+            if isinstance(bugids, list)
+            else bugids
+        )
 
     def get_comment_data(self):
         return None

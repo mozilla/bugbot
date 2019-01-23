@@ -1,12 +1,6 @@
 {
     "no-assignee":
     {
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "ehumphries@mozilla.com",
-            "sylvestre@mozilla.com"
-        ],
         "days_lookup": 45,
         "reporter_exception":
         // the bugs where the reporter is in this list are not retrieved
@@ -24,6 +18,7 @@
         ],
         "days_lookup": 7,
         "bz_query_timeout": 240,
+        "reverse_order": false,
         "products":
         [
             "Core",
@@ -88,12 +83,6 @@
     "nocrashes":
     {
         "number_of_weeks": 12,
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "ehumphries@mozilla.com",
-            "sylvestre@mozilla.com"
-        ],
         "reporter_exception":
         [
             "intermittent-bug-filer@mozilla.bugs"
@@ -107,12 +96,6 @@
     {
         "number_of_weeks": 2,
         "days_lookup": 183,
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "ehumphries@mozilla.com",
-            "sylvestre@mozilla.com"
-        ],
         "owners":
         {
             "overholt@mozilla.com":
@@ -124,12 +107,6 @@
     },
     "ni-from-manager":
     {
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "ehumphries@mozilla.com",
-            "sylvestre@mozilla.com"
-        ],
         "white-list":
         [
             "aoverholt@mozilla.com"
@@ -139,12 +116,6 @@
     },
     "leave-open-no-activity":
     {
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "ehumphries@mozilla.com",
-            "sylvestre@mozilla.com"
-        ],
         "blacklist":
         [
             "sdeckelmann@mozilla.com"
@@ -154,12 +125,6 @@
     },
     "meta-no-deps-no-activity":
     {
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "ehumphries@mozilla.com",
-            "sylvestre@mozilla.com"
-        ],
         "blacklist":
         [
             "sdeckelmann@mozilla.com"
@@ -169,12 +134,6 @@
     },
     "stalled":
     {
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "ehumphries@mozilla.com",
-            "sylvestre@mozilla.com"
-        ],
         "days_lookup": 100
     },
     "next-release":
@@ -185,5 +144,9 @@
             "sylvestre@mozilla.com",
             "release-mgmt@mozilla.com"
         ]
+    },
+    "reporter-with-ni":
+    {
+        "reverse_order": true
     }
 }
