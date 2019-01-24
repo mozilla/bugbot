@@ -158,7 +158,7 @@ class People:
         return None
 
     def get_vp_mail(self, mail):
-        """Get the director of the person with this mail"""
+        """Get the VP of the person with this mail"""
         vps = self.get_vps()
         while True:
             prev = mail
