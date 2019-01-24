@@ -5,6 +5,7 @@
 from jinja2 import Environment, FileSystemLoader
 from auto_nag import mail, utils
 from auto_nag.people import People
+from auto_nag.escalation import Escalation
 
 
 class Nag(object):
@@ -16,6 +17,7 @@ class Nag(object):
         self.nag_date = None
         self.white_list = []
         self.black_list = []
+        self.escalation = Escalation(self.people)
 
     @staticmethod
     def get_from():
@@ -34,22 +36,7 @@ class Nag(object):
     def filter_bug(self, priority):
         days = (utils.get_next_release_date() - self.nag_date).days
         weekday = self.nag_date.weekday()
-        Mon = 0
-        Thu = 3
-        if priority == 'high':
-            if days >= 20:
-                return weekday == Thu
-            if 5 <= days < 20:
-                return weekday in {Mon, Thu}
-            return True
-        elif priority == 'normal':
-            if days >= 15:
-                return weekday == Thu
-            if 3 <= days < 15:
-                return weekday in {Mon, Thu}
-            return True
-
-        return weekday == Mon
+        return self.escalation.filter(priority, days, weekday)
 
     def get_people(self):
         return self.people
@@ -57,34 +44,15 @@ class Nag(object):
     def set_people_to_nag(self, bug):
         return bug
 
-    def escalation(self, person, priority):
+    def escalate(self, person, priority):
         days = (utils.get_next_release_date() - self.nag_date).days
-        if priority == 'high':
-            if days >= 20:
-                return self.people.get_nth_manager_mail(person, 1)
-            elif 15 <= days < 20:
-                return self.people.get_nth_manager_mail(person, 2)
-            elif 5 <= days < 15:
-                return self.people.get_director_mail(person)
-            else:
-                return self.people.get_vp_mail(person)
-        elif priority == 'normal':
-            if days >= 15:
-                return self.people.get_nth_manager_mail(person, 1)
-            elif 10 <= days < 15:
-                return self.people.get_nth_manager_mail(person, 2)
-            elif 3 <= days < 10:
-                return self.people.get_director_mail(person)
-            else:
-                return self.people.get_vp_mail(person)
-
-        return self.people.get_nth_manager_mail(person, 1)
+        return self.escalation.get_supervisor(priority, days, person)
 
     def add(self, person, bug_data, priority='default'):
         if not self.people.is_mozilla(person):
             return False
 
-        manager = self.escalation(person, priority)
+        manager = self.escalate(person, priority)
         person = self.people.get_moz_mail(person)
 
         if manager in self.data:
