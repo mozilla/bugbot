@@ -6,17 +6,22 @@ import json
 
 
 class People:
-    def __init__(self):
-        with open('./auto_nag/scripts/configs/people.json', 'r') as In:
-            self.data = json.load(In)
-            self.people = {}
-            self.people_by_bzmail = {}
-            self.managers = set()
-            self.people_with_bzmail = set()
-            self.release_managers = set()
-            self.rm_or_directors = set()
-            self.directors = set()
-            self._amend()
+    def __init__(self, p=None):
+        if p is None:
+            with open('./auto_nag/scripts/configs/people.json', 'r') as In:
+                self.data = json.load(In)
+        else:
+            self.data = p
+
+        self.people = {}
+        self.people_by_bzmail = {}
+        self.managers = set()
+        self.people_with_bzmail = set()
+        self.release_managers = set()
+        self.rm_or_directors = set()
+        self.directors = set()
+        self.vps = set()
+        self._amend()
 
     def _get_people(self):
         if not self.people:
@@ -69,6 +74,28 @@ class People:
                 if 'director' in title:
                     self.directors.add(person)
         return self.directors
+
+    def get_vps(self):
+        """Get the vp: people who've 'vp' in their job title"""
+        if not self.vps:
+            people = self._get_people()
+            for person, info in people.items():
+                title = info.get('title', '').lower()
+                if (
+                    title.startswith('vp') or title.startswith('vice president')
+                ) and self.get_distance(person) <= 3:
+                    self.vps.add(person)
+        return self.vps
+
+    def get_distance(self, mail):
+        rank = -1
+        while mail:
+            rank += 1
+            prev = mail
+            mail = self.get_manager_mail(mail)
+            if mail == prev:
+                break
+        return rank
 
     def get_rm_or_directors(self):
         """Get a set of release managers and directors who've a bugzilla email"""
@@ -132,6 +159,43 @@ class People:
         if manager:
             return manager['dn']
 
+        return None
+
+    def get_nth_manager_mail(self, mail, rank):
+        """Get the manager of the person with this mail"""
+        for _ in range(rank):
+            prev = mail
+            mail = self.get_manager_mail(mail)
+            if not mail or mail == prev:
+                return prev
+        return mail
+
+    def get_director_mail(self, mail):
+        """Get the director of the person with this mail"""
+        directors = self.get_directors()
+        while True:
+            prev = mail
+            mail = self.get_manager_mail(mail)
+            if not mail:
+                break
+            if mail in directors:
+                return mail
+            if mail == prev:
+                break
+        return None
+
+    def get_vp_mail(self, mail):
+        """Get the VP of the person with this mail"""
+        vps = self.get_vps()
+        while True:
+            prev = mail
+            mail = self.get_manager_mail(mail)
+            if not mail:
+                break
+            if mail in vps:
+                return mail
+            if mail == prev:
+                break
         return None
 
     def get_moz_mail(self, mail):

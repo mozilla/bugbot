@@ -148,5 +148,62 @@
     "reporter-with-ni":
     {
         "reverse_order": true
+    },
+    "escalation":
+    {
+        "high":
+        {
+            "[20;[":
+            {
+                "supervisor": "n+1",
+                "days": ["Thu"]
+            },
+            "[15;20[":
+            {
+                "supervisor": "n+2",
+                "days": ["Mon", "Thu"]
+            },
+            "[5;15[":
+            {
+                "supervisor": "director",
+                "days": ["Mon", "Thu"]
+            },
+            "[0;5[":
+            {
+                "supervisor": "vp",
+                "days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
+            }
+        },
+        "normal":
+        {
+            "[15;[":
+            {
+                "supervisor": "n+1",
+                "days": ["Thu"]
+            },
+            "[10;15[":
+            {
+                "supervisor": "n+2",
+                "days": ["Mon", "Thu"]
+            },
+            "[3;10[":
+            {
+                "supervisor": "director",
+                "days": ["Mon", "Thu"]
+            },
+            "[0;3[":
+            {
+                "supervisor": "vp",
+                "days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
+            }
+        },
+        "default":
+        {
+            "[0;[":
+            {
+                "supervisor": "n+1",
+                "days": ["Mon"]
+            }
+        }
     }
 }

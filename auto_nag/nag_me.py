@@ -5,6 +5,7 @@
 from jinja2 import Environment, FileSystemLoader
 from auto_nag import mail, utils
 from auto_nag.people import People
+from auto_nag.escalation import Escalation
 
 
 class Nag(object):
@@ -16,6 +17,7 @@ class Nag(object):
         self.nag_date = None
         self.white_list = []
         self.black_list = []
+        self.escalation = Escalation(self.people)
 
     @staticmethod
     def get_from():
@@ -25,17 +27,32 @@ class Nag(object):
     def get_cc():
         return set(utils.get_config('auto_nag', 'cc', []))
 
+    def get_priority(self, bug):
+        tracking = bug[self.tracking]
+        if tracking == 'blocking':
+            return 'high'
+        return 'normal'
+
+    def filter_bug(self, priority):
+        days = (utils.get_next_release_date() - self.nag_date).days
+        weekday = self.nag_date.weekday()
+        return self.escalation.filter(priority, days, weekday)
+
     def get_people(self):
         return self.people
 
     def set_people_to_nag(self, bug):
         return bug
 
-    def add(self, person, bug_data):
+    def escalate(self, person, priority):
+        days = (utils.get_next_release_date() - self.nag_date).days
+        return self.escalation.get_supervisor(priority, days, person)
+
+    def add(self, person, bug_data, priority='default'):
         if not self.people.is_mozilla(person):
             return False
 
-        manager = self.people.get_manager_mail(person)
+        manager = self.escalate(person, priority)
         person = self.people.get_moz_mail(person)
 
         if manager in self.data:
@@ -72,8 +89,7 @@ class Nag(object):
             mail, self.black_list
         )
 
-    def send_mails(self, date, title, dryrun=False):
-        self.nag_date = date
+    def send_mails(self, title, dryrun=False):
         if not self.send_nag_mail:
             return
 
