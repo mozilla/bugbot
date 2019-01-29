@@ -1,3 +1,5 @@
+# coding: utf-8
+
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -12,18 +14,19 @@ class TestEscalation(unittest.TestCase):
 
     config = {
         'high': {
-            '[20;[': {'supervisor': 'n+1', 'days': ['Thu']},
+            '[30;+∞[': {'supervisor': 'foobar', 'days': ['Thu']},
+            '[20;30[': {'supervisor': 'n+1', 'days': ['Thu']},
             '[15;20[': {'supervisor': 'n+2', 'days': ['Mon', 'Thu']},
             '[5;15[': {'supervisor': 'director', 'days': ['Mon', 'Thu']},
             '[0;5[': {'supervisor': 'vp', 'days': ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']},
         },
         'normal': {
-            '[15;[': {'supervisor': 'n+1', 'days': ['Thu']},
+            '[15;+∞[': {'supervisor': 'n+1', 'days': ['Thu']},
             '[10;15[': {'supervisor': 'n+2', 'days': ['Mon', 'Thu']},
             '[3;10[': {'supervisor': 'director', 'days': ['Mon', 'Thu']},
             '[0;3[': {'supervisor': 'vp', 'days': ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']},
         },
-        'default': {'[0;[': {'supervisor': 'n+1', 'days': ['Mon']}},
+        'default': {'[0;+∞[': {'supervisor': 'n+1', 'days': ['Mon']}},
     }
 
     def test_str(self):
@@ -33,7 +36,8 @@ class TestEscalation(unittest.TestCase):
             "[0;5[ => supervisor: vp, days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']",
             "[5;15[ => supervisor: director, days: ['Mon', 'Thu']",
             "[15;20[ => supervisor: n+2, days: ['Mon', 'Thu']",
-            "[20;[ => supervisor: n+1, days: ['Thu']",
+            "[20;30[ => supervisor: n+1, days: ['Thu']",
+            "[30;+∞[ => supervisor: foobar, days: ['Thu']",
         ]
 
         normal = e.as_string('normal').split('\n')
@@ -41,11 +45,11 @@ class TestEscalation(unittest.TestCase):
             "[0;3[ => supervisor: vp, days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']",
             "[3;10[ => supervisor: director, days: ['Mon', 'Thu']",
             "[10;15[ => supervisor: n+2, days: ['Mon', 'Thu']",
-            "[15;[ => supervisor: n+1, days: ['Thu']",
+            "[15;+∞[ => supervisor: n+1, days: ['Thu']",
         ]
 
         default = e.as_string('default').split('\n')
-        assert default == ["[0;[ => supervisor: n+1, days: ['Mon']"]
+        assert default == ["[0;+∞[ => supervisor: n+1, days: ['Mon']"]
 
     def test_escalation(self):
         people = [
@@ -93,6 +97,7 @@ class TestEscalation(unittest.TestCase):
         ]
 
         e = Escalation(People(people), data=TestEscalation.config)
+        assert e.get_supervisor('high', 35, 'a.b@mozilla.com', foobar='foobar@mozilla.com') == 'foobar@mozilla.com'
         assert e.get_supervisor('high', 25, 'a.b@mozilla.com') == 'c.d@mozilla.com'
         assert e.get_supervisor('high', 20, 'a.b@mozilla.com') == 'c.d@mozilla.com'
         assert e.get_supervisor('high', 18, 'a.b@mozilla.com') == 'e.f@mozilla.com'

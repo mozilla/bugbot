@@ -25,6 +25,13 @@ def replaceUnicode(s):
     return ss
 
 
+def clean_cc(cc, to):
+    to = set(to)
+    cc = set(cc)
+    cc = cc - to
+    return list(sorted(cc))
+
+
 def send(
     From, To, Subject, Body, Cc=[], Bcc=[], html=False, files=[], login={}, dryrun=False
 ):
@@ -35,7 +42,9 @@ def send(
     # special = '<p><b>To: {}</b></p><p><b>Cc: {}</b></p>'.format(To, Cc)
     # i = Body.index('<body>') + len('<body>')
     # Body = Body[:i] + special + Body[i:]
-    # To = ['cdenizet@mozilla.com']
+    # From = 'cdenizet@mozilla.com'
+    # To = ['sylvestre@mozilla.com']
+    # To = [From]
     # Cc = []
 
     if isinstance(To, six.string_types):
@@ -50,7 +59,7 @@ def send(
     message['From'] = From
     message['To'] = ', '.join(To)
     message['Subject'] = Subject
-    message['Cc'] = ', '.join(Cc)
+    message['Cc'] = ', '.join(clean_cc(Cc, To))
     message['Bcc'] = ', '.join(Bcc)
 
     if subtype == 'html':

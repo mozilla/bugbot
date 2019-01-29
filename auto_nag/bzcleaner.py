@@ -272,7 +272,7 @@ class BzCleaner(object):
                 # get the timestamp of the last comment
                 self.last_comment[bugid] = dateutil.parser.parse(
                     comments[-1]['time']
-                ).strftime('%Y-%m-%d %H:%M:%S (UTC+0)')
+                ).strftime('%Y-%m-%d %H:%M:%S')
             else:
                 self.last_comment[bugid] = ''
 
@@ -356,7 +356,8 @@ class BzCleaner(object):
                         )
                     )
                 else:
-                    Bugzilla(bugids).put(change)
+                    for bugid in bugids:
+                        Bugzilla([bugid]).put(change)
             else:
                 if dryrun:
                     for bugid, ch in change.items():
@@ -383,6 +384,7 @@ class BzCleaner(object):
                 bugids=bugids,
                 extra=extra,
                 str=str,
+                enumerate=enumerate,
                 plural=utils.plural,
                 no_manager=self.no_manager,
                 last_comment=self.last_comment,
@@ -403,11 +405,11 @@ class BzCleaner(object):
         if date:
             date = lmdutils.get_date(date)
             d = lmdutils.get_date_ymd(date)
-            if not self.must_run(d):
-                return
-
             if isinstance(self, Nag):
                 self.nag_date = d
+
+            if not self.must_run(d):
+                return
 
         login_info = utils.get_login_info()
         title, body = self.get_email(login_info['bz_api_key'], date, dryrun)
@@ -423,7 +425,7 @@ class BzCleaner(object):
             )
 
             if isinstance(self, Nag):
-                self.send_mails(title, dryrun=dryrun)
+                self.send_mails(title, self.last_comment, self.assignees, dryrun=dryrun)
         else:
             name = self.name().upper()
             if date:

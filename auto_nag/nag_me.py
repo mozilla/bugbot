@@ -44,15 +44,18 @@ class Nag(object):
     def set_people_to_nag(self, bug):
         return bug
 
-    def escalate(self, person, priority):
+    def escalate(self, person, priority, **kwargs):
         days = (utils.get_next_release_date() - self.nag_date).days
-        return self.escalation.get_supervisor(priority, days, person)
+        return self.escalation.get_supervisor(priority, days, person, **kwargs)
 
-    def add(self, person, bug_data, priority='default'):
+    def add(self, person, bug_data, priority='default', **kwargs):
         if not self.people.is_mozilla(person):
             return False
 
-        manager = self.escalate(person, priority)
+        manager = self.escalate(person, priority, **kwargs)
+        return self.add_couple(person, manager, bug_data)
+
+    def add_couple(self, person, manager, bug_data):
         person = self.people.get_moz_mail(person)
 
         if manager in self.data:
@@ -89,7 +92,9 @@ class Nag(object):
             mail, self.black_list
         )
 
-    def send_mails(self, title, dryrun=False):
+    def send_mails(self, title, last_comment, assignees, dryrun=False):
+        self.last_comment_nag = last_comment
+        self.assignees_nag = assignees
         if not self.send_nag_mail:
             return
 
@@ -102,7 +107,8 @@ class Nag(object):
 
         for m in mails:
             Cc = Default_Cc.copy()
-            Cc.add(m['manager'])
+            if m['manager']:
+                Cc.add(m['manager'])
             body = common.render(message=m['body'], query_url=None, has_table=True)
             mail.send(
                 From,
@@ -135,7 +141,13 @@ class Nag(object):
                 data += bug_data
 
             body = template.render(
-                date=self.nag_date, extra=extra, plural=utils.plural, data=data
+                date=self.nag_date,
+                extra=extra,
+                plural=utils.plural,
+                enumerate=enumerate,
+                data=data,
+                assignees=self.assignees_nag,
+                last_comment=self.last_comment_nag,
             )
 
             m = {'manager': manager, 'to': set(info.keys()), 'body': body}

@@ -128,5 +128,8 @@ python -m auto_nag.scripts.missing_beta_status
 # Pretty rare
 python -m auto_nag.scripts.unlanded
 
+# New workflow
+python -m auto_nag.scripts.workflow.multi_nag -d
+
 # Try to detect potential regressions using bugbug
 python3 -m auto_nag.scripts.regression

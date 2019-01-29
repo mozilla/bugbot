@@ -1,0 +1,122 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at http://mozilla.org/MPL/2.0/.
+
+from dateutil.relativedelta import relativedelta
+from libmozdata import utils as lmdutils
+from auto_nag.bzcleaner import BzCleaner
+from auto_nag import utils
+from auto_nag.escalation import Escalation
+from auto_nag.nag_me import Nag
+
+
+class NoPriority(BzCleaner, Nag):
+    def __init__(self, typ):
+        super(NoPriority, self).__init__()
+        assert typ in {'first', 'second'}
+        self.typ = typ
+        self.lookup_first = utils.get_config(self.name(), 'first-step', 2)
+        self.lookup_second = utils.get_config(self.name(), 'second-step', 4)
+        self.escalation = Escalation(
+            self.people, data=utils.get_config(self.name(), 'escalation')
+        )
+
+    def description(self):
+        return 'Get bugs with no priority'
+
+    def name(self):
+        return 'workflow-no-priority'
+
+    def template(self):
+        return 'workflow_no_priority.html'
+
+    def needinfo_template(self):
+        return 'workflow_no_priority_comment.txt'
+
+    def nag_template(self):
+        return 'workflow_no_priority_nag.html'
+
+    def subject(self):
+        return 'Bugs with no priority set'
+
+    def get_extra_for_template(self):
+        return {
+            'nweeks': self.lookup_first if self.typ == 'first' else self.lookup_second
+        }
+
+    def get_extra_for_needinfo_template(self):
+        return self.get_extra_for_template()
+
+    def get_extra_for_nag_template(self):
+        return self.get_extra_for_template()
+
+    def ignore_bug_summary(self):
+        return False
+
+    def get_mail_to_auto_ni(self, bug):
+        if self.typ == 'second':
+            return None
+
+        # Avoid to ni everyday...
+        if utils.has_bot_set_ni(bug):
+            return None
+
+        mail = bug['triage_owner']
+        nick = bug['triage_owner_detail']['nick']
+        return {'mail': mail, 'nickname': nick}
+
+    def set_people_to_nag(self, bug):
+        if self.typ == 'first':
+            return bug
+
+        priority = 'default'
+        if not self.filter_bug(priority):
+            return None
+
+        owner = bug['triage_owner']
+        bugid = str(bug['id'])
+        bug_data = {'id': bugid, 'summary': self.get_summary(bug)}
+        if not self.add(owner, bug_data, priority=priority):
+            self.add_no_manager(bugid)
+        return bug
+
+    def get_bz_params(self, date):
+        fields = ['triage_owner', 'flags']
+        params = {
+            'product': 'Core',
+            'include_fields': fields,
+            'resolution': '---',
+            'f1': 'component',
+            'o1': 'casesubstring',
+            'v1': 'Networking',
+            'f2': 'priority',
+            'o2': 'equals',
+            'v2': '--',
+        }
+        date = lmdutils.get_date_ymd(date)
+        if self.typ == 'first':
+            params.update(
+                {
+                    'f3': 'creation_ts',
+                    'o3': 'lessthaneq',
+                    'v3': date - relativedelta(days=self.lookup_first * 7),
+                    'f4': 'creation_ts',
+                    'o4': 'greaterthan',
+                    'v4': date - relativedelta(days=self.lookup_second * 7),
+                }
+            )
+        else:
+            params.update(
+                {
+                    'f3': 'creation_ts',
+                    'o3': 'lessthaneq',
+                    'v3': date - relativedelta(days=self.lookup_second * 7),
+                }
+            )
+
+        return params
+
+
+if __name__ == '__main__':
+    NoPriority('first').run()
+    NoPriority('second').run()

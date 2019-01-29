@@ -1,8 +1,8 @@
-<p>The following {{ plural('bug is', data, pword='bugs are') }} tracked in {{ extra['channel'] }} {{ extra['version'] }}{% if extra['touch'] %} and untouched this week{% endif -%}:
+<p>The following {{ plural('bug has', data, pword='bugs have') }} a priority P2 and no activity for the last {{ extra['nmonths'] }} {{ plural('month', extra[nmonths]) }}:
   <table border="1">
     <thead>
       <tr>
-        <th>Bug</th><th>Summary</th><th>Assignee</th>
+        <th>Bug</th><th>Summary</th><th>Last comment</th>
       </tr>
     </thead>
     <tbody>
@@ -15,7 +15,7 @@
           {{ info['summary'] | e }}
         </td>
         <td>
-          {{ info['To'] | e }}
+          {{ last_comment[info['id']] }}
         </td>
       </tr>
       {% endfor -%}

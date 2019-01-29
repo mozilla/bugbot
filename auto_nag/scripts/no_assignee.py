@@ -9,6 +9,7 @@ from libmozdata.bugzilla import Bugzilla, BugzillaUser
 from libmozdata.connection import Query
 import re
 from auto_nag.bzcleaner import BzCleaner
+from auto_nag import utils
 
 
 HG_MAIL = re.compile(r'^([^<]*)<([^>]+)>$')
@@ -44,7 +45,7 @@ class NoAssignee(BzCleaner):
             'keywords_type': 'nowords',
             'f1': 'assigned_to',
             'o1': 'anyexact',
-            'v1': 'nobody@mozilla.org,nobody@nss.bugs',
+            'v1': ','.join(utils.get_empty_assignees()),
             'f2': 'longdesc',
             'o2': 'regexp',
             'v2': regexp,

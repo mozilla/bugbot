@@ -15,8 +15,8 @@ class MultiNaggers(object):
     def __init__(self, *args):
         super(MultiNaggers, self).__init__()
         for arg in args:
-            assert isinstance(arg, Nag)
-            assert isinstance(arg, BzCleaner)
+            assert isinstance(arg, Nag), '{} is not a Nag'.format(type(arg))
+            assert isinstance(arg, BzCleaner), '{} is not a BZCleaner'.format(type(arg))
         self.naggers = list(args)
 
     def description(self):

@@ -6,8 +6,8 @@
       </tr>
     </thead>
     <tbody>
-      {% for info in data -%}
-      <tr>
+      {% for i, info in enumerate(data) -%}
+      <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
         <td>
           <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ info['id'] }}">{{ info['id'] }}</a>
         </td>

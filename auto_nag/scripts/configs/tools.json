@@ -16,6 +16,7 @@
             "ehumphries@mozilla.com",
             "sylvestre@mozilla.com"
         ],
+        "bot_bz_mail": ["release-mgmt-account-bot@mozilla.tld"],
         "days_lookup": 7,
         "bz_query_timeout": 240,
         "reverse_order": false,
@@ -153,7 +154,7 @@
     {
         "high":
         {
-            "[20;[":
+            "[20;+∞[":
             {
                 "supervisor": "n+1",
                 "days": ["Thu"]
@@ -176,7 +177,7 @@
         },
         "normal":
         {
-            "[15;[":
+            "[15;+∞[":
             {
                 "supervisor": "n+1",
                 "days": ["Thu"]
@@ -199,10 +200,97 @@
         },
         "default":
         {
-            "[0;[":
+            "[0;+∞[":
             {
                 "supervisor": "n+1",
                 "days": ["Mon"]
+            }
+        }
+    },
+    "workflow-no-priority":
+    {
+        "first-step": 2,
+        "second-step": 4,
+        "escalation":
+        {
+            "default":
+            {
+                "[0;+∞[":
+                {
+                    "supervisor": "n+1",
+                    "days": ["Mon", "Thu"]
+                }
+            }
+        }
+    },
+    "workflow-p3-p4-p5":
+    {
+        "months_lookup": 6
+    },
+    "workflow-p2-no-activity":
+    {
+        "months_lookup": 3,
+        "escalation":
+        {
+            "default":
+            {
+                "[0;+∞[":
+                {
+                    "supervisor": "self",
+                    "days": ["Mon"]
+                }
+            }
+        }
+    },
+    "workflow-p1-no-assignee":
+    {
+        "ndays":
+        {
+            "[20;+∞[": 7,
+            "[15;20[": 5,
+            "[5;15[": 3,
+            "[0;5[": 1
+        },
+        "escalation":
+        {
+            "high":
+            {
+                "[0;+∞[":
+                {
+                    "supervisor": "n+1",
+                    "days": ["Mon", "Thu"]
+                }
+            }
+        }
+    },
+    "workflow-p1-no-activity":
+    {
+        "ndays":
+        {
+            "[20;+∞[": 7,
+            "[15;20[": 5,
+            "[5;15[": 3,
+            "[0;5[": 1
+        },
+        "escalation":
+        {
+            "high":
+            {
+                "[15;+∞[":
+                {
+                    "supervisor": "triage_owner",
+                    "days": ["Tue"]
+                },
+                "[5;15[":
+                {
+                    "supervisor": "n+1",
+                    "days": ["Mon", "Thu"]
+                },
+                "[0;5[":
+                {
+                    "supervisor": "director",
+                    "days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
+                }
             }
         }
     }
