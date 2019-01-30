@@ -22,7 +22,7 @@ class WorkflowMultiNag(MultiNaggers):
         )
 
     def description(self):
-        return 'Get bugs which require a special attention to help release management'
+        return 'Bugs requiring special attention to help release management'
 
     def title(self):
         return '{} -- Daily Priority Flag Alert'.format(self.date.strftime('%A %b %d'))
