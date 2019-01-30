@@ -22,7 +22,7 @@ class NoPriority(BzCleaner, Nag):
         )
 
     def description(self):
-        return 'Get bugs with no priority'
+        return 'Bugs without a priority set'
 
     def name(self):
         return 'workflow-no-priority'
@@ -37,7 +37,7 @@ class NoPriority(BzCleaner, Nag):
         return 'workflow_no_priority_nag.html'
 
     def subject(self):
-        return 'Bugs with no priority set'
+        return 'Bugs without a priority set'
 
     def get_extra_for_template(self):
         return {
