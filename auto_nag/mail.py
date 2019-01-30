@@ -8,6 +8,7 @@ from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 import six
 import smtplib
+from . import utils
 
 
 SMTP = 'smtp.mozilla.org'
@@ -38,14 +39,15 @@ def send(
     """Send an email
     """
 
-    # just to send a dryrun email
-    # special = '<p><b>To: {}</b></p><p><b>Cc: {}</b></p>'.format(To, Cc)
-    # i = Body.index('<body>') + len('<body>')
-    # Body = Body[:i] + special + Body[i:]
-    # From = 'cdenizet@mozilla.com'
-    # To = ['sylvestre@mozilla.com']
-    # To = [From]
-    # Cc = []
+    if utils.get_config('common', 'test', False):
+        # just to send a dryrun email
+        special = '<p><b>To: {}</b></p><p><b>Cc: {}</b></p>'.format(To, Cc)
+        i = Body.index('<body>') + len('<body>')
+        Body = Body[:i] + special + Body[i:]
+        ft = utils.get_config('common', 'test_from_to', {})
+        From = ft['from']
+        To = ft['to']
+        Cc = []
 
     if isinstance(To, six.string_types):
         To = [To]

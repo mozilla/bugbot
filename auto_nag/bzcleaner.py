@@ -22,6 +22,7 @@ class BzCleaner(object):
         self.assignees = {}
         self.needinfos = {}
         self.auto_needinfo = {}
+        self.test_mode = utils.get_config('common', 'test', False)
 
     def description(self):
         """Get the description for the help"""
@@ -327,7 +328,7 @@ class BzCleaner(object):
                         }
                     ],
                 }
-                if dryrun:
+                if dryrun or self.test_mode:
                     print('Auto needinfo {}: {}'.format(bugid, data))
                 else:
                     Bugzilla(bugids=[bugid]).put(data)
@@ -349,7 +350,7 @@ class BzCleaner(object):
             self.has_autofix = True
             if not self.has_individual_autofix():
                 bugids = self.get_list_bugs(bugs)
-                if dryrun:
+                if dryrun or self.test_mode:
                     print(
                         'The bugs: {}\n will be autofixed with:\n{}'.format(
                             bugids, change
@@ -359,7 +360,7 @@ class BzCleaner(object):
                     for bugid in bugids:
                         Bugzilla([bugid]).put(change)
             else:
-                if dryrun:
+                if dryrun or self.test_mode:
                     for bugid, ch in change.items():
                         print(
                             'The bug: {} will be autofixed with: {}'.format(bugid, ch)

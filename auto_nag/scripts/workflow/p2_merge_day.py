@@ -34,18 +34,16 @@ class P2MergeDay(BzCleaner):
         return False
 
     def get_bz_params(self, date):
+        comps = utils.get_config('workflow', 'components')
         params = {
-            'product': 'Core',
+            'component': comps,
             'resolution': '---',
-            'f1': 'component',
-            'o1': 'casesubstring',
-            'v1': 'Networking',
-            'f2': 'priority',
-            'o2': 'equals',
-            'v2': 'P2',
-            'f3': 'assigned_to',
-            'o3': 'nowordssubstr',
-            'v3': ','.join(utils.get_empty_assignees()),
+            'f1': 'priority',
+            'o1': 'equals',
+            'v1': 'P2',
+            'f2': 'assigned_to',
+            'o2': 'nowordssubstr',
+            'v2': ','.join(utils.get_empty_assignees()),
         }
 
         return params

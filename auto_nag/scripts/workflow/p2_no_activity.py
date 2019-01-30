@@ -64,19 +64,17 @@ class P2NoActivity(BzCleaner, Nag):
         start_date = date - relativedelta(months=self.nmonths)
         days = (date - start_date).days
         fields = ['triage_owner']
+        comps = utils.get_config('workflow', 'components')
         params = {
             'include_fields': fields,
-            'product': 'Core',
+            'component': comps,
             'resolution': '---',
-            'f1': 'component',
-            'o1': 'casesubstring',
-            'v1': 'Networking',
-            'f2': 'priority',
-            'o2': 'equals',
-            'v2': 'P2',
-            'f3': 'days_elapsed',
-            'o3': 'greaterthaneq',
-            'v3': days,
+            'f1': 'priority',
+            'o1': 'equals',
+            'v1': 'P2',
+            'f2': 'days_elapsed',
+            'o2': 'greaterthaneq',
+            'v2': days,
         }
         return params
 

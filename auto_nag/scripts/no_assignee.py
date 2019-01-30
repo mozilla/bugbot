@@ -247,7 +247,7 @@ class NoAssignee(BzCleaner):
         for bugid, email in self.hgdata.items():
             if email:
                 self.has_autofix = True
-                if dryrun:
+                if dryrun or self.test_mode:
                     print('Auto assign {}: {}'.format(bugid, email))
                 else:
                     Bugzilla([bugid]).put({'assigned_to': email})

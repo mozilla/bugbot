@@ -37,18 +37,16 @@ class P3P4P5(BzCleaner):
         date = lmdutils.get_date_ymd(date)
         start_date = date - relativedelta(months=self.nmonths)
         days = (date - start_date).days
+        comps = utils.get_config('workflow', 'components')
         params = {
-            'product': 'Core',
+            'component': comps,
             'resolution': '---',
-            'f1': 'component',
-            'o1': 'casesubstring',
-            'v1': 'Networking',
-            'f2': 'priority',
-            'o2': 'anywordssubstr',
-            'v2': ','.join(['P3', 'P4', 'P5']),
-            'f3': 'days_elapsed',
-            'o3': 'greaterthaneq',
-            'v3': days,
+            'f1': 'priority',
+            'o1': 'anywordssubstr',
+            'v1': ','.join(['P3', 'P4', 'P5']),
+            'f2': 'days_elapsed',
+            'o2': 'greaterthaneq',
+            'v2': days,
         }
         return params
 

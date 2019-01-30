@@ -82,35 +82,33 @@ class NoPriority(BzCleaner, Nag):
 
     def get_bz_params(self, date):
         fields = ['triage_owner', 'flags']
+        comps = utils.get_config('workflow', 'components')
         params = {
-            'product': 'Core',
+            'component': comps,
             'include_fields': fields,
             'resolution': '---',
-            'f1': 'component',
-            'o1': 'casesubstring',
-            'v1': 'Networking',
-            'f2': 'priority',
-            'o2': 'equals',
-            'v2': '--',
+            'f1': 'priority',
+            'o1': 'equals',
+            'v1': '--',
         }
         date = lmdutils.get_date_ymd(date)
         if self.typ == 'first':
             params.update(
                 {
+                    'f2': 'creation_ts',
+                    'o2': 'lessthaneq',
+                    'v2': date - relativedelta(days=self.lookup_first * 7),
                     'f3': 'creation_ts',
-                    'o3': 'lessthaneq',
-                    'v3': date - relativedelta(days=self.lookup_first * 7),
-                    'f4': 'creation_ts',
-                    'o4': 'greaterthan',
-                    'v4': date - relativedelta(days=self.lookup_second * 7),
+                    'o3': 'greaterthan',
+                    'v3': date - relativedelta(days=self.lookup_second * 7),
                 }
             )
         else:
             params.update(
                 {
-                    'f3': 'creation_ts',
-                    'o3': 'lessthaneq',
-                    'v3': date - relativedelta(days=self.lookup_second * 7),
+                    'f2': 'creation_ts',
+                    'o2': 'lessthaneq',
+                    'v2': date - relativedelta(days=self.lookup_second * 7),
                 }
             )
 

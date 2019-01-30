@@ -77,22 +77,20 @@ class P1NoAssignee(BzCleaner, Nag):
             (utils.get_next_release_date() - self.nag_date).days
         )
         fields = ['triage_owner', 'flags']
+        comps = utils.get_config('workflow', 'components')
         params = {
-            'product': 'Core',
+            'component': comps,
             'include_fields': fields,
             'resolution': '---',
-            'f1': 'component',
-            'o1': 'casesubstring',
-            'v1': 'Networking',
-            'f2': 'priority',
-            'o2': 'equals',
-            'v2': 'P1',
-            'f3': 'assigned_to',
-            'o3': 'anyexact',
-            'v3': ','.join(utils.get_empty_assignees()),
-            'f4': 'days_elapsed',
-            'o4': 'greaterthaneq',
-            'v4': self.ndays,
+            'f1': 'priority',
+            'o1': 'equals',
+            'v1': 'P1',
+            'f2': 'assigned_to',
+            'o2': 'anyexact',
+            'v2': ','.join(utils.get_empty_assignees()),
+            'f3': 'days_elapsed',
+            'o3': 'greaterthaneq',
+            'v3': self.ndays,
         }
         return params
 

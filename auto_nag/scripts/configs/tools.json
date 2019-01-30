@@ -20,6 +20,12 @@
         "days_lookup": 7,
         "bz_query_timeout": 240,
         "reverse_order": false,
+        "test": false,
+        "test_from_to":
+        {
+            "from": "calixte@mozilla.com",
+            "to": "calixte@mozilla.com"
+        },
         "products":
         [
             "Core",
@@ -31,7 +37,7 @@
             "Testing",
             "Toolkit",
             "WebExtensions"
-         ]
+        ]
     },
     "unaffected_affected_no_reg":
     {
@@ -206,6 +212,23 @@
                 "days": ["Mon"]
             }
         }
+    },
+    "workflow":
+    {
+        "components":
+        [
+            "Networking",
+            "Networking: Cache",
+            "Networking: Cookies",
+            "Networking: DNS",
+            "Networking: Domain Lists",
+            "Networking: File",
+            "Networking: FTP",
+            "Networking: HTTP",
+            "Networking: JAR",
+            "Networking: WebSockets",
+            "Source Code Analysis"
+        ]
     },
     "workflow-no-priority":
     {
