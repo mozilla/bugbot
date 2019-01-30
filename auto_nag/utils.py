@@ -20,6 +20,7 @@ _CONFIG = None
 _CYCLE_SPAN = None
 TEMPLATE_PAT = re.compile(r'<p>(.*)</p>', re.DOTALL)
 BZ_FIELD_PAT = re.compile(r'^[fovj]([0-9]+)$')
+EMPTY_ASSIGNEES = ['nobody@mozilla.org', 'nobody@nss.bugs']
 
 
 def _get_config():
@@ -57,6 +58,14 @@ def get_signatures(sgns):
         except ValueError:
             res.add(s)
     return res
+
+
+def get_empty_assignees():
+    return EMPTY_ASSIGNEES
+
+
+def is_no_assignee(mail):
+    return mail in EMPTY_ASSIGNEES
 
 
 def get_login_info():
@@ -133,3 +142,15 @@ def get_last_field_num(params):
 
 def get_bz_search_url(params):
     return 'https://bugzilla.mozilla.org/buglist.cgi?' + urlencode(params, doseq=True)
+
+
+def has_bot_set_ni(bug):
+    bot = get_config('common', 'bot_bz_mail')
+    for flag in bug.get('flags', []):
+        if (
+            flag.get('name', '') == 'needinfo'
+            and flag['status'] == '?'
+            and flag['setter'] in bot
+        ):
+            return True
+    return False

@@ -1,21 +1,18 @@
-<p>The following {{ plural('bug has', bugids, pword='bugs have') }} an unlanded patch or some flags not up-to-date (when the bug is red, then the assignee is a person with no manager):
+<p>The following {{ plural('bug has', bugids, pword='bugs have') }} a priority P1, no assignee and no activity for the last {{ extra['ndays'] }} {{ plural('day', extra['ndays']) }}:
   <table border="1">
     <thead>
       <tr>
-        <th>Bug</th><th>Summary</th><th>Assignee</th><th>Last comment</th>
+        <th>Bug</th><th>Summary</th><th>Last comment</th>
       </tr>
     </thead>
     <tbody>
       {% for i, (bugid, summary) in enumerate(bugids) -%}
       <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
-        <td {% if str(bugid) in no_manager %}style="background:red;"{% endif %}>
+        <td>
           <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
         </td>
         <td>
           {{ summary | e }}
-        </td>
-        <td>
-          {{ assignees[str(bugid)] | e }}
         </td>
         <td>
           {{ last_comment[str(bugid)] }}

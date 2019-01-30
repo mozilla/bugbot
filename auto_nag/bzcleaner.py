@@ -22,6 +22,7 @@ class BzCleaner(object):
         self.assignees = {}
         self.needinfos = {}
         self.auto_needinfo = {}
+        self.test_mode = utils.get_config('common', 'test', False)
 
     def description(self):
         """Get the description for the help"""
@@ -272,7 +273,7 @@ class BzCleaner(object):
                 # get the timestamp of the last comment
                 self.last_comment[bugid] = dateutil.parser.parse(
                     comments[-1]['time']
-                ).strftime('%Y-%m-%d %H:%M:%S (UTC+0)')
+                ).strftime('%Y-%m-%d %H:%M:%S')
             else:
                 self.last_comment[bugid] = ''
 
@@ -327,7 +328,7 @@ class BzCleaner(object):
                         }
                     ],
                 }
-                if dryrun:
+                if dryrun or self.test_mode:
                     print('Auto needinfo {}: {}'.format(bugid, data))
                 else:
                     Bugzilla(bugids=[bugid]).put(data)
@@ -349,16 +350,17 @@ class BzCleaner(object):
             self.has_autofix = True
             if not self.has_individual_autofix():
                 bugids = self.get_list_bugs(bugs)
-                if dryrun:
+                if dryrun or self.test_mode:
                     print(
                         'The bugs: {}\n will be autofixed with:\n{}'.format(
                             bugids, change
                         )
                     )
                 else:
-                    Bugzilla(bugids).put(change)
+                    for bugid in bugids:
+                        Bugzilla([bugid]).put(change)
             else:
-                if dryrun:
+                if dryrun or self.test_mode:
                     for bugid, ch in change.items():
                         print(
                             'The bug: {} will be autofixed with: {}'.format(bugid, ch)
@@ -383,6 +385,7 @@ class BzCleaner(object):
                 bugids=bugids,
                 extra=extra,
                 str=str,
+                enumerate=enumerate,
                 plural=utils.plural,
                 no_manager=self.no_manager,
                 last_comment=self.last_comment,
@@ -403,11 +406,11 @@ class BzCleaner(object):
         if date:
             date = lmdutils.get_date(date)
             d = lmdutils.get_date_ymd(date)
-            if not self.must_run(d):
-                return
-
             if isinstance(self, Nag):
                 self.nag_date = d
+
+            if not self.must_run(d):
+                return
 
         login_info = utils.get_login_info()
         title, body = self.get_email(login_info['bz_api_key'], date, dryrun)
@@ -423,7 +426,7 @@ class BzCleaner(object):
             )
 
             if isinstance(self, Nag):
-                self.send_mails(title, dryrun=dryrun)
+                self.send_mails(title, self.last_comment, self.assignees, dryrun=dryrun)
         else:
             name = self.name().upper()
             if date:
