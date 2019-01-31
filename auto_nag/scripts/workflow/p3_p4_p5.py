@@ -33,6 +33,9 @@ class P3P4P5(BzCleaner):
     def ignore_bug_summary(self):
         return False
 
+    def has_product_component(self):
+        return True
+
     def get_bz_params(self, date):
         date = lmdutils.get_date_ymd(date)
         start_date = date - relativedelta(months=self.nmonths)

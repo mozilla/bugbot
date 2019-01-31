@@ -2,7 +2,7 @@
   <table border="1">
     <thead>
       <tr>
-        <th>Bug</th><th>Summary</th>
+        <th>Bug</th><th>Summary</th><th>Component</th>
       </tr>
     </thead>
     <tbody>
@@ -13,6 +13,9 @@
         </td>
         <td>
           {{ info['summary'] | e }}
+        </td>
+        <td>
+          {{ prod_comp[info['id']]['c'] | e }}
         </td>
       </tr>
       {% endfor -%}

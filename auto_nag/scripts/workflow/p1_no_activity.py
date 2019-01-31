@@ -47,6 +47,9 @@ class P1NoActivity(BzCleaner, Nag):
     def has_assignee(self):
         return True
 
+    def has_product_component(self):
+        return True
+
     def set_people_to_nag(self, bug):
         priority = 'high'
         if not self.filter_bug(priority):

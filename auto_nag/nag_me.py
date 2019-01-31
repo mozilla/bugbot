@@ -92,9 +92,10 @@ class Nag(object):
             mail, self.black_list
         )
 
-    def send_mails(self, title, last_comment, assignees, dryrun=False):
+    def send_mails(self, title, last_comment, assignees, prod_comp, dryrun=False):
         self.last_comment_nag = last_comment
         self.assignees_nag = assignees
+        self.prod_comp_nag = prod_comp
         if not self.send_nag_mail:
             return
 
@@ -148,6 +149,7 @@ class Nag(object):
                 data=data,
                 assignees=self.assignees_nag,
                 last_comment=self.last_comment_nag,
+                prod_comp=self.prod_comp_nag,
             )
 
             m = {'manager': manager, 'to': set(info.keys()), 'body': body}
