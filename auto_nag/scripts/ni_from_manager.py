@@ -16,7 +16,7 @@ class NiFromManager(BzCleaner, Nag):
         self.black_list = utils.get_config(self.name(), 'black-list', [])
 
     def description(self):
-        return 'Get bugs with a ni from a director or a release manager with no activity for the last {} {}'.format(
+        return 'Get bugs with a ni from a director or a release manager without activity for the last {} {}'.format(
             self.nweeks, utils.plural('week', self.nweeks)
         )
 
@@ -30,7 +30,7 @@ class NiFromManager(BzCleaner, Nag):
         return 'ni_from_manager_nag.html'
 
     def subject(self):
-        return 'Bugs with a ni from a director or a release manager and no activity for the last {} {}'.format(
+        return 'Bugs with a ni from a director or a release manager without activity for the last {} {}'.format(
             self.nweeks, utils.plural('week', self.nweeks)
         )
 

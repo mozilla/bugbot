@@ -12,7 +12,7 @@ class oldP1Bug(BzCleaner):
         self.nweeks = utils.get_config(self.name(), 'number_of_weeks', 24)
 
     def description(self):
-        return 'Get old P1 bugs with no activity for the last {} weeks'.format(
+        return 'Old P1 bugs without activity for the last {} weeks'.format(
             self.nweeks
         )
 
