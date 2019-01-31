@@ -14,7 +14,7 @@ class P3P4P5(BzCleaner):
         self.nmonths = utils.get_config(self.name(), 'months_lookup', 6)
 
     def description(self):
-        return 'Get bugs with priority P3, P4 or P5 and no activity for {} months'.format(
+        return 'Get P3, P4 and P5 bugs and no activity for {} months'.format(
             self.nmonths
         )
 
@@ -25,7 +25,7 @@ class P3P4P5(BzCleaner):
         return 'workflow_p3_p4_p5.html'
 
     def subject(self):
-        return 'Bugs P3, P4 or P5 with no activity for {} months'.format(self.nmonths)
+        return 'P3, P4 or P5 bugs without activity for {} months'.format(self.nmonths)
 
     def get_extra_for_template(self):
         return {'nmonths': self.nmonths}

@@ -16,7 +16,7 @@ class P1NoAssignee(BzCleaner, Nag):
         )
 
     def description(self):
-        return 'Get bugs with priority P1, no assignee and no activity for few days'
+        return 'Get P1 bugs, no assignee and no activity for few days'
 
     def name(self):
         return 'workflow-p1-no-assignee'
@@ -31,7 +31,7 @@ class P1NoAssignee(BzCleaner, Nag):
         return 'workflow_p1_no_assignee_comment.txt'
 
     def subject(self):
-        return 'Bugs with P1, no assignee and no activity for {} days'.format(
+        return 'P1 Bugs, no assignee and no activity for {} days'.format(
             self.ndays
         )
 

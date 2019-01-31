@@ -19,7 +19,7 @@ class P2MergeDay(BzCleaner):
         return False
 
     def description(self):
-        return 'Get bugs with priority P2 and assigned on merge day'
+        return 'Get P2 bugs and assigned on merge day'
 
     def name(self):
         return 'workflow-p2-merge-day'
@@ -28,7 +28,7 @@ class P2MergeDay(BzCleaner):
         return 'workflow_p2_merge_day.html'
 
     def subject(self):
-        return 'Bugs P2 with an assignee on merge day'
+        return 'P2 bugs with an assignee on merge day'
 
     def ignore_bug_summary(self):
         return False
