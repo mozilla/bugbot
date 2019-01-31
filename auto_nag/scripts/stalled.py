@@ -16,7 +16,7 @@ class Stalled(BzCleaner):
         return 'stalled'
 
     def template(self):
-        return 'stalled_email.html'
+        return 'stalled.html'
 
     def subject(self):
         return 'Closed bugs with stalled keyword'

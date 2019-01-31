@@ -17,7 +17,7 @@ class LeaveOpen(BzCleaner):
         return 'leave-open'
 
     def template(self):
-        return 'leave_open_email.html'
+        return 'leave_open.html'
 
     def subject(self):
         return 'Closed bugs with leave-open keyword'

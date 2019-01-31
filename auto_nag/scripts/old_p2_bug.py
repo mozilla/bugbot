@@ -45,7 +45,7 @@ class oldP2Bug(BzCleaner):
     def get_autofix_change(self):
         return {
             'comment': {
-                'body': 'Moving to p3 because no activity for at least {} year(s).\nSee [How Do You Triage](https://github.com/mozilla/bug-handling/blob/master/policy/triage-bugzilla.md#how-do-you-triage) for more information'.format(
+                'body': 'Moving to p3 because no activity for at least {} year(s).\nSee [How Do You Triage](https://mozilla.github.io/bug-handling/triage-bugzilla#how-do-you-triage) for more information'.format(
                     self.nweeks / 52
                 )
             },

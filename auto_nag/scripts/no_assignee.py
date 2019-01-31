@@ -28,7 +28,7 @@ class NoAssignee(BzCleaner):
         return 'no-assignee'
 
     def template(self):
-        return 'no_assignee_email.html'
+        return 'no_assignee.html'
 
     def subject(self):
         return 'Bugs with no assignees'

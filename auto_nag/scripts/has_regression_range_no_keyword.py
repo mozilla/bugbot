@@ -17,7 +17,7 @@ class HasRegressionRange(BzCleaner):
         return 'has_reg_range'
 
     def template(self):
-        return 'has_reg_range_email.html'
+        return 'has_reg_range.html'
 
     def subject(self):
         return 'Bugs with has_regression_range=yes but no regression keyword'

@@ -56,7 +56,7 @@ class P3P4P5(BzCleaner):
     def get_autofix_change(self):
         return {
             'comment': {
-                'body': 'Resolve the bug as INACTIVE since there is no activity for {} months.\nSee [How Do You Triage](https://mozilla.github.io/bug-handling/triage-bugzilla) for more information.'.format(
+                'body': 'Resolve the bug as INACTIVE since there is no activity for {} months.\nSee [How Do You Triage](https://mozilla.github.io/bug-handling/triage-bugzilla#how-do-you-triage) for more information.'.format(
                     self.nmonths
                 )
             },
