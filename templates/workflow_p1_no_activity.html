@@ -2,7 +2,7 @@
   <table border="1">
     <thead>
       <tr>
-        <th>Bug</th><th>Summary</th><th>Last comment</th><th>Assignee</th>
+        <th>Bug</th><th>Summary</th><th>Last comment</th><th>Assignee</th><th>Component</th>
       </tr>
     </thead>
     <tbody>
@@ -19,6 +19,9 @@
         </td>
         <td>
           {{ assignees[str(bugid)] | e }}
+        </td>
+        <td>
+          {{ prod_comp[str(bugid)]['c'] | e }}
         </td>
       </tr>
       {% endfor -%}

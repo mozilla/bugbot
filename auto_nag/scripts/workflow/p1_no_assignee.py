@@ -50,6 +50,9 @@ class P1NoAssignee(BzCleaner, Nag):
     def has_last_comment_time(self):
         return True
 
+    def has_product_component(self):
+        return True
+
     def get_mail_to_auto_ni(self, bug):
         # Avoid to ni everyday...
         if utils.has_bot_set_ni(bug):

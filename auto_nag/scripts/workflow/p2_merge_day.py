@@ -33,6 +33,9 @@ class P2MergeDay(BzCleaner):
     def ignore_bug_summary(self):
         return False
 
+    def has_product_component(self):
+        return True
+
     def get_bz_params(self, date):
         comps = utils.get_config('workflow', 'components')
         params = {

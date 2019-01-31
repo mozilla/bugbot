@@ -47,6 +47,9 @@ class P2NoActivity(BzCleaner, Nag):
     def has_last_comment_time(self):
         return True
 
+    def has_product_component(self):
+        return True
+
     def set_people_to_nag(self, bug):
         priority = 'default'
         if not self.filter_bug(priority):
