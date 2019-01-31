@@ -18,7 +18,9 @@ class NoPriority(BzCleaner, Nag):
         self.lookup_first = utils.get_config(self.name(), 'first-step', 2)
         self.lookup_second = utils.get_config(self.name(), 'second-step', 4)
         self.escalation = Escalation(
-            self.people, data=utils.get_config(self.name(), 'escalation')
+            self.people,
+            data=utils.get_config(self.name(), 'escalation'),
+            blacklist=utils.get_config('workflow', 'supervisor_blacklist', []),
         )
 
     def description(self):
