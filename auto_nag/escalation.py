@@ -110,8 +110,10 @@ class Step(object):
 
 
 class Escalation(object):
-    def __init__(self, people, data=None):
+    def __init__(self, people, data=None, blacklist=[]):
         super(Escalation, self).__init__()
+        self.people = people
+        self.blacklist = blacklist
         self.data = {
             'high': Escalation._get_steps('high', people, data),
             'normal': Escalation._get_steps('normal', people, data),
@@ -123,6 +125,8 @@ class Escalation(object):
         for step in steps:
             s = step.get_supervisor(days, person, **kwargs)
             if s is not None:
+                if s in self.blacklist:
+                    return self.people.get_moz_mail(person)
                 return s
 
     def filter(self, priority, days, weekday):

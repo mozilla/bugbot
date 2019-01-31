@@ -12,7 +12,9 @@ class P1NoActivity(BzCleaner, Nag):
     def __init__(self):
         super(P1NoActivity, self).__init__()
         self.escalation = Escalation(
-            self.people, data=utils.get_config(self.name(), 'escalation')
+            self.people,
+            data=utils.get_config(self.name(), 'escalation'),
+            blacklist=utils.get_config('workflow', 'supervisor_blacklist', []),
         )
 
     def description(self):

@@ -15,7 +15,9 @@ class P2NoActivity(BzCleaner, Nag):
         super(P2NoActivity, self).__init__()
         self.nmonths = utils.get_config(self.name(), 'months_lookup', 3)
         self.escalation = Escalation(
-            self.people, data=utils.get_config(self.name(), 'escalation')
+            self.people,
+            data=utils.get_config(self.name(), 'escalation'),
+            blacklist=utils.get_config('workflow', 'supervisor_blacklist', []),
         )
 
     def description(self):
