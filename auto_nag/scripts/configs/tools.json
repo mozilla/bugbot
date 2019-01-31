@@ -228,6 +228,10 @@
             "Networking: JAR",
             "Networking: WebSockets",
             "Source Code Analysis"
+        ],
+        "supervisor_blacklist":
+        [
+            "dcamp@mozilla.com"
         ]
     },
     "workflow-no-priority":
