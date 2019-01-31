@@ -55,6 +55,9 @@ class NoPriority(BzCleaner, Nag):
     def ignore_bug_summary(self):
         return False
 
+    def has_product_component(self):
+        return True
+
     def get_mail_to_auto_ni(self, bug):
         if self.typ == 'second':
             return None

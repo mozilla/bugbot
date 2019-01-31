@@ -18,6 +18,7 @@ class BzCleaner(object):
         super(BzCleaner, self).__init__()
         self.has_autofix = False
         self.last_comment = {}
+        self.prod_comp = {}
         self.no_manager = set()
         self.assignees = {}
         self.needinfos = {}
@@ -82,6 +83,9 @@ class BzCleaner(object):
         else:
             self.needinfos[bugid] = set([name])
 
+    def add_product_component(self, bugid, prod, comp):
+        self.prod_comp[str(bugid)] = {'p': prod, 'c': comp}
+
     def get_needinfo_for_template(self):
         res = {}
         for bugid, ni in self.needinfos.items():
@@ -137,6 +141,12 @@ class BzCleaner(object):
     def has_default_products(self):
         return True
 
+    def has_product_component(self):
+        return False
+
+    def get_product_component(self):
+        return self.prod_comp
+
     def handle_bug(self, bug):
         """Implement this function to get all the bugs from the query"""
         pass
@@ -189,6 +199,12 @@ class BzCleaner(object):
             for flag in utils.get_needinfo(bug):
                 self.add_needinfo(bugid, flag['requestee'])
 
+        if self.has_product_component():
+            prod = bug['product']
+            comp = bug['component']
+            bugid = str(bug['id'])
+            self.add_product_component(bugid, prod, comp)
+
     def amend_bzparams(self, params, bug_ids):
         """Amend the Bugzilla params"""
         if not self.all_include_fields():
@@ -210,6 +226,12 @@ class BzCleaner(object):
 
             if self.has_assignee() and 'assigned_to' not in params['include_fields']:
                 params['include_fields'].append('assigned_to')
+
+            if self.has_product_component():
+                if 'product' not in params['include_fields']:
+                    params['include_fields'].append('product')
+                if 'component' not in params['include_fields']:
+                    params['include_fields'].append('component')
 
             if self.has_needinfo() and 'flags' not in params['include_fields']:
                 params['include_fields'].append('flags')
@@ -389,6 +411,7 @@ class BzCleaner(object):
                 plural=utils.plural,
                 no_manager=self.no_manager,
                 last_comment=self.last_comment,
+                prod_comp=self.prod_comp,
                 assignees=self.assignees,
                 needinfos=self.get_needinfo_for_template(),
             )
@@ -426,7 +449,13 @@ class BzCleaner(object):
             )
 
             if isinstance(self, Nag):
-                self.send_mails(title, self.last_comment, self.assignees, dryrun=dryrun)
+                self.send_mails(
+                    title,
+                    self.last_comment,
+                    self.assignees,
+                    self.prod_comp,
+                    dryrun=dryrun,
+                )
         else:
             name = self.name().upper()
             if date:

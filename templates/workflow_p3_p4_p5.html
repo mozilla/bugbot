@@ -2,7 +2,7 @@
   <table border="1">
     <thead>
       <tr>
-        <th>Bug</th><th>Summary</th>
+        <th>Bug</th><th>Summary</th><th>Component</th>
       </tr>
     </thead>
     <tbody>
@@ -13,6 +13,9 @@
         </td>
         <td>
           {{ summary | e }}
+        </td>
+        <td>
+          {{ prod_comp[str(bugid)]['c'] | e }}
         </td>
       </tr>
       {% endfor -%}
