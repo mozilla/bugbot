@@ -1,4 +1,4 @@
-<p>The following {{ plural('bug has', bugids, pword='bugs have') }} Version set but not status_firefox:
+<p>The following bugs have been closed although the stalled keyword is there:
   <ul>
     {% for bugid in bugids -%}
     <li><a href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a></li>

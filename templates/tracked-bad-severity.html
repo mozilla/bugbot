@@ -1,4 +1,4 @@
-<p>The following bugs are tracked in a release but the bug severity is small:
+<p>The following {{ plural('bug is', bugids, pword='bugs are') }} tracked in a release but the bug severity is small:
   <ul>
     {% for bugid in bugids -%}
     <li><a href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a></li>

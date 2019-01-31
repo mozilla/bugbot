@@ -1,4 +1,4 @@
-<p>The following bugs have topcrash as keyword but the severity isn't high enough:
+<p>The following {{ plural('bug has', bugids, pword='bugs have') }} topcrash as keyword but the severity isn't high enough:
   <ul>
     {% for bugid in bugids -%}
     <li><a href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a></li>

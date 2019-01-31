@@ -1,7 +1,21 @@
 <p>The following {{ plural('bug has', bugids, pword='bugs have') }} been reopened although the nightly status flag is still wontfix or fixed:
-  <ul>
-    {% for bugid, summary in bugids -%}
-    <li><a href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a>: {{ summary | e }}</li>
-    {% endfor -%}
-  </ul>
+  <table border="1">
+    <thead>
+      <tr>
+        <th>Bug</th><th>Summary</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for i, (bugid, summary) in enumerate(bugids) -%}
+      <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
+        <td>
+          <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+        </td>
+        <td>
+          {{ summary | e }}
+        </td>
+      </tr>
+      {% endfor -%}
+    </tbody>
+  </table>
 </p>

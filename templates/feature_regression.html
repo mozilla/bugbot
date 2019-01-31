@@ -1,4 +1,4 @@
-<p>The following bugs have both regression and feature as keywords:
+<p>The following {{ plural('bug has', bugids, pword='bugs have') }} both regression and feature as keywords:
   <ul>
     {% for bugid in bugids -%}
     <li><a href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a></li>

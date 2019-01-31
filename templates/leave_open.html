@@ -1,4 +1,4 @@
-<p>The following bugs have been closed although the leave-open keyword is there:
+<p>The following {{ plural('bug has', bugids, pword='bugs have') }} been closed although the leave-open keyword is there:
   <ul>
     {% for bugid in bugids -%}
     <li><a href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a></li>
