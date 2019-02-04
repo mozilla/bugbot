@@ -56,12 +56,14 @@ def send(
     if isinstance(Bcc, six.string_types):
         Bcc = [Bcc]
 
+    Cc = clean_cc(Cc, To)
+
     subtype = 'html' if html else 'plain'
     message = MIMEMultipart()
     message['From'] = From
     message['To'] = ', '.join(To)
     message['Subject'] = Subject
-    message['Cc'] = ', '.join(clean_cc(Cc, To))
+    message['Cc'] = ', '.join(Cc)
     message['Bcc'] = ', '.join(Bcc)
 
     if subtype == 'html':
@@ -75,7 +77,7 @@ def send(
             part['Content-Disposition'] = 'attachment; filename="%s"' % f
             message.attach(part)
 
-    sendMail(From, To, message.as_string(), login=login, dryrun=dryrun)
+    sendMail(From, To + Cc + Bcc, message.as_string(), login=login, dryrun=dryrun)
 
 
 def sendMail(From, To, msg, login={}, dryrun=False):
