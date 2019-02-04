@@ -306,7 +306,7 @@
                 "[15;+∞[":
                 {
                     "supervisor": "triage_owner",
-                    "days": ["Tue"]
+                    "days": ["Mon"]
                 },
                 "[5;15[":
                 {
