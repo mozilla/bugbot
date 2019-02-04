@@ -3,6 +3,7 @@ argparse==1.2.1
 certifi>=2017.4.17
 chardet<3.1.0,>=3.0.2
 httplib2>=0.9.1
+humanize>=0.5.1
 libmozdata>=0.1.47
 path.py==2.2.2
 pep8==0.6.1
@@ -12,5 +13,6 @@ remoteobjects
 requests>=2.20.0
 pexpect==3.1
 python-Levenshtein>=0.12.0
+pytz>=2018.9
 https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.0.0/en_core_web_sm-2.0.0.tar.gz#egg=en-core-web-sm
 https://github.com/marco-c/bugbug/archive/0f78f2b77aacd44caf89b3e2b3b5f869266e472e.tar.gz#egg=bugbug
