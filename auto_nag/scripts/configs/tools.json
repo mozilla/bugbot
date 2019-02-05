@@ -39,6 +39,14 @@
             "WebExtensions"
         ]
     },
+    "one_two_word_summary":
+    {
+        "regex_blacklist":
+        [
+            "^[rR]emove",
+            "^[iI]mplement"
+        ]
+    },
     "unaffected_affected_no_reg":
     {
         "receivers":
