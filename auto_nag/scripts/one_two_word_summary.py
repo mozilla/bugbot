@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.bzcleaner import BzCleaner
+from auto_nag import utils
 
 
 class OneTwoWordSummary(BzCleaner):
@@ -26,14 +27,26 @@ class OneTwoWordSummary(BzCleaner):
 
     def get_bz_params(self, date):
         days_lookup = self.get_config('days_lookup', default=7)
-        return {
+        blacklist = self.get_config('regex_blacklist', [])
+
+        params = {
             'resolution': '---',
-            'short_desc': '^([a-zA-Z0-9_]+ [a-zA-Z0-9_]+|[a-zA-Z0-9_]+)$',
-            'short_desc_type': 'regexp',
             'f1': 'days_elapsed',
             'o1': 'lessthan',
             'v1': days_lookup,
+            'f2': 'short_desc',
+            'o2': 'regexp',
+            'v2': '^([a-zA-Z0-9_]+ [a-zA-Z0-9_]+|[a-zA-Z0-9_]+)$',
         }
+
+        if blacklist:
+            for i, regex in enumerate(blacklist):
+                j = str(i + 3)
+                params['f' + j] = 'short_desc'
+                params['o' + j] = 'notregexp'
+                params['v' + j] = regex
+
+        return params
 
 
 if __name__ == '__main__':
