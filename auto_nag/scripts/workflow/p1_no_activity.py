@@ -41,6 +41,9 @@ class P1NoActivity(BzCleaner, Nag):
     def ignore_bug_summary(self):
         return False
 
+    def ignore_meta(self):
+        return True
+
     def has_last_comment_time(self):
         return True
 

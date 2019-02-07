@@ -137,7 +137,8 @@ def get_last_field_num(params):
         if m:
             s.add(int(m.group(1)))
 
-    return max(s) + 1 if s else 1
+    x = max(s) + 1 if s else 1
+    return str(x)
 
 
 def get_bz_search_url(params):

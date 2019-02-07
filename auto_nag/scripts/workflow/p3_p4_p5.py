@@ -33,6 +33,9 @@ class P3P4P5(BzCleaner):
     def ignore_bug_summary(self):
         return False
 
+    def ignore_meta(self):
+        return True
+
     def has_product_component(self):
         return True
 

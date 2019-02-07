@@ -21,9 +21,7 @@ class P2NoActivity(BzCleaner, Nag):
         )
 
     def description(self):
-        return 'Get P2 bugs and no activity for {} months'.format(
-            self.nmonths
-        )
+        return 'Get P2 bugs and no activity for {} months'.format(self.nmonths)
 
     def name(self):
         return 'workflow-p2-no-activity'
@@ -45,6 +43,9 @@ class P2NoActivity(BzCleaner, Nag):
 
     def ignore_bug_summary(self):
         return False
+
+    def ignore_meta(self):
+        return True
 
     def has_last_comment_time(self):
         return True

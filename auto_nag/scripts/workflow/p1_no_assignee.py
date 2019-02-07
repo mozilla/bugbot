@@ -33,9 +33,7 @@ class P1NoAssignee(BzCleaner, Nag):
         return 'workflow_p1_no_assignee_comment.txt'
 
     def subject(self):
-        return 'P1 Bugs, no assignee and no activity for {} days'.format(
-            self.ndays
-        )
+        return 'P1 Bugs, no assignee and no activity for {} days'.format(self.ndays)
 
     def get_extra_for_template(self):
         return {'ndays': self.ndays}
@@ -48,6 +46,9 @@ class P1NoAssignee(BzCleaner, Nag):
 
     def ignore_bug_summary(self):
         return False
+
+    def ignore_meta(self):
+        return True
 
     def has_last_comment_time(self):
         return True
