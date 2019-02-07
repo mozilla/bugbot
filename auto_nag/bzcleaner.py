@@ -110,6 +110,9 @@ class BzCleaner(object):
     def get_max_ni(self):
         return -1
 
+    def ignore_meta(self):
+        return False
+
     def get_dates(self, date):
         """Get the dates for the bugzilla query (changedafter and changedbefore fields)"""
         date = lmdutils.get_date_ymd(date)
@@ -244,7 +247,6 @@ class BzCleaner(object):
 
         if self.filter_no_nag_keyword():
             n = utils.get_last_field_num(params)
-            n = str(n)
             params.update(
                 {
                     'f' + n: 'status_whiteboard',
@@ -252,6 +254,10 @@ class BzCleaner(object):
                     'v' + n: '[no-nag]',
                 }
             )
+
+        if self.ignore_meta():
+            n = utils.get_last_field_num(params)
+            params.update({'f' + n: 'keywords', 'o' + n: 'nowords', 'v' + n: 'meta'})
 
         if self.has_default_products():
             params['product'] = utils.get_config('common', 'products')
