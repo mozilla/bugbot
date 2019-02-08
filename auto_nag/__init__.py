@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from libmozdata import config
 import logging
 import sys
 from . import utils
@@ -9,6 +10,7 @@ from . import utils
 
 VERSION = (0, 0, 1)
 __version__ = '.'.join(map(str, VERSION))
+
 
 
 path = utils.get_config('common', 'log')
@@ -24,3 +26,6 @@ error = logging.FileHandler(path)
 error.setLevel(logging.ERROR)
 error.setFormatter(formatter)
 logger.addHandler(error)
+
+config.set_config(config.ConfigIni('auto_nag/scripts/configs/mozdata.ini'))
+

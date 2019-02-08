@@ -461,9 +461,8 @@ class BzCleaner(object):
     def organize(self, bugs):
         return utils.organize(bugs, self.columns(), key=self.sort_columns())
 
-    def get_email(self, bztoken, date, bug_ids=[]):
+    def get_email(self, date, bug_ids=[]):
         """Get title and body for the email"""
-        Bugzilla.TOKEN = bztoken
         bugs = self.get_bugs(date=date, bug_ids=bug_ids)
         bugs = self.autofix(bugs)
         if bugs:
@@ -505,7 +504,7 @@ class BzCleaner(object):
             return
 
         login_info = utils.get_login_info()
-        title, body = self.get_email(login_info['bz_api_key'], date)
+        title, body = self.get_email(date, dryrun)
         if title:
             receivers = self.get_receivers()
             status = 'Success'
