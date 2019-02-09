@@ -269,6 +269,9 @@ class BzCleaner(object):
         self.amend_bzparams(params, bug_ids)
         self.query_url = utils.get_bz_search_url(params)
 
+        if isinstance(self, Nag):
+            self.query_params = params
+
         Bugzilla(
             params,
             bughandler=self.bughandler,

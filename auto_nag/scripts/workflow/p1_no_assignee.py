@@ -72,6 +72,7 @@ class P1NoAssignee(BzCleaner, Nag):
 
         bugid = str(bug['id'])
         owner = bug['triage_owner']
+        self.add_triage_owner(owner, utils.get_config('workflow', 'components'))
         bug_data = {'id': bugid, 'summary': self.get_summary(bug)}
         if not self.add(owner, bug_data, priority=priority):
             self.add_no_manager(bugid)

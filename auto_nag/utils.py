@@ -18,6 +18,7 @@ from auto_nag.bugzilla.utils import get_config_path
 
 _CONFIG = None
 _CYCLE_SPAN = None
+_TRIAGE_OWNERS = None
 TEMPLATE_PAT = re.compile(r'<p>(.*)</p>', re.DOTALL)
 BZ_FIELD_PAT = re.compile(r'^[fovj]([0-9]+)$')
 EMPTY_ASSIGNEES = ['nobody@mozilla.org', 'nobody@nss.bugs']
@@ -155,3 +156,33 @@ def has_bot_set_ni(bug):
         ):
             return True
     return False
+
+
+def get_triage_owners():
+    global _TRIAGE_OWNERS
+    if _TRIAGE_OWNERS is not None:
+        return _TRIAGE_OWNERS
+
+    # accessible is the union of:
+    #  selectable (all product we can see)
+    #  enterable (all product a user can file bugs into).
+    prods = get_config('common', 'products')
+    url = 'https://bugzilla.mozilla.org/rest/product'
+    params = {
+        'type': 'accessible',
+        'include_fields': ['components.name', 'components.triage_owner'],
+        'names': prods,
+    }
+    r = requests.get(url, params=params)
+    products = r.json()['products']
+    _TRIAGE_OWNERS = {}
+    for prod in products:
+        for comp in prod['components']:
+            owner = comp['triage_owner']
+            if owner and not is_no_assignee(owner):
+                comp_name = comp['name']
+                if owner not in _TRIAGE_OWNERS:
+                    _TRIAGE_OWNERS[owner] = [comp_name]
+                else:
+                    _TRIAGE_OWNERS[owner].append(comp_name)
+    return _TRIAGE_OWNERS

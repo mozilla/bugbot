@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import copy
 from jinja2 import Environment, FileSystemLoader
 from auto_nag import mail, utils
 from auto_nag.people import People
@@ -18,6 +19,9 @@ class Nag(object):
         self.white_list = []
         self.black_list = []
         self.escalation = Escalation(self.people)
+        self.triage_owners = {}
+        self.all_owners = None
+        self.query_params = {}
 
     @staticmethod
     def get_from():
@@ -92,6 +96,27 @@ class Nag(object):
             mail, self.black_list
         )
 
+    def add_triage_owner(self, owner, components):
+        if owner not in self.triage_owners:
+            self.triage_owners[owner] = self.get_query_url_for_triage_owner(
+                owner, components
+            )
+
+    def get_query_url_for_triage_owner(self, owner, components):
+        if self.all_owners is None:
+            self.all_owners = utils.get_triage_owners()
+        params = copy.deepcopy(self.query_params)
+        if 'include_fields' in params:
+            del params['include_fields']
+
+        comps = self.all_owners[owner]
+        comps = set(comps) & set(components)
+
+        params['component'] = sorted(comps)
+        url = utils.get_bz_search_url(params)
+
+        return url
+
     def send_mails(self, title, last_comment, assignees, prod_comp, dryrun=False):
         self.last_comment_nag = last_comment
         self.assignees_nag = assignees
@@ -141,6 +166,11 @@ class Nag(object):
                 bug_data = info[person]
                 data += bug_data
 
+            if len(To) == 1 and To[0] in self.triage_owners:
+                query_url = self.triage_owners[To[0]]
+            else:
+                query_url = None
+
             body = template.render(
                 date=self.nag_date,
                 extra=extra,
@@ -150,6 +180,7 @@ class Nag(object):
                 assignees=self.assignees_nag,
                 last_comment=self.last_comment_nag,
                 prod_comp=self.prod_comp_nag,
+                query_url=query_url,
             )
 
             m = {'manager': manager, 'to': set(info.keys()), 'body': body}

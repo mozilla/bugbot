@@ -82,6 +82,7 @@ class NoPriority(BzCleaner, Nag):
             return None
 
         owner = bug['triage_owner']
+        self.add_triage_owner(owner, utils.get_config('workflow', 'components'))
         bugid = str(bug['id'])
         bug_data = {'id': bugid, 'summary': self.get_summary(bug)}
         if not self.add(owner, bug_data, priority=priority):
