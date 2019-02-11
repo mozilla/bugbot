@@ -74,6 +74,10 @@ class Regression(BzCleaner):
             'f5': 'longdesc',
             'o5': 'changedbefore',
             'v5': end_date,
+            # Ignore bugs filed by the intermittent failure bot.
+            'emailtype1': 'notequals',
+            'email1': 'intermittent-bug-filer@mozilla.bugs',
+            'emailreporter1': 1,
         }
 
         return params
