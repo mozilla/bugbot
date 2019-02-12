@@ -8,8 +8,6 @@ from auto_nag.scripts.no_assignee import NoAssignee
 
 
 class TestEmailNoAssignee(unittest.TestCase):
-
     def test_nobody(self):
         bugids = NoAssignee().get_bugs('2011-01-01', bug_ids=[229367, 400095])
-        assert bugids == {'229367': 'smontagu@smontagu.org'}
-
+        assert bugids == {'229367': {'id': '229367', 'email': 'smontagu@smontagu.org'}}
