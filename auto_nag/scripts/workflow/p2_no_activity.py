@@ -30,7 +30,7 @@ class P2NoActivity(BzCleaner, Nag):
         return 'workflow_p2_no_activity.html'
 
     def nag_template(self):
-        return 'workflow_p2_no_activity_nag.html'
+        return self.template()
 
     def subject(self):
         return 'P2 bugs without activity for {} months'.format(self.nmonths)
@@ -53,17 +53,18 @@ class P2NoActivity(BzCleaner, Nag):
     def has_product_component(self):
         return True
 
-    def set_people_to_nag(self, bug):
+    def columns(self):
+        return ['component', 'id', 'summary', 'last_comment']
+
+    def set_people_to_nag(self, bug, buginfo):
         priority = 'default'
         if not self.filter_bug(priority):
             return None
 
         owner = bug['triage_owner']
         self.add_triage_owner(owner, utils.get_config('workflow', 'components'))
-        bugid = str(bug['id'])
-        bug_data = {'id': bugid, 'summary': self.get_summary(bug)}
-        if not self.add(owner, bug_data, priority=priority):
-            self.add_no_manager(bugid)
+        if not self.add(owner, buginfo, priority=priority):
+            self.add_no_manager(buginfo['id'])
         return bug
 
     def get_bz_params(self, date):

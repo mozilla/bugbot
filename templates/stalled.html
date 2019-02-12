@@ -1,7 +1,18 @@
-<p>The following bugs have been closed although the stalled keyword is there:
-  <ul>
-    {% for bugid in bugids -%}
-    <li><a href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a></li>
-    {% endfor -%}
-  </ul>
+<p>The following {{ plural('bug has', data, pword='bugs have') }} been closed although the stalled keyword is there:
+  <table border="1">
+    <thead>
+      <tr>
+        <th>Bug</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for i, bugid in enumerate(data) -%}
+      <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
+        <td>
+          <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+        </td>
+      </tr>
+      {% endfor -%}
+    </tbody>
+  </table>
 </p>

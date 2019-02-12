@@ -1,13 +1,16 @@
-<p>The following {{ plural('bug has', bugids, pword='bugs have') }} a priority P2 and no activity for the last {{ extra['nmonths'] }} {{ plural('month', extra[nmonths]) }}:
+<p>The following {{ plural('bug has', data, pword='bugs have') }} a priority P2 and no activity for the last {{ extra['nmonths'] }} {{ plural('month', extra[nmonths]) }}{% if query_url_nag %} (see the search query on <a href="{{ query_url_nag }}">Bugzilla</a>){% endif %}:
   <table border="1">
     <thead>
       <tr>
-        <th>Bug</th><th>Summary</th><th>Last comment</th><th>Component</th>
+        <th>Component</th><th>Bug</th><th>Summary</th><th>Last comment</th>
       </tr>
     </thead>
     <tbody>
-      {% for i, (bugid, summary) in enumerate(bugids) -%}
+      {% for i, (comp, bugid, summary, last_comment) in enumerate(data) -%}
       <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
+        <td>
+          {{ comp | e }}
+        </td>
         <td>
           <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
         </td>
@@ -15,10 +18,7 @@
           {{ summary | e }}
         </td>
         <td>
-          {{ last_comment[str(bugid)] }}
-        </td>
-        <td>
-          {{ prod_comp[str(bugid)]['c'] | e }}
+          {{ last_comment }}
         </td>
       </tr>
       {% endfor -%}

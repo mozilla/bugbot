@@ -31,10 +31,11 @@ class MetaSummaryMissing(BzCleaner):
     def has_individual_autofix(self):
         return True
 
-    def handle_bug(self, bug):
+    def handle_bug(self, bug, data):
         bugid = str(bug['id'])
         summary = bug['summary']
         self.autofix_meta[bugid] = {'summary': '[meta] ' + summary}
+        return bug
 
     def get_bz_params(self, date):
         days_lookup = self.get_config('days_lookup', default=180)

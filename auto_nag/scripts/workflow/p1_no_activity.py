@@ -27,7 +27,7 @@ class P1NoActivity(BzCleaner, Nag):
         return 'workflow_p1_no_activity.html'
 
     def nag_template(self):
-        return 'workflow_p1_no_activity_nag.html'
+        return self.template()
 
     def subject(self):
         return 'P1 bugs and no activity for {} days'.format(self.ndays)
@@ -53,17 +53,18 @@ class P1NoActivity(BzCleaner, Nag):
     def has_product_component(self):
         return True
 
-    def set_people_to_nag(self, bug):
+    def columns(self):
+        return ['component', 'id', 'summary', 'last_comment', 'assignee']
+
+    def set_people_to_nag(self, bug, buginfo):
         priority = 'high'
         if not self.filter_bug(priority):
             return None
 
-        bugid = str(bug['id'])
         owner = bug['triage_owner']
         assignee = bug['assigned_to']
-        bug_data = {'id': bugid, 'summary': self.get_summary(bug)}
-        if not self.add(assignee, bug_data, priority=priority, triage_owner=owner):
-            self.add_no_manager(bugid)
+        if not self.add(assignee, buginfo, priority=priority, triage_owner=owner):
+            self.add_no_manager(buginfo['id'])
 
         return bug
 
@@ -88,6 +89,36 @@ class P1NoActivity(BzCleaner, Nag):
             'v3': self.ndays,
         }
         return params
+
+    def reorganize(self, data):
+        res = []
+        for bugid, summary in data:
+            bugid = str(bugid)
+            res.append(
+                (
+                    self.prod_comp[bugid]['c'],
+                    bugid,
+                    summary,
+                    self.last_comment[bugid],
+                    self.assignees[bugid],
+                )
+            )
+        return utils.sort_comp_bug(res)
+
+    def reorganize_to_nag(self, data):
+        res = []
+        for info in data:
+            bugid = info['id']
+            res.append(
+                (
+                    self.prod_comp[bugid]['c'],
+                    bugid,
+                    info['summary'],
+                    self.last_comment[bugid],
+                    self.assignees[bugid],
+                )
+            )
+        return utils.sort_comp_bug(res)
 
 
 if __name__ == '__main__':

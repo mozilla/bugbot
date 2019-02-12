@@ -45,7 +45,7 @@ class Nag(object):
     def get_people(self):
         return self.people
 
-    def set_people_to_nag(self, bug):
+    def set_people_to_nag(self, bug, buginfo):
         return bug
 
     def escalate(self, person, priority, **kwargs):
@@ -78,6 +78,9 @@ class Nag(object):
 
     def get_extra_for_nag_template(self):
         return {}
+
+    def columns_nag(self):
+        return None
 
     def _is_in_list(self, mail, _list):
         for manager in _list:
@@ -117,10 +120,13 @@ class Nag(object):
 
         return url
 
-    def send_mails(self, title, last_comment, assignees, prod_comp, dryrun=False):
-        self.last_comment_nag = last_comment
-        self.assignees_nag = assignees
-        self.prod_comp_nag = prod_comp
+    def organize_nag(self, bugs):
+        columns = self.columns_nag()
+        if columns is None:
+            columns = self.columns()
+        return utils.organize(bugs, columns)
+
+    def send_mails(self, title, dryrun=False):
         if not self.send_nag_mail:
             return
 
@@ -176,14 +182,15 @@ class Nag(object):
                 extra=extra,
                 plural=utils.plural,
                 enumerate=enumerate,
-                data=data,
-                assignees=self.assignees_nag,
-                last_comment=self.last_comment_nag,
-                prod_comp=self.prod_comp_nag,
-                query_url=query_url,
+                data=self.organize_nag(data),
+                nag=True,
+                query_url_nag=query_url,
             )
 
             m = {'manager': manager, 'to': set(info.keys()), 'body': body}
             mails.append(m)
 
         return mails
+
+    def reorganize_to_bag(self, data):
+        return data

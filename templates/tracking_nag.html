@@ -2,20 +2,23 @@
   <table border="1">
     <thead>
       <tr>
-        <th>Bug</th><th>Summary</th><th>Assignee</th>
+        <th>Bug</th><th>Summary</th><th>Assignee</th><th>Last comment</th>
       </tr>
     </thead>
     <tbody>
-      {% for i, info in enumerate(data) -%}
+      {% for i, (buigid, summary, To, last_comment) in enumerate(data) -%}
       <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
         <td>
-          <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ info['id'] }}">{{ info['id'] }}</a>
+          <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
         </td>
         <td>
-          {{ info['summary'] | e }}
+          {{ summary | e }}
         </td>
         <td>
-          {{ info['To'] | e }}
+          {{ To | e }}
+        </td>
+        <td>
+          {{ last_comment }}
         </td>
       </tr>
       {% endfor -%}

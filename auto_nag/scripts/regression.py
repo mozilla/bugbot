@@ -54,6 +54,9 @@ class Regression(BzCleaner):
     def all_include_fields(self):
         return True
 
+    def columns(self):
+        return ['id', 'summary']
+
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
         resolution_blacklist = self.get_config('resolution_blacklist', default=[])
@@ -112,8 +115,7 @@ class Regression(BzCleaner):
             bugs[int(bug['id'])]['history'] = bug['history']
 
         Bugzilla(
-            bugids=[bug_id for bug_id in bugs.keys()],
-            historyhandler=history_handler,
+            bugids=[bug_id for bug_id in bugs.keys()], historyhandler=history_handler
         ).get_data().wait()
 
     def remove_using_history(self, bugs):
@@ -141,7 +143,14 @@ class Regression(BzCleaner):
         Bugzilla(
             bugids=[bug_id for bug_id in bugs.keys()],
             attachmenthandler=attachment_handler,
-            attachment_include_fields=['id', 'is_obsolete', 'flags', 'is_patch', 'creator', 'content_type'],
+            attachment_include_fields=[
+                'id',
+                'is_obsolete',
+                'flags',
+                'is_patch',
+                'creator',
+                'content_type',
+            ],
         ).get_data().wait()
 
     def get_bugs(self, date='today', bug_ids=[]):
@@ -176,7 +185,10 @@ class Regression(BzCleaner):
         # Attach summaries to bugs.
         reg_bugids = [(n, all_bug_data['summaries'][n]) for n in reg_bugids]
 
-        return sorted(reg_bugids, reverse=True)
+        bugs = {}
+        for n in reg_bugids:
+            bugid = str(n)
+            bugs[bugid] = {'id': bugid, 'summary': all_bug_data['summaries'][n]}
 
 
 if __name__ == '__main__':

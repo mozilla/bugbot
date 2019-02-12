@@ -47,15 +47,12 @@ class ReporterWithNI(BzCleaner):
 
         return params
 
-    def bughandler(self, bug, data):
+    def handle_bug(self, bug, data):
         creator = bug['creator']
-        for flag in bug['flags']:
-            if flag.get('name', '') != 'needinfo':
-                continue
-            if 'requestee' not in flag:
-                continue
-            if flag['requestee'] == creator:
-                super(ReporterWithNI, self).bughandler(bug, data)
+        for flag in utils.get_needinfo(bug):
+            if flag.get('requestee', '') == creator:
+                return bug
+        return None
 
 
 if __name__ == '__main__':

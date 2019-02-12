@@ -52,28 +52,29 @@ class TrackedNeedinfo(BzCleaner, Nag):
         return {'channel': self.channel, 'version': self.version}
 
     def get_extra_for_nag_template(self):
-        return {
-            'channel': self.channel,
-            'version': self.version,
-            'needinfos': self.get_needinfo_for_template(),
-            'assignees': self.assignees,
-        }
+        return self.get_extra_for_template()
 
-    def set_people_to_nag(self, bug):
+    def columns(self):
+        return ['id', 'summary', 'needinfos', 'assignee', 'last_comment']
+
+    def columns_nag(self):
+        return ['id', 'summary', 'to', 'assignee', 'last_comment']
+
+    def set_people_to_nag(self, bug, buginfo):
         priority = self.get_priority(bug)
         if not self.filter_bug(priority):
             return None
 
-        bugid = str(bug['id'])
         has_manager = False
         for flag in utils.get_needinfo(bug):
-            requestee = flag['requestee']
-            bug_data = {'id': bugid, 'summary': self.get_summary(bug), 'to': requestee}
-            if self.add(requestee, bug_data, priority=priority):
-                has_manager = True
+            requestee = flag.get('requestee', '')
+            if requestee:
+                buginfo['to'] = requestee
+                if self.add(requestee, buginfo, priority=priority):
+                    has_manager = True
 
         if not has_manager:
-            self.add_no_manager(bugid)
+            self.add_no_manager(buginfo['id'])
 
         return bug
 

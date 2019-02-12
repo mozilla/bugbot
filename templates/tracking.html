@@ -1,4 +1,4 @@
-<p>The following {{ plural('bug is', bugids, pword='bugs are') }} tracked in {{ extra['channel'] }} {{ extra['version'] }}{% if extra['untouched'] %} and untouched this week{% endif %} (when the bug is red, then the assignee is a person with no manager):
+<p>The following {{ plural('bug is', data, pword='bugs are') }} tracked in {{ extra['channel'] }} {{ extra['version'] }}{% if extra['untouched'] %} and untouched this week{% endif %} (when the bug is red, then the assignee is a person with no manager):
   <table border="1">
     <thead>
       <tr>
@@ -6,19 +6,19 @@
       </tr>
     </thead>
     <tbody>
-      {% for i, (bugid, summary) in enumerate(bugids) -%}
+      {% for i, (bugid, summary, assignee, last_comment) in enumerate(data) -%}
       <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
-        <td {% if str(bugid) in no_manager %}style="background:red;"{% endif %}>
+        <td {% if bugid in no_manager %}style="background:red;"{% endif %}>
           <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
         </td>
         <td>
           {{ summary | e }}
         </td>
         <td>
-          {{ assignees[str(bugid)] | e }}
+          {{ assignee | e }}
         </td>
         <td>
-          {{ last_comment[str(bugid)] }}
+          {{ last_comment }}
         </td>
       </tr>
       {% endfor -%}

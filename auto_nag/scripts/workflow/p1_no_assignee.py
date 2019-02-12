@@ -27,7 +27,7 @@ class P1NoAssignee(BzCleaner, Nag):
         return 'workflow_p1_no_assignee.html'
 
     def nag_template(self):
-        return 'workflow_p1_no_assignee_nag.html'
+        return self.template()
 
     def needinfo_template(self):
         return 'workflow_p1_no_assignee_comment.txt'
@@ -56,26 +56,27 @@ class P1NoAssignee(BzCleaner, Nag):
     def has_product_component(self):
         return True
 
+    def columns(self):
+        return ['component', 'id', 'summary', 'last_comment']
+
     def get_mail_to_auto_ni(self, bug):
         # Avoid to ni everyday...
-        if utils.has_bot_set_ni(bug):
+        if self.has_bot_set_ni(bug):
             return None
 
         mail = bug['triage_owner']
         nick = bug['triage_owner_detail']['nick']
         return {'mail': mail, 'nickname': nick}
 
-    def set_people_to_nag(self, bug):
+    def set_people_to_nag(self, bug, buginfo):
         priority = 'high'
         if not self.filter_bug(priority):
             return None
 
-        bugid = str(bug['id'])
         owner = bug['triage_owner']
         self.add_triage_owner(owner, utils.get_config('workflow', 'components'))
-        bug_data = {'id': bugid, 'summary': self.get_summary(bug)}
-        if not self.add(owner, bug_data, priority=priority):
-            self.add_no_manager(bugid)
+        if not self.add(owner, buginfo, priority=priority):
+            self.add_no_manager(buginfo['id'])
 
         return bug
 

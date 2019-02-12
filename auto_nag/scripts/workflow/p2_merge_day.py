@@ -39,6 +39,9 @@ class P2MergeDay(BzCleaner):
     def ignore_meta(self):
         return True
 
+    def columns(self):
+        return ['component', 'id', 'summary']
+
     def get_bz_params(self, date):
         comps = utils.get_config('workflow', 'components')
         params = {

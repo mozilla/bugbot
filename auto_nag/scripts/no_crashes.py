@@ -136,12 +136,13 @@ class NoCrashes(BzCleaner):
     def get_bugs_without_crashes(self, data):
         # data['ids'] contains bugid => set(...signatures...)
         # data['signatures'] is a set of signatures with no crashes
-        res = []
+        res = {}
         signatures = data['signatures']
         for bugid, bug_sgns in data['ids'].items():
             if bug_sgns < signatures:
                 # all the signatures in the bug have no crashes
-                res.append(bugid)
+                bugid = str(bugid)
+                res[bugid] = {'id': bugid}
         return res
 
     def get_autofix_change(self):
@@ -163,9 +164,12 @@ class NoCrashes(BzCleaner):
             print('An error occurred when getting data from Socorro. Execution ended.')
             sys.exit(1)
 
-        bugids = self.get_bugs_without_crashes(data)
+        bugs = self.get_bugs_without_crashes(data)
+        from pprint import pprint
 
-        return sorted(bugids)
+        pprint(bugs)
+
+        return bugs
 
 
 if __name__ == '__main__':

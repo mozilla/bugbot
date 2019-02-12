@@ -49,15 +49,20 @@ class NiFromManager(BzCleaner, Nag):
     def has_needinfo(self):
         return True
 
+    def columns(self):
+        return ['id', 'summary', 'needinfos', 'last_comment']
+
+    def columns_nag(self):
+        return ['id', 'summary', 'to', 'from', 'last_comment']
+
     def get_priority(self, bug):
         return 'normal'
 
-    def set_people_to_nag(self, bug):
+    def set_people_to_nag(self, bug, buginfo):
         priority = self.get_priority(bug)
         if not self.filter_bug(priority):
             return None
 
-        bugid = str(bug['id'])
         has_manager = False
         accepted = False
         for flag in bug['flags']:
@@ -69,17 +74,13 @@ class NiFromManager(BzCleaner, Nag):
                 requestee = flag['requestee']
                 if self.is_under(requestee):
                     accepted = True
-                    bug_data = {
-                        'id': bugid,
-                        'summary': self.get_summary(bug),
-                        'to': requestee,
-                        'from': self.get_people().get_moz_name(flag['setter']),
-                    }
-                    if self.add(requestee, bug_data):
+                    buginfo['to'] = requestee
+                    buginfo['from'] = self.get_people().get_moz_name(flag['setter'])
+                    if self.add(requestee, buginfo):
                         has_manager = True
 
         if accepted and not has_manager:
-            self.add_no_manager(bugid)
+            self.add_no_manager(buginfo['id'])
 
         return bug if accepted else None
 
