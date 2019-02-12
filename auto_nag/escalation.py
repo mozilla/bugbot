@@ -93,7 +93,6 @@ class Step(object):
         return None
 
     def filter(self, days, weekday):
-        return True
         if self.rang.is_in(days):
             return weekday in self.days
         return None
