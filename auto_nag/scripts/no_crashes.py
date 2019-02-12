@@ -165,10 +165,6 @@ class NoCrashes(BzCleaner):
             sys.exit(1)
 
         bugs = self.get_bugs_without_crashes(data)
-        from pprint import pprint
-
-        pprint(bugs)
-
         return bugs
 
 

@@ -90,36 +90,6 @@ class P1NoActivity(BzCleaner, Nag):
         }
         return params
 
-    def reorganize(self, data):
-        res = []
-        for bugid, summary in data:
-            bugid = str(bugid)
-            res.append(
-                (
-                    self.prod_comp[bugid]['c'],
-                    bugid,
-                    summary,
-                    self.last_comment[bugid],
-                    self.assignees[bugid],
-                )
-            )
-        return utils.sort_comp_bug(res)
-
-    def reorganize_to_nag(self, data):
-        res = []
-        for info in data:
-            bugid = info['id']
-            res.append(
-                (
-                    self.prod_comp[bugid]['c'],
-                    bugid,
-                    info['summary'],
-                    self.last_comment[bugid],
-                    self.assignees[bugid],
-                )
-            )
-        return utils.sort_comp_bug(res)
-
 
 if __name__ == '__main__':
     P1NoActivity().run()
