@@ -21,7 +21,6 @@ _CYCLE_SPAN = None
 _TRIAGE_OWNERS = None
 TEMPLATE_PAT = re.compile(r'<p>(.*)</p>', re.DOTALL)
 BZ_FIELD_PAT = re.compile(r'^[fovj]([0-9]+)$')
-EMPTY_ASSIGNEES = ['nobody@mozilla.org', 'nobody@nss.bugs']
 
 
 def _get_config():
@@ -61,12 +60,29 @@ def get_signatures(sgns):
     return res
 
 
-def get_empty_assignees():
-    return EMPTY_ASSIGNEES
+def get_empty_assignees(params):
+    n = get_last_field_num(params)
+    n = int(n)
+    params.update(
+        {
+            'j' + str(n): 'OR',
+            'f' + str(n): 'OP',
+            'f' + str(n + 1): 'assigned_to',
+            'o' + str(n + 1): 'equals',
+            'v' + str(n + 1): 'nobody@mozilla.org',
+            'f' + str(n + 2): 'assigned_to',
+            'o' + str(n + 2): 'regexp',
+            'v' + str(n + 2): r'^.*\.bugs$',
+            'f' + str(n + 3): 'assigned_to',
+            'o' + str(n + 3): 'isempty',
+            'f' + str(n + 4): 'CP',
+        }
+    )
+    return params
 
 
 def is_no_assignee(mail):
-    return mail in EMPTY_ASSIGNEES
+    return mail == 'nobody@mozilla.org' or mail.endswith('.bugs') or mail == ''
 
 
 def get_login_info():
