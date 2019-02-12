@@ -20,12 +20,9 @@ class BzCleaner(object):
     def __init__(self):
         super(BzCleaner, self).__init__()
         self.has_autofix = False
-        self.last_comment = {}
-        self.prod_comp = {}
         self.no_manager = set()
-        self.assignees = {}
-        self.needinfos = {}
         self.auto_needinfo = {}
+        self.has_flags = False
         self.test_mode = utils.get_config('common', 'test', False)
 
     def description(self):
@@ -74,27 +71,6 @@ class BzCleaner(object):
     def add_no_manager(self, bugid):
         self.no_manager.add(str(bugid))
 
-    def add_assignee(self, bugid, name):
-        if name == 'Nobody; OK to take it and work on it':
-            name = 'nobody'
-        self.assignees[str(bugid)] = name
-
-    def add_needinfo(self, bugid, name):
-        bugid = str(bugid)
-        if bugid in self.needinfos:
-            self.needinfos[bugid].add(name)
-        else:
-            self.needinfos[bugid] = set([name])
-
-    def add_product_component(self, bugid, prod, comp):
-        self.prod_comp[str(bugid)] = {'p': prod, 'c': comp}
-
-    def get_needinfo_for_template(self):
-        res = {}
-        for bugid, ni in self.needinfos.items():
-            res[bugid] = list(sorted(ni))
-        return res
-
     def has_assignee(self):
         return False
 
@@ -112,6 +88,12 @@ class BzCleaner(object):
 
     def ignore_meta(self):
         return False
+
+    def columns(self):
+        """The fields to get for the columns in email report"""
+        if self.ignore_bug_summary():
+            return ['id']
+        return ['id', 'summary']
 
     def get_dates(self, date):
         """Get the dates for the bugzilla query (changedafter and changedbefore fields)"""
@@ -139,7 +121,7 @@ class BzCleaner(object):
 
     def get_data(self):
         """Get the data structure to use in the bughandler"""
-        return []
+        return {}
 
     def get_summary(self, bug):
         return '...' if bug['groups'] else bug['summary']
@@ -153,9 +135,9 @@ class BzCleaner(object):
     def get_product_component(self):
         return self.prod_comp
 
-    def handle_bug(self, bug):
+    def handle_bug(self, bug, data):
         """Implement this function to get all the bugs from the query"""
-        pass
+        return bug
 
     def get_auto_ni_blacklist(self):
         return set()
@@ -180,36 +162,40 @@ class BzCleaner(object):
 
     def bughandler(self, bug, data):
         """bug handler for the Bugzilla query"""
-        self.handle_bug(bug)
+        if self.handle_bug(bug, data) is None:
+            return
 
-        if isinstance(self, Nag):
-            bug = self.set_people_to_nag(bug)
-            if not bug:
-                return
+        bugid = str(bug['id'])
+        res = {'id': bugid}
 
         auto_ni = self.get_mail_to_auto_ni(bug)
-        self.add_auto_ni(bug['id'], auto_ni)
+        self.add_auto_ni(bugid, auto_ni)
 
-        if self.ignore_bug_summary():
-            data.append(bug['id'])
-        else:
-            data.append((bug['id'], self.get_summary(bug)))
+        if not self.ignore_bug_summary():
+            res['summary'] = self.get_summary(bug)
 
         if self.has_assignee():
             real = bug['assigned_to_detail']['real_name']
-            bugid = str(bug['id'])
-            self.add_assignee(bugid, real)
+            if utils.is_no_assignee(bug['assigned_to']):
+                real = 'nobody'
+            res['assignee'] = real
 
         if self.has_needinfo():
-            bugid = str(bug['id'])
+            s = set()
             for flag in utils.get_needinfo(bug):
-                self.add_needinfo(bugid, flag['requestee'])
+                s.add(flag['requestee'])
+            res['needinfos'] = sorted(s)
 
         if self.has_product_component():
-            prod = bug['product']
-            comp = bug['component']
-            bugid = str(bug['id'])
-            self.add_product_component(bugid, prod, comp)
+            for k in ['product', 'component']:
+                res[k] = bug[k]
+
+        if isinstance(self, Nag):
+            bug = self.set_people_to_nag(bug, res)
+            if not bug:
+                return
+
+        data[bugid] = res
 
     def amend_bzparams(self, params, bug_ids):
         """Amend the Bugzilla params"""
@@ -262,9 +248,11 @@ class BzCleaner(object):
         if self.has_default_products():
             params['product'] = utils.get_config('common', 'products')
 
+        self.has_flags = 'flags' in params.get('include_fields', [])
+
     def get_bugs(self, date='today', bug_ids=[]):
         """Get the bugs"""
-        bugids = self.get_data()
+        bugs = self.get_data()
         params = self.get_bz_params(date)
         self.amend_bzparams(params, bug_ids)
         self.query_url = utils.get_bz_search_url(params)
@@ -275,66 +263,52 @@ class BzCleaner(object):
         Bugzilla(
             params,
             bughandler=self.bughandler,
-            bugdata=bugids,
+            bugdata=bugs,
             timeout=utils.get_config(self.name(), 'bz_query_timeout'),
         ).get_data().wait()
 
-        self.get_comments(bugids)
-        return (
-            sorted(
-                bugids, reverse=utils.get_config(self.name(), 'reverse_order', False)
-            )
-            if isinstance(bugids, list)
-            else bugids
-        )
+        self.get_comments(bugs)
 
-    def get_comment_data(self):
-        return None
+        return bugs  # TODO: attention au reverse_order (config/tools.json)
 
     def commenthandler(self, bug, bugid, data):
         return
 
-    def _commenthandler(self, *args):
-        if len(args) == 2:
-            bug, bugid = args
-            data = None
-        else:
-            bug, bugid, data = args
-
+    def _commenthandler(self, bug, bugid, data):
         comments = bug['comments']
+        bugid = str(bugid)
         if self.has_last_comment_time():
             if comments:
                 # get the timestamp of the last comment
                 today = pytz.utc.localize(datetime.utcnow())
                 dt = dateutil.parser.parse(comments[-1]['time'])
-                self.last_comment[bugid] = humanize.naturaldelta(today - dt)
+                data[bugid]['last_comment'] = humanize.naturaldelta(today - dt)
             else:
-                self.last_comment[bugid] = ''
+                data[bugid]['last_comment'] = ''
 
-        if data is not None:
-            self.commenthandler(bug, bugid, data)
+        self.commenthandler(bug, bugid, data)
 
-    def get_comments(self, bugids):
+    def get_comments(self, bugs):
         """Get the bugs comments"""
-        data = self.get_comment_data()
-        if data is not None or self.has_last_comment_time():
-            bugids = self.get_list_bugs(bugids)
+        if self.has_last_comment_time():
+            bugids = self.get_list_bugs(bugs)
             Bugzilla(
-                bugids=bugids, commenthandler=self._commenthandler, commentdata=data
+                bugids=bugids, commenthandler=self._commenthandler, commentdata=bugs
             ).get_data().wait()
+        return bugs
 
     def has_last_comment_time(self):
         return False
 
-    def get_last_comment_time(self):
-        return self.last_comment
-
     def get_list_bugs(self, bugs):
-        if self.ignore_bug_summary():
-            return list(map(str, bugs))
-        return [str(x) for x, _ in bugs]
+        return [x['id'] for x in bugs.values()]
 
-    def set_needinfo(self, bugs, dryrun):
+    def has_bot_set_ni(self, bug):
+        if not self.has_flags:
+            raise Exception
+        return utils.has_bot_set_ni(bug)
+
+    def set_needinfo(self, dryrun):
         if not self.auto_needinfo:
             return
 
@@ -377,7 +351,7 @@ class BzCleaner(object):
 
     def autofix(self, bugs, dryrun):
         """Autofix the bugs according to what is returned by get_autofix_change"""
-        self.set_needinfo(bugs, dryrun)
+        self.set_needinfo(dryrun)
 
         change = self.get_autofix_change()
         if change:
@@ -405,27 +379,27 @@ class BzCleaner(object):
 
         return bugs
 
+    def organize(self, bugs):
+        return utils.organize(bugs, self.columns())
+
     def get_email(self, bztoken, date, dryrun, bug_ids=[]):
         """Get title and body for the email"""
         Bugzilla.TOKEN = bztoken
-        bugids = self.get_bugs(date=date, bug_ids=bug_ids)
-        bugids = self.autofix(bugids, dryrun)
-        if bugids:
+        bugs = self.get_bugs(date=date, bug_ids=bug_ids)
+        bugs = self.autofix(bugs, dryrun)
+        if bugs:
+            bugs = self.organize(bugs)
             extra = self.get_extra_for_template()
             env = Environment(loader=FileSystemLoader('templates'))
             template = env.get_template(self.template())
             message = template.render(
                 date=date,
-                bugids=bugids,
+                data=bugs,
                 extra=extra,
                 str=str,
                 enumerate=enumerate,
                 plural=utils.plural,
                 no_manager=self.no_manager,
-                last_comment=self.last_comment,
-                prod_comp=self.prod_comp,
-                assignees=self.assignees,
-                needinfos=self.get_needinfo_for_template(),
             )
             common = env.get_template('common.html')
             body = common.render(
@@ -461,13 +435,7 @@ class BzCleaner(object):
             )
 
             if isinstance(self, Nag):
-                self.send_mails(
-                    title,
-                    self.last_comment,
-                    self.assignees,
-                    self.prod_comp,
-                    dryrun=dryrun,
-                )
+                self.send_mails(title, dryrun=dryrun)
         else:
             name = self.name().upper()
             if date:

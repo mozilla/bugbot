@@ -148,12 +148,8 @@ def get_bz_search_url(params):
 
 def has_bot_set_ni(bug):
     bot = get_config('common', 'bot_bz_mail')
-    for flag in bug.get('flags', []):
-        if (
-            flag.get('name', '') == 'needinfo'
-            and flag['status'] == '?'
-            and flag['setter'] in bot
-        ):
+    for flag in get_needinfo(bug):
+        if flag['setter'] in bot:
             return True
     return False
 
@@ -186,3 +182,28 @@ def get_triage_owners():
                 else:
                     _TRIAGE_OWNERS[owner].append(comp_name)
     return _TRIAGE_OWNERS
+
+
+def organize(bugs, columns):
+    if isinstance(bugs, dict):
+        # we suppose that the values are the bugdata dict
+        bugs = bugs.values()
+
+    def identity(x):
+        return x
+
+    def bugid_key(x):
+        return -int(x)
+
+    lambdas = {'id': bugid_key}
+
+    def mykey(p):
+        return tuple(lambdas.get(c, identity)(x) for x, c in zip(p, columns))
+
+    if len(columns) >= 2:
+        res = [tuple(info[c] for c in columns) for info in bugs]
+    else:
+        c = columns[0]
+        res = [info[c] for info in bugs]
+
+    return sorted(res, key=mykey)

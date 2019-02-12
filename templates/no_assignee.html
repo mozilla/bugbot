@@ -1,17 +1,21 @@
-<p>The following bugs have no assignees and a patch which landed in m-c:
-  <ul>
-    {% for bugid, email in bugids.items() -%}
-    {% if not email -%}
-    <li><a href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a></li>
-    {% endif -%}
-    {% endfor -%}
-  </ul>
-  and these one have been auto-fixed:
-  <ul>
-    {% for bugid, email in bugids.items() -%}
-    {% if email -%}
-    <li><a href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a> assigned to {{ email }}</li>
-    {% endif -%}
-    {% endfor -%}
-  </ul>
+<p>The following {{ plural('bug has', data, pword='bugs have') }} no assignees and a patch which landed in m-c:
+  <table border="1">
+    <thead>
+      <tr>
+        <th>Bug</th><th>Assignee email</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for i, (bugid, email) in enumerate(data) -%}
+      <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
+        <td>
+          <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+        </td>
+        <td>
+          {{ email | e }}
+        </td>
+      </tr>
+      {% endfor -%}
+    </tbody>
+  </table>
 </p>

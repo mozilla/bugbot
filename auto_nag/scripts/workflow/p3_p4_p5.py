@@ -39,6 +39,9 @@ class P3P4P5(BzCleaner):
     def has_product_component(self):
         return True
 
+    def columns(self):
+        return ['component', 'id', 'summary']
+
     def get_bz_params(self, date):
         date = lmdutils.get_date_ymd(date)
         start_date = date - relativedelta(months=self.nmonths)

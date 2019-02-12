@@ -1,6 +1,6 @@
-<p>The following {{ plural('bug has', bugids, pword='bugs have') }} has_regression_range=yes but the regression keyword hasn't been set:
+<p>The following {{ plural('bug has', data, pword='bugs have') }} has_regression_range=yes but the regression keyword hasn't been set:
   <ul>
-    {% for bugid in bugids -%}
+    {% for bugid in data -%}
     <li><a href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a></li>
     {% endfor -%}
   </ul>

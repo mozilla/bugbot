@@ -51,6 +51,9 @@ class Tracking(BzCleaner, Nag):
     def has_default_products(self):
         return False
 
+    def has_assignee(self):
+        return True
+
     def get_extra_for_template(self):
         return {
             'channel': self.channel,
@@ -61,24 +64,24 @@ class Tracking(BzCleaner, Nag):
     def get_extra_for_nag_template(self):
         return self.get_extra_for_template()
 
-    def set_people_to_nag(self, bug):
+    def columns(self):
+        return ['id', 'summary', 'assignee', 'last_comment']
+
+    def columns_nag(self):
+        return ['id', 'summary', 'To', 'last_comment']
+
+    def set_people_to_nag(self, bug, buginfo):
         priority = self.get_priority(bug)
         if not self.filter_bug(priority):
             return None
 
         assignee = bug['assigned_to']
-        bugid = str(bug['id'])
         real = bug['assigned_to_detail']['real_name']
-        bug_data = {
-            'id': bugid,
-            'summary': self.get_summary(bug),
-            'to': assignee,
-            'To': real,
-        }
+        buginfo['to'] = assignee
+        buginfo['To'] = real
 
-        self.add_assignee(bugid, real)
-        if not self.add(assignee, bug_data, priority=priority):
-            self.add_no_manager(bugid)
+        if not self.add(assignee, buginfo, priority=priority):
+            self.add_no_manager(buginfo['id'])
 
         return bug
 
@@ -89,7 +92,7 @@ class Tracking(BzCleaner, Nag):
         tracking_value = (
             '+,blocking' if self.channel != 'esr' else self.versions['beta'] + '+'
         )
-        fields = ['assigned_to', self.tracking]
+        fields = [self.tracking]
         params = {
             'include_fields': fields,
             'f1': self.tracking,

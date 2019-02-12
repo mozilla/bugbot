@@ -23,7 +23,7 @@ class Unlanded(BzCleaner, Nag):
         return 'unlanded.html'
 
     def nag_template(self):
-        return 'unlanded_nag.html'
+        return self.template()
 
     def subject(self):
         return self.description()
@@ -37,18 +37,21 @@ class Unlanded(BzCleaner, Nag):
     def has_default_products(self):
         return False
 
-    def set_people_to_nag(self, bug):
+    def has_assignee(self):
+        return True
+
+    def columns(self):
+        return ['id', 'summary', 'assignee', 'last_comment']
+
+    def set_people_to_nag(self, bug, buginfo):
         priority = self.get_priority(bug)
         if not self.filter_bug(priority):
             return None
 
         assignee = bug['assigned_to']
-        bugid = str(bug['id'])
-        real = bug['assigned_to_detail']['real_name']
-        bug_data = {'id': bugid, 'summary': self.get_summary(bug), 'to': assignee}
-        self.add_assignee(bugid, real)
-        if not self.add(assignee, bug_data):
-            self.add_no_manager(bugid)
+        buginfo['to'] = assignee
+        if not self.add(assignee, buginfo):
+            self.add_no_manager(buginfo['id'])
         return bug
 
     def get_bz_params(self, date):
@@ -59,7 +62,7 @@ class Unlanded(BzCleaner, Nag):
             bug_ids = utils.get_report_bugs(self.channel)
         status = utils.get_flag(version, 'status', self.channel)
         self.tracking = utils.get_flag(version, 'tracking', self.channel)
-        fields = ['assigned_to', self.tracking]
+        fields = [self.tracking]
         params = {
             'include_fields': fields,
             'bug_id': ','.join(bug_ids),

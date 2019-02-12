@@ -33,6 +33,9 @@ class NoAssignee(BzCleaner):
     def subject(self):
         return 'Bugs with no assignees'
 
+    def columns(self):
+        return ['id', 'email']
+
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
         reporters = self.get_config('reporter_exception', default=[])
@@ -76,7 +79,7 @@ class NoAssignee(BzCleaner):
 
         return False
 
-    def get_revisions(self, bugids):
+    def get_revisions(self, bugs):
         """Get the revisions from the hg.m.o urls in the bug comments"""
         nightly_pats = Bugzilla.get_landing_patterns(channels=['nightly'])
 
@@ -97,8 +100,9 @@ class NoAssignee(BzCleaner):
                 if self.is_patch(attachment):
                     data[bugid]['creators'].add(attachment['creator'])
 
+        bugids = list(bugs.keys())
         revisions = {
-            str(bugid): {'revisions': [], 'creators': set(), 'commenters': {}}
+            bugid: {'revisions': [], 'creators': set(), 'commenters': {}}
             for bugid in bugids
         }
         Bugzilla(
@@ -251,16 +255,19 @@ class NoAssignee(BzCleaner):
                     print('Auto assign {}: {}'.format(bugid, email))
                 else:
                     Bugzilla([bugid]).put({'assigned_to': email})
-        return self.hgdata
+        return bugs
 
     def get_bugs(self, date='today', bug_ids=[]):
-        bugids = super(NoAssignee, self).get_bugs(date=date, bug_ids=bug_ids)
-        bzdata = self.get_revisions(bugids)
+        bugs = super(NoAssignee, self).get_bugs(date=date, bug_ids=bug_ids)
+        bzdata = self.get_revisions(bugs)
         user_info = self.get_user_info(bzdata)
 
-        bugids = self.filter_from_hg(bzdata, user_info)
+        _bugs = self.filter_from_hg(bzdata, user_info)
+        bugs = {}
+        for bugid, email in _bugs.items():
+            bugs[bugid] = {'id': bugid, 'email': email}
 
-        return bugids
+        return bugs
 
 
 if __name__ == '__main__':

@@ -1,4 +1,4 @@
-<p>The following {{ plural('bug has', bugids, pword='bugs have') }} been reopened although the nightly status flag is still wontfix or fixed:
+<p>The following {{ plural('bug has', data, pword='bugs have') }} been reopened although the nightly status flag is still wontfix or fixed:
   <table border="1">
     <thead>
       <tr>
@@ -6,7 +6,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for i, (bugid, summary) in enumerate(bugids) -%}
+      {% for i, (bugid, summary) in enumerate(data) -%}
       <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
         <td>
           <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>

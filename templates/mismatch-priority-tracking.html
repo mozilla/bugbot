@@ -1,6 +1,6 @@
-<p>The following {{ plural('bug is', bugids, pword='bugs are') }} tracked but with a bad priority:
+<p>The following {{ plural('bug is', data, pword='bugs are') }} tracked but with a bad priority:
   <ul>
-    {% for bugid in bugids -%}
+    {% for bugid in data -%}
     <li><a href="https://bugzilla.mozilla.org/{{ bugid }}">{{ bugid }}</a></li>
     {% endfor -%}
   </ul>

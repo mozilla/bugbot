@@ -1,4 +1,4 @@
-<p>The following {{ plural('bug is', bugids, pword='bugs are') }} in untriagged with an important severity:
+<p>The following {{ plural('bug is', data, pword='bugs are') }} in untriagged with an important severity:
   <table border="1">
     <thead>
       <tr>
@@ -6,7 +6,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for i, (bugid, summary) in enumerate(bugids) -%}
+      {% for i, (bugid, summary) in enumerate(data) -%}
       <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
         <td>
           <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
