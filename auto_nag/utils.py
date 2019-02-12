@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import copy
 import json
 from libmozdata import release_calendar as rc
 import re
@@ -19,6 +20,7 @@ from auto_nag.bugzilla.utils import get_config_path
 _CONFIG = None
 _CYCLE_SPAN = None
 _TRIAGE_OWNERS = None
+_DEFAULT_ASSIGNEES = None
 TEMPLATE_PAT = re.compile(r'<p>(.*)</p>', re.DOTALL)
 BZ_FIELD_PAT = re.compile(r'^[fovj]([0-9]+)$')
 
@@ -60,7 +62,7 @@ def get_signatures(sgns):
     return res
 
 
-def get_empty_assignees(params):
+def get_empty_assignees(params, negation=False):
     n = get_last_field_num(params)
     n = int(n)
     params.update(
@@ -78,6 +80,9 @@ def get_empty_assignees(params):
             'f' + str(n + 4): 'CP',
         }
     )
+    if negation:
+        params['n' + str(n)] = 1
+
     return params
 
 
@@ -200,6 +205,34 @@ def get_triage_owners():
     return _TRIAGE_OWNERS
 
 
+def get_default_assignees():
+    global _DEFAULT_ASSIGNEES
+    if _DEFAULT_ASSIGNEES is not None:
+        return _DEFAULT_ASSIGNEES
+
+    # accessible is the union of:
+    #  selectable (all product we can see)
+    #  enterable (all product a user can file bugs into).
+    prods = get_config('common', 'products')
+    url = 'https://bugzilla.mozilla.org/rest/product'
+    params = {
+        'type': 'accessible',
+        'include_fields': ['name', 'components.name', 'components.default_assigned_to'],
+        'names': prods,
+    }
+    r = requests.get(url, params=params)
+    products = r.json()['products']
+    _DEFAULT_ASSIGNEES = {}
+    for prod in products:
+        prod_name = prod['name']
+        _DEFAULT_ASSIGNEES[prod_name] = dap = {}
+        for comp in prod['components']:
+            comp_name = comp['name']
+            assignee = comp['default_assigned_to']
+            dap[comp_name] = assignee
+    return _DEFAULT_ASSIGNEES
+
+
 def organize(bugs, columns):
     if isinstance(bugs, dict):
         # we suppose that the values are the bugdata dict
@@ -223,3 +256,18 @@ def organize(bugs, columns):
         res = [info[c] for info in bugs]
 
     return sorted(res, key=mykey)
+
+
+def merge_bz_changes(c1, c2):
+    if not c1:
+        return c2
+    if not c2:
+        return c1
+
+    assert set(c1.keys()).isdisjoint(
+        c2.keys()
+    ), 'Merge changes with common keys is not a good idea'
+    c = copy.deepcopy(c1)
+    c.update(c2)
+
+    return c
