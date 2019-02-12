@@ -46,21 +46,21 @@ class NoAssignee(BzCleaner):
             'bug_status': ['RESOLVED', 'VERIFIED'],
             'keywords': 'meta',
             'keywords_type': 'nowords',
-            'f1': 'assigned_to',
-            'o1': 'anyexact',
-            'v1': ','.join(utils.get_empty_assignees()),
-            'f2': 'longdesc',
-            'o2': 'regexp',
-            'v2': regexp,
+            'f1': 'longdesc',
+            'o1': 'regexp',
+            'v1': regexp,
+            'f2': 'resolution',
+            'o2': 'changedafter',
+            'v2': start_date,
             'f3': 'resolution',
-            'o3': 'changedafter',
-            'v3': start_date,
-            'f4': 'resolution',
-            'o4': 'changedbefore',
-            'v4': end_date,
+            'o3': 'changedbefore',
+            'v3': end_date,
         }
+
         if reporters:
             params.update({'f5': 'reporter', 'o5': 'nowordssubstr', 'v5': reporters})
+
+        utils.get_empty_assignees(params)
 
         return params
 

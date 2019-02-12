@@ -50,10 +50,9 @@ class P2MergeDay(BzCleaner):
             'f1': 'priority',
             'o1': 'equals',
             'v1': 'P2',
-            'f2': 'assigned_to',
-            'o2': 'nowordssubstr',
-            'v2': ','.join(utils.get_empty_assignees()),
         }
+
+        utils.get_empty_assignees(params)
 
         return params
 

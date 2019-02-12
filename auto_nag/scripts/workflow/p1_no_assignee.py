@@ -93,13 +93,13 @@ class P1NoAssignee(BzCleaner, Nag):
             'f1': 'priority',
             'o1': 'equals',
             'v1': 'P1',
-            'f2': 'assigned_to',
-            'o2': 'anyexact',
-            'v2': ','.join(utils.get_empty_assignees()),
-            'f3': 'days_elapsed',
-            'o3': 'greaterthaneq',
-            'v3': self.ndays,
+            'f2': 'days_elapsed',
+            'o2': 'greaterthaneq',
+            'v2': self.ndays,
         }
+
+        utils.get_empty_assignees(params)
+
         return params
 
 
