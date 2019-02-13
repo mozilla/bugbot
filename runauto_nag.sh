@@ -134,6 +134,10 @@ python -m auto_nag.scripts.missing_beta_status
 # Pretty rare
 python -m auto_nag.scripts.unlanded
 
+# has a r+ patch, is open, has no activity for few weeks
+# Pretty common
+python -m auto_nag.scripts.not_landed
+
 # New workflow
 # https://docs.google.com/document/d/1EHuWa-uR-7Sq63X1ZiDN1mvJ9gQtWiqYrCifkySJyW0/edit#
 # https://docs.google.com/drawings/d/1oZA-AUvkOxGMNhZNofL8Wlfk6ol3o5ATQCV5DJJKbwM/edit

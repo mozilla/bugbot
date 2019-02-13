@@ -111,6 +111,11 @@
     {
         "number_of_months": 12
     },
+    "not-landed":
+    {
+        "number_of_weeks": 2,
+        "number_of_years": 2
+    },
     "ni-triage-owner":
     {
         "number_of_weeks": 2,
