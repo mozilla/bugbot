@@ -186,13 +186,12 @@ class Regression(BzCleaner):
         # Add bugs that are certainly regressions.
         reg_bugids |= all_bug_data['regressions']
 
-        # Attach summaries to bugs.
-        reg_bugids = [(n, all_bug_data['summaries'][n]) for n in reg_bugids]
-
         bugs = {}
         for n in reg_bugids:
             bugid = str(n)
             bugs[bugid] = {'id': bugid, 'summary': all_bug_data['summaries'][n]}
+
+        return bugs
 
 
 if __name__ == '__main__':
