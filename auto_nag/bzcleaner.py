@@ -317,7 +317,7 @@ class BzCleaner(object):
 
     def set_needinfo(self, dryrun):
         if not self.auto_needinfo:
-            return
+            return {}
 
         template_name = self.needinfo_template()
         assert bool(template_name)
