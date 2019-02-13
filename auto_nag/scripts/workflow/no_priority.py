@@ -68,10 +68,6 @@ class NoPriority(BzCleaner, Nag):
         if self.typ == 'second':
             return None
 
-        # Avoid to ni everyday...
-        if self.has_bot_set_ni(bug):
-            return None
-
         mail = bug['triage_owner']
         nick = bug['triage_owner_detail']['nick']
         return {'mail': mail, 'nickname': nick}
@@ -95,6 +91,7 @@ class NoPriority(BzCleaner, Nag):
         comps = utils.get_config('workflow', 'components')
         params = {
             'component': comps,
+            'bug_id': '1523291',
             'include_fields': fields,
             'resolution': '---',
             'f1': 'priority',
@@ -105,12 +102,15 @@ class NoPriority(BzCleaner, Nag):
         if self.typ == 'first':
             params.update(
                 {
-                    'f2': 'creation_ts',
-                    'o2': 'lessthaneq',
-                    'v2': date - relativedelta(days=self.lookup_first * 7),
+                    'f2': 'flagtypes.name',
+                    'o2': 'notequals',
+                    'v2': 'needinfo?',
                     'f3': 'creation_ts',
-                    'o3': 'greaterthan',
-                    'v3': date - relativedelta(days=self.lookup_second * 7),
+                    'o3': 'lessthaneq',
+                    'v3': date - relativedelta(days=self.lookup_first * 7),
+                    'f4': 'creation_ts',
+                    'o4': 'greaterthan',
+                    'v4': date - relativedelta(days=self.lookup_second * 7),
                 }
             )
         else:
@@ -128,3 +128,8 @@ class NoPriority(BzCleaner, Nag):
 if __name__ == '__main__':
     NoPriority('first').run()
     NoPriority('second').run()
+
+"""    
+1) your first case (no priority + pending ni), we will ignore these pattern. If the bot notices this pattern and without any activity for X days,
+we will need info the official triage owner to act on the bug (INCOMPLETE for example)
+"""
