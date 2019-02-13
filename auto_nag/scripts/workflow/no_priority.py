@@ -91,7 +91,6 @@ class NoPriority(BzCleaner, Nag):
         comps = utils.get_config('workflow', 'components')
         params = {
             'component': comps,
-            'bug_id': '1523291',
             'include_fields': fields,
             'resolution': '---',
             'f1': 'priority',
@@ -128,8 +127,3 @@ class NoPriority(BzCleaner, Nag):
 if __name__ == '__main__':
     NoPriority('first').run()
     NoPriority('second').run()
-
-"""    
-1) your first case (no priority + pending ni), we will ignore these pattern. If the bot notices this pattern and without any activity for X days,
-we will need info the official triage owner to act on the bug (INCOMPLETE for example)
-"""
