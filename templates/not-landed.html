@@ -1,0 +1,24 @@
+<p>The following {{ plural('bug has', data, pword='bugs have') }} are open with no activity for {{ extra['nweeks'] }} {{ plural('week', extra['nweeks']) }} and a <b>r+</b> patch:
+  <table border="1">
+    <thead>
+      <tr>
+        <th>Bug</th><th>Summary</th><th>Assignee</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for i, (bugid, summary, assignee) in enumerate(data) -%}
+      <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
+        <td>
+          <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+        </td>
+        <td>
+          {{ summary | e }}
+        </td>
+        <td>
+          {{ assignee | e }}
+        </td>
+      </tr>
+      {% endfor -%}
+    </tbody>
+  </table>
+</p>

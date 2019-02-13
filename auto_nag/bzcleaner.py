@@ -364,7 +364,7 @@ class BzCleaner(object):
         change = self.get_autofix_change()
 
         if not ni_changes and not change:
-            return
+            return bugs
 
         self.has_autofix = True
         new_changes = {}
