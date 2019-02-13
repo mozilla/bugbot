@@ -16,13 +16,16 @@ PORT = 465
 
 
 def replaceUnicode(s):
+    pos = 0
     ss = ''
-    for c in s:
+    for i, c in enumerate(s):
         n = ord(c)
-        if n <= 128:
-            ss += c
-        else:
-            ss += '&#' + str(n) + ';'
+        if n > 128:
+            ss += s[pos:i] + '&#' + str(n) + ';'
+            pos = i + 1
+
+    if pos < len(s):
+        ss += s[pos:]
     return ss
 
 

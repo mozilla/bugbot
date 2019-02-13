@@ -107,6 +107,10 @@
             "testcase"
         ]
     },
+    "assignee-no-login":
+    {
+        "number_of_months": 12
+    },
     "ni-triage-owner":
     {
         "number_of_weeks": 2,

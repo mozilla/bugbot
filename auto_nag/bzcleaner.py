@@ -178,6 +178,10 @@ class BzCleaner(object):
             real = bug['assigned_to_detail']['real_name']
             if utils.is_no_assignee(bug['assigned_to']):
                 real = 'nobody'
+            if real.strip() == '':
+                real = bug['assigned_to_detail']['name']
+                if real.strip() == '':
+                    real = bug['assigned_to_detail']['email']
             res['assignee'] = real
 
         if self.has_needinfo():
@@ -195,7 +199,10 @@ class BzCleaner(object):
             if not bug:
                 return
 
-        data[bugid] = res
+        if bugid in data:
+            data[bugid].update(res)
+        else:
+            data[bugid] = res
 
     def amend_bzparams(self, params, bug_ids):
         """Amend the Bugzilla params"""
@@ -316,6 +323,7 @@ class BzCleaner(object):
         assert bool(template_name)
         env = Environment(loader=FileSystemLoader('templates'))
         template = env.get_template(template_name)
+        res = {}
 
         for ni_mail, info in self.auto_needinfo.items():
             nick = info['nickname']
@@ -338,8 +346,9 @@ class BzCleaner(object):
                 }
                 if dryrun or self.test_mode:
                     print('Auto needinfo {}: {}'.format(bugid, data))
-                else:
-                    Bugzilla(bugids=[bugid]).put(data)
+
+                res[bugid] = data
+        return res
 
     def has_individual_autofix(self):
         """Check if the autofix is the same for all bugs or different for each bug"""
@@ -351,31 +360,32 @@ class BzCleaner(object):
 
     def autofix(self, bugs, dryrun):
         """Autofix the bugs according to what is returned by get_autofix_change"""
-        self.set_needinfo(dryrun)
-
+        ni_changes = self.set_needinfo(dryrun)
         change = self.get_autofix_change()
-        if change:
-            self.has_autofix = True
-            if not self.has_individual_autofix():
-                bugids = self.get_list_bugs(bugs)
-                if dryrun or self.test_mode:
-                    print(
-                        'The bugs: {}\n will be autofixed with:\n{}'.format(
-                            bugids, change
-                        )
-                    )
-                else:
-                    for bugid in bugids:
-                        Bugzilla([bugid]).put(change)
-            else:
-                if dryrun or self.test_mode:
-                    for bugid, ch in change.items():
-                        print(
-                            'The bug: {} will be autofixed with: {}'.format(bugid, ch)
-                        )
-                else:
-                    for bugid, ch in change.items():
-                        Bugzilla([str(bugid)]).put(ch)
+
+        if not ni_changes and not change:
+            return
+
+        self.has_autofix = True
+        new_changes = {}
+        if not self.has_individual_autofix():
+            bugids = self.get_list_bugs(bugs)
+            for bugid in bugids:
+                new_changes[bugid] = utils.merge_bz_changes(
+                    change, ni_changes.get(bugid, {})
+                )
+        else:
+            for bugid, ch in change.items():
+                new_changes[bugid] = utils.merge_bz_changes(
+                    ch, ni_changes.get(bugid, {})
+                )
+
+        if dryrun or self.test_mode:
+            for bugid, ch in new_changes.items():
+                print('The bug: {} will be autofixed with:\n{}'.format(bugid, ch))
+        else:
+            for bugid, ch in new_changes.items():
+                Bugzilla([str(bugid)]).put(ch)
 
         return bugs
 

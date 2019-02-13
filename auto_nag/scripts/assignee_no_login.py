@@ -1,0 +1,102 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at http://mozilla.org/MPL/2.0/.
+
+from dateutil.relativedelta import relativedelta
+from libmozdata import utils as lmdutils
+from auto_nag.bzcleaner import BzCleaner
+from auto_nag import people, utils
+
+
+class AssigneeNoLogin(BzCleaner):
+    def __init__(self):
+        super(AssigneeNoLogin, self).__init__()
+        self.nmonths = utils.get_config(self.name(), 'number_of_months', 12)
+        self.autofix_assignee = {}
+        self.default_assignees = utils.get_default_assignees()
+        self.people = people.People()
+
+    def description(self):
+        return 'Get the open and assigned bugs where the assignee\'s last login was more than {} months ago'.format(
+            self.nmonths
+        )
+
+    def name(self):
+        return 'assignee-no-login'
+
+    def template(self):
+        return 'assignee_no_login.html'
+
+    def subject(self):
+        return 'Open and assigned bugs where the assignee\'s last login was more than {} months ago'.format(
+            self.nmonths
+        )
+
+    def has_product_component(self):
+        return True
+
+    def has_individual_autofix(self):
+        return True
+
+    def has_assignee(self):
+        return True
+
+    def ignore_bug_summary(self):
+        return False
+
+    def needinfo_template(self):
+        return 'assignee_no_login_comment.txt'
+
+    def get_extra_for_needinfo_template(self):
+        return self.get_extra_for_template()
+
+    def get_extra_for_template(self):
+        return {'nmonths': self.nmonths}
+
+    def columns(self):
+        return ['triage_owner', 'component', 'id', 'summary', 'assignee']
+
+    def handle_bug(self, bug, data):
+        assignee = bug['assigned_to']
+        if self.people.is_mozilla(assignee):
+            return None
+
+        bugid = str(bug['id'])
+        data[bugid] = {'triage_owner': bug['triage_owner_detail']['real_name']}
+        prod = bug['product']
+        comp = bug['component']
+        default_assignee = self.default_assignees[prod][comp]
+        self.autofix_assignee[bugid] = {'assigned_to': default_assignee}
+        return bug
+
+    def get_mail_to_auto_ni(self, bug):
+        # Avoid to ni everyday...
+        if self.has_bot_set_ni(bug):
+            return None
+
+        mail = bug['triage_owner']
+        nick = bug['triage_owner_detail']['nick']
+        return {'mail': mail, 'nickname': nick}
+
+    def get_bz_params(self, date):
+        date = lmdutils.get_date_ymd(date)
+        start_date = date - relativedelta(months=self.nmonths)
+        fields = ['assigned_to', 'triage_owner', 'flags']
+        params = {
+            'include_fields': fields,
+            'resolution': '---',
+            'f1': 'assignee_last_login',
+            'o1': 'lessthan',
+            'v1': start_date,
+        }
+
+        utils.get_empty_assignees(params, negation=True)
+
+        return params
+
+    def get_autofix_change(self):
+        return self.autofix_assignee
+
+
+if __name__ == '__main__':
+    AssigneeNoLogin().run()
