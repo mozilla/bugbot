@@ -73,7 +73,7 @@ class LeaveOpenNoActivity(BzCleaner):
             'v3': r'\[(test|stockwell) disabled.*\]',
             'f4': 'days_elapsed',
             'o4': 'greaterthan',
-            'v4': self.nmonths * 20,
+            'v4': self.nmonths * 30,
         }
 
         return params
