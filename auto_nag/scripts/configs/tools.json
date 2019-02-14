@@ -107,6 +107,11 @@
             "testcase"
         ]
     },
+    "newbie-with-ni":
+    {
+        "number_of_days": 14,
+        "number_of_comments": 2
+    },
     "assignee-no-login":
     {
         "number_of_months": 12
