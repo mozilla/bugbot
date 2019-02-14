@@ -65,12 +65,15 @@ class LeaveOpenNoActivity(BzCleaner):
             'f1': 'keywords',
             'o1': 'casesubstring',
             'v1': 'leave-open',
-            'f2': 'status_whiteboard',
-            'o2': 'notregexp',
-            'v2': r'\[(test|stockwell) disabled.*\]',
-            'f3': 'days_elapsed',
-            'o3': 'greaterthan',
-            'v3': self.nmonths * 30,
+            'f2': 'keywords',
+            'o2': 'notsubstring',
+            'v2': 'intermittent',
+            'f3': 'status_whiteboard',
+            'o3': 'notregexp',
+            'v3': r'\[(test|stockwell) disabled.*\]',
+            'f4': 'days_elapsed',
+            'o4': 'greaterthan',
+            'v4': self.nmonths * 20,
         }
 
         return params
