@@ -143,5 +143,9 @@ python -m auto_nag.scripts.not_landed
 # https://docs.google.com/drawings/d/1oZA-AUvkOxGMNhZNofL8Wlfk6ol3o5ATQCV5DJJKbwM/edit
 python -m auto_nag.scripts.workflow.multi_nag
 
+# reporter has a needinfo and no activity for the last X weeks
+# Pretty common
+python -m auto_nag.scripts.newbie_with_ni -d
+
 # Try to detect potential regressions using bugbug
 python3 -m auto_nag.scripts.regression
