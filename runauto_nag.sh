@@ -28,7 +28,7 @@ python -m auto_nag.scripts.query_creator
 
 # What is fixed in nightly but affecting beta or release
 # Daily
-python -m auto_nag.scripts.rm_query_creator
+python -m auto_nag.scripts.missed_uplifts
 
 # Bug fixed without assignee
 # very common
