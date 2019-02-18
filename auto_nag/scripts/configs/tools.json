@@ -39,6 +39,14 @@
             "WebExtensions"
         ]
     },
+    "missed-uplifts":
+    {
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "release-mgmt@mozilla.com"
+        ]
+    },
     "one_two_word_summary":
     {
         "regex_blacklist":
