@@ -41,6 +41,7 @@ class NoAssignee(BzCleaner):
         reporters = self.get_config('reporter_exception', default=[])
         reporters = ','.join(reporters)
         regexp = r'http[s]?://hg\.mozilla\.org/(releases/)?mozilla-[^/]+/rev/[0-9a-f]+'
+        bot = utils.get_config('common', 'bot_bz_mail')[0]
         params = {
             'resolution': 'FIXED',
             'bug_status': ['RESOLVED', 'VERIFIED'],
@@ -55,6 +56,10 @@ class NoAssignee(BzCleaner):
             'f3': 'resolution',
             'o3': 'changedbefore',
             'v3': end_date,
+            'n4': 1,
+            'f4': 'assigned_to',
+            'o4': 'changedby',
+            'v4': bot,
         }
 
         if reporters:
