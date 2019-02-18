@@ -1,0 +1,27 @@
+<p>Classified components for the following {{ plural('bug', data, pword='bugs') }}:
+  <table border="1">
+    <thead>
+      <tr>
+        <th>Bug</th><th>Summary</th><th>Component</th><th>Confidence</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for i, (bugid, summary, component, confidence) in enumerate(data) -%}
+      <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
+        <td>
+          <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+        </td>
+        <td>
+          {{ summary | e }}
+        </td>
+        <td>
+          {{ component | e }}
+        </td>
+        <td>
+          {{ confidence | e }}
+        </td>
+      </tr>
+      {% endfor -%}
+    </tbody>
+  </table>
+</p>
