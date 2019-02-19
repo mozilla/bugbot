@@ -82,6 +82,9 @@ class Nag(object):
     def columns_nag(self):
         return None
 
+    def sort_columns_nag(self):
+        return None
+
     def _is_in_list(self, mail, _list):
         for manager in _list:
             if self.people.is_under(mail, manager):
@@ -124,7 +127,11 @@ class Nag(object):
         columns = self.columns_nag()
         if columns is None:
             columns = self.columns()
-        return utils.organize(bugs, columns)
+        key = self.sort_columns_nag()
+        if key is None:
+            key = self.sort_columns()
+
+        return utils.organize(bugs, columns, key=key)
 
     def send_mails(self, title, dryrun=False):
         if not self.send_nag_mail:

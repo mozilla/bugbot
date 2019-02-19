@@ -32,6 +32,9 @@ class MissedUplifts(BzCleaner):
     def columns(self):
         return ['id', 'summary', 'affected']
 
+    def sort_columns(self):
+        return lambda p: (tuple(int(x) for x in reversed(p[2])), -int(p[0]), p[1])
+
     def handle_bug(self, bug, data):
         bugid = str(bug['id'])
         beta = bug[self.status_beta]

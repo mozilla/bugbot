@@ -233,7 +233,7 @@ def get_default_assignees():
     return _DEFAULT_ASSIGNEES
 
 
-def organize(bugs, columns):
+def organize(bugs, columns, key=None):
     if isinstance(bugs, dict):
         # we suppose that the values are the bugdata dict
         bugs = bugs.values()
@@ -255,7 +255,7 @@ def organize(bugs, columns):
         c = columns[0]
         res = [info[c] for info in bugs]
 
-    return sorted(res, key=mykey)
+    return sorted(res, key=mykey if not key else key)
 
 
 def merge_bz_changes(c1, c2):

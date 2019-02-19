@@ -95,6 +95,10 @@ class BzCleaner(object):
             return ['id']
         return ['id', 'summary']
 
+    def sort_columns(self):
+        """Returns the key to sort columns"""
+        return None
+
     def get_dates(self, date):
         """Get the dates for the bugzilla query (changedafter and changedbefore fields)"""
         date = lmdutils.get_date_ymd(date)
@@ -390,7 +394,7 @@ class BzCleaner(object):
         return bugs
 
     def organize(self, bugs):
-        return utils.organize(bugs, self.columns())
+        return utils.organize(bugs, self.columns(), key=self.sort_columns())
 
     def get_email(self, bztoken, date, dryrun, bug_ids=[]):
         """Get title and body for the email"""
