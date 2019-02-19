@@ -10,6 +10,24 @@ from auto_nag import utils
 class MissedUplifts(BzCleaner):
     def __init__(self):
         super(MissedUplifts, self).__init__()
+        versions = get_current_versions()
+        self.beta = versions['beta']
+        self.release = versions['release']
+        self.esr = versions['esr']
+        self.esr_str = 'esr' + str(self.esr)
+
+        self.pending_release = utils.get_report_bugs('release', op='?')
+        self.pending_beta = utils.get_report_bugs('beta', op='?')
+        self.pending_esr = utils.get_report_bugs(self.esr_str, op='?')
+
+        self.accepted_release = utils.get_report_bugs('release', op='+')
+        self.accepted_beta = utils.get_report_bugs('beta', op='+')
+        self.accepted_esr = utils.get_report_bugs(self.esr_str, op='+')
+
+        self.status_central = utils.get_flag(versions['central'], 'status', 'central')
+        self.status_beta = utils.get_flag(self.beta, 'status', 'beta')
+        self.status_release = utils.get_flag(self.release, 'status', 'release')
+        self.status_esr = utils.get_flag(self.esr, 'status', 'esr')
 
     def description(self):
         return 'Bugs fixed in nightly but still affect other supported channels'
@@ -30,7 +48,10 @@ class MissedUplifts(BzCleaner):
         return False
 
     def columns(self):
-        return ['id', 'summary', 'affected']
+        return ['id', 'priority', 'severity', 'affected', 'approvals', 'summary']
+
+    def sort_columns(self):
+        return lambda p: (tuple(int(x) for x in reversed(p[3])), -int(p[0]))
 
     def handle_bug(self, bug, data):
         bugid = str(bug['id'])
@@ -45,20 +66,44 @@ class MissedUplifts(BzCleaner):
         if esr == 'affected':
             affected.append(self.esr)
 
-        data[bugid] = {'affected': affected}
+        approvals = []
+        if bugid in self.pending_beta:
+            approvals.append('beta?')
+        if bugid in self.accepted_beta:
+            approvals.append('beta+')
+
+        if bugid in self.pending_release:
+            approvals.append('release?')
+        if bugid in self.accepted_release:
+            approvals.append('release+')
+
+        if bugid in self.pending_release:
+            approvals.append('release?')
+        if bugid in self.accepted_release:
+            approvals.append('release+')
+
+        if bugid in self.pending_esr:
+            approvals.append(self.esr_str + '?')
+        if bugid in self.accepted_esr:
+            approvals.append(self.esr_str + '+')
+
+        data[bugid] = {
+            'affected': affected,
+            'approvals': ', '.join(approvals),
+            'priority': bug['priority'],
+            'severity': bug['severity'],
+        }
 
         return bug
 
     def get_bz_params(self, date):
-        versions = get_current_versions()
-        self.beta = versions['beta']
-        self.release = versions['release']
-        self.esr = versions['esr']
-        self.status_central = utils.get_flag(versions['central'], 'status', 'central')
-        self.status_beta = utils.get_flag(self.beta, 'status', 'beta')
-        self.status_release = utils.get_flag(self.release, 'status', 'release')
-        self.status_esr = utils.get_flag(self.esr, 'status', 'esr')
-        fields = [self.status_beta, self.status_release, self.status_esr]
+        fields = [
+            self.status_beta,
+            self.status_release,
+            self.status_esr,
+            'priority',
+            'severity',
+        ]
         params = {
             'include_fields': fields,
             'resolution': ['---', 'FIXED'],
