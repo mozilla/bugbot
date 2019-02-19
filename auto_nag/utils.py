@@ -121,9 +121,11 @@ def get_next_release_date():
     return rc.get_next_release_date()
 
 
-def get_report_bugs(channel):
+def get_report_bugs(channel, op='+'):
     url = 'https://bugzilla.mozilla.org/page.cgi?id=release_tracking_report.html'
-    params = {'q': 'approval-mozilla-{}:+:{}:0:and:'.format(channel, get_cycle_span())}
+    params = {
+        'q': 'approval-mozilla-{}:{}:{}:0:and:'.format(channel, op, get_cycle_span())
+    }
 
     # allow_redirects=False avoids to load the data
     # and we'll just get the redirected url to get all the bug ids we need

@@ -2,22 +2,31 @@
   <table border="1">
     <thead>
       <tr>
-        <th>Bug</th><th>Summary</th><th>Affected versions</th>
+        <th>Bug</th><th>Priority</th><th>Severity</th><th>Affected versions</th><th>Approvals</th><th>Summary</th>
       </tr>
     </thead>
     <tbody>
-      {% for i, (bugid, summary, affected) in enumerate(data) -%}
+      {% for i, (bugid, priority, severity, affected, approvals, summary) in enumerate(data) -%}
       <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
         <td>
           <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
         </td>
         <td>
-          {{ summary | e }}
+          {{ priority }}
+        </td>
+        <td>
+          {{ severity | e }}
         </td>
         <td>
           <b>
           {{ ', '.join(affected) }}
           </b>
+        </td>
+        <td>
+          {{ approvals }}
+        </td>
+        <td>
+          {{ summary | e }}
         </td>
       </tr>
       {% endfor -%}
