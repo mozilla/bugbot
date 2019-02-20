@@ -97,26 +97,29 @@ class TestEscalation(unittest.TestCase):
         ]
 
         e = Escalation(People(people), data=TestEscalation.config)
-        assert e.get_supervisor('high', 35, 'a.b@mozilla.com', foobar='foobar@mozilla.com') == 'foobar@mozilla.com'
+        assert (
+            e.get_supervisor('high', 35, 'a.b@mozilla.com', foobar='foobar@mozilla.com')
+            == 'foobar@mozilla.com'
+        )
         assert e.get_supervisor('high', 25, 'a.b@mozilla.com') == 'c.d@mozilla.com'
         assert e.get_supervisor('high', 20, 'a.b@mozilla.com') == 'c.d@mozilla.com'
         assert e.get_supervisor('high', 18, 'a.b@mozilla.com') == 'e.f@mozilla.com'
         assert e.get_supervisor('high', 7, 'a.b@mozilla.com') == 'i.j@mozilla.com'
         assert e.get_supervisor('high', 1, 'a.b@mozilla.com') == 'k.l@mozilla.com'
 
-        assert e.filter('high', 25, 0) == False
-        assert e.filter('high', 25, 3) == True
-        assert e.filter('high', 18, 0) == True
-        assert e.filter('high', 18, 1) == False
-        assert e.filter('high', 18, 3) == True
-        assert e.filter('high', 18, 5) == False
-        assert e.filter('high', 7, 1) == False
-        assert e.filter('high', 7, 3) == True
-        assert e.filter('high', 7, 5) == False
-        assert e.filter('high', 1, 1) == True
-        assert e.filter('high', 1, 3) == True
-        assert e.filter('high', 1, 4) == True
-        assert e.filter('high', 7, 5) == False
+        assert e.filter('high', 25, 0) is False
+        assert e.filter('high', 25, 3) is True
+        assert e.filter('high', 18, 0) is True
+        assert e.filter('high', 18, 1) is False
+        assert e.filter('high', 18, 3) is True
+        assert e.filter('high', 18, 5) is False
+        assert e.filter('high', 7, 1) is False
+        assert e.filter('high', 7, 3) is True
+        assert e.filter('high', 7, 5) is False
+        assert e.filter('high', 1, 1) is True
+        assert e.filter('high', 1, 3) is True
+        assert e.filter('high', 1, 4) is True
+        assert e.filter('high', 7, 5) is False
 
         assert e.get_supervisor('normal', 17, 'a.b@mozilla.com') == 'c.d@mozilla.com'
         assert e.get_supervisor('normal', 15, 'a.b@mozilla.com') == 'c.d@mozilla.com'

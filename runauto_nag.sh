@@ -1,30 +1,29 @@
 #!/bin/bash
 set -e
 
-PATH_SCRIPT="$( cd "$(dirname "$0")" ; pwd -P )"
-. $PATH_SCRIPT/venv/bin/activate
+#PATH_SCRIPT="$( cd "$(dirname "$0")" ; pwd -P )"
+#. $PATH_SCRIPT/venv/bin/activate
 
 # force the update of dependencies
-pip install -r requirements.txt && pip3 install  -r requirements.txt
+#pip install -r requirements.txt && pip3 install  -r requirements.txt
 
-cd $PATH_SCRIPT
-if test ! -f auto_nag/scripts/configs/config.json; then
-    echo "Cannot run without the config.json file in auto_nag/scripts/configs/"
-    exit -1
-fi
+#cd $PATH_SCRIPT
+#if test ! -f auto_nag/scripts/configs/config.json; then
+#    echo "Cannot run without the config.json file in auto_nag/scripts/configs/"
+#    exit -1
+#fi
 
-if test ! -f auto_nag/scripts/configs/people.json; then
-    echo "Cannot run without the people.json file in auto_nag/scripts/configs/"
-    exit -1
-fi
+#if test ! -f auto_nag/scripts/configs/people.json; then
+#    echo "Cannot run without the people.json file in auto_nag/scripts/configs/"
+#    exit -1
+#fi
 export PYTHONPATH=.
 # Not up-to-date release date
 # Daily
 python -m auto_nag.next_release
 
 # Nag to developers
-# Daily
-python -m auto_nag.scripts.query_creator
+python -m auto_nag.scripts.multi_nag
 
 # What is fixed in nightly but affecting beta or release
 # Daily
@@ -148,4 +147,4 @@ python -m auto_nag.scripts.workflow.multi_nag
 python -m auto_nag.scripts.newbie_with_ni -d
 
 # Try to detect potential regressions using bugbug
-python3 -m auto_nag.scripts.regression
+#python3 -m auto_nag.scripts.regression

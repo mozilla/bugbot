@@ -280,7 +280,7 @@ class BzCleaner(object):
 
         self.get_comments(bugs)
 
-        return bugs  # TODO: attention au reverse_order (config/tools.json)
+        return bugs
 
     def commenthandler(self, bug, bugid, data):
         return
@@ -456,6 +456,7 @@ class BzCleaner(object):
                 print('{}: No data for {}'.format(name, date))
             else:
                 print('{}: No data'.format(name))
+            print('Here is the query: {}'.format(self.query_url))
 
     def get_args_parser(self):
         """Get the argumends from the command line"""

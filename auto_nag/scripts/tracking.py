@@ -3,7 +3,6 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag.common import get_current_versions
 from auto_nag import utils
 from auto_nag.nag_me import Nag
 
@@ -14,7 +13,7 @@ class Tracking(BzCleaner, Nag):
         self.channel = channel
         self.untouched = untouched
         self.assignees = {}
-        self.versions = get_current_versions()
+        self.versions = utils.get_current_versions()
         self.version = self.versions[self.channel]
 
     def description(self):
@@ -56,7 +55,7 @@ class Tracking(BzCleaner, Nag):
 
     def get_extra_for_template(self):
         return {
-            'channel': self.channel,
+            'channel': 'nightly' if self.channel == 'central' else self.channel,
             'version': self.version,
             'untouched': self.untouched,
         }

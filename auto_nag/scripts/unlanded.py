@@ -3,7 +3,6 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag.common import get_current_versions
 from auto_nag import utils
 from auto_nag.nag_me import Nag
 
@@ -12,6 +11,7 @@ class Unlanded(BzCleaner, Nag):
     def __init__(self, channel):
         super(Unlanded, self).__init__()
         self.channel = channel
+        self.version = utils.getVersions(channel=channel)
 
     def description(self):
         return 'Get bugs with unlanded {} uplifts'.format(self.channel)
@@ -40,6 +40,12 @@ class Unlanded(BzCleaner, Nag):
     def has_assignee(self):
         return True
 
+    def get_extra_for_template(self):
+        return {'channel': self.channel, 'version': self.version}
+
+    def get_extra_for_nag_template(self):
+        return self.get_extra_for_template()
+
     def columns(self):
         return ['id', 'summary', 'assignee', 'last_comment']
 
@@ -55,13 +61,12 @@ class Unlanded(BzCleaner, Nag):
         return bug
 
     def get_bz_params(self, date):
-        version = get_current_versions()[self.channel]
         if self.channel == 'esr':
-            bug_ids = utils.get_report_bugs(self.channel + version)
+            bug_ids = utils.get_report_bugs(self.channel + self.version)
         else:
             bug_ids = utils.get_report_bugs(self.channel)
-        status = utils.get_flag(version, 'status', self.channel)
-        self.tracking = utils.get_flag(version, 'tracking', self.channel)
+        status = utils.get_flag(self.version, 'status', self.channel)
+        self.tracking = utils.get_flag(self.version, 'tracking', self.channel)
         fields = [self.tracking]
         params = {
             'include_fields': fields,

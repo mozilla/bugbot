@@ -3,14 +3,13 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag.common import get_current_versions
 from auto_nag import utils
 
 
 class MissedUplifts(BzCleaner):
     def __init__(self):
         super(MissedUplifts, self).__init__()
-        versions = get_current_versions()
+        versions = utils.get_current_versions()
         self.beta = versions['beta']
         self.release = versions['release']
         self.esr = versions['esr']

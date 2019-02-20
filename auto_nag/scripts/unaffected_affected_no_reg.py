@@ -3,7 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag.bugzilla.utils import getVersions
+from auto_nag import utils
 
 
 class UnaffAffNoReg(BzCleaner):
@@ -31,7 +31,7 @@ class UnaffAffNoReg(BzCleaner):
     def get_bz_params(self, date):
         word_blacklist = self.get_config('word_blacklist', default=[])
         word_blacklist = '.*(' + '|'.join(word_blacklist) + ').*'
-        release_version, beta_version, central_version, _ = getVersions()
+        release_version, beta_version, central_version, _ = utils.getVersions()
         value = ','.join(['fixed', 'verified'])
         params = {
             'keywords': ['regression', 'feature'],

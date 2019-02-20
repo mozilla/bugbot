@@ -3,7 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag.bugzilla.utils import getVersions
+from auto_nag import utils
 
 
 class TrackedBadSeverity(BzCleaner):
@@ -27,7 +27,9 @@ class TrackedBadSeverity(BzCleaner):
 
     def get_bz_params(self, date):
         # TODO add support for ESR here?
-        release_version, beta_version, central_version, esr_version = getVersions()
+        release_version, beta_version, central_version, esr_version = (
+            utils.getVersions()
+        )
         value = ','.join(['affected', 'fixed'])
         params = {
             'bug_severity': ['normal', 'minor', 'trivial', 'enhancement'],

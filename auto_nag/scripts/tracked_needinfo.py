@@ -3,7 +3,6 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag.common import get_current_versions
 from auto_nag import utils
 from auto_nag.nag_me import Nag
 
@@ -12,7 +11,7 @@ class TrackedNeedinfo(BzCleaner, Nag):
     def __init__(self, channel):
         super(TrackedNeedinfo, self).__init__()
         self.channel = channel
-        self.version = get_current_versions()[channel]
+        self.version = utils.get_current_versions()[channel]
 
     def description(self):
         return 'Get bugs which are tracked or nominated for tracking with needinfo? in {} {} '.format(
@@ -49,7 +48,10 @@ class TrackedNeedinfo(BzCleaner, Nag):
         return False
 
     def get_extra_for_template(self):
-        return {'channel': self.channel, 'version': self.version}
+        return {
+            'channel': 'nightly' if self.channel == 'central' else self.channel,
+            'version': self.version,
+        }
 
     def get_extra_for_nag_template(self):
         return self.get_extra_for_template()

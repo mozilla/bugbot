@@ -3,14 +3,13 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag.common import get_current_versions
 from auto_nag import utils
 
 
 class NightlyReopened(BzCleaner):
     def __init__(self):
         super(NightlyReopened, self).__init__()
-        versions = get_current_versions()
+        versions = utils.get_current_versions()
         self.nightly = utils.get_flag(versions['central'], 'status', 'nightly')
         self.beta = utils.get_flag(versions['beta'], 'status', 'beta')
         self.release = utils.get_flag(versions['release'], 'status', 'release')

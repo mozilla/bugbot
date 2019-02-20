@@ -3,7 +3,6 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag.common import get_current_versions
 from auto_nag import utils
 
 
@@ -52,10 +51,10 @@ class MissingBetaStatus(BzCleaner):
         return bug
 
     def get_bz_params(self, date):
-        versions = get_current_versions()
-        self.status_central = utils.get_flag(versions['central'], 'status', 'central')
-        self.status_release = utils.get_flag(versions['release'], 'status', 'release')
-        self.status_beta = utils.get_flag(versions['beta'], 'status', 'beta')
+        r, b, c, e = utils.getVersions()
+        self.status_central = utils.get_flag(c, 'status', 'central')
+        self.status_release = utils.get_flag(r, 'status', 'release')
+        self.status_beta = utils.get_flag(b, 'status', 'beta')
         fields = [self.status_central, self.status_release]
         params = {
             'include_fields': fields,

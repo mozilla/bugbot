@@ -3,7 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/
 
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag.bugzilla.utils import getVersions
+from auto_nag import utils
 
 
 class MismatchPrioTrackRelease(BzCleaner):
@@ -26,7 +26,7 @@ class MismatchPrioTrackRelease(BzCleaner):
         return True
 
     def get_bz_params(self, date):
-        release_version, _, _, _ = getVersions()
+        release_version = utils.getVersions(channel='release')
         value = ','.join(['---', 'affected'])
         params = {
             'resolution': [

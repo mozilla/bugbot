@@ -16,7 +16,7 @@
         </td>
         <td>
           <ul>
-          {% for ni in needinfos[bugid] -%}
+          {% for ni in needinfos -%}
           <li><a href="mailto:{{ ni }}">{{ ni | e }}</a></li>
           {% endfor -%}
           </ul>

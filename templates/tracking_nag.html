@@ -1,4 +1,4 @@
-<p>The following {{ plural('bug is', data, pword='bugs are') }} tracked in {{ extra['channel'] }} {{ extra['version'] }}{% if extra['touch'] %} and untouched this week{% endif -%}:
+<p>The following {{ plural('bug is', data, pword='bugs are') }} tracked in {{ extra['channel'] }} {{ extra['version'] }}{% if extra['untouched'] %} and untouched this week{% endif -%}:
   <table border="1">
     <thead>
       <tr>
@@ -6,7 +6,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for i, (buigid, summary, To, last_comment) in enumerate(data) -%}
+      {% for i, (bugid, summary, To, last_comment) in enumerate(data) -%}
       <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
         <td>
           <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>

@@ -2,14 +2,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from auto_nag.bugzilla.utils import getVersions
+from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 
 
 class VersionAffected(BzCleaner):
     def __init__(self):
         super(VersionAffected, self).__init__()
-        _, self.beta_version, _, _ = getVersions()
+        self.beta_version = utils.getVersions(channel='beta')
 
     def description(self):
         return 'Bug with version set but not status_firefox'
