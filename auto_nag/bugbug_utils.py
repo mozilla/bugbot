@@ -8,7 +8,7 @@ from auto_nag.bzcleaner import BzCleaner
 
 class BugbugScript(BzCleaner):
     def retrieve_model(self, name):
-        file_name = f'{name}model'
+        file_name = f'{name}model'  # noqa: E999
 
         model_url = f'https://index.taskcluster.net/v1/task/project.releng.services.project.testing.bugbug_train.latest/artifacts/public/{file_name}.xz'
         r = requests.head(model_url, allow_redirects=True)
