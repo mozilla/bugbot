@@ -50,6 +50,10 @@ class Regression(BugbugScript):
             'emailtype1': 'notequals',
             'email1': 'intermittent-bug-filer@mozilla.bugs',
             'emailreporter1': 1,
+            # And by the wpt-sync bot.
+            'emailtype2': 'notequals',
+            'email2': 'wptsync@mozilla.bugs',
+            'emailreporter2': 1,
         }
 
         return params
