@@ -353,5 +353,9 @@
                 }
             }
         }
+    },
+    "component":
+    {
+        "confidence_threshold": 0.6
     }
 }
