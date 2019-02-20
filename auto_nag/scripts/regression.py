@@ -28,8 +28,13 @@ class Regression(BugbugScript):
 
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
+
         resolution_blacklist = self.get_config('resolution_blacklist', default=[])
         resolution_blacklist = ' '.join(resolution_blacklist)
+
+        reporter_blacklist = self.get_config('reporter_blacklist', default=[])
+        reporter_blacklist = ','.join(reporter_blacklist)
+
         params = {
             'f1': 'keywords',
             'o1': 'notsubstring',
@@ -46,14 +51,9 @@ class Regression(BugbugScript):
             'f5': 'longdesc',
             'o5': 'changedbefore',
             'v5': end_date,
-            # Ignore bugs filed by the intermittent failure bot.
-            'emailtype1': 'notequals',
-            'email1': 'intermittent-bug-filer@mozilla.bugs',
-            'emailreporter1': 1,
-            # And by the wpt-sync bot.
-            'emailtype2': 'notequals',
-            'email2': 'wptsync@mozilla.bugs',
-            'emailreporter2': 1,
+            'f6': 'reporter',
+            'o6': 'nowords',
+            'v6': reporter_blacklist,
         }
 
         return params
