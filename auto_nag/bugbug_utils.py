@@ -47,7 +47,7 @@ class BugbugScript(BzCleaner):
         Bugzilla(
             bugids=[bug_id for bug_id in bugs.keys()],
             commenthandler=comment_handler,
-            comment_include_fields=['text', 'creation_time'],
+            comment_include_fields=['text', 'creation_time', 'count'],
         ).get_data().wait()
 
     def retrieve_history(self, bugs):
