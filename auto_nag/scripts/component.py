@@ -4,6 +4,7 @@
 
 from auto_nag.bugbug_utils import BugbugScript
 from bugbug.models.component import ComponentModel
+from auto_nag import utils
 
 
 class Component(BugbugScript):
@@ -12,7 +13,7 @@ class Component(BugbugScript):
         self.model = ComponentModel.load(self.retrieve_model('component'))
 
     def description(self):
-        return 'Assing a component to untriaged bugs'
+        return 'Assign a component to untriaged bugs'
 
     def name(self):
         return 'component'
@@ -70,8 +71,8 @@ class Component(BugbugScript):
 
         result = {}
         for bug, prob, index, component in zip(bugs, probs, indexes, components):
-            # Only return result for which we are sure enough (60% confidence threshold).
-            if prob[index] >= 0.6:
+            # Only return result for which we are sure enough.
+            if prob[index] >= utils.get_config(self.name(), 'confidence_threshold'):
                 bug_id = str(bug['id'])
                 result[bug_id] = {
                     'id': bug_id,

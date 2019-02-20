@@ -2,7 +2,7 @@
   <table border="1">
     <thead>
       <tr>
-        <th>Bug</th><th>Summary</th><th>Component</th><th>Confidence</th>
+        <th>Bug</th><th>Summary</th><th>Component</th><th>Confidence (%)</th>
       </tr>
     </thead>
     <tbody>
@@ -18,7 +18,7 @@
           {{ component | e }}
         </td>
         <td>
-          {{ confidence | e }}
+          {{ confidence }}
         </td>
       </tr>
       {% endfor -%}
