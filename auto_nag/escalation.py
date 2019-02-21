@@ -26,8 +26,11 @@ class Range(object):
 
     @staticmethod
     def from_string(s):
-        # TODO: remove this line when switchin to python3
-        s = s.encode('utf-8')
+        # TODO: remove this line when switching to python3
+        try:
+            s = s.encode('utf-8')
+        except:
+            pass
         mat = RANGE_PAT.match(s)
         if mat:
             m = int(mat.group(1))
