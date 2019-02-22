@@ -361,6 +361,13 @@
     },
     "component":
     {
-        "confidence_threshold": 0.6
+        "confidence_threshold": 0.6,
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "ehumphries@mozilla.com",
+            "sylvestre@mozilla.com",
+            "mcastelluccio@mozilla.com"
+        ]
     }
 }

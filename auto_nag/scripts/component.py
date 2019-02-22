@@ -78,7 +78,7 @@ class Component(BugbugScript):
                     'id': bug_id,
                     'summary': self.get_summary(bug),
                     'component': component,
-                    'confidence': prob[index],
+                    'confidence': int(round(100 * prob[index])),
                 }
 
         return result
