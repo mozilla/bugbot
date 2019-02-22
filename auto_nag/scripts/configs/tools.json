@@ -88,6 +88,11 @@
         "resolution_blacklist":
         [
             "DUPLICATE"
+        ],
+        "reporter_blacklist":
+        [
+            "intermittent-bug-filer@mozilla.bugs",
+            "wptsync@mozilla.bugs"
         ]
     },
     "auto_nag":
