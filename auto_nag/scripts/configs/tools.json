@@ -47,6 +47,10 @@
             "release-mgmt@mozilla.com"
         ]
     },
+    "old-p2-bug":
+    {
+        "number_of_years": 1
+    },
     "one_two_word_summary":
     {
         "regex_blacklist":

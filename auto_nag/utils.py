@@ -111,7 +111,7 @@ def get_cycle_span():
     global _CYCLE_SPAN
     if _CYCLE_SPAN is None:
         url = 'https://wiki.mozilla.org/Template:CURRENT_CYCLE'
-        template_page = str(requests.get(url).text.encode('utf-8'))
+        template_page = str(requests.get(url).text)
         m = TEMPLATE_PAT.search(template_page)
         _CYCLE_SPAN = m.group(1).strip()
     return _CYCLE_SPAN

@@ -71,7 +71,7 @@ class NoCrashes(BzCleaner):
            the total length of each chunk must be <= 1536"""
         total = sum(len(s) for s in signatures)
         M = 1536
-        n = total / M + 1
+        n = total // M + 1
         res = [[M, []] for _ in range(n)]
         for s in signatures:
             L = len(s)

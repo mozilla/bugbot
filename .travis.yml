@@ -1,9 +1,9 @@
 sudo: required
 language: python
 env:
-    - TOX_ENV=py27
+    - TOX_ENV=py37
 python:
-  - "2.7"
+  - "3.7"
 
 install:
     - travis_retry pip install tox coveralls

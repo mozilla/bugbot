@@ -1,4 +1,6 @@
 nose
 coverage
 rednose
-
+tox
+flake8
+coveralls
