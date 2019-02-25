@@ -27,6 +27,9 @@ class Component(BugbugScript):
     def columns(self):
         return ['id', 'summary', 'component', 'confidence']
 
+    def sort_columns(self):
+        return lambda p: (-p[3], -int(p[0]))
+
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
         params = {
