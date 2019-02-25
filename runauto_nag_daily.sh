@@ -30,18 +30,6 @@ python -m auto_nag.scripts.query_creator
 # Daily
 python -m auto_nag.scripts.missed_uplifts
 
-# Bug fixed without assignee
-# very common
-python -m auto_nag.scripts.no_assignee
-
-# Bug closed with the leave open keyword
-# very common
-python -m auto_nag.scripts.leave_open
-
-# hasRegressionRange is set but no regression keyword
-# common
-python -m auto_nag.scripts.has_regression_range_no_keyword
-
 # Top crash with an incorrect severity
 # Pretty rare
 python -m auto_nag.scripts.topcrash_bad_severity
@@ -66,10 +54,6 @@ python -m auto_nag.scripts.tracked_bad_severity
 # a bit rare
 python -m auto_nag.scripts.one_two_word_summary
 
-# Closes crash bug without any crashes for the last 12 weeks
-# pretty common
-python -m auto_nag.scripts.no_crashes
-
 # Notify bugs tracked (+ or blocking)
 # with P3, P4 or P5 priorities for the ongoing releases
 # Pretty common
@@ -89,21 +73,9 @@ python -m auto_nag.scripts.assignee_but_unconfirmed
 # Notify bugs in untriaged with an important severity
 python -m auto_nag.scripts.untriage_important_sev
 
-# List bug with the meta keyword but not [meta] in the title
-# Pretty common
-python -m auto_nag.scripts.meta_summary_missing
-
-# List bug without the meta keyword with [meta] in the title (with autofix)
-# Pretty common
-python -m auto_nag.scripts.summary_meta_missing
-
 # P2 bug with no activity for more than 1 years (with autofix)
 # Pretty common
 python -m auto_nag.scripts.old_p2_bug -d
-
-# List reopened bugs with invalid nightly status flag
-# Pretty common
-python -m auto_nag.scripts.nightly_reopened
 
 # Needinfo the triage owner when we find bugs without the priority set
 # Pretty common
@@ -117,14 +89,6 @@ python -m auto_nag.scripts.leave_open_no_activity
 # Needinfo the triage owner or the assignee when we find meta bugs not depending on bugs and no activity
 # Pretty common
 python -m auto_nag.scripts.meta_no_deps_no_activity
-
-# Bug closed with the stalled keyword
-# Pretty rare
-python -m auto_nag.scripts.stalled
-
-# Bugs with missing beta status
-# Pretty rare
-python -m auto_nag.scripts.missing_beta_status
 
 # has an unlanded patch or some flags not up-to-date
 # Pretty rare
