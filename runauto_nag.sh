@@ -82,10 +82,6 @@ python -m auto_nag.scripts.mismatch-priority-tracking-nightly
 # Pretty common
 python -m auto_nag.scripts.reporter_with_ni
 
-# P1 bug with no activity for more than 24 weeks (with autofix)
-# Pretty common
-python -m auto_nag.scripts.old_p1_bug
-
 # Unconfirmed bugs with an assignee (with autofix)
 # Pretty common
 python -m auto_nag.scripts.assignee_but_unconfirmed
