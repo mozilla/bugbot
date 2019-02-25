@@ -6,7 +6,6 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class HasRegressionRange(BzCleaner):
-
     def __init__(self):
         super(HasRegressionRange, self).__init__()
 
@@ -24,32 +23,34 @@ class HasRegressionRange(BzCleaner):
 
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
-        params = {'bug_status': ['---', 'FIXED',
-                                 'INVALID', 'WONTFIX',
-                                 'DUPLICATE', 'WORKSFORME',
-                                 'INCOMPLETE', 'SUPPORT',
-                                 'EXPIRED', 'MOVED'],
-                  'f1': 'keywords',
-                  'o1': 'nowords',
-                  'v1': 'regression',
-                  'f2': 'resolution',
-                  'o2': 'changedafter',
-                  'v2': start_date,
-                  'f3': 'resolution',
-                  'o3': 'changedbefore',
-                  'v3': end_date,
-                  'f4': 'cf_has_regression_range',
-                  'o4': 'equals',
-                  'v4': 'yes'}
+        params = {
+            'bug_status': [
+                '---',
+                'FIXED',
+                'INVALID',
+                'WONTFIX',
+                'DUPLICATE',
+                'WORKSFORME',
+                'INCOMPLETE',
+                'SUPPORT',
+                'EXPIRED',
+                'MOVED',
+            ],
+            'f1': 'keywords',
+            'o1': 'nowords',
+            'v1': 'regression',
+            'f2': 'creation_ts',
+            'o2': 'greaterthan',
+            'v2': start_date,
+            'f3': 'cf_has_regression_range',
+            'o3': 'equals',
+            'v3': 'yes',
+        }
 
         return params
 
     def get_autofix_change(self):
-        return {
-            'keywords': {
-                'add': ['regression']
-            }
-        }
+        return {'keywords': {'add': ['regression']}}
 
 
 if __name__ == '__main__':
