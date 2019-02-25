@@ -10,6 +10,7 @@ class Regression(BugbugScript):
     def __init__(self):
         super(Regression, self).__init__()
         self.model = RegressionModel.load(self.retrieve_model('regression'))
+        self.autofix_regression = []
 
     def description(self):
         return 'Get bugs with missing regression keyword'
@@ -121,9 +122,15 @@ class Regression(BugbugScript):
         for n in reg_bugids:
             bugid = str(n)
             bugs[bugid] = {'id': bugid, 'summary': all_bug_data['summaries'][n]}
+            self.autofix_regression.append(bugid)
 
         return bugs
 
+    def has_individual_autofix(self):
+        return True
+
+    def get_autofix_change(self):
+        return {bug_id: {'keywords': {'add': ['regression']}} for bug_id in self.autofix_regression}
 
 if __name__ == '__main__':
     Regression().run()
