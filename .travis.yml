@@ -12,6 +12,7 @@ install:
 script:
     - flake8 auto_nag/ --exclude=auto_nag/tests/
     - tox -e $TOX_ENV
+    - python check_bugbug_version.py
 
 after_success:
     - travis_retry pip install coveralls; coveralls;
