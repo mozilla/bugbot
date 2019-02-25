@@ -47,6 +47,10 @@
             "release-mgmt@mozilla.com"
         ]
     },
+    "has_reg_range":
+    {
+        "days_lookup": 30
+    },
     "one_two_word_summary":
     {
         "regex_blacklist":
