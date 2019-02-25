@@ -132,5 +132,6 @@ class Regression(BugbugScript):
     def get_autofix_change(self):
         return {bug_id: {'keywords': {'add': ['regression']}} for bug_id in self.autofix_regression}
 
+
 if __name__ == '__main__':
     Regression().run()
