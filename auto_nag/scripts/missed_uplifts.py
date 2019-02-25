@@ -41,11 +41,12 @@ class MissedUplifts(BzCleaner):
     def subject(self):
         return self.description()
 
-    def ignore_date(self):
-        return True
-
     def ignore_bug_summary(self):
         return False
+
+    def must_run(self, date):
+        weekday = date.weekday()
+        return weekday <= 4
 
     def columns(self):
         return ['id', 'priority', 'severity', 'affected', 'approvals', 'summary']
