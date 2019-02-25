@@ -2,12 +2,12 @@
 set -e
 
 PATH_SCRIPT="$( cd "$(dirname "$0")" ; pwd -P )"
-. $PATH_SCRIPT/venv/bin/activate
+. "$PATH_SCRIPT"/venv/bin/activate
 
 # force the update of dependencies
 pip install -r requirements.txt && pip3 install  -r requirements.txt
 
-cd $PATH_SCRIPT
+cd "$PATH_SCRIPT"
 if test ! -f auto_nag/scripts/configs/config.json; then
     echo "Cannot run without the config.json file in auto_nag/scripts/configs/"
     exit -1
