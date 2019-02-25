@@ -56,6 +56,10 @@ python -m auto_nag.scripts.stalled
 # Pretty rare
 python -m auto_nag.scripts.missing_beta_status
 
+# Bugs with STR and no regression-range
+# Pretty rare
+python -m auto_nag.scripts.has_str_no_range
+
 # Notify bugs tracked (+ or blocking)
 # with P3, P4 or P5 priorities for the ongoing releases
 # Pretty common
