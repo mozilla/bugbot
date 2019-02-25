@@ -41,12 +41,6 @@ class Component(BugbugScript):
 
         return params
 
-    def get_data(self):
-        return {'bugs': {}}
-
-    def bughandler(self, bug, data):
-        data['bugs'][bug['id']] = bug
-
     def get_bugs(self, date='today', bug_ids=[]):
         # Retrieve bugs to analyze.
         all_bug_data = super(Component, self).get_bugs(date=date, bug_ids=bug_ids)

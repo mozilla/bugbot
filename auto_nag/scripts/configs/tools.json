@@ -97,7 +97,8 @@
         [
             "intermittent-bug-filer@mozilla.bugs",
             "wptsync@mozilla.bugs"
-        ]
+        ],
+        "confidence_threshold": 0.9
     },
     "auto_nag":
     {
