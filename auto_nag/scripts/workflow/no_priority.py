@@ -73,9 +73,6 @@ class NoPriority(BzCleaner, Nag):
         return {'mail': mail, 'nickname': nick}
 
     def set_people_to_nag(self, bug, buginfo):
-        # if self.typ == 'first':
-        #    return bug
-
         priority = 'default'
         if not self.filter_bug(priority):
             return None
