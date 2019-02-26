@@ -1,0 +1,64 @@
+{
+    "doc": "The triagers need to have a \"Fallback\" entry.",
+    "triagers":
+    {
+        "Honza Bambas":
+        {
+            "bzmail": "honzab.moz@firemni.cz",
+            "nick": "mayhemer"
+        },
+        "Michal Novotny":
+        {
+            "bzmail": "michal.novotny@gmail.com",
+            "nick": "michal"
+        },
+        "Junior Hsu":
+        {
+            "bzmail": "juhsu@mozilla.com",
+            "nick": "junior"
+        },
+        "Valentin Gosu":
+        {
+            "bzmail": "valentin.gosu@gmail.com",
+            "nick": "valentin"
+        },
+        "Dragana Damjanovic":
+        {
+            "bzmail": "dd.mozilla@gmail.com",
+            "nick": "dragana"
+        },
+        "Kershaw Chang":
+        {
+            "bzmail": "kershaw@mozilla.com",
+            "nick": "kershaw"
+        },
+        "Fallback":
+        {
+            "bzmail": "honzab.moz@firemni.cz",
+            "nick": "mayhemer"
+        }
+    },
+    "components":
+    {
+        "Core::Networking": "default",
+        "Core::Networking: Cache": "default",
+        "Core::Networking: Cookies": "default",
+        "Core::Networking: DNS": "default",
+        "Core::Networking: Domain Lists": "default",
+        "Core::Networking: File": "default",
+        "Core::Networking: FTP": "default",
+        "Core::Networking: HTTP": "default",
+        "Core::Networking: JAR": "default",
+        "Core::Networking: WebSockets": "default"
+    },
+    "default":
+    {
+        "doc": "All the dates are the duty end dates.",
+        "2019-02-21": "Michal Novotny",
+        "2019-02-28": "Junior Hsu",
+        "2019-03-07": "Valentin Gosu",
+        "2019-03-14": "Dragana Damjanovic",
+        "2019-03-21": "Kershaw Chang",
+        "2019-03-28": "Honza Bambas"
+    }
+}
