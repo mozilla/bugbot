@@ -123,7 +123,9 @@ class Regression(BugbugScript):
         return True
 
     def get_autofix_change(self):
-        return {bug_id: {'keywords': {'add': ['regression']}} for bug_id in self.autofix_regression}
+        cc = self.get_config('cc')
+        return {bug_id: {'keywords': {'add': ['regression']},
+                         'cc': {'add': cc}} for bug_id in self.autofix_regression}
 
 
 if __name__ == '__main__':
