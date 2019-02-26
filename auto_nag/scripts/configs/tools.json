@@ -101,10 +101,10 @@
         "confidence_threshold": 0.9,
         "cc":
         [
-            "s@mozilla.com",
-            "mcastelluccio@mozilla.com"
+            "sledru@mozilla.com",
+            "mcastelluccio@mozilla.com",
+            "cdenizet@mozilla.com"
         ]
-
     },
     "auto_nag":
     {
