@@ -373,12 +373,19 @@
     "component":
     {
         "confidence_threshold": 0.6,
+        "autofix_confidence_threshold": 0.6,
         "receivers":
         [
             "calixte@mozilla.com",
             "ehumphries@mozilla.com",
             "sylvestre@mozilla.com",
             "mcastelluccio@mozilla.com"
+        ],
+        "cc":
+        [
+            "sledru@mozilla.com",
+            "mcastelluccio@mozilla.com",
+            "cdenizet@mozilla.com"
         ]
     }
 }

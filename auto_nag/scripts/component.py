@@ -11,6 +11,7 @@ class Component(BugbugScript):
     def __init__(self):
         super(Component, self).__init__()
         self.model = ComponentModel.load(self.retrieve_model('component'))
+        self.autofix_component = {}
 
     def description(self):
         return 'Assign a component to untriaged bugs'
@@ -68,18 +69,39 @@ class Component(BugbugScript):
 
         result = {}
         for bug, prob, index, component in zip(bugs, probs, indexes, components):
-            # Only return result for which we are sure enough.
-            if prob[index] >= utils.get_config(self.name(), 'confidence_threshold'):
-                bug_id = str(bug['id'])
-                result[bug_id] = {
-                    'id': bug_id,
-                    'summary': self.get_summary(bug),
-                    'component': component,
-                    'confidence': int(round(100 * prob[index])),
-                }
+            # Only return results for which we are sure enough.
+            if prob[index] < self.get_config('confidence_threshold'):
+                continue
+
+            bug_id = str(bug['id'])
+            result[bug_id] = {
+                'id': bug_id,
+                'summary': self.get_summary(bug),
+                'component': component,
+                'confidence': int(round(100 * prob[index])),
+            }
+
+            if prob[index] >= self.get_config('autofix_confidence_threshold'):
+                # If we were able to predict both product and component, assign both product and component.
+                # Otherwise, just change the product.
+                if '::' in component:
+                    self.autofix_component[bug_id] = {
+                        'product': component[:component.index('::')],
+                        'component': component[component.index('::') + 2:],
+                    }
+                elif bug['product'] != component:
+                    self.autofix_component[bug_id] = {
+                        'product': component,
+                    }
 
         return result
 
+    def has_individual_autofix(self):
+        return True
+
+    def get_autofix_change(self):
+        cc = {'cc': {'add': self.get_config('cc')}}
+        return {bug_id: (data.update(cc) or data) for bug_id, data in self.autofix_component.items()}
 
 if __name__ == '__main__':
     Component().run()
