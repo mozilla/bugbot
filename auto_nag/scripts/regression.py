@@ -25,7 +25,10 @@ class Regression(BugbugScript):
         return '[Using ML] Bugs with missing regression keyword'
 
     def columns(self):
-        return ['id', 'summary']
+        return ['id', 'summary', 'confidence']
+
+    def sort_columns(self):
+        return lambda p: (-p[2], -int(p[0]))
 
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
@@ -59,21 +62,6 @@ class Regression(BugbugScript):
 
         return params
 
-    def get_data(self):
-        return {'regressions': set(), 'others': {}, 'summaries': {}}
-
-    def bughandler(self, bug, data):
-        keywords = bug.get('keywords', [])
-        if 'regressionwindow-wanted' in keywords:
-            data['regressions'].add(bug['id'])
-        else:
-            has_regression_range = bug.get('cf_has_regression_range', '---')
-            if has_regression_range == 'yes':
-                data['regressions'].add(bug['id'])
-            else:
-                data['others'][bug['id']] = bug
-        data['summaries'][bug['id']] = self.get_summary(bug)
-
     def remove_using_history(self, bugs):
         to_remove = set()
         for bug_id, bug in bugs.items():
@@ -94,7 +82,7 @@ class Regression(BugbugScript):
         # Retrieve bugs to analyze.
         all_bug_data = super(Regression, self).get_bugs(date=date, bug_ids=bug_ids)
 
-        bugs = all_bug_data['others']
+        bugs = all_bug_data['bugs']
 
         # Retrieve history.
         self.retrieve_history(bugs)
@@ -113,18 +101,23 @@ class Regression(BugbugScript):
         # Analyze bugs.
         probs = self.model.classify(bugs, True)
 
-        reg_bugids = {bug['id'] for bug, prob in zip(bugs, probs) if prob[1] > 0.9}
+        result = {}
+        for bug, prob in zip(bugs, probs):
+            if prob[1] < 0.5:
+                continue
 
-        # Add bugs that are certainly regressions.
-        reg_bugids |= all_bug_data['regressions']
+            bug_id = str(bug['id'])
+            result[bug_id] = {
+                'id': bug_id,
+                'summary': self.get_summary(bug),
+                'confidence': int(round(100 * prob[1])),
+            }
 
-        bugs = {}
-        for n in reg_bugids:
-            bugid = str(n)
-            bugs[bugid] = {'id': bugid, 'summary': all_bug_data['summaries'][n]}
-            self.autofix_regression.append(bugid)
+            # Only autofix results for which we are sure enough.
+            if prob[1] >= self.get_config('confidence_threshold'):
+                self.autofix_regression.append(bug_id)
 
-        return bugs
+        return result
 
     def has_individual_autofix(self):
         return True

@@ -38,6 +38,12 @@ class BugbugScript(BzCleaner):
     def all_include_fields(self):
         return True
 
+    def get_data(self):
+        return {'bugs': {}}
+
+    def bughandler(self, bug, data):
+        data['bugs'][bug['id']] = bug
+
     def retrieve_comments(self, bugs):
         """Retrieve bug comments"""
 
