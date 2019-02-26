@@ -1,4 +1,5 @@
 import lzma
+import os
 import shutil
 from urllib.request import urlretrieve
 import requests
@@ -8,29 +9,32 @@ from auto_nag.bzcleaner import BzCleaner
 
 class BugbugScript(BzCleaner):
     def retrieve_model(self, name):
+        os.makedirs('models', exist_ok=True)
+
         file_name = f'{name}model'  # noqa: E999
+        file_path = os.path.join('models', file_name)
 
         model_url = f'https://index.taskcluster.net/v1/task/project.releng.services.project.testing.bugbug_train.latest/artifacts/public/{file_name}.xz'
         r = requests.head(model_url, allow_redirects=True)
         new_etag = r.headers['ETag']
 
         try:
-            with open(f'{file_name}.etag', 'r') as f:
+            with open(f'{file_path}.etag', 'r') as f:
                 old_etag = f.read()
         except IOError:
             old_etag = None
 
         if old_etag != new_etag:
-            urlretrieve(model_url, f'{file_name}.xz')
+            urlretrieve(model_url, f'{file_path}.xz')
 
-            with lzma.open(f'{file_name}.xz', 'rb') as input_f:
-                with open(file_name, 'wb') as output_f:
+            with lzma.open(f'{file_path}.xz', 'rb') as input_f:
+                with open(file_path, 'wb') as output_f:
                     shutil.copyfileobj(input_f, output_f)
 
-            with open(f'{file_name}.etag', 'w') as f:
+            with open(f'{file_path}.etag', 'w') as f:
                 f.write(new_etag)
 
-        return file_name
+        return file_path
 
     def ignore_bug_summary(self):
         return False
