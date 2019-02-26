@@ -82,13 +82,13 @@ class Component(BugbugScript):
 
             if prob[index] >= self.get_config('autofix_confidence_threshold'):
                 # If we were able to predict both product and component, assign both product and component.
-                # Otherwise, just change the product.
+                # Otherwise, just change the product (if it's not one of the base ones).
                 if '::' in component:
                     self.autofix_component[bug_id] = {
                         'product': component[:component.index('::')],
                         'component': component[component.index('::') + 2:],
                     }
-                elif bug['product'] != component:
+                elif bug['product'] != component and component not in ['Core', 'Firefox', 'Toolkit']:
                     self.autofix_component[bug_id] = {
                         'product': component,
                     }
