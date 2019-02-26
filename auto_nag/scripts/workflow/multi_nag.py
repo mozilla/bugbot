@@ -4,10 +4,11 @@
 
 from auto_nag.multinaggers import MultiNaggers
 from .no_priority import NoPriority
-from .p1_no_activity import P1NoActivity
-from .p1_no_assignee import P1NoAssignee
-from .p2_no_activity import P2NoActivity
-from .p2_merge_day import P2MergeDay
+
+# from .p1_no_activity import P1NoActivity
+# from .p1_no_assignee import P1NoAssignee
+# from .p2_no_activity import P2NoActivity
+# from .p2_merge_day import P2MergeDay
 
 
 class WorkflowMultiNag(MultiNaggers):
@@ -15,9 +16,9 @@ class WorkflowMultiNag(MultiNaggers):
         super(WorkflowMultiNag, self).__init__(
             NoPriority('first'),
             NoPriority('second'),
-            P1NoActivity(),
-            P1NoAssignee(),
-            P2NoActivity(),
+            # P1NoActivity(),
+            # P1NoAssignee(),
+            # P2NoActivity(),
         )
 
     def description(self):
@@ -28,5 +29,5 @@ class WorkflowMultiNag(MultiNaggers):
 
 
 if __name__ == '__main__':
-    P2MergeDay().run()
+    # P2MergeDay().run()
     WorkflowMultiNag().run()
