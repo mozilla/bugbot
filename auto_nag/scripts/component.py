@@ -4,7 +4,6 @@
 
 from auto_nag.bugbug_utils import BugbugScript
 from bugbug.models.component import ComponentModel
-from auto_nag import utils
 
 
 class Component(BugbugScript):
@@ -102,6 +101,7 @@ class Component(BugbugScript):
     def get_autofix_change(self):
         cc = {'cc': {'add': self.get_config('cc')}}
         return {bug_id: (data.update(cc) or data) for bug_id, data in self.autofix_component.items()}
+
 
 if __name__ == '__main__':
     Component().run()
