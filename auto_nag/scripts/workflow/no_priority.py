@@ -19,7 +19,7 @@ class NoPriority(BzCleaner, Nag):
         self.lookup_second = utils.get_config(self.name(), 'second-step', 4)
         self.escalation = Escalation(
             self.people,
-            data=utils.get_config(self.name(), 'escalation'),
+            data=utils.get_config(self.name(), 'escalation-{}'.format(typ)),
             blacklist=utils.get_config('workflow', 'supervisor_blacklist', []),
         )
 
@@ -73,8 +73,8 @@ class NoPriority(BzCleaner, Nag):
         return {'mail': mail, 'nickname': nick}
 
     def set_people_to_nag(self, bug, buginfo):
-        if self.typ == 'first':
-            return bug
+        # if self.typ == 'first':
+        #    return bug
 
         priority = 'default'
         if not self.filter_bug(priority):

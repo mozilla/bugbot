@@ -287,7 +287,18 @@
     {
         "first-step": 2,
         "second-step": 4,
-        "escalation":
+        "escalation-first":
+        {
+            "default":
+            {
+                "[0;+∞[":
+                {
+                    "supervisor": "self",
+                    "days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
+                }
+            }
+        },
+        "escalation-second":
         {
             "default":
             {
