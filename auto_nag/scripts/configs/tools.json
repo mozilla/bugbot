@@ -101,7 +101,8 @@
         "confidence_threshold": 0.9,
         "cc":
         [
-            "s@mozilla.com"
+            "s@mozilla.com",
+            "mcastelluccio@mozilla.com"
         ]
 
     },
