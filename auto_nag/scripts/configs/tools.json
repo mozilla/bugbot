@@ -16,6 +16,11 @@
             "ehumphries@mozilla.com",
             "sylvestre@mozilla.com"
         ],
+        "on-errors":
+        [
+            "calixte@mozilla.com",
+            "sylvestre@mozilla.com"
+        ],
         "bot_bz_mail": ["release-mgmt-account-bot@mozilla.tld"],
         "days_lookup": 7,
         "bz_query_timeout": 240,

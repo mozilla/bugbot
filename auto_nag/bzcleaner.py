@@ -12,6 +12,7 @@ from libmozdata.bugzilla import Bugzilla
 from libmozdata import utils as lmdutils
 import pytz
 import six
+import traceback
 from auto_nag import mail, utils
 from auto_nag.nag_me import Nag
 
@@ -484,4 +485,21 @@ class BzCleaner(object):
         """Run the tool"""
         args = self.get_args_parser().parse_args()
         date = '' if self.ignore_date() else args.date
-        self.send_email(date=date, dryrun=args.dryrun)
+        try:
+            self.send_email(date=date, dryrun=args.dryrun)
+        except:  # noqa
+            # bare except here because we want to catch everything
+            bt = traceback.format_exc()
+            login_info = utils.get_login_info()
+            date = lmdutils.get_date('today')
+            mail.send(
+                login_info['ldap_username'],
+                utils.get_config('common', 'on-errors'),
+                '[autonag] Something bad happened when running auto-nag the {}'.format(
+                    date
+                ),
+                bt,
+                html=False,
+                login=login_info,
+                dryrun=args.dryrun,
+            )
