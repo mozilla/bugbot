@@ -68,10 +68,6 @@ class Component(BugbugScript):
 
         result = {}
         for bug, prob, index, component in zip(bugs, probs, indexes, components):
-            # Only return results for which we are sure enough.
-            if prob[index] < self.get_config('confidence_threshold'):
-                continue
-
             bug_id = str(bug['id'])
             result[bug_id] = {
                 'id': bug_id,
@@ -80,7 +76,7 @@ class Component(BugbugScript):
                 'confidence': int(round(100 * prob[index])),
             }
 
-            if prob[index] >= self.get_config('autofix_confidence_threshold'):
+            if prob[index] >= self.get_config('confidence_threshold'):
                 # If we were able to predict both product and component, assign both product and component.
                 # Otherwise, just change the product (if it's not one of the base ones).
                 if '::' in component:

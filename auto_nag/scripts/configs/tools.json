@@ -389,7 +389,6 @@
     "component":
     {
         "confidence_threshold": 0.6,
-        "autofix_confidence_threshold": 0.6,
         "receivers":
         [
             "calixte@mozilla.com",
