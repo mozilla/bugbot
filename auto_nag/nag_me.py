@@ -102,10 +102,11 @@ class Nag(object):
             mail, self.black_list
         )
 
-    def add_triage_owner(self, owner, components):
+    def add_triage_owner(self, owner, components, real_owner=None):
         if owner not in self.triage_owners:
+            to = real_owner if real_owner is not None else owner
             self.triage_owners[owner] = self.get_query_url_for_triage_owner(
-                owner, components
+                to, components
             )
 
     def get_query_url_for_triage_owner(self, owner, components):

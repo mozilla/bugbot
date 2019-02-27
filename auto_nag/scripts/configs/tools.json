@@ -1,4 +1,11 @@
 {
+    "round-robin":
+    {
+        "teams":
+        {
+            "necko": "necko_round_robin.json"
+        }
+    },
     "no-assignee":
     {
         "days_lookup": 45,

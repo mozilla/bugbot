@@ -8,6 +8,7 @@ from auto_nag.bzcleaner import BzCleaner
 from auto_nag import utils
 from auto_nag.escalation import Escalation
 from auto_nag.nag_me import Nag
+from auto_nag.round_robin import RoundRobin
 
 
 class NoPriority(BzCleaner, Nag):
@@ -22,6 +23,7 @@ class NoPriority(BzCleaner, Nag):
             data=utils.get_config(self.name(), 'escalation-{}'.format(typ)),
             blacklist=utils.get_config('workflow', 'supervisor_blacklist', []),
         )
+        self.round_robin = RoundRobin()
 
     def description(self):
         return 'Bugs without a priority set'
@@ -68,8 +70,7 @@ class NoPriority(BzCleaner, Nag):
         if self.typ == 'second':
             return None
 
-        mail = bug['triage_owner']
-        nick = bug['triage_owner_detail']['nick']
+        mail, nick = self.round_robin.get(bug, self.date)
         return {'mail': mail, 'nickname': nick}
 
     def set_people_to_nag(self, bug, buginfo):
@@ -77,8 +78,11 @@ class NoPriority(BzCleaner, Nag):
         if not self.filter_bug(priority):
             return None
 
-        owner = bug['triage_owner']
-        self.add_triage_owner(owner, utils.get_config('workflow', 'components'))
+        owner, _ = self.round_robin.get(bug, self.date)
+        real_owner = bug['triage_owner']
+        self.add_triage_owner(
+            owner, utils.get_config('workflow', 'components'), real_owner=real_owner
+        )
         if not self.add(owner, buginfo, priority=priority):
             self.add_no_manager(buginfo['id'])
         return bug
@@ -94,7 +98,7 @@ class NoPriority(BzCleaner, Nag):
             'o1': 'equals',
             'v1': '--',
         }
-        date = lmdutils.get_date_ymd(date)
+        self.date = lmdutils.get_date_ymd(date)
         if self.typ == 'first':
             params.update(
                 {
@@ -103,10 +107,10 @@ class NoPriority(BzCleaner, Nag):
                     'v2': 'needinfo?',
                     'f3': 'creation_ts',
                     'o3': 'lessthaneq',
-                    'v3': date - relativedelta(days=self.lookup_first * 7),
+                    'v3': self.date - relativedelta(days=self.lookup_first * 7),
                     'f4': 'creation_ts',
                     'o4': 'greaterthan',
-                    'v4': date - relativedelta(days=self.lookup_second * 7),
+                    'v4': self.date - relativedelta(days=self.lookup_second * 7),
                 }
             )
         else:
@@ -114,7 +118,7 @@ class NoPriority(BzCleaner, Nag):
                 {
                     'f2': 'creation_ts',
                     'o2': 'lessthaneq',
-                    'v2': date - relativedelta(days=self.lookup_second * 7),
+                    'v2': self.date - relativedelta(days=self.lookup_second * 7),
                 }
             )
 
