@@ -68,8 +68,8 @@ class Component(BugbugScript):
 
         result = {}
         for bug, prob, index, component in zip(bugs, probs, indexes, components):
-            # Only return results for which we are sure enough.
-            if prob[index] < self.get_config('confidence_threshold'):
+            # Skip product-only suggestions that are not useful.
+            if '::' not in component and (bug['product'] == component or component in ['Core', 'Firefox', 'Toolkit']):
                 continue
 
             bug_id = str(bug['id'])
@@ -80,15 +80,15 @@ class Component(BugbugScript):
                 'confidence': int(round(100 * prob[index])),
             }
 
-            if prob[index] >= self.get_config('autofix_confidence_threshold'):
+            if prob[index] >= self.get_config('confidence_threshold'):
                 # If we were able to predict both product and component, assign both product and component.
-                # Otherwise, just change the product (if it's not one of the base ones).
+                # Otherwise, just change the product.
                 if '::' in component:
                     self.autofix_component[bug_id] = {
                         'product': component[:component.index('::')],
                         'component': component[component.index('::') + 2:],
                     }
-                elif bug['product'] != component and component not in ['Core', 'Firefox', 'Toolkit']:
+                else:
                     self.autofix_component[bug_id] = {
                         'product': component,
                     }
