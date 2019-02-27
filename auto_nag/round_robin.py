@@ -23,6 +23,13 @@ class RoundRobin(object):
                 with open('./auto_nag/scripts/configs/{}'.format(path), 'r') as In:
                     rr[team] = json.load(In)
 
+        # rr is dictionary:
+        # - doc -> documentation
+        # - triagers -> dictionary: Real Name -> {bzmail: bugzilla email, nick: bugzilla nickname}
+        # - components -> dictionary: Product::Compoent -> strategy name
+        # - strategies: dictionay: {duty en date -> Real Name}
+
+        # Get all the strategies for each team
         for team, data in rr.items():
             if 'doc' in data:
                 del data['doc']
@@ -30,27 +37,39 @@ class RoundRobin(object):
             triagers = data['triagers']
             fallback = triagers['Fallback']['bzmail']
             fallback_nick = triagers['Fallback']['nick']
+
+            # collect strategies
             for pc, strategy in data['components'].items():
                 strategy_data = data[strategy]
                 if strategy not in strategies:
                     strategies[strategy] = strategy_data
+
+            # rewrite strategy to have a sorted list of end dates
             for strat_name, strategy in strategies.items():
                 if 'doc' in strategy:
                     del strategy['doc']
                 date_name = []
+
+                # end date and real name of the triager
                 for date, name in strategy.items():
+                    # collect the tuple (end_date, bzmail, nick)
                     date = lmdutils.get_date_ymd(date)
                     bzmail = triagers[name]['bzmail']
                     nick = triagers[name]['nick']
                     date_name.append((date, bzmail, nick))
+
+                # we sort the list to use bisection to find the triager
                 date_name = sorted(date_name)
                 strategies[strat_name] = {
                     'dates': [d for d, _, _ in date_name],
                     'mails': [(m, n) for _, m, n in date_name],
-                    'fallback': fallback,
-                    'fallback_nick': fallback_nick,
+                    'fallback': (fallback, fallback_nick),
                 }
 
+            # finally self.data is a dictionary:
+            # - Product::Component -> dictionary {dates: sorted list of end date
+            #                                     mails: list of tuple (mail, nick)
+            #                                     fallback: who to nag when we've nobody}
             for pc, strategy in data['components'].items():
                 self.data[pc] = strategies[strategy]
 
@@ -66,8 +85,7 @@ class RoundRobin(object):
         dates = strategy['dates']
         i = bisect.bisect_left(strategy['dates'], date)
         if i == len(dates):
-            bzmail = strategy['fallback']
-            nick = strategy['fallback_nick']
+            bzmail, nick = strategy['fallback']
         else:
             bzmail, nick = strategy['mails'][i]
         return bzmail, nick
