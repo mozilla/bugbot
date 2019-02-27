@@ -1,6 +1,7 @@
 {
     "round-robin":
     {
+        "days_to_nag": 7,
         "teams":
         {
             "necko": "necko_round_robin.json"

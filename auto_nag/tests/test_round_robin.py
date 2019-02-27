@@ -17,7 +17,11 @@ class TestRoundRobin(unittest.TestCase):
             'A B': {'bzmail': 'ab@mozilla.com', 'nick': 'ab'},
             'C D': {'bzmail': 'cd@mozilla.com', 'nick': 'cd'},
             'E F': {'bzmail': 'ef@mozilla.com', 'nick': 'ef'},
-            'Fallback': {'bzmail': 'gh@mozilla.com', 'nick': 'gh'},
+            'Fallback': {
+                'mozmail': 'gh@mozilla.com',
+                'bzmail': 'gh@mozilla.com',
+                'nick': 'gh',
+            },
         },
         'components': {'P1::C1': 'default', 'P2::C2': 'default', 'P3::C3': 'special'},
         'default': {
@@ -67,3 +71,11 @@ class TestRoundRobin(unittest.TestCase):
         assert rr.get(self.mk_bug('P3::C3'), '2019-03-08') == ('gh@mozilla.com', 'gh')
 
         assert rr.get(self.mk_bug('Foo::Bar'), '2019-03-01') == ('ij@mozilla.com', 'ij')
+
+    def test_get_who_to_nag(self):
+        rr = RoundRobin(rr={'team': TestRoundRobin.config})
+
+        assert rr.get_who_to_nag('2019-02-28') == {'gh@mozilla.com': ['']}
+        assert rr.get_who_to_nag('2019-03-05') == {'gh@mozilla.com': ['']}
+        assert rr.get_who_to_nag('2019-03-07') == {'gh@mozilla.com': ['']}
+        assert rr.get_who_to_nag('2019-03-10') == {'gh@mozilla.com': ['']}
