@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import argparse
 from auto_nag.bugbug_utils import BugbugScript
 from bugbug.models.component import ComponentModel
 
@@ -11,6 +12,12 @@ class Component(BugbugScript):
         super(Component, self).__init__()
         self.model = ComponentModel.load(self.retrieve_model('component'))
         self.autofix_component = {}
+
+    def add_custom_arguments(self, parser):
+        parser.add_argument('--frequency', help='Daily (noisy) or Hourly', choices=['daily', 'hourly'], default='daily')
+
+    def parse_custom_arguments(self, args):
+        self.frequency = args.frequency
 
     def description(self):
         return 'Assign a component to untriaged bugs'
@@ -22,7 +29,7 @@ class Component(BugbugScript):
         return 'component.html'
 
     def subject(self):
-        return '[Using ML] Assign a component to untriaged bugs'
+        return f'[Using ML] Assign a component to untriaged bugs ({self.frequency})'
 
     def columns(self):
         return ['id', 'summary', 'component', 'confidence']
@@ -66,19 +73,24 @@ class Component(BugbugScript):
         # Apply inverse transformation to get the component name from the encoded value.
         components = self.model.clf._le.inverse_transform(indexes)
 
-        result = {}
+        results = {}
         for bug, prob, index, component in zip(bugs, probs, indexes, components):
             # Skip product-only suggestions that are not useful.
             if '::' not in component and (bug['product'] == component or component in ['Core', 'Firefox', 'Toolkit']):
                 continue
 
             bug_id = str(bug['id'])
-            result[bug_id] = {
+
+            result = {
                 'id': bug_id,
                 'summary': self.get_summary(bug),
                 'component': component,
                 'confidence': int(round(100 * prob[index])),
             }
+
+            # In daily mode, we send an email with all results.
+            if self.frequency == 'daily':
+                results[bug_id] = result
 
             if prob[index] >= self.get_config('confidence_threshold'):
                 # If we were able to predict both product and component, assign both product and component.
@@ -93,7 +105,11 @@ class Component(BugbugScript):
                         'product': component,
                     }
 
-        return result
+                # In hourly mode, we send an email with only the bugs we acted upon.
+                if self.frequency == 'hourly':
+                    results[bug_id] = result
+
+        return results
 
     def has_individual_autofix(self):
         return True
