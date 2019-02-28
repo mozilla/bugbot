@@ -121,9 +121,6 @@ class Regression(BugbugScript):
 
         return result
 
-    def has_individual_autofix(self):
-        return True
-
     def get_autofix_change(self):
         cc = self.get_config('cc')
         return {

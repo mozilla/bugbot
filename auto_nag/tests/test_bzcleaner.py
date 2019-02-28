@@ -6,8 +6,8 @@ import unittest
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.scripts.tracked_bad_severity import TrackedBadSeverity
 
-class TestBZClearner(unittest.TestCase):
 
+class TestBZClearner(unittest.TestCase):
     def test_description(self):
         assert BzCleaner().description() == ''
 
@@ -26,8 +26,15 @@ class TestBZClearner(unittest.TestCase):
     def test_ignore_date(self):
         self.assertFalse(BzCleaner().ignore_date())
 
-class TestBZClearnerClass(unittest.TestCase):
+    def test_has_individual_autofix(self):
+        bzc = BzCleaner()
+        changes = {'123': {}, '456': {}, 789: {}}
+        self.assertTrue(bzc.has_individual_autofix(changes))
+        changes = {'cc': ['foo@mozilla.com'], 'comment': {'body': 'hello'}}
+        self.assertFalse(bzc.has_individual_autofix(changes))
 
+
+class TestBZClearnerClass(unittest.TestCase):
     def test_description(self):
         assert 'Bug tracked' in TrackedBadSeverity().description()
 

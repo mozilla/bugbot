@@ -35,9 +35,6 @@ class AssigneeNoLogin(BzCleaner):
     def has_product_component(self):
         return True
 
-    def has_individual_autofix(self):
-        return True
-
     def has_assignee(self):
         return True
 
