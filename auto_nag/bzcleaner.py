@@ -351,21 +351,9 @@ class BzCleaner(object):
         # check if we have a dictionary with bug numbers as keys
         # return True if all the keys are bug number
         # (which means that each bug has its own autofix)
-        # and clean the changes (replace bugid as int by bugid as str)
-        res = {}
-        individual = True
-        for bugid, data in changes.items():
-            if isinstance(bugid, six.integer_types):
-                res[bugid] = data
-            else:
-                if individual and not bugid.isdigit():
-                    individual = False
-
-        for bugid, data in res.items():
-            del changes[bugid]
-            changes[str(bugid)] = data
-
-        return individual
+        return all(
+            isinstance(bugid, six.integer_types) or bugid.isdigit() for bugid in changes
+        )
 
     def get_autofix_change(self):
         """Get the change to do to autofix the bugs"""
@@ -389,6 +377,7 @@ class BzCleaner(object):
                 )
         else:
             for bugid, ch in change.items():
+                bugid = str(bugid)
                 new_changes[bugid] = utils.merge_bz_changes(
                     ch, ni_changes.get(bugid, {})
                 )

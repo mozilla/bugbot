@@ -30,7 +30,6 @@ class TestBZClearner(unittest.TestCase):
         bzc = BzCleaner()
         changes = {'123': {}, '456': {}, 789: {}}
         self.assertTrue(bzc.has_individual_autofix(changes))
-        self.assertEqual(changes, {'123': {}, '456': {}, '789': {}})
         changes = {'cc': ['foo@mozilla.com'], 'comment': {'body': 'hello'}}
         self.assertFalse(bzc.has_individual_autofix(changes))
 
