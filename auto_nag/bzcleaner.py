@@ -347,7 +347,7 @@ class BzCleaner(object):
                 res[bugid] = data
         return res
 
-    def guess_how_autofix(self, changes):
+    def has_individual_autofix(self, changes):
         # check if we have a dictionary with bug numbers as keys
         # return True if all the keys are bug number
         # (which means that each bug has its own autofix)
@@ -367,7 +367,7 @@ class BzCleaner(object):
 
         self.has_autofix = True
         new_changes = {}
-        if not self.guess_how_autofix(change):
+        if not self.has_individual_autofix(change):
             bugids = self.get_list_bugs(bugs)
             for bugid in bugids:
                 new_changes[bugid] = utils.merge_bz_changes(
