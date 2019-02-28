@@ -54,14 +54,6 @@ python -m auto_nag.scripts.tracked_bad_severity
 # a bit rare
 python -m auto_nag.scripts.one_two_word_summary
 
-# Notify bugs tracked (+ or blocking)
-# with P3, P4 or P5 priorities for the ongoing releases
-# Pretty common
-python -m auto_nag.scripts.mismatch-priority-tracking-esr
-python -m auto_nag.scripts.mismatch-priority-tracking-release
-python -m auto_nag.scripts.mismatch-priority-tracking-beta
-python -m auto_nag.scripts.mismatch-priority-tracking-nightly
-
 # Bugs where the reporter has a needinfo
 # Pretty common
 python -m auto_nag.scripts.reporter_with_ni

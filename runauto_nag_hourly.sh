@@ -56,5 +56,13 @@ python -m auto_nag.scripts.stalled
 # Pretty rare
 python -m auto_nag.scripts.missing_beta_status
 
+# Notify bugs tracked (+ or blocking)
+# with P3, P4 or P5 priorities for the ongoing releases
+# Pretty common
+python -m auto_nag.scripts.mismatch-priority-tracking-esr
+python -m auto_nag.scripts.mismatch-priority-tracking-release
+python -m auto_nag.scripts.mismatch-priority-tracking-beta
+python -m auto_nag.scripts.mismatch-priority-tracking-nightly
+
 # Suggest components for untriaged bugs (hourly, list only bugs on which we acted)
 python3 -m auto_nag.scripts.component --frequency hourly
