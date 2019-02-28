@@ -458,6 +458,12 @@ class BzCleaner(object):
             else:
                 print('{}: No data'.format(name))
 
+    def add_custom_arguments(self, parser):
+        pass
+
+    def parse_custom_arguments(self, args):
+        pass
+
     def get_args_parser(self):
         """Get the argumends from the command line"""
         parser = argparse.ArgumentParser(description=self.description())
@@ -479,11 +485,14 @@ class BzCleaner(object):
                 help='Date for the query',
             )
 
+        self.add_custom_arguments(parser)
+
         return parser
 
     def run(self):
         """Run the tool"""
         args = self.get_args_parser().parse_args()
+        self.parse_custom_arguments(args)
         date = '' if self.ignore_date() else args.date
         try:
             self.send_email(date=date, dryrun=args.dryrun)

@@ -110,5 +110,5 @@ python -m auto_nag.scripts.newbie_with_ni -d
 # Try to detect potential regressions using bugbug
 python3 -m auto_nag.scripts.regression
 
-# Suggest components for untriaged bugs
-python3 -m auto_nag.scripts.component
+# Suggest components for untriaged bugs (daily, full list without confidence threshold)
+python3 -m auto_nag.scripts.component --frequency daily
