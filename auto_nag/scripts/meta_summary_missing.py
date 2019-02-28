@@ -25,9 +25,6 @@ class MetaSummaryMissing(BzCleaner):
     def get_autofix_change(self):
         return self.autofix_meta
 
-    def has_individual_autofix(self):
-        return True
-
     def handle_bug(self, bug, data):
         bugid = str(bug['id'])
         summary = bug['summary']

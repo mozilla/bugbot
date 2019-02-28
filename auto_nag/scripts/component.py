@@ -120,9 +120,6 @@ class Component(BugbugScript):
 
         return results
 
-    def has_individual_autofix(self):
-        return True
-
     def get_autofix_change(self):
         cc = {'cc': {'add': self.get_config('cc')}}
         return {
