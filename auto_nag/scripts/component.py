@@ -18,7 +18,6 @@ class Component(BugbugScript):
 
     def parse_custom_arguments(self, args):
         self.frequency = args.frequency
-        print(self.frequency)
 
     def description(self):
         return 'Assign a component to untriaged bugs'
