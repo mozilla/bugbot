@@ -30,9 +30,6 @@ class P3P4P5(BzCleaner):
     def get_extra_for_template(self):
         return {'nmonths': self.nmonths}
 
-    def ignore_bug_summary(self):
-        return False
-
     def ignore_meta(self):
         return True
 

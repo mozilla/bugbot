@@ -30,9 +30,6 @@ class P2MergeDay(BzCleaner):
     def subject(self):
         return 'P2 bugs with an assignee on merge day'
 
-    def ignore_bug_summary(self):
-        return False
-
     def has_product_component(self):
         return True
 

@@ -22,9 +22,6 @@ class MetaSummaryMissing(BzCleaner):
     def subject(self):
         return self.description()
 
-    def ignore_bug_summary(self):
-        return False
-
     def get_autofix_change(self):
         return self.autofix_meta
 

@@ -34,7 +34,7 @@ class NoAssignee(BzCleaner):
         return 'Bugs with no assignees'
 
     def columns(self):
-        return ['id', 'email']
+        return ['id', 'summary', 'email']
 
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)

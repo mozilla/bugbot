@@ -35,9 +35,6 @@ class NewbieWithNI(BzCleaner):
     def get_extra_for_template(self):
         return {'ndays': self.ndays, 'ncomments': self.ncomments}
 
-    def ignore_bug_summary(self):
-        return False
-
     def has_individual_autofix(self):
         return True
 

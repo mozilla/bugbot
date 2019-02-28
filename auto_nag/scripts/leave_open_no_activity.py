@@ -32,9 +32,6 @@ class LeaveOpenNoActivity(BzCleaner):
     def get_extra_for_needinfo_template(self):
         return self.get_extra_for_template()
 
-    def ignore_bug_summary(self):
-        return False
-
     def subject(self):
         return 'Bugs with leave-open keyword and no activity for the last {} months'.format(
             self.nmonths
