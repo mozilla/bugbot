@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import argparse
 from auto_nag.bugbug_utils import BugbugScript
 from bugbug.models.component import ComponentModel
 
@@ -14,7 +13,12 @@ class Component(BugbugScript):
         self.autofix_component = {}
 
     def add_custom_arguments(self, parser):
-        parser.add_argument('--frequency', help='Daily (noisy) or Hourly', choices=['daily', 'hourly'], default='daily')
+        parser.add_argument(
+            '--frequency',
+            help='Daily (noisy) or Hourly',
+            choices=['daily', 'hourly'],
+            default='daily',
+        )
 
     def parse_custom_arguments(self, args):
         self.frequency = args.frequency
@@ -32,7 +36,7 @@ class Component(BugbugScript):
         return f'[Using ML] Assign a component to untriaged bugs ({self.frequency})'
 
     def columns(self):
-        return ['id', 'summary', 'component', 'confidence']
+        return ['id', 'summary', 'component', 'confidence', 'autofixed']
 
     def sort_columns(self):
         return lambda p: (-p[3], -int(p[0]))
@@ -76,7 +80,10 @@ class Component(BugbugScript):
         results = {}
         for bug, prob, index, component in zip(bugs, probs, indexes, components):
             # Skip product-only suggestions that are not useful.
-            if '::' not in component and (bug['product'] == component or component in ['Core', 'Firefox', 'Toolkit']):
+            if '::' not in component and (
+                bug['product'] == component
+                or component in ['Core', 'Firefox', 'Toolkit']
+            ):
                 continue
 
             bug_id = str(bug['id'])
@@ -86,6 +93,7 @@ class Component(BugbugScript):
                 'summary': self.get_summary(bug),
                 'component': component,
                 'confidence': int(round(100 * prob[index])),
+                'autofixed': False,
             }
 
             # In daily mode, we send an email with all results.
@@ -96,14 +104,15 @@ class Component(BugbugScript):
                 # If we were able to predict both product and component, assign both product and component.
                 # Otherwise, just change the product.
                 if '::' in component:
+                    i = component.index('::')
                     self.autofix_component[bug_id] = {
-                        'product': component[:component.index('::')],
-                        'component': component[component.index('::') + 2:],
+                        'product': component[:i],
+                        'component': component[i + 2:],
                     }
                 else:
-                    self.autofix_component[bug_id] = {
-                        'product': component,
-                    }
+                    self.autofix_component[bug_id] = {'product': component}
+
+                result['autofixed'] = True
 
                 # In hourly mode, we send an email with only the bugs we acted upon.
                 if self.frequency == 'hourly':
@@ -116,7 +125,10 @@ class Component(BugbugScript):
 
     def get_autofix_change(self):
         cc = {'cc': {'add': self.get_config('cc')}}
-        return {bug_id: (data.update(cc) or data) for bug_id, data in self.autofix_component.items()}
+        return {
+            bug_id: (data.update(cc) or data)
+            for bug_id, data in self.autofix_component.items()
+        }
 
 
 if __name__ == '__main__':
