@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import copy
 from auto_nag.bugbug_utils import BugbugScript
 from bugbug.models.component import ComponentModel
 
@@ -69,8 +70,8 @@ class Component(BugbugScript):
 
         bugs = list(bugs.values())
 
-        # Analyze bugs.
-        probs = self.model.classify(bugs, True)
+        # Analyze bugs (make a copy as bugbug could change some properties of the objects).
+        probs = self.model.classify(copy.deepcopy(bugs), True)
 
         # Get the encoded component.
         indexes = probs.argmax(axis=-1)
