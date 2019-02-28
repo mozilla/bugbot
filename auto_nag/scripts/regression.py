@@ -25,7 +25,7 @@ class Regression(BugbugScript):
         return '[Using ML] Bugs with missing regression keyword'
 
     def columns(self):
-        return ['id', 'summary', 'confidence']
+        return ['id', 'summary', 'confidence', 'autofixed']
 
     def sort_columns(self):
         return lambda p: (-p[2], -int(p[0]))
@@ -111,10 +111,12 @@ class Regression(BugbugScript):
                 'id': bug_id,
                 'summary': self.get_summary(bug),
                 'confidence': int(round(100 * prob[1])),
+                'autofixed': False,
             }
 
             # Only autofix results for which we are sure enough.
             if prob[1] >= self.get_config('confidence_threshold'):
+                result[bug_id]['autofixed'] = True
                 self.autofix_regression.append(bug_id)
 
         return result
@@ -124,8 +126,10 @@ class Regression(BugbugScript):
 
     def get_autofix_change(self):
         cc = self.get_config('cc')
-        return {bug_id: {'keywords': {'add': ['regression']},
-                         'cc': {'add': cc}} for bug_id in self.autofix_regression}
+        return {
+            bug_id: {'keywords': {'add': ['regression']}, 'cc': {'add': cc}}
+            for bug_id in self.autofix_regression
+        }
 
 
 if __name__ == '__main__':
