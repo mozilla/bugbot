@@ -23,9 +23,6 @@ class VersionAffected(BzCleaner):
     def subject(self):
         return self.description()
 
-    def ignore_bug_summary(self):
-        return False
-
     def get_bz_params(self, date):
         params = {
             'resolution': ['---', 'FIXED'],

@@ -57,10 +57,6 @@ class BzCleaner(object):
         """Should we ignore the date ?"""
         return False
 
-    def ignore_bug_summary(self):
-        """Should we ignore the bug summary ?"""
-        return True
-
     def must_run(self, date):
         """Check if the tool must run for this date"""
         return True
@@ -92,8 +88,6 @@ class BzCleaner(object):
 
     def columns(self):
         """The fields to get for the columns in email report"""
-        if self.ignore_bug_summary():
-            return ['id']
         return ['id', 'summary']
 
     def sort_columns(self):
@@ -176,8 +170,7 @@ class BzCleaner(object):
         auto_ni = self.get_mail_to_auto_ni(bug)
         self.add_auto_ni(bugid, auto_ni)
 
-        if not self.ignore_bug_summary():
-            res['summary'] = self.get_summary(bug)
+        res['summary'] = self.get_summary(bug)
 
         if self.has_assignee():
             real = bug['assigned_to_detail']['real_name']
@@ -225,8 +218,7 @@ class BzCleaner(object):
             else:
                 params['include_fields'] = ['id']
 
-            if not self.ignore_bug_summary():
-                params['include_fields'] += ['summary', 'groups']
+            params['include_fields'] += ['summary', 'groups']
 
             if self.has_assignee() and 'assigned_to' not in params['include_fields']:
                 params['include_fields'].append('assigned_to')

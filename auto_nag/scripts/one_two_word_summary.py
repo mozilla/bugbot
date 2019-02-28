@@ -21,9 +21,6 @@ class OneTwoWordSummary(BzCleaner):
     def subject(self):
         return self.description()
 
-    def ignore_bug_summary(self):
-        return False
-
     def get_bz_params(self, date):
         days_lookup = self.get_config('days_lookup', default=7)
         blacklist = self.get_config('regex_blacklist', [])

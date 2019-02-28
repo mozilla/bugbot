@@ -41,9 +41,6 @@ class AssigneeNoLogin(BzCleaner):
     def has_assignee(self):
         return True
 
-    def ignore_bug_summary(self):
-        return False
-
     def needinfo_template(self):
         return 'assignee_no_login_comment.txt'
 

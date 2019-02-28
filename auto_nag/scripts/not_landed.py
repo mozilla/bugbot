@@ -40,9 +40,6 @@ class NotLanded(BzCleaner):
     def has_assignee(self):
         return True
 
-    def ignore_bug_summary(self):
-        return False
-
     def get_extra_for_template(self):
         return {'nweeks': self.nweeks}
 

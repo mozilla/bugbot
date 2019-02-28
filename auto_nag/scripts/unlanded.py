@@ -28,9 +28,6 @@ class Unlanded(BzCleaner, Nag):
     def subject(self):
         return self.description()
 
-    def ignore_bug_summary(self):
-        return False
-
     def has_last_comment_time(self):
         return True
 

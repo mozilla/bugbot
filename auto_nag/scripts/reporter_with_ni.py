@@ -30,9 +30,6 @@ class ReporterWithNI(BzCleaner):
     def get_extra_for_template(self):
         return {'nweeks': self.nweeks}
 
-    def ignore_bug_summary(self):
-        return False
-
     def get_bz_params(self, date):
         params = {
             'resolution': '---',

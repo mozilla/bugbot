@@ -38,9 +38,6 @@ class P1NoActivity(BzCleaner, Nag):
     def get_extra_for_nag_template(self):
         return self.get_extra_for_template()
 
-    def ignore_bug_summary(self):
-        return False
-
     def ignore_meta(self):
         return True
 

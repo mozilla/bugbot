@@ -33,9 +33,6 @@ class TrackedNeedinfo(BzCleaner, Nag):
             self.channel, self.version
         )
 
-    def ignore_bug_summary(self):
-        return False
-
     def has_last_comment_time(self):
         return True
 

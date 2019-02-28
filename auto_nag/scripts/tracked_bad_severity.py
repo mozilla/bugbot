@@ -25,9 +25,6 @@ class TrackedBadSeverity(BzCleaner):
     def ignore_date(self):
         return True
 
-    def ignore_bug_summary(self):
-        return False
-
     def get_bz_params(self, date):
         # TODO add support for ESR here?
         release_version, beta_version, central_version, esr_version = getVersions()

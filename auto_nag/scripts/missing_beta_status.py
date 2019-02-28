@@ -27,9 +27,6 @@ class MissingBetaStatus(BzCleaner):
     def ignore_date(self):
         return True
 
-    def has_individual_autofix(self):
-        return True
-
     def get_autofix_change(self):
         return self.autofix_status
 

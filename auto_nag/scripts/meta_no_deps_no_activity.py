@@ -32,9 +32,6 @@ class MetaNoDepsNoActivity(BzCleaner):
     def get_extra_for_needinfo_template(self):
         return self.get_extra_for_template()
 
-    def ignore_bug_summary(self):
-        return False
-
     def subject(self):
         return 'Bugs with meta keyword, no depending on bugs and no activity for the last {} months'.format(
             self.nmonths

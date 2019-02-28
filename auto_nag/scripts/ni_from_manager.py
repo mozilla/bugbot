@@ -40,9 +40,6 @@ class NiFromManager(BzCleaner, Nag):
     def get_extra_for_nag_template(self):
         return self.get_extra_for_template()
 
-    def ignore_bug_summary(self):
-        return False
-
     def has_last_comment_time(self):
         return True
 
