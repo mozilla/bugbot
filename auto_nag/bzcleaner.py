@@ -501,8 +501,8 @@ class BzCleaner(object):
             mail.send(
                 login_info['ldap_username'],
                 utils.get_config('common', 'on-errors'),
-                '[autonag] Something bad happened when running auto-nag the {}'.format(
-                    date
+                '[autonag] Something bad happened when running auto-nag the {} (for {})'.format(
+                    date, self.name()
                 ),
                 bt,
                 html=False,
