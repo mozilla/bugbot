@@ -19,6 +19,7 @@ class NoCrashes(BzCleaner):
     def __init__(self):
         super(NoCrashes, self).__init__()
         self.nweeks = utils.get_config(self.name(), 'number_of_weeks', 12)
+        self.summaries = {}
 
     def description(self):
         return 'Get bugs with crash signatures which have no more crashes'
@@ -93,6 +94,7 @@ class NoCrashes(BzCleaner):
             return
         sgns = utils.get_signatures(bug['cf_crash_signature'])
         id = bug['id']
+        self.summaries[str(id)] = self.get_summary(bug)
         data['ids'][id] = sgns
         signatures = data['signatures']
         for s in sgns:
@@ -142,7 +144,7 @@ class NoCrashes(BzCleaner):
             if bug_sgns < signatures:
                 # all the signatures in the bug have no crashes
                 bugid = str(bugid)
-                res[bugid] = {'id': bugid}
+                res[bugid] = {'id': bugid, 'summary': self.summaries[bugid]}
         return res
 
     def get_autofix_change(self):
