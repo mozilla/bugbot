@@ -54,6 +54,18 @@
         ],
         "log": "/tmp/auto_nag_errors.log"
     },
+    "has-str-no-hasstr":
+    {
+        "products":
+        [
+            "Core",
+            "DevTools",
+            "External Software Affecting Firefox",
+            "Firefox",
+            "Toolkit",
+            "WebExtensions"
+        ]
+    },
     "missed-uplifts":
     {
         "receivers":

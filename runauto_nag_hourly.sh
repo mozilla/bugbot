@@ -27,6 +27,10 @@ python -m auto_nag.scripts.no_assignee
 # very common
 python -m auto_nag.scripts.leave_open
 
+# has a STR without flag has_str
+# common
+python -m auto_nag.scripts.has_str_no_hasstr
+
 # hasRegressionRange is set but no regression keyword
 # common
 python -m auto_nag.scripts.has_regression_range_no_keyword
