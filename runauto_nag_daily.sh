@@ -65,10 +65,6 @@ python -m auto_nag.scripts.assignee_but_unconfirmed
 # Notify bugs in untriaged with an important severity
 python -m auto_nag.scripts.untriage_important_sev
 
-# P2 bug with no activity for more than 1 years (with autofix)
-# Pretty common
-python -m auto_nag.scripts.old_p2_bug -d
-
 # Needinfo the triage owner when we find bugs without the priority set
 # Pretty common
 # Only on Andrew for now
