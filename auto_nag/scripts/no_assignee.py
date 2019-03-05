@@ -268,12 +268,16 @@ class NoAssignee(BzCleaner):
         user_info = self.get_user_info(bzdata)
 
         _bugs = self.filter_from_hg(bzdata, user_info)
-        bugs = {}
+        res = {}
         for bugid, email in _bugs.items():
             if email:
-                bugs[bugid] = {'id': bugid, 'email': email}
+                res[bugid] = {
+                    'id': bugid,
+                    'email': email,
+                    'summary': bugs[bugid]['summary'],
+                }
 
-        return bugs
+        return res
 
 
 if __name__ == '__main__':
