@@ -65,7 +65,16 @@
     },
     "has_str_no_range":
     {
-        "days_lookup": 10
+        "days_lookup": 10,
+        "products":
+        [
+            "Core",
+            "DevTools",
+            "External Software Affecting Firefox",
+            "Firefox",
+            "Toolkit",
+            "WebExtensions"
+        ]
     },
     "one_two_word_summary":
     {
