@@ -14,7 +14,6 @@ STR = re.compile(r'^(?:Step[s]? to reproduce|STR|Step[s]?)[ \t]*:', re.I | re.MU
 class HasStrNoHasstr(BzCleaner):
     def __init__(self):
         super(HasStrNoHasstr, self).__init__()
-        self.autofix_hasstr = {}
 
     def description(self):
         return (
@@ -30,44 +29,18 @@ class HasStrNoHasstr(BzCleaner):
     def subject(self):
         return 'Bugs with no has_str and str in the first comment'
 
-    def set_autofix(self, bugs, with_str):
-        for bugid, one_comment in with_str.items():
-            bug = bugs[bugid]
-            if one_comment:
-                # we restrict this autofix to bugs with only one comment and no history
-                # to avoid a maybe inappropriate comment in a chat.
-                nick = bug['nick']
-                self.autofix_hasstr[bugid] = {
-                    'cf_has_str': 'yes',
-                    'comment': {
-                        'body': ':{}, if you think that\'s a regression, then could try to find a regression range in using for example [mozregression](https://wiki.mozilla.org/Auto-tools/Projects/Mozregression)?'.format(
-                            nick
-                        )
-                    },
-                }
-            else:
-                self.autofix_hasstr[bugid] = {'cf_has_str': 'yes'}
-
-    def has_product_component(self):
-        return True
-
     def get_autofix_change(self):
-        return self.autofix_hasstr
-
-    def handle_bug(self, bug, data):
-        bugid = str(bug['id'])
-        data[bugid] = {'nick': bug['creator_detail']['nick']}
-        return bug
+        return {'cf_has_str': 'yes'}
 
     def get_bugs_with_str(self, bugs):
         def comment_handler(bug, bugid, data):
             text = bug['comments'][0]['text']
             if STR.search(text):
                 bugid = str(bugid)
-                data[bugid] = len(bug['comments']) == 1
+                data.add(bugid)
 
         bugids = list(bugs.keys())
-        data = {}
+        data = set()
 
         Bugzilla(
             bugids=bugids,
@@ -77,23 +50,6 @@ class HasStrNoHasstr(BzCleaner):
         ).get_data().wait()
 
         return data
-
-    def get_bugs_with_no_history(self, bugs):
-        def history_handler(bug, data):
-            if not bug['history']:
-                bugid = str(bug['id'])
-                data.add(bugid)
-
-        bugids = [bugid for bugid, one_comment in bugs.items() if one_comment]
-        data = set()
-
-        Bugzilla(
-            bugids=bugids, historyhandler=history_handler, historydata=data
-        ).get_data().wait()
-
-        for bugid in bugs.keys():
-            if bugid not in data:
-                bugs[bugid] = False
 
     def get_bz_params(self, date):
         start_date, _ = self.get_dates(date)
@@ -122,13 +78,10 @@ class HasStrNoHasstr(BzCleaner):
     def get_bugs(self, date='today', bug_ids=[]):
         bugs = super(HasStrNoHasstr, self).get_bugs(date=date, bug_ids=bug_ids)
         with_str = self.get_bugs_with_str(bugs)
-        self.get_bugs_with_no_history(with_str)
 
-        useless = set(bugs.keys()) - set(with_str.keys())
+        useless = set(bugs.keys()) - with_str
         for bug in useless:
             del bugs[bug]
-
-        self.set_autofix(bugs, with_str)
 
         return bugs
 
