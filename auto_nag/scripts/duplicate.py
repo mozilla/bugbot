@@ -13,7 +13,7 @@ class Duplicate(BzCleaner):
         self.autofix_data = {}
 
     def description(self):
-        return 'Get the closed bugs with stalled keyword'
+        return 'Get the bugs which are DUPLICATE and some info haven\'t been moved'
 
     def name(self):
         return 'duplicate'
@@ -22,7 +22,7 @@ class Duplicate(BzCleaner):
         return 'duplicate.html'
 
     def subject(self):
-        return 'Closed bugs with stalled keyword'
+        return 'Bugs which are DUPLICATE and some info haven\'t been moved'
 
     def has_product_component(self):
         return True
