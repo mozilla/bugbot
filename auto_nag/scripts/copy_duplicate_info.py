@@ -7,9 +7,9 @@ from auto_nag.bzcleaner import BzCleaner
 from auto_nag import utils
 
 
-class Duplicate(BzCleaner):
+class CopyDuplicateInfo(BzCleaner):
     def __init__(self):
-        super(Duplicate, self).__init__()
+        super(CopyDuplicateInfo, self).__init__()
         self.autofix_data = {}
 
     def description(self):
@@ -151,7 +151,7 @@ class Duplicate(BzCleaner):
         return params
 
     def get_bugs(self, date='today', bug_ids=[]):
-        bugs = super(Duplicate, self).get_bugs(date=date, bug_ids=bug_ids)
+        bugs = super(CopyDuplicateInfo, self).get_bugs(date=date, bug_ids=bug_ids)
         dups = self.get_dups(bugs)
         signatures, pcs = self.compare(bugs, dups)
 
@@ -162,4 +162,4 @@ class Duplicate(BzCleaner):
 
 
 if __name__ == '__main__':
-    Duplicate().run()
+    CopyDuplicateInfo().run()
