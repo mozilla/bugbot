@@ -80,6 +80,8 @@ class Component(BugbugScript):
 
         results = {}
         for bug, prob, index, component in zip(bugs, probs, indexes, components):
+            component = self.model.CONFLATED_COMPONENTS_MAPPING.get(component, component)
+
             # Skip product-only suggestions that are not useful.
             if '::' not in component and (
                 bug['product'] == component
