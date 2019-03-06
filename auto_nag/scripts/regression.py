@@ -73,7 +73,7 @@ class Regression(BugbugScript):
                         and change['removed'] == 'regression'
                     ):
                         to_remove.add(bug_id)
-                        return
+                        break
 
         for bug_id in to_remove:
             del bugs[bug_id]
