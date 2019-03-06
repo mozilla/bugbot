@@ -161,6 +161,27 @@ class NoAssignee(BzCleaner):
     def clean_mail(self, mail):
         return ALNUM.sub('', mail)
 
+    def mk_possible_mails(self, names):
+        # Foo Bar will probably choose fbar@ or barf@ or foob@...
+        # Generate the different possibilities
+        res = set()
+        if len(names) != 2:
+            return res
+
+        names = list(names)
+        first = names[0]
+        second = names[1]
+
+        for i in range(1, len(first)):
+            res.add(first[:i] + second)
+            res.add(second + first[:i])
+
+        for i in range(1, len(second)):
+            res.add(second[:i] + first)
+            res.add(first + second[:i])
+
+        return res
+
     def find_assignee(self, bz_patchers, hg_patchers, bz_commenters, bz_info):
         """Find a potential assignee.
            If an email is common between patchers (people who made patches on bugzilla)
@@ -168,6 +189,7 @@ class NoAssignee(BzCleaner):
            If "Foo Bar [:foobar]" made a patch and his hg name is "Bar Foo" return the
            corresponding Bugzilla email.
         """
+
         if not bz_patchers:
             # we've no patch in the bug
             # so try to find an assignee in the commenters
@@ -190,6 +212,15 @@ class NoAssignee(BzCleaner):
             for name in hg_patchers_name:
                 if len(name & real_name) >= 2:
                     potential.add(bz_patcher)
+
+        # try to find similarities between email and name
+        for name in hg_patchers_name:
+            possible_mail_parts = self.mk_possible_mails(name)
+            for bz_patcher in bz_patchers:
+                _bz_patcher = self.clean_mail(bz_patcher)
+                for part in possible_mail_parts:
+                    if len(part) >= 5 and part in _bz_patcher:
+                        potential.add(bz_patcher)
 
         # try to find similarities between email in using Jaro-Winkler metric
         for b in bz_patchers:
@@ -268,12 +299,16 @@ class NoAssignee(BzCleaner):
         user_info = self.get_user_info(bzdata)
 
         _bugs = self.filter_from_hg(bzdata, user_info)
-        bugs = {}
+        res = {}
         for bugid, email in _bugs.items():
             if email:
-                bugs[bugid] = {'id': bugid, 'email': email}
+                res[bugid] = {
+                    'id': bugid,
+                    'email': email,
+                    'summary': bugs[bugid]['summary'],
+                }
 
-        return bugs
+        return res
 
 
 if __name__ == '__main__':
