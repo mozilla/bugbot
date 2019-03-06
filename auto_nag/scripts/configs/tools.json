@@ -201,6 +201,10 @@
     {
         "days_lookup": 100
     },
+    "duplicate":
+    {
+        "days_lookup": 10
+    },
     "next-release":
     {
         "receivers":

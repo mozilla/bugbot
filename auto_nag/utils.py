@@ -51,6 +51,9 @@ def get_config(name, entry, default=None):
 
 
 def get_signatures(sgns):
+    if not sgns:
+        return set()
+
     res = set()
     sgns = map(lambda x: x.strip(), sgns.split('[@'))
     for s in filter(None, sgns):
@@ -60,6 +63,13 @@ def get_signatures(sgns):
         except ValueError:
             res.add(s)
     return res
+
+
+def add_signatures(old, new):
+    added_sgns = '[@ ' + ']\n[@ '.join(sorted(new)) + ']'
+    if old:
+        return old + '\n' + added_sgns
+    return added_sgns
 
 
 def get_empty_assignees(params, negation=False):
