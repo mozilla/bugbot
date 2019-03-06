@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import copy
+from datetime import datetime
 from auto_nag.bugbug_utils import BugbugScript
 from bugbug.models.component import ComponentModel
 
@@ -49,21 +50,12 @@ class Component(BugbugScript):
             'chfield': '[Bug creation]',
             'chfieldfrom': start_date,
             'chfieldto': end_date,
+            # Ignore bugs for which somebody has ever modified the product or the component.
+            'n1': 1, 'f1': 'product', 'o1': 'changedafter', 'v1': datetime(1970, 1, 1),
+            'n2': 1, 'f2': 'component', 'o2': 'changedafter', 'v2': datetime(1970, 1, 1),
         }
 
         return params
-
-    def remove_using_history(self, bugs):
-        to_remove = set()
-        for bug_id, bug in bugs.items():
-            for h in bug['history']:
-                for change in h.get('changes', []):
-                    if change['field_name'] in ['product', 'component']:
-                        to_remove.add(bug_id)
-                        break
-
-        for bug_id in to_remove:
-            del bugs[bug_id]
 
     def get_bugs(self, date='today', bug_ids=[]):
         # Retrieve bugs to analyze.
@@ -73,9 +65,6 @@ class Component(BugbugScript):
 
         # Retrieve history.
         self.retrieve_history(bugs)
-
-        # Remove bugs for which somebody has modified the product/component.
-        self.remove_using_history(bugs)
 
         # Retrieve comments.
         self.retrieve_comments(bugs)
