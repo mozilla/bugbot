@@ -53,6 +53,18 @@ class Component(BugbugScript):
 
         return params
 
+    def remove_using_history(self, bugs):
+        to_remove = set()
+        for bug_id, bug in bugs.items():
+            for h in bug['history']:
+                for change in h.get('changes', []):
+                    if change['field_name'] in ['product', 'component']:
+                        to_remove.add(bug_id)
+                        break
+
+        for bug_id in to_remove:
+            del bugs[bug_id]
+
     def get_bugs(self, date='today', bug_ids=[]):
         # Retrieve bugs to analyze.
         all_bug_data = super(Component, self).get_bugs(date=date, bug_ids=bug_ids)
@@ -61,6 +73,9 @@ class Component(BugbugScript):
 
         # Retrieve history.
         self.retrieve_history(bugs)
+
+        # Remove bugs for which somebody has modified the product/component.
+        self.remove_using_history(bugs)
 
         # Retrieve comments.
         self.retrieve_comments(bugs)
