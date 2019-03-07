@@ -27,7 +27,8 @@
         "on-errors":
         [
             "calixte@mozilla.com",
-            "sylvestre@mozilla.com"
+            "sylvestre@mozilla.com",
+            "mcastelluccio@mozilla.com"
         ],
         "bot_bz_mail": ["release-mgmt-account-bot@mozilla.tld"],
         "days_lookup": 7,
