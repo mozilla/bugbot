@@ -66,7 +66,7 @@ python -m auto_nag.scripts.mismatch-priority-tracking-nightly
 
 # Move info (signatures, product/component) from/to bugs & their dups
 # Pretty common
-# python -m auto_nag.scripts.copy_duplicate_info
+python -m auto_nag.scripts.copy_duplicate_info
 
 # Suggest components for untriaged bugs (hourly, list only bugs on which we acted)
 python3 -m auto_nag.scripts.component --frequency hourly

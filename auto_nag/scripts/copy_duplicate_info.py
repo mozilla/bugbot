@@ -139,7 +139,9 @@ class CopyDuplicateInfo(BzCleaner):
                     pc['version'] = dup['version']
                 pcs[bugid] = pc
 
-        return signatures, pcs
+        # Don't move product/component for now
+        # return signatures, pcs
+        return signatures, {}
 
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
