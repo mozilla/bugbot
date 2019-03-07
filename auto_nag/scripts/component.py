@@ -49,6 +49,9 @@ class Component(BugbugScript):
             'chfield': '[Bug creation]',
             'chfieldfrom': start_date,
             'chfieldto': end_date,
+            # Ignore bugs for which somebody has ever modified the product or the component.
+            'n1': 1, 'f1': 'product', 'o1': 'changedafter', 'v1': '1970-01-01',
+            'n2': 1, 'f2': 'component', 'o2': 'changedafter', 'v2': '1970-01-01',
         }
 
         return params
@@ -81,11 +84,10 @@ class Component(BugbugScript):
         results = {}
         for bug, prob, index, component in zip(bugs, probs, indexes, components):
             # Skip product-only suggestions that are not useful.
-            if '::' not in component and (
-                bug['product'] == component
-                or component in ['Core', 'Firefox', 'Toolkit']
-            ):
+            if '::' not in component and bug['product'] == component:
                 continue
+
+            component = self.model.CONFLATED_COMPONENTS_MAPPING.get(component, component)
 
             bug_id = str(bug['id'])
 
