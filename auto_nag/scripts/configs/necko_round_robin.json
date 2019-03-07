@@ -34,6 +34,7 @@
         },
         "Fallback":
         {
+            "mozmail": "hbambas@mozilla.com",
             "bzmail": "honzab.moz@firemni.cz",
             "nick": "mayhemer"
         }

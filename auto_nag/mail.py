@@ -6,6 +6,7 @@ from os.path import basename
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
+from jinja2 import Environment, FileSystemLoader
 import six
 import smtplib
 from . import utils
@@ -34,6 +35,25 @@ def clean_cc(cc, to):
     cc = set(cc)
     cc = cc - to
     return list(sorted(cc))
+
+
+def send_from_template(template_file, To, title, Cc=[], dryrun=False, **kwargs):
+    login_info = utils.get_login_info()
+    env = Environment(loader=FileSystemLoader('templates'))
+    template = env.get_template(template_file)
+    message = template.render(**kwargs)
+    common = env.get_template('common.html')
+    body = common.render(message=message, has_table=False)
+    send(
+        login_info['ldap_username'],
+        To,
+        '[autonag] {}'.format(title),
+        body,
+        Cc=Cc,
+        html=True,
+        login=login_info,
+        dryrun=dryrun,
+    )
 
 
 def send(

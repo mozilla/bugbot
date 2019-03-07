@@ -15,6 +15,7 @@ class RoundRobin(object):
 
     def feed(self, rr=None):
         self.data = {}
+        filenames = {}
         if rr is None:
             rr = {}
             for team, path in utils.get_config(
@@ -22,6 +23,7 @@ class RoundRobin(object):
             ).items():
                 with open('./auto_nag/scripts/configs/{}'.format(path), 'r') as In:
                     rr[team] = json.load(In)
+                    filenames[team] = path
 
         # rr is dictionary:
         # - doc -> documentation
@@ -35,8 +37,10 @@ class RoundRobin(object):
                 del data['doc']
             strategies = {}
             triagers = data['triagers']
-            fallback = triagers['Fallback']['bzmail']
+            fallback_mozmail = triagers['Fallback']['mozmail']
+            fallback_bzmail = triagers['Fallback']['bzmail']
             fallback_nick = triagers['Fallback']['nick']
+            path = filenames.get(team, '')
 
             # collect strategies
             for pc, strategy in data['components'].items():
@@ -63,13 +67,15 @@ class RoundRobin(object):
                 strategies[strat_name] = {
                     'dates': [d for d, _, _ in date_name],
                     'mails': [(m, n) for _, m, n in date_name],
-                    'fallback': (fallback, fallback_nick),
+                    'fallback': (fallback_bzmail, fallback_nick, fallback_mozmail),
+                    'filename': path,
                 }
 
             # finally self.data is a dictionary:
             # - Product::Component -> dictionary {dates: sorted list of end date
             #                                     mails: list of tuple (mail, nick)
-            #                                     fallback: who to nag when we've nobody}
+            #                                     fallback: who to nag when we've nobody
+            #                                     filename: the file containing strategy}
             for pc, strategy in data['components'].items():
                 self.data[pc] = strategies[strategy]
 
@@ -85,7 +91,29 @@ class RoundRobin(object):
         dates = strategy['dates']
         i = bisect.bisect_left(strategy['dates'], date)
         if i == len(dates):
-            bzmail, nick = strategy['fallback']
+            bzmail, nick, _ = strategy['fallback']
         else:
             bzmail, nick = strategy['mails'][i]
         return bzmail, nick
+
+    def get_who_to_nag(self, date):
+        fallbacks = {}
+        date = lmdutils.get_date_ymd(date)
+        days = utils.get_config('round-robin', 'days_to_nag', 7)
+        for pc, strategy in self.data.items():
+            last_date = strategy['dates'][-1]
+            if (last_date - date).days <= days and strategy[
+                'filename'
+            ] not in fallbacks:
+                _, _, fallbacks[strategy['filename']] = strategy['fallback']
+
+        # create a dict: mozmail -> list of filenames to check
+        res = {}
+        for fn, fb in fallbacks.items():
+            if fb not in res:
+                res[fb] = []
+            res[fb].append(fn)
+
+        res = {fb: sorted(fn) for fb, fn in res.items()}
+
+        return res

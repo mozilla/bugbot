@@ -22,6 +22,10 @@ export PYTHONPATH=.
 # Daily
 python -m auto_nag.next_release
 
+# Nag triage fallback to update calendar
+# Daily
+python -m auto_nag.round_robin_fallback
+
 # Nag to developers
 # Daily
 python -m auto_nag.scripts.query_creator

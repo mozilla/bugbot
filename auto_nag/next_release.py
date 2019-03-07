@@ -4,7 +4,6 @@
 
 import argparse
 import dateutil.parser
-from jinja2 import Environment, FileSystemLoader
 from libmozdata import release_owners as ro, utils as lmdutils
 import pytz
 import re
@@ -13,23 +12,14 @@ from . import mail, utils
 
 
 def send_mail(next_date, bad_date_nrd, bad_date_ro, dryrun=False):
-
-    login_info = utils.get_login_info()
-    env = Environment(loader=FileSystemLoader('templates'))
-    template = env.get_template('next_release_email')
-    message = template.render(
-        next_date=next_date, bad_date_nrd=bad_date_nrd, bad_date_ro=bad_date_ro
-    )
-    common = env.get_template('common.html')
-    body = common.render(message=message, has_table=False)
-    mail.send(
-        login_info['ldap_username'],
+    mail.send_from_template(
+        'next_release_email',
         utils.get_config('next-release', 'receivers'),
-        '[autonag] Next release date is not up-to-date',
-        body,
-        html=True,
-        login=login_info,
+        'Next release date is not up-to-date',
         dryrun=dryrun,
+        next_date=next_date,
+        bad_date_nrd=bad_date_nrd,
+        bad_date_ro=bad_date_ro,
     )
 
 
