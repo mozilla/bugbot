@@ -341,8 +341,6 @@ class BzCleaner(object):
                         }
                     ],
                 }
-                if dryrun or self.test_mode:
-                    print('Auto needinfo {}: {}'.format(bugid, data))
 
                 res[bugid] = data
         return res
@@ -351,7 +349,7 @@ class BzCleaner(object):
         # check if we have a dictionary with bug numbers as keys
         # return True if all the keys are bug number
         # (which means that each bug has its own autofix)
-        return all(
+        return changes and all(
             isinstance(bugid, six.integer_types) or bugid.isdigit() for bugid in changes
         )
 
@@ -376,11 +374,14 @@ class BzCleaner(object):
                     change, ni_changes.get(bugid, {})
                 )
         else:
-            for bugid, ch in change.items():
-                bugid = str(bugid)
-                new_changes[bugid] = utils.merge_bz_changes(
-                    ch, ni_changes.get(bugid, {})
+            change = {str(k): v for k, v in change.items()}
+            bugids = set(change.keys()) | set(ni_changes.keys())
+            for bugid in bugids:
+                mrg = utils.merge_bz_changes(
+                    change.get(bugid, {}), ni_changes.get(bugid, {})
                 )
+                if mrg:
+                    new_changes[bugid] = mrg
 
         if dryrun or self.test_mode:
             for bugid, ch in new_changes.items():
