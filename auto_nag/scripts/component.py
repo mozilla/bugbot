@@ -3,7 +3,6 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import copy
-from datetime import datetime
 from auto_nag.bugbug_utils import BugbugScript
 from bugbug.models.component import ComponentModel
 
@@ -51,8 +50,8 @@ class Component(BugbugScript):
             'chfieldfrom': start_date,
             'chfieldto': end_date,
             # Ignore bugs for which somebody has ever modified the product or the component.
-            'n1': 1, 'f1': 'product', 'o1': 'changedafter', 'v1': datetime(1970, 1, 1),
-            'n2': 1, 'f2': 'component', 'o2': 'changedafter', 'v2': datetime(1970, 1, 1),
+            'n1': 1, 'f1': 'product', 'o1': 'changedafter', 'v1': '1970-01-01',
+            'n2': 1, 'f2': 'component', 'o2': 'changedafter', 'v2': '1970-01-01',
         }
 
         return params
