@@ -118,6 +118,10 @@ class CopyDuplicateInfo(BzCleaner):
         pcs = {}
         for bugid, info in bugs.items():
             dupid = info['dupe']
+            if dupid not in dups:
+                # the bug is unaccessible (sec bug for example)
+                continue
+
             dup = dups[dupid]
             bs = utils.get_signatures(info['signature'])
             ds = utils.get_signatures(dup['signature'])
