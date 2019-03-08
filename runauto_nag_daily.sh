@@ -22,6 +22,10 @@ export PYTHONPATH=.
 # Daily
 python -m auto_nag.next_release
 
+# Code freeze week information for release managers
+# Daily (but really runs during the soft freeze week)
+python -m auto_nag.code_freeze_week -D yesterday
+
 # Nag triage fallback to update calendar
 # Daily
 python -m auto_nag.round_robin_fallback

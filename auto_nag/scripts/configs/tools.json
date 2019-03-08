@@ -415,5 +415,16 @@
             "mcastelluccio@mozilla.com",
             "cdenizet@mozilla.com"
         ]
+    },
+    "code-freeze-week":
+    {
+        "QA-master": "tgrabowski@mozilla.com",
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "release-mgmt@mozilla.com",
+            "tgrabowski@mozilla.com",
+            "yor@mozilla.com"
+        ]
     }
 }
