@@ -294,7 +294,7 @@ def merge_bz_changes(c1, c2):
 
 def is_test_file(path):
     e = os.path.splitext(path)[1][1:].lower()
-    return e in {'ini', 'list', 'in', 'py', 'json', 'manifest'}
+    return 'test' in path and e not in {'ini', 'list', 'in', 'py', 'json', 'manifest'}
 
 
 def get_better_name(name):
