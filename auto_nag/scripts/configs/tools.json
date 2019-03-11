@@ -295,7 +295,16 @@
             "Source Code Analysis",
             "Flash (Adobe)",
             "OpenH264",
-            "Other"
+            "Other",
+            "DOM: Content Processes",
+            "IPC",
+            "Plug-ins",
+            "Security: Process Sandboxing",
+            "Spelling checker",
+            "Widget",
+            "Widget: Gtk",
+            "Widget: Win32",
+            "Widget: WinRT"
         ],
         "supervisor_blacklist":
         [
