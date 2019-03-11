@@ -7,8 +7,8 @@ import requests
 
 def get_bugbug_version(requirements):
     for line in requirements.splitlines():
-        if line.startswith('https://github.com/marco-c/bugbug/archive/'):
-            return line[len('https://github.com/marco-c/bugbug/archive/'):line.index('.tar')]
+        if line.startswith('bugbug=='):
+            return line[len('bugbug=='):]
 
     return None
 
