@@ -70,6 +70,7 @@
         "regex_blacklist":
         [
             "^[rR]emove",
+            ^[cC]reate",
             "^[iI]mplement"
         ]
     },
