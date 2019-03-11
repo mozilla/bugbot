@@ -5,6 +5,7 @@
 import copy
 import json
 from libmozdata import release_calendar as rc
+import os
 import re
 import requests
 import six
@@ -21,8 +22,14 @@ _CONFIG = None
 _CYCLE_SPAN = None
 _TRIAGE_OWNERS = None
 _DEFAULT_ASSIGNEES = None
+
 TEMPLATE_PAT = re.compile(r'<p>(.*)</p>', re.DOTALL)
 BZ_FIELD_PAT = re.compile(r'^[fovj]([0-9]+)$')
+PAR_PAT = re.compile(r'\([^\)]*\)')
+BRA_PAT = re.compile(r'\[[^\]]*\]')
+DIA_PAT = re.compile('<[^>]*>')
+UTC_PAT = re.compile(r'UTC\+[^ \t]*')
+COL_PAT = re.compile(':[^:]*')
 
 
 def _get_config():
@@ -283,3 +290,31 @@ def merge_bz_changes(c1, c2):
     c.update(c2)
 
     return c
+
+
+def is_test_file(path):
+    e = os.path.splitext(path)[1][1:].lower()
+    return e in {'ini', 'list', 'in', 'py', 'json', 'manifest'}
+
+
+def get_better_name(name):
+    if not name:
+        return ''
+
+    def repl(m):
+        if m.start(0) == 0:
+            return m.group(0)
+        return ''
+
+    if name.startswith('Nobody;'):
+        s = 'Nobody'
+    else:
+        s = PAR_PAT.sub('', name)
+        s = BRA_PAT.sub('', s)
+        s = DIA_PAT.sub('', s)
+        s = COL_PAT.sub(repl, s)
+        s = UTC_PAT.sub('', s)
+        s = s.strip()
+        if s.startswith(':'):
+            s = s[1:]
+    return s.encode('utf-8').decode('utf-8')
