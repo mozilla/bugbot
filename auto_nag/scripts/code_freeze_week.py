@@ -87,6 +87,7 @@ class CodeFreezeWeek(BzCleaner):
             'severity',
             'tracking',
             'status',
+            'status_flags',
             'crash',
             'keywords',
         ]
@@ -118,7 +119,8 @@ class CodeFreezeWeek(BzCleaner):
             'priority': bug['priority'],
             'severity': bug['severity'],
             'tracking': bug[self.tracking_nightly],
-            'status': {
+            'status': bug['status'].lower(),
+            'status_flags': {
                 self.nightly: bug[self.status_nightly],
                 self.beta: bug[self.status_beta],
                 self.release: bug[self.status_release],
