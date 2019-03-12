@@ -35,8 +35,6 @@ class CodeFreezeWeek(BzCleaner):
         self.tracking_nightly = utils.get_flag(self.nightly, 'tracking', 'central')
         self.tracking_beta = utils.get_flag(self.beta, 'tracking', 'beta')
         self.tracking_release = utils.get_flag(self.release, 'tracking', 'release')
-        self.qa_master = self.get_config('QA-master')
-        assert self.people.get_info(self.qa_master) is not None
 
     def description(self):
         return 'Bugs with patches which landed during the soft freeze week'
@@ -89,7 +87,6 @@ class CodeFreezeWeek(BzCleaner):
             'severity',
             'tracking',
             'status',
-            'qaverified',
             'crash',
             'keywords',
         ]
@@ -133,7 +130,6 @@ class CodeFreezeWeek(BzCleaner):
 
     def filter_bugs(self, bugs):
         invalids = set()
-        tomorrow = self.date + relativedelta(days=1)
 
         def comment_handler(bug, bugid, data):
             r = Bugzilla.get_landing_comments(bug['comments'], [], NIGHTLY_PAT)
@@ -149,23 +145,15 @@ class CodeFreezeWeek(BzCleaner):
         def history_handler(history, data):
             bugid = str(history['id'])
             history = history['history']
-            data[bugid]['qaverified'] = 'No'
             valid = False
             for changes in history:
                 for change in changes['changes']:
-                    added = change['added']
-                    if (change['removed'] == 'RESOLVED' and added == 'VERIFIED') or (
-                        change['field_name'] == self.status_nightly and added == 'fixed'
+                    if (
+                        change['field_name'] == 'resolution'
+                        and change['added'] == 'FIXED'
                     ):
-                        if added == 'fixed':
-                            when = lmdutils.get_date_ymd(changes['when'])
-                            valid = self.date <= when < tomorrow
-
-                        who = changes['who']
-                        if self.people.is_under(who, self.qa_master):
-                            data[bugid]['qaverified'] = 'Yes'
-                        else:
-                            data[bugid]['qaverified'] = 'No'
+                        when = lmdutils.get_date_ymd(changes['when'])
+                        valid = self.date <= when < self.tomorrow
 
             if not valid:
                 invalids.add(bugid)
@@ -181,7 +169,8 @@ class CodeFreezeWeek(BzCleaner):
         ).get_data().wait()
 
         for bugid in invalids:
-            del bugs[bugid]
+            if 'leave-open' not in bugs[bugid]['keywords']:
+                del bugs[bugid]
 
     def patch_analysis(self, patch):
         info = {'size': 0, 'test_size': 0, 'addlines': 0, 'rmlines': 0}
@@ -258,7 +247,9 @@ class CodeFreezeWeek(BzCleaner):
         for bug, info in bugs.items():
             torm = []
             for rev, i in info['land'].items():
-                if not i['bugid']:
+                if not i['bugid'] or not (
+                    self.date <= lmdutils.get_date_ymd(i['date']) < self.tomorrow
+                ):
                     torm.append(rev)
             for x in torm:
                 del info['land'][x]
@@ -271,7 +262,7 @@ class CodeFreezeWeek(BzCleaner):
 
     def get_bz_params(self, date):
         self.date = lmdutils.get_date_ymd(date)
-        end_date = self.date + relativedelta(days=1)
+        self.tomorrow = self.date + relativedelta(days=1)
         fields = [
             'assigned_to',
             'assigned_to_detail',
@@ -286,18 +277,30 @@ class CodeFreezeWeek(BzCleaner):
         fields += [self.tracking_nightly]
         params = {
             'include_fields': fields,
-            'f1': self.status_nightly,
-            'o1': 'changedafter',
-            'v1': self.date,
-            'f2': self.status_nightly,
-            'o2': 'changedbefore',
-            'v2': end_date,
-            'f3': self.status_nightly,
-            'o3': 'changedto',
-            'v3': 'fixed',
+            'j1': 'OR',
+            'f1': 'OP',
+            'j2': 'AND',
+            'f2': 'OP',
+            'f3': 'resolution',
+            'o3': 'changedafter',
+            'v3': self.date,
             'f4': 'resolution',
-            'o4': 'equals',
-            'v4': 'FIXED',
+            'o4': 'changedbefore',
+            'v4': self.tomorrow,
+            'f5': 'resolution',
+            'o5': 'equals',
+            'v5': 'FIXED',
+            'f6': 'CP',
+            'j7': 'AND',
+            'f7': 'OP',
+            'f8': 'keywords',
+            'o8': 'anywordssubstr',
+            'v8': 'leave-open',
+            'f9': 'keywords',
+            'o9': 'changedafter',
+            'v9': self.date - relativedelta(years=1),
+            'f10': 'CP',
+            'f11': 'CP',
         }
 
         return params
