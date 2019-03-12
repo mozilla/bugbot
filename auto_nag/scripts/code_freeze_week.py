@@ -241,11 +241,7 @@ class CodeFreezeWeek(BzCleaner):
             push = datetime.datetime.utcfromtimestamp(push)
             push = lmdutils.as_utc(push)
             data['date'] = lmdutils.get_date_str(push)
-            data['backedout'] = json.get('backedoutby', '') != ''
-            if not data['backedout']:
-                m = BACKOUT_PAT.search(json['desc'])
-                if m:
-                    data['backedout'] = True
+            data['backedout'] = utils.is_backout(json)
             m = BUG_PAT.search(json['desc'])
             if not m or m.group(1) != data['bugid']:
                 data['bugid'] = ''
