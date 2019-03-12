@@ -48,18 +48,6 @@ class BugbugScript(BzCleaner):
     def bughandler(self, bug, data):
         data['bugs'][bug['id']] = bug
 
-    def retrieve_comments(self, bugs):
-        """Retrieve bug comments"""
-
-        def comment_handler(bug, bug_id):
-            bugs[int(bug_id)]['comments'] = bug['comments']
-
-        Bugzilla(
-            bugids=[bug_id for bug_id in bugs.keys()],
-            commenthandler=comment_handler,
-            comment_include_fields=['text', 'creation_time', 'count'],
-        ).get_data().wait()
-
     def retrieve_history(self, bugs):
         """Retrieve bug history"""
 
@@ -70,15 +58,20 @@ class BugbugScript(BzCleaner):
             bugids=[bug_id for bug_id in bugs.keys()], historyhandler=history_handler
         ).get_data().wait()
 
-    def retrieve_attachments(self, bugs):
-        """Retrieve bug attachments"""
+    def retrieve_comments_and_attachments(self, bugs):
+        """Retrieve bug comments and attachments"""
+
+        def comment_handler(bug, bug_id):
+            bugs[int(bug_id)]['comments'] = bug['comments']
 
         def attachment_handler(bug, bug_id):
             bugs[int(bug_id)]['attachments'] = bug
 
         Bugzilla(
             bugids=[bug_id for bug_id in bugs.keys()],
+            commenthandler=comment_handler,
             attachmenthandler=attachment_handler,
+            comment_include_fields=['text', 'creation_time', 'count'],
             attachment_include_fields=[
                 'id',
                 'is_obsolete',

@@ -65,11 +65,8 @@ class Component(BugbugScript):
         # Retrieve history.
         self.retrieve_history(bugs)
 
-        # Retrieve comments.
-        self.retrieve_comments(bugs)
-
-        # Retrieve attachments.
-        self.retrieve_attachments(bugs)
+        # Retrieve comments and attachments.
+        self.retrieve_comments_and_attachments(bugs)
 
         bugs = list(bugs.values())
 
