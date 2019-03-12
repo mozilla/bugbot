@@ -17,7 +17,7 @@ from auto_nag import utils
 
 
 NIGHTLY_PAT = Bugzilla.get_landing_patterns(channels=['nightly'])
-BUG_PAT = re.compile('[\t ]*bug[\t ]*([0-9]+)', re.I)
+BUG_PAT = re.compile('[\t ]*bug[s]?[\t ]*([0-9]+)', re.I)
 BACKOUT_PAT = re.compile('^back(ed)?[ \t]*out', re.I)
 
 
@@ -142,35 +142,16 @@ class CodeFreezeWeek(BzCleaner):
                 for i in r
             }
 
-        def history_handler(history, data):
-            bugid = str(history['id'])
-            history = history['history']
-            valid = False
-            for changes in history:
-                for change in changes['changes']:
-                    if (
-                        change['field_name'] == 'resolution'
-                        and change['added'] == 'FIXED'
-                    ):
-                        when = lmdutils.get_date_ymd(changes['when'])
-                        valid = self.date <= when < self.tomorrow
-
-            if not valid:
-                invalids.add(bugid)
-
         bugids = list(bugs.keys())
         Bugzilla(
             bugids=bugids,
             commenthandler=comment_handler,
             commentdata=bugs,
-            historyhandler=history_handler,
-            historydata=bugs,
             comment_include_fields=['text'],
         ).get_data().wait()
 
         for bugid in invalids:
-            if 'leave-open' not in bugs[bugid]['keywords']:
-                del bugs[bugid]
+            del bugs[bugid]
 
     def patch_analysis(self, patch):
         info = {'size': 0, 'test_size': 0, 'addlines': 0, 'rmlines': 0}
@@ -263,6 +244,7 @@ class CodeFreezeWeek(BzCleaner):
     def get_bz_params(self, date):
         self.date = lmdutils.get_date_ymd(date)
         self.tomorrow = self.date + relativedelta(days=1)
+        bugs = utils.get_bugs_from_pushlog(self.date, self.tomorrow)
         fields = [
             'assigned_to',
             'assigned_to_detail',
@@ -275,33 +257,7 @@ class CodeFreezeWeek(BzCleaner):
         ]
         fields += [self.status_nightly, self.status_beta, self.status_release]
         fields += [self.tracking_nightly]
-        params = {
-            'include_fields': fields,
-            'j1': 'OR',
-            'f1': 'OP',
-            'j2': 'AND',
-            'f2': 'OP',
-            'f3': 'resolution',
-            'o3': 'changedafter',
-            'v3': self.date,
-            'f4': 'resolution',
-            'o4': 'changedbefore',
-            'v4': self.tomorrow,
-            'f5': 'resolution',
-            'o5': 'equals',
-            'v5': 'FIXED',
-            'f6': 'CP',
-            'j7': 'AND',
-            'f7': 'OP',
-            'f8': 'keywords',
-            'o8': 'anywordssubstr',
-            'v8': 'leave-open',
-            'f9': 'keywords',
-            'o9': 'changedafter',
-            'v9': self.date - relativedelta(years=1),
-            'f10': 'CP',
-            'f11': 'CP',
-        }
+        params = {'include_fields': fields, 'bug_id': ','.join(bugs)}
 
         return params
 

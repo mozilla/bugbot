@@ -3,8 +3,10 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import copy
+from dateutil.relativedelta import relativedelta
 import json
 from libmozdata import release_calendar as rc
+from libmozdata.hgmozilla import Mercurial
 import os
 import re
 import requests
@@ -31,6 +33,7 @@ DIA_PAT = re.compile('<[^>]*>')
 UTC_PAT = re.compile(r'UTC\+[^ \t]*')
 COL_PAT = re.compile(':[^:]*')
 BACKOUT_PAT = re.compile('^back(s|(ed))?[ \t]*out', re.I)
+BUG_PAT = re.compile(r'^bug[s]?[ \t]*([0-9]+)', re.I)
 
 
 def _get_config():
@@ -323,3 +326,38 @@ def get_better_name(name):
 
 def is_backout(json):
     return json.get('backedoutby', '') != '' or bool(BACKOUT_PAT.search(json['desc']))
+
+
+def get_pushlog(startdate, enddate, channel='nightly'):
+    """Get the pushlog from hg.mozilla.org"""
+    # Get the pushes where startdate <= pushdate <= enddate
+    # pushlog uses strict inequality, it's why we add +/- 1 second
+    fmt = '%Y-%m-%d %H:%M:%S'
+    startdate -= relativedelta(seconds=1)
+    startdate = startdate.strftime(fmt)
+    enddate += relativedelta(seconds=1)
+    enddate = enddate.strftime(fmt)
+    url = '{}/json-pushes'.format(Mercurial.get_repo_url(channel))
+    r = requests.get(
+        url,
+        params={'startdate': startdate, 'enddate': enddate, 'version': 2, 'full': 1},
+    )
+    return r.json()
+
+
+def get_bugs_from_desc(desc):
+    """Get a bug number from the patch description"""
+    return BUG_PAT.findall(desc)
+
+
+def get_bugs_from_pushlog(startdate, enddate, channel='nightly'):
+    pushlog = get_pushlog(startdate, enddate, channel=channel)
+    bugs = set()
+    for push in pushlog['pushes'].values():
+        for chgset in push['changesets']:
+            if chgset.get('backedoutby', '') != '':
+                continue
+            desc = chgset['desc']
+            for bug in get_bugs_from_desc(desc):
+                bugs.add(bug)
+    return bugs
