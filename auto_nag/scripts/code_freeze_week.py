@@ -65,7 +65,7 @@ class CodeFreezeWeek(BzCleaner):
         for c in get_calendar():
             # if freeze is the 2019-03-11, then the tool must run the day after
             # until 2019-03-2018 (a week after)
-            freeze = c['soft freeze'] + relativedelta(days=1)
+            freeze = c['soft freeze']
             if freeze <= date <= freeze + relativedelta(days=6):
                 return True
         return False
