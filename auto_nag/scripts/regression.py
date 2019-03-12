@@ -90,11 +90,8 @@ class Regression(BugbugScript):
         # Remove bugs for which the regression keyword was set and removed in the past.
         self.remove_using_history(bugs)
 
-        # Retrieve comments.
-        self.retrieve_comments(bugs)
-
-        # Retrieve attachments.
-        self.retrieve_attachments(bugs)
+        # Retrieve comments and attachments.
+        self.retrieve_comments_and_attachments(bugs)
 
         bugs = list(bugs.values())
 
