@@ -30,6 +30,7 @@ BRA_PAT = re.compile(r'\[[^\]]*\]')
 DIA_PAT = re.compile('<[^>]*>')
 UTC_PAT = re.compile(r'UTC\+[^ \t]*')
 COL_PAT = re.compile(':[^:]*')
+BACKOUT_PAT = re.compile('^back(s|(ed))?[ \t]*out', re.I)
 
 
 def _get_config():
@@ -318,3 +319,7 @@ def get_better_name(name):
         if s.startswith(':'):
             s = s[1:]
     return s.encode('utf-8').decode('utf-8')
+
+
+def is_backout(json):
+    return json.get('backedoutby', '') != '' or bool(BACKOUT_PAT.search(json['desc']))

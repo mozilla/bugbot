@@ -259,7 +259,7 @@ class NoAssignee(BzCleaner):
         the bug id in the description"""
 
         def handler_rev(bugid, json, data):
-            if bugid in json['desc']:
+            if bugid in json['desc'] and not utils.is_backout(json):
                 user = json['user']
                 if bugid not in data:
                     data[bugid] = set()
