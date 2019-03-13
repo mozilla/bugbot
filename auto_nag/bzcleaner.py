@@ -12,8 +12,7 @@ from libmozdata.bugzilla import Bugzilla
 from libmozdata import utils as lmdutils
 import pytz
 import six
-import traceback
-from auto_nag import mail, utils
+from auto_nag import mail, utils, logger
 from auto_nag.nag_me import Nag
 
 
@@ -385,7 +384,9 @@ class BzCleaner(object):
 
         if dryrun or self.test_mode:
             for bugid, ch in new_changes.items():
-                print('The bug: {} will be autofixed with:\n{}'.format(bugid, ch))
+                logger.info(
+                    'The bugs: {}\n will be autofixed with:\n{}'.format(bugids, change)
+                )
         else:
             for bugid, ch in new_changes.items():
                 Bugzilla([str(bugid)]).put(ch)
@@ -452,9 +453,9 @@ class BzCleaner(object):
         else:
             name = self.name().upper()
             if date:
-                print('{}: No data for {}'.format(name, date))
+                logger.info('{}: No data for {}'.format(name, date))
             else:
-                print('{}: No data'.format(name))
+                logger.info('{}: No data'.format(name))
 
     def add_custom_arguments(self, parser):
         pass
@@ -494,19 +495,5 @@ class BzCleaner(object):
         date = '' if self.ignore_date() else args.date
         try:
             self.send_email(date=date, dryrun=args.dryrun)
-        except:  # noqa
-            # bare except here because we want to catch everything
-            bt = traceback.format_exc()
-            login_info = utils.get_login_info()
-            date = lmdutils.get_date('today')
-            mail.send(
-                login_info['ldap_username'],
-                utils.get_config('common', 'on-errors'),
-                '[autonag] Something bad happened when running auto-nag the {} (for {})'.format(
-                    date, self.name()
-                ),
-                bt,
-                html=False,
-                login=login_info,
-                dryrun=args.dryrun,
-            )
+        except Exception:
+            logger.exception('Tool {}'.format(self.name()))

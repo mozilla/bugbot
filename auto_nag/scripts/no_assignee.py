@@ -9,7 +9,7 @@ from libmozdata.bugzilla import Bugzilla, BugzillaUser
 from libmozdata.connection import Query
 import re
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag import utils
+from auto_nag import logger, utils
 
 
 HG_MAIL = re.compile(r'^([^<]*)<([^>]+)>$')
@@ -288,7 +288,7 @@ class NoAssignee(BzCleaner):
             if email:
                 self.has_autofix = True
                 if dryrun or self.test_mode:
-                    print('Auto assign {}: {}'.format(bugid, email))
+                    logger.info('Auto assign {}: {}'.format(bugid, email))
                 else:
                     Bugzilla([bugid]).put({'assigned_to': email})
         return bugs
