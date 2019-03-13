@@ -2,11 +2,11 @@
   <table border="1">
     <thead>
       <tr>
-        <th>Bug</th><th>Product</th><th>Component</th><th>Assignee</th><th># of patches</th><th>Added lines</th><th>Removed lines</th><th>Changes size</th><th>Tests size</th><th>Priority</th><th>Severity</th><th>Tracking {{ extra['nightly'] }}</th><th>Status {{ extra['release'] }}</th><th>Status {{ extra['beta'] }}</th><th>Status {{ extra['nightly'] }}</th><th>QA Verified</th><th>Crash</th><th>Keywords</th>
+        <th>Bug</th><th>Product</th><th>Component</th><th>Assignee</th><th># of patches</th><th>Added lines</th><th>Removed lines</th><th>Changes size</th><th>Tests size</th><th>Priority</th><th>Severity</th><th>Tracking {{ extra['nightly'] }}</th><th>Status</th><th>Status {{ extra['release'] }}</th><th>Status {{ extra['beta'] }}</th><th>Status {{ extra['nightly'] }}</th><th>Crash</th><th>Keywords</th>
       </tr>
     </thead>
     <tbody>
-      {% for i, (bugid, summary, product, component, assignee, landed_patches, addlines, rmlines, size, test_size, priority, severity, tracking, status, qaverified, crash, keywords) in enumerate(data) -%}
+      {% for i, (bugid, summary, product, component, assignee, landed_patches, addlines, rmlines, size, test_size, priority, severity, tracking, status, status_flags, crash, keywords) in enumerate(data) -%}
       <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
         <td>
           <a title="{{ summary | e }}" href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
@@ -44,17 +44,17 @@
         <td title="Tracking {{ extra['nightly'] }}">
           {{ tracking }}
         </td>
+        <td title="Status">
+          {{ status }}
+        </td>
         <td title="Status {{ extra['release'] }}">
-          {{ status[extra['release']] }}
+          {{ status_flags[extra['release']] }}
         </td>
         <td title="Status {{ extra['beta'] }}">
-          {{ status[extra['beta']] }}
+          {{ status_flags[extra['beta']] }}
         </td>
         <td title="Status {{ extra['nightly'] }}">
-          {{ status[extra['nightly']] }}
-        </td>
-        <td title="QA Verified">
-          {{ qaverified }}
+          {{ status_flags[extra['nightly']] }}
         </td>
         <td title="Crash">
           {{ crash }}

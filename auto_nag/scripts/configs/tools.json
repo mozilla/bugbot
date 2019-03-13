@@ -419,7 +419,6 @@
     },
     "code-freeze-week":
     {
-        "QA-master": "tgrabowski@mozilla.com",
         "receivers":
         [
             "calixte@mozilla.com",

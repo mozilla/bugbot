@@ -17,7 +17,7 @@ from auto_nag import utils
 
 
 NIGHTLY_PAT = Bugzilla.get_landing_patterns(channels=['nightly'])
-BUG_PAT = re.compile('[\t ]*bug[\t ]*([0-9]+)', re.I)
+BUG_PAT = re.compile('[\t ]*bug[s]?[\t ]*([0-9]+)', re.I)
 BACKOUT_PAT = re.compile('^back(ed)?[ \t]*out', re.I)
 
 
@@ -35,8 +35,6 @@ class CodeFreezeWeek(BzCleaner):
         self.tracking_nightly = utils.get_flag(self.nightly, 'tracking', 'central')
         self.tracking_beta = utils.get_flag(self.beta, 'tracking', 'beta')
         self.tracking_release = utils.get_flag(self.release, 'tracking', 'release')
-        self.qa_master = self.get_config('QA-master')
-        assert self.people.get_info(self.qa_master) is not None
 
     def description(self):
         return 'Bugs with patches which landed during the soft freeze week'
@@ -89,7 +87,7 @@ class CodeFreezeWeek(BzCleaner):
             'severity',
             'tracking',
             'status',
-            'qaverified',
+            'status_flags',
             'crash',
             'keywords',
         ]
@@ -121,7 +119,8 @@ class CodeFreezeWeek(BzCleaner):
             'priority': bug['priority'],
             'severity': bug['severity'],
             'tracking': bug[self.tracking_nightly],
-            'status': {
+            'status': bug['status'].lower(),
+            'status_flags': {
                 self.nightly: bug[self.status_nightly],
                 self.beta: bug[self.status_beta],
                 self.release: bug[self.status_release],
@@ -133,7 +132,6 @@ class CodeFreezeWeek(BzCleaner):
 
     def filter_bugs(self, bugs):
         invalids = set()
-        tomorrow = self.date + relativedelta(days=1)
 
         def comment_handler(bug, bugid, data):
             r = Bugzilla.get_landing_comments(bug['comments'], [], NIGHTLY_PAT)
@@ -146,37 +144,11 @@ class CodeFreezeWeek(BzCleaner):
                 for i in r
             }
 
-        def history_handler(history, data):
-            bugid = str(history['id'])
-            history = history['history']
-            data[bugid]['qaverified'] = 'No'
-            valid = False
-            for changes in history:
-                for change in changes['changes']:
-                    added = change['added']
-                    if (change['removed'] == 'RESOLVED' and added == 'VERIFIED') or (
-                        change['field_name'] == self.status_nightly and added == 'fixed'
-                    ):
-                        if added == 'fixed':
-                            when = lmdutils.get_date_ymd(changes['when'])
-                            valid = self.date <= when < tomorrow
-
-                        who = changes['who']
-                        if self.people.is_under(who, self.qa_master):
-                            data[bugid]['qaverified'] = 'Yes'
-                        else:
-                            data[bugid]['qaverified'] = 'No'
-
-            if not valid:
-                invalids.add(bugid)
-
         bugids = list(bugs.keys())
         Bugzilla(
             bugids=bugids,
             commenthandler=comment_handler,
             commentdata=bugs,
-            historyhandler=history_handler,
-            historydata=bugs,
             comment_include_fields=['text'],
         ).get_data().wait()
 
@@ -258,7 +230,9 @@ class CodeFreezeWeek(BzCleaner):
         for bug, info in bugs.items():
             torm = []
             for rev, i in info['land'].items():
-                if not i['bugid']:
+                if not i['bugid'] or not (
+                    self.date <= lmdutils.get_date_ymd(i['date']) < self.tomorrow
+                ):
                     torm.append(rev)
             for x in torm:
                 del info['land'][x]
@@ -271,7 +245,8 @@ class CodeFreezeWeek(BzCleaner):
 
     def get_bz_params(self, date):
         self.date = lmdutils.get_date_ymd(date)
-        end_date = self.date + relativedelta(days=1)
+        self.tomorrow = self.date + relativedelta(days=1)
+        bugs = utils.get_bugs_from_pushlog(self.date, self.tomorrow)
         fields = [
             'assigned_to',
             'assigned_to_detail',
@@ -284,21 +259,7 @@ class CodeFreezeWeek(BzCleaner):
         ]
         fields += [self.status_nightly, self.status_beta, self.status_release]
         fields += [self.tracking_nightly]
-        params = {
-            'include_fields': fields,
-            'f1': self.status_nightly,
-            'o1': 'changedafter',
-            'v1': self.date,
-            'f2': self.status_nightly,
-            'o2': 'changedbefore',
-            'v2': end_date,
-            'f3': self.status_nightly,
-            'o3': 'changedto',
-            'v3': 'fixed',
-            'f4': 'resolution',
-            'o4': 'equals',
-            'v4': 'FIXED',
-        }
+        params = {'include_fields': fields, 'bug_id': ','.join(bugs)}
 
         return params
 
