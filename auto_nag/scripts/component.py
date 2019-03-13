@@ -48,6 +48,9 @@ class Component(BugbugScript):
             # Ignore bugs for which somebody has ever modified the product or the component.
             'n1': 1, 'f1': 'product', 'o1': 'changedafter', 'v1': '1970-01-01',
             'n2': 1, 'f2': 'component', 'o2': 'changedafter', 'v2': '1970-01-01',
+            'f3': 'bug_status',
+            'o3': 'anywordssubstr',
+            'v3': 'UNCONFIRMED,NEW',
         }
 
         return params
