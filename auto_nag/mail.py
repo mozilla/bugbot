@@ -9,7 +9,7 @@ from email.mime.multipart import MIMEMultipart
 from jinja2 import Environment, FileSystemLoader
 import six
 import smtplib
-from . import utils
+from . import utils, logger
 
 
 SMTP = 'smtp.mozilla.org'
@@ -107,12 +107,13 @@ def sendMail(From, To, msg, login={}, dryrun=False):
     """Send an email
     """
     if dryrun:
-        print('\n****************************')
-        print('* DRYRUN: not sending mail *')
-        print('****************************\n')
-        print('Receivers: {}'.format(To))
-        print('Message:')
-        print(msg)
+        out = '\n****************************\n'
+        out += '* DRYRUN: not sending mail *\n'
+        out += '****************************\n'
+        out += 'Receivers: {}\n'.format(To)
+        out += 'Message:\n'
+        out += msg
+        logger.info(out)
         return
 
     mailserver = smtplib.SMTP_SSL(SMTP, PORT)

@@ -8,7 +8,7 @@ from libmozdata import release_owners as ro, utils as lmdutils
 import pytz
 import re
 import requests
-from . import mail, utils
+from . import mail, utils, logger
 
 
 def send_mail(next_date, bad_date_nrd, bad_date_ro, dryrun=False):
@@ -61,4 +61,7 @@ if __name__ == '__main__':
         help='Just do the query, and print emails to console without emailing anyone',
     )
     args = parser.parse_args()
-    check_dates(dryrun=args.dryrun)
+    try:
+        check_dates(dryrun=args.dryrun)
+    except Exception:
+        logger.exception('Tool next_release')

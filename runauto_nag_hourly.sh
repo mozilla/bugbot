@@ -16,6 +16,9 @@ if test ! -f auto_nag/scripts/configs/people.json; then
 fi
 export PYTHONPATH=.
 
+# Clean the log files
+python -m auto_nag.log --clean
+
 # Bug fixed without assignee
 # very common
 python -m auto_nag.scripts.no_assignee
@@ -70,3 +73,7 @@ python -m auto_nag.scripts.copy_duplicate_info
 
 # Suggest components for untriaged bugs (hourly, list only bugs on which we acted)
 python3 -m auto_nag.scripts.component --frequency hourly
+
+# Send a mail if the logs are not empty
+# MUST ALWAYS BE THE LAST COMMAND
+python -m auto_nag.log --send

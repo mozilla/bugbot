@@ -51,7 +51,8 @@
             "Testing",
             "Toolkit",
             "WebExtensions"
-        ]
+        ],
+        "log": "/tmp/auto_nag_errors.log"
     },
     "missed-uplifts":
     {
