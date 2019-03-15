@@ -283,6 +283,8 @@
     {
         "components":
         [
+            "Console",
+            "Object Inspector",
             "Networking",
             "Networking: Cache",
             "Networking: Cookies",
