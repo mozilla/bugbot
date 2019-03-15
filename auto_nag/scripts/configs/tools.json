@@ -285,6 +285,8 @@
         [
             "Console",
             "Object Inspector",
+            "Memory",
+            "Performance Tools (Profiler/Timeline)",
             "Networking",
             "Networking: Cache",
             "Networking: Cookies",
