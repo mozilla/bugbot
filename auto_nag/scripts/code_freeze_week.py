@@ -211,7 +211,7 @@ class CodeFreezeWeek(BzCleaner):
             else:
                 info['landed_patches'] = landed_patches
 
-       # Remove bugs that we don't want to show
+        # Remove bugs that we don't want to show
         for bug in torm:
             del bugs[bug]
 
