@@ -199,10 +199,18 @@ class CodeFreezeWeek(BzCleaner):
         if queries:
             hgmozilla.Revision(queries=queries).wait()
 
-        for info in bugs.values():
-            info['landed_patches'] = [
-                v['backedout'] for v in info['land'].values()
-            ].count(False)
+        torm = []
+        for bug, info in bugs.items():
+            landed_patches = [v['backedout'] for v in info['land'].values()].count(
+                False
+            )
+            if landed_patches == 0:
+                torm.append(bug)
+            else:
+                info['landed_patches'] = landed_patches
+
+        for bug in torm:
+            del bugs[bug]
 
     def get_hg(self, bugs):
         url = hgmozilla.Revision.get_url('nightly')
