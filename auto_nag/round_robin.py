@@ -5,13 +5,20 @@
 import bisect
 import json
 from libmozdata import utils as lmdutils
+from libmozdata.bugzilla import BugzillaUser
 
 from auto_nag import utils
+from auto_nag.people import People
+
+
+class BadFallback(Exception):
+    pass
 
 
 class RoundRobin(object):
     def __init__(self, rr=None):
         self.feed(rr=rr)
+        self.nicks = {}
 
     def feed(self, rr=None):
         self.data = {}
@@ -28,7 +35,7 @@ class RoundRobin(object):
         # rr is dictionary:
         # - doc -> documentation
         # - triagers -> dictionary: Real Name -> {bzmail: bugzilla email, nick: bugzilla nickname}
-        # - components -> dictionary: Product::Compoent -> strategy name
+        # - components -> dictionary: Product::Component -> strategy name
         # - strategies: dictionay: {duty en date -> Real Name}
 
         # Get all the strategies for each team
@@ -37,9 +44,7 @@ class RoundRobin(object):
                 del data['doc']
             strategies = {}
             triagers = data['triagers']
-            fallback_mozmail = triagers['Fallback']['mozmail']
             fallback_bzmail = triagers['Fallback']['bzmail']
-            fallback_nick = triagers['Fallback']['nick']
             path = filenames.get(team, '')
 
             # collect strategies
@@ -56,28 +61,40 @@ class RoundRobin(object):
 
                 # end date and real name of the triager
                 for date, name in strategy.items():
-                    # collect the tuple (end_date, bzmail, nick)
+                    # collect the tuple (end_date, bzmail)
                     date = lmdutils.get_date_ymd(date)
                     bzmail = triagers[name]['bzmail']
-                    nick = triagers[name]['nick']
-                    date_name.append((date, bzmail, nick))
+                    date_name.append((date, bzmail))
 
                 # we sort the list to use bisection to find the triager
                 date_name = sorted(date_name)
                 strategies[strat_name] = {
-                    'dates': [d for d, _, _ in date_name],
-                    'mails': [(m, n) for _, m, n in date_name],
-                    'fallback': (fallback_bzmail, fallback_nick, fallback_mozmail),
+                    'dates': [d for d, _ in date_name],
+                    'mails': [m for _, m in date_name],
+                    'fallback': fallback_bzmail,
                     'filename': path,
                 }
 
             # finally self.data is a dictionary:
             # - Product::Component -> dictionary {dates: sorted list of end date
-            #                                     mails: list of tuple (mail, nick)
+            #                                     mails: list
             #                                     fallback: who to nag when we've nobody
             #                                     filename: the file containing strategy}
             for pc, strategy in data['components'].items():
                 self.data[pc] = strategies[strategy]
+
+    def get_nick(self, bzmail):
+        if bzmail not in self.nicks:
+
+            def handler(user):
+                self.nicks[bzmail] = user['nick']
+
+            BugzillaUser(user_names=[bzmail], user_handler=handler).wait()
+
+        return self.nicks[bzmail]
+
+    def is_mozilla(self, bzmail):
+        return self.people.is_mozilla(bzmail)
 
     def get(self, bug, date):
         pc = '{}::{}'.format(bug['product'], bug['component'])
@@ -91,13 +108,16 @@ class RoundRobin(object):
         dates = strategy['dates']
         i = bisect.bisect_left(strategy['dates'], date)
         if i == len(dates):
-            bzmail, nick, _ = strategy['fallback']
+            bzmail = strategy['fallback']
         else:
-            bzmail, nick = strategy['mails'][i]
+            bzmail = strategy['mails'][i]
+        nick = self.get_nick(bzmail)
+
         return bzmail, nick
 
     def get_who_to_nag(self, date):
         fallbacks = {}
+        people = People()
         date = lmdutils.get_date_ymd(date)
         days = utils.get_config('round-robin', 'days_to_nag', 7)
         for pc, strategy in self.data.items():
@@ -105,14 +125,17 @@ class RoundRobin(object):
             if (last_date - date).days <= days and strategy[
                 'filename'
             ] not in fallbacks:
-                _, _, fallbacks[strategy['filename']] = strategy['fallback']
+                fallbacks[strategy['filename']] = strategy['fallback']
 
         # create a dict: mozmail -> list of filenames to check
         res = {}
         for fn, fb in fallbacks.items():
-            if fb not in res:
-                res[fb] = []
-            res[fb].append(fn)
+            if not self.is_mozilla(fb):
+                raise BadFallback()
+            mozmail = people.get_moz_mail(fb)
+            if mozmail not in res:
+                res[mozmail] = []
+            res[mozmail].append(fn)
 
         res = {fb: sorted(fn) for fb, fn in res.items()}
 
