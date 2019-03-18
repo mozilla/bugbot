@@ -61,7 +61,7 @@ class Unlanded(BzCleaner, Nag):
         return bug
 
     def get_bz_params(self, date):
-        status = utils.get_flag(version, 'status', self.channel)
+        status = utils.get_flag(self.version, 'status', self.channel)
         self.tracking = utils.get_flag(self.version, 'tracking', self.channel)
         fields = [self.tracking]
         params = {
