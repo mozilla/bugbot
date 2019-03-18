@@ -12,6 +12,7 @@ class Unlanded(BzCleaner, Nag):
     def __init__(self, channel):
         super(Unlanded, self).__init__()
         self.channel = channel
+        self.bug_ids = []
 
     def description(self):
         return 'Get bugs with unlanded {} uplifts'.format(self.channel)
@@ -40,6 +41,14 @@ class Unlanded(BzCleaner, Nag):
     def columns(self):
         return ['id', 'summary', 'assignee', 'last_comment']
 
+    def must_run(self, date):
+        self.version = get_current_versions()[self.channel]
+        if self.channel == 'esr':
+            self.bug_ids = utils.get_report_bugs(self.channel + self.version)
+        else:
+            self.bug_ids = utils.get_report_bugs(self.channel)
+        return bool(self.bug_ids)
+
     def set_people_to_nag(self, bug, buginfo):
         priority = self.get_priority(bug)
         if not self.filter_bug(priority):
@@ -52,17 +61,12 @@ class Unlanded(BzCleaner, Nag):
         return bug
 
     def get_bz_params(self, date):
-        version = get_current_versions()[self.channel]
-        if self.channel == 'esr':
-            bug_ids = utils.get_report_bugs(self.channel + version)
-        else:
-            bug_ids = utils.get_report_bugs(self.channel)
         status = utils.get_flag(version, 'status', self.channel)
-        self.tracking = utils.get_flag(version, 'tracking', self.channel)
+        self.tracking = utils.get_flag(self.version, 'tracking', self.channel)
         fields = [self.tracking]
         params = {
             'include_fields': fields,
-            'bug_id': ','.join(bug_ids),
+            'bug_id': ','.join(self.bug_ids),
             'f1': status,
             'o1': 'nowordssubstr',
             'v1': ','.join(['unaffected', 'fixed', 'verified', 'wontfix', 'disabled']),
