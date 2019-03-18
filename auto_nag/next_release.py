@@ -35,7 +35,25 @@ def check_dates(dryrun=False):
     date = pytz.utc.localize(date)
 
     if date != next_date:
-        bad_date_nrd = date.strftime('%Y-%m-%d')
+        # so two possibilities:
+        #  - Release services people just changed the release date
+        #  - something is wrong and we must nag
+        now = lmdutils.get_date_ymd('today')
+        cal = utils.get_release_calendar()
+        must_nag = True
+        for i, c in enumerate(cal):
+            if (
+                now < c['release date']
+                and i + 1 < len(cal)
+                and cal[i + 1]['release date'] == date
+            ):
+                # The date is just the one after the "normal" release date
+                # so here probably someone just changed the date because
+                # we're close the merge day
+                must_nag = False
+                break
+        if must_nag:
+            bad_date_nrd = date.strftime('%Y-%m-%d')
 
     owners = ro.get_owners()
     now = lmdutils.get_date_ymd('today')
