@@ -430,6 +430,10 @@
             "release-mgmt@mozilla.com",
             "tgrabowski@mozilla.com",
             "yor@mozilla.com"
+        ],
+        "assignee_blacklist":
+        [
+            "wptsync@mozilla.bugs"
         ]
     }
 }
