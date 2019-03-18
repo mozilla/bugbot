@@ -16,10 +16,10 @@ class BadFallback(Exception):
 
 
 class RoundRobin(object):
-    def __init__(self, rr=None, people=People()):
+    def __init__(self, rr=None, people=None):
         self.feed(rr=rr)
         self.nicks = {}
-        self.people = people
+        self.people = People() if people is None else people
 
     def feed(self, rr=None):
         self.data = {}
