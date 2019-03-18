@@ -16,9 +16,10 @@ class BadFallback(Exception):
 
 
 class RoundRobin(object):
-    def __init__(self, rr=None):
+    def __init__(self, rr=None, people=People()):
         self.feed(rr=rr)
         self.nicks = {}
+        self.people = people
 
     def feed(self, rr=None):
         self.data = {}
@@ -117,7 +118,6 @@ class RoundRobin(object):
 
     def get_who_to_nag(self, date):
         fallbacks = {}
-        people = People()
         date = lmdutils.get_date_ymd(date)
         days = utils.get_config('round-robin', 'days_to_nag', 7)
         for pc, strategy in self.data.items():
@@ -132,7 +132,7 @@ class RoundRobin(object):
         for fn, fb in fallbacks.items():
             if not self.is_mozilla(fb):
                 raise BadFallback()
-            mozmail = people.get_moz_mail(fb)
+            mozmail = self.people.get_moz_mail(fb)
             if mozmail not in res:
                 res[mozmail] = []
             res[mozmail].append(fn)

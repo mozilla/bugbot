@@ -7,6 +7,7 @@
 import unittest
 from mock import patch
 
+from auto_nag.people import People
 from auto_nag.round_robin import BadFallback, RoundRobin
 
 
@@ -35,6 +36,15 @@ class TestRoundRobin(unittest.TestCase):
         },
     }
 
+    people = [
+        {
+            'mail': 'gh@mozilla.com',
+            'cn': 'G H',
+            'ismanager': 'FALSE',
+            'title': 'nothing',
+        }
+    ]
+
     def mk_bug(self, pc):
         p, c = pc.split('::')
         return {
@@ -50,7 +60,9 @@ class TestRoundRobin(unittest.TestCase):
 
     def test_get(self):
         with patch.object(RoundRobin, 'get_nick', new=TestRoundRobin._get_nick):
-            rr = RoundRobin(rr={'team': TestRoundRobin.config})
+            rr = RoundRobin(
+                rr={'team': TestRoundRobin.config}, people=People(TestRoundRobin.people)
+            )
 
             assert rr.get(self.mk_bug('P1::C1'), '2019-02-17') == (
                 'ab@mozilla.com',
@@ -123,14 +135,15 @@ class TestRoundRobin(unittest.TestCase):
             )
 
     def test_get_who_to_nag(self):
-        with patch.object(RoundRobin, 'is_mozilla', return_value=True):
-            rr = RoundRobin(rr={'team': TestRoundRobin.config})
+        rr = RoundRobin(
+            rr={'team': TestRoundRobin.config}, people=People(TestRoundRobin.people)
+        )
 
-            assert rr.get_who_to_nag('2019-02-25') == {}
-            assert rr.get_who_to_nag('2019-02-28') == {'gh@mozilla.com': ['']}
-            assert rr.get_who_to_nag('2019-03-05') == {'gh@mozilla.com': ['']}
-            assert rr.get_who_to_nag('2019-03-07') == {'gh@mozilla.com': ['']}
-            assert rr.get_who_to_nag('2019-03-10') == {'gh@mozilla.com': ['']}
+        assert rr.get_who_to_nag('2019-02-25') == {}
+        assert rr.get_who_to_nag('2019-02-28') == {'gh@mozilla.com': ['']}
+        assert rr.get_who_to_nag('2019-03-05') == {'gh@mozilla.com': ['']}
+        assert rr.get_who_to_nag('2019-03-07') == {'gh@mozilla.com': ['']}
+        assert rr.get_who_to_nag('2019-03-10') == {'gh@mozilla.com': ['']}
 
         with patch.object(RoundRobin, 'is_mozilla', return_value=False):
             rr = RoundRobin(rr={'team': TestRoundRobin.config})
