@@ -142,6 +142,10 @@ def get_next_release_date():
     return rc.get_next_release_date()
 
 
+def get_release_calendar():
+    return rc.get_calendar()
+
+
 def get_report_bugs(channel, op='+'):
     url = 'https://bugzilla.mozilla.org/page.cgi?id=release_tracking_report.html'
     params = {
