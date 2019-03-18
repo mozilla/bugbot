@@ -36,14 +36,16 @@ class TestRoundRobin(unittest.TestCase):
         },
     }
 
-    people = [
-        {
-            'mail': 'gh@mozilla.com',
-            'cn': 'G H',
-            'ismanager': 'FALSE',
-            'title': 'nothing',
-        }
-    ]
+    people = People(
+        [
+            {
+                'mail': 'gh@mozilla.com',
+                'cn': 'G H',
+                'ismanager': 'FALSE',
+                'title': 'nothing',
+            }
+        ]
+    )
 
     def mk_bug(self, pc):
         p, c = pc.split('::')
@@ -61,7 +63,7 @@ class TestRoundRobin(unittest.TestCase):
     def test_get(self):
         with patch.object(RoundRobin, 'get_nick', new=TestRoundRobin._get_nick):
             rr = RoundRobin(
-                rr={'team': TestRoundRobin.config}, people=People(TestRoundRobin.people)
+                rr={'team': TestRoundRobin.config}, people=TestRoundRobin.people
             )
 
             assert rr.get(self.mk_bug('P1::C1'), '2019-02-17') == (
@@ -136,7 +138,7 @@ class TestRoundRobin(unittest.TestCase):
 
     def test_get_who_to_nag(self):
         rr = RoundRobin(
-            rr={'team': TestRoundRobin.config}, people=People(TestRoundRobin.people)
+            rr={'team': TestRoundRobin.config}, people=TestRoundRobin.people
         )
 
         assert rr.get_who_to_nag('2019-02-25') == {}
@@ -146,6 +148,8 @@ class TestRoundRobin(unittest.TestCase):
         assert rr.get_who_to_nag('2019-03-10') == {'gh@mozilla.com': ['']}
 
         with patch.object(RoundRobin, 'is_mozilla', return_value=False):
-            rr = RoundRobin(rr={'team': TestRoundRobin.config})
+            rr = RoundRobin(
+                rr={'team': TestRoundRobin.config}, people=TestRoundRobin.people
+            )
 
             self.assertRaises(BadFallback, rr.get_who_to_nag, '2019-03-01')
