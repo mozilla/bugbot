@@ -5,6 +5,7 @@
 import copy
 from dateutil.relativedelta import relativedelta
 import json
+from libmozdata import utils as lmdutils
 from libmozdata import release_calendar as rc
 from libmozdata.hgmozilla import Mercurial
 import os
@@ -25,7 +26,6 @@ _CYCLE_SPAN = None
 _TRIAGE_OWNERS = None
 _DEFAULT_ASSIGNEES = None
 
-TEMPLATE_PAT = re.compile(r'<p>(.*)</p>', re.DOTALL)
 BZ_FIELD_PAT = re.compile(r'^[fovj]([0-9]+)$')
 PAR_PAT = re.compile(r'\([^\)]*\)')
 BRA_PAT = re.compile(r'\[[^\]]*\]')
@@ -131,10 +131,20 @@ def plural(sword, data, pword=''):
 def get_cycle_span():
     global _CYCLE_SPAN
     if _CYCLE_SPAN is None:
-        url = 'https://wiki.mozilla.org/Template:CURRENT_CYCLE'
-        template_page = str(requests.get(url).text.encode('utf-8'))
-        m = TEMPLATE_PAT.search(template_page)
-        _CYCLE_SPAN = m.group(1).strip()
+        cal = get_release_calendar()
+        now = lmdutils.get_date_ymd('today')
+        cycle = None
+        for i, c in enumerate(cal):
+            if now < c['merge']:
+                # TODO: fix me
+                if i == 0:
+                    pass
+                else:
+                    cycle = [cal[i - 1]['merge'], c['merge']]
+                    break
+        if cycle:
+            _CYCLE_SPAN = '-'.join(x.strftime('%Y%m%d') for x in cycle)
+
     return _CYCLE_SPAN
 
 
