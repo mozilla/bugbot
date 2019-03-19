@@ -60,6 +60,10 @@ class BzCleaner(object):
         """Check if the tool must run for this date"""
         return True
 
+    def has_enough_data(self):
+        """Check if the tool has enough data to run"""
+        return True
+
     def filter_no_nag_keyword(self):
         """If True, then remove the bugs with [no-nag] in whiteboard from the bug list"""
         return True
@@ -434,6 +438,10 @@ class BzCleaner(object):
 
             if not self.must_run(d):
                 return
+
+        if not self.has_enough_data():
+            logger.info('The tool {} hasn\'t enough data to run'.format(self.name()))
+            return
 
         login_info = utils.get_login_info()
         title, body = self.get_email(login_info['bz_api_key'], date, dryrun)

@@ -3,17 +3,19 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag.common import get_current_versions
 from auto_nag import utils
 
 
 class MissedUplifts(BzCleaner):
     def __init__(self):
         super(MissedUplifts, self).__init__()
-        versions = get_current_versions()
-        self.beta = versions['beta']
-        self.release = versions['release']
-        self.esr = versions['esr']
+        self.versions = utils.get_checked_versions()
+        if not self.versions:
+            return
+
+        self.beta = self.versions['beta']
+        self.release = self.versions['release']
+        self.esr = self.versions['esr']
         self.esr_str = 'esr' + str(self.esr)
 
         self.pending_release = utils.get_report_bugs('release', op='?')
@@ -24,7 +26,9 @@ class MissedUplifts(BzCleaner):
         self.accepted_beta = utils.get_report_bugs('beta', op='+')
         self.accepted_esr = utils.get_report_bugs(self.esr_str, op='+')
 
-        self.status_central = utils.get_flag(versions['central'], 'status', 'central')
+        self.status_central = utils.get_flag(
+            self.versions['central'], 'status', 'central'
+        )
         self.status_beta = utils.get_flag(self.beta, 'status', 'beta')
         self.status_release = utils.get_flag(self.release, 'status', 'release')
         self.status_esr = utils.get_flag(self.esr, 'status', 'esr')
@@ -44,6 +48,9 @@ class MissedUplifts(BzCleaner):
     def must_run(self, date):
         weekday = date.weekday()
         return weekday <= 4
+
+    def has_enough_data(self):
+        return bool(self.versions)
 
     def columns(self):
         return ['id', 'priority', 'severity', 'affected', 'approvals', 'summary']

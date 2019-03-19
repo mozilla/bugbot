@@ -11,7 +11,6 @@ from libmozdata import utils as lmdutils, hgmozilla
 import re
 import whatthepatch
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag.common import get_current_versions
 from auto_nag.people import People
 from auto_nag import utils
 
@@ -24,11 +23,14 @@ BACKOUT_PAT = re.compile('^back(ed)?[ \t]*out', re.I)
 class CodeFreezeWeek(BzCleaner):
     def __init__(self):
         super(CodeFreezeWeek, self).__init__()
-        versions = get_current_versions()
+        self.versions = utils.get_checked_versions()
+        if not self.versions:
+            return
+
         self.people = People()
-        self.nightly = versions['central']
-        self.beta = versions['beta']
-        self.release = versions['release']
+        self.nightly = self.versions['central']
+        self.beta = self.versions['beta']
+        self.release = self.versions['release']
         self.status_nightly = utils.get_flag(self.nightly, 'status', 'central')
         self.status_beta = utils.get_flag(self.beta, 'status', 'beta')
         self.status_release = utils.get_flag(self.release, 'status', 'release')
@@ -58,6 +60,9 @@ class CodeFreezeWeek(BzCleaner):
 
     def filter_no_nag_keyword(self):
         return False
+
+    def has_enough_data(self):
+        return bool(self.versions)
 
     def must_run(self, date):
         for c in get_calendar():
