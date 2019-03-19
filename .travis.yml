@@ -6,8 +6,7 @@ python:
   - "2.7"
 
 install:
-    - travis_retry pip install tox coveralls
-    - pip install flake8
+    - travis_retry pip install -r requirements-test.txt
 
 script:
     - flake8 auto_nag/ --exclude=auto_nag/tests/
@@ -15,5 +14,5 @@ script:
     - python check_bugbug_version.py
 
 after_success:
-    - travis_retry pip install coveralls; coveralls;
+    - coveralls
 

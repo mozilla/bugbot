@@ -23,7 +23,7 @@ class NoPriority(BzCleaner, Nag):
             data=utils.get_config(self.name(), 'escalation-{}'.format(typ)),
             blacklist=utils.get_config('workflow', 'supervisor_blacklist', []),
         )
-        self.round_robin = RoundRobin()
+        self.round_robin = RoundRobin(people=self.people)
 
     def description(self):
         return 'Bugs without a priority set'

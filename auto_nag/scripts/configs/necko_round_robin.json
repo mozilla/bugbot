@@ -4,39 +4,31 @@
     {
         "Honza Bambas":
         {
-            "bzmail": "honzab.moz@firemni.cz",
-            "nick": "mayhemer"
+            "bzmail": "honzab.moz@firemni.cz"
         },
         "Michal Novotny":
         {
-            "bzmail": "michal.novotny@gmail.com",
-            "nick": "michal"
+            "bzmail": "michal.novotny@gmail.com"
         },
         "Junior Hsu":
         {
-            "bzmail": "juhsu@mozilla.com",
-            "nick": "junior"
+            "bzmail": "juhsu@mozilla.com"
         },
         "Valentin Gosu":
         {
-            "bzmail": "valentin.gosu@gmail.com",
-            "nick": "valentin"
+            "bzmail": "valentin.gosu@gmail.com"
         },
         "Dragana Damjanovic":
         {
-            "bzmail": "dd.mozilla@gmail.com",
-            "nick": "dragana"
+            "bzmail": "dd.mozilla@gmail.com"
         },
         "Kershaw Chang":
         {
-            "bzmail": "kershaw@mozilla.com",
-            "nick": "kershaw"
+            "bzmail": "kershaw@mozilla.com"
         },
         "Fallback":
         {
-            "mozmail": "hbambas@mozilla.com",
-            "bzmail": "honzab.moz@firemni.cz",
-            "nick": "mayhemer"
+            "bzmail": "honzab.moz@firemni.cz"
         }
     },
     "components":

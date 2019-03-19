@@ -3,7 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import argparse
-from . import mail, utils
+from . import logger, mail, utils
 from .round_robin import RoundRobin
 
 
@@ -47,4 +47,7 @@ if __name__ == '__main__':
         help='Date for the query',
     )
     args = parser.parse_args()
-    check_people(args.date, dryrun=args.dryrun)
+    try:
+        check_people(args.date, dryrun=args.dryrun)
+    except Exception:
+        logger.exception('Tool round_robin_fallback')
