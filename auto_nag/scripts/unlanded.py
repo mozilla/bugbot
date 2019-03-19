@@ -3,7 +3,6 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag.common import get_current_versions
 from auto_nag import utils
 from auto_nag.nag_me import Nag
 
@@ -13,6 +12,7 @@ class Unlanded(BzCleaner, Nag):
         super(Unlanded, self).__init__()
         self.channel = channel
         self.bug_ids = []
+        self.versions = utils.get_checked_versions()
 
     def description(self):
         return 'Get bugs with unlanded {} uplifts'.format(self.channel)
@@ -41,8 +41,11 @@ class Unlanded(BzCleaner, Nag):
     def columns(self):
         return ['id', 'summary', 'assignee', 'last_comment']
 
-    def must_run(self, date):
-        self.version = get_current_versions()[self.channel]
+    def has_enough_data(self):
+        if not self.versions:
+            return False
+
+        self.version = self.versions[self.channel]
         if self.channel == 'esr':
             self.bug_ids = utils.get_report_bugs(self.channel + self.version)
         else:

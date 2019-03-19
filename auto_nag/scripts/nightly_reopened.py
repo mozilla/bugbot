@@ -3,18 +3,20 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag.common import get_current_versions
 from auto_nag import utils
 
 
 class NightlyReopened(BzCleaner):
     def __init__(self):
         super(NightlyReopened, self).__init__()
-        versions = get_current_versions()
-        self.nightly = utils.get_flag(versions['central'], 'status', 'nightly')
-        self.beta = utils.get_flag(versions['beta'], 'status', 'beta')
-        self.release = utils.get_flag(versions['release'], 'status', 'release')
-        self.esr = utils.get_flag(versions['esr'], 'status', 'esr')
+        self.versions = utils.get_checked_versions()
+        if not self.versions:
+            return
+
+        self.nightly = utils.get_flag(self.versions['central'], 'status', 'nightly')
+        self.beta = utils.get_flag(self.versions['beta'], 'status', 'beta')
+        self.release = utils.get_flag(self.versions['release'], 'status', 'release')
+        self.esr = utils.get_flag(self.versions['esr'], 'status', 'esr')
 
     def description(self):
         return 'Get the reopened bugs with status flag for nightly not up-to-date'
@@ -27,6 +29,9 @@ class NightlyReopened(BzCleaner):
 
     def subject(self):
         return self.description()
+
+    def has_enough_data(self):
+        return bool(self.versions)
 
     def get_bz_params(self, date):
         unaffected = ','.join(['---', 'unaffected'])

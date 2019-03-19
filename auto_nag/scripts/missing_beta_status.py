@@ -3,7 +3,6 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag.common import get_current_versions
 from auto_nag import utils
 
 
@@ -11,6 +10,7 @@ class MissingBetaStatus(BzCleaner):
     def __init__(self):
         super(MissingBetaStatus, self).__init__()
         self.autofix_status = {}
+        self.versions = utils.get_checked_versions()
 
     def description(self):
         return 'Bug with a missing beta status flag'
@@ -33,6 +33,9 @@ class MissingBetaStatus(BzCleaner):
     def ignore_bug_summary(self):
         return False
 
+    def has_enough_data(self):
+        return bool(self.versions)
+
     def handle_bug(self, bug, data):
         bugid = str(bug['id'])
         central = bug[self.status_central]
@@ -49,10 +52,13 @@ class MissingBetaStatus(BzCleaner):
         return bug
 
     def get_bz_params(self, date):
-        versions = get_current_versions()
-        self.status_central = utils.get_flag(versions['central'], 'status', 'central')
-        self.status_release = utils.get_flag(versions['release'], 'status', 'release')
-        self.status_beta = utils.get_flag(versions['beta'], 'status', 'beta')
+        self.status_central = utils.get_flag(
+            self.versions['central'], 'status', 'central'
+        )
+        self.status_release = utils.get_flag(
+            self.versions['release'], 'status', 'release'
+        )
+        self.status_beta = utils.get_flag(self.versions['beta'], 'status', 'beta')
         fields = [self.status_central, self.status_release]
         params = {
             'include_fields': fields,

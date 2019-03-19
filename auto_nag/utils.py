@@ -19,6 +19,7 @@ except ImportError:
     from urllib import urlencode
 
 from auto_nag.bugzilla.utils import get_config_path
+from auto_nag.common import get_current_versions
 
 
 _CONFIG = None
@@ -375,3 +376,15 @@ def get_bugs_from_pushlog(startdate, enddate, channel='nightly'):
             for bug in get_bugs_from_desc(desc):
                 bugs.add(bug)
     return bugs
+
+
+def get_checked_versions():
+    versions = get_current_versions()
+    v = [int(versions[k]) for k in ['release', 'beta', 'central']]
+    if v[0] + 2 == v[1] + 1 == v[2]:
+        return versions
+
+    from . import logger
+
+    logger.info('Not consecutive versions in product/details')
+    return None
