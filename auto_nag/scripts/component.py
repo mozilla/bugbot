@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import copy
+from auto_nag import logger
 from auto_nag.bugbug_utils import BugbugScript
 from bugbug.models.component import ComponentModel
 
@@ -56,11 +57,12 @@ class Component(BugbugScript):
             # Get recent General bugs, and all Untriaged bugs.
             'j3': 'OR',
             'f3': 'OP',
-                'f4': 'OP',
-                    'f5': 'component', 'o5': 'equals', 'v5': 'General',
-                    'f6': 'creation_ts', 'o6': 'greaterthan', 'v6': start_date,
-                'f7': 'CP',
-                'f8': 'component', 'o8': 'equals', 'v8': 'Untriaged',
+                'j4': 'AND',  # noqa
+                'f4': 'OP',  # noqa
+                    'f5': 'component', 'o5': 'equals', 'v5': 'General',  # noqa
+                    'f6': 'creation_ts', 'o6': 'greaterthan', 'v6': start_date,  # noqa
+                'f7': 'CP',  # noqa
+                'f8': 'component', 'o8': 'equals', 'v8': 'Untriaged',  # noqa
             'f9': 'CP',
         }
 
@@ -94,13 +96,16 @@ class Component(BugbugScript):
 
             suggestion = self.model.CONFLATED_COMPONENTS_MAPPING.get(suggestion, suggestion)
 
-            assert '::' in suggestion
+            if '::' not in suggestion:
+                logger.error(f'There is something wrong with this component suggestion! {suggestion}')  # noqa
+                continue
+
             i = suggestion.index('::')
             suggested_product = suggestion[:i]
             suggested_component = suggestion[i + 2:]
 
             # When moving bugs out of the 'General' component, we don't want to change the product (unless it is Firefox).
-            if bug['component'] == 'General' and bug['product'] != suggested_product and bug['product'] != 'Firefox':
+            if bug['component'] == 'General' and bug['product'] not in {suggested_product, 'Firefox'}:
                 continue
 
             bug_id = str(bug['id'])
