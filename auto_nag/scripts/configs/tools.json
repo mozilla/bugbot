@@ -416,6 +416,8 @@
     "component":
     {
         "confidence_threshold": 0.6,
+        "general_confidence_threshold": 0.8,
+        "days_lookup": 49,
         "receivers":
         [
             "calixte@mozilla.com",

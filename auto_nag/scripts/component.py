@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import copy
+from auto_nag import logger
 from auto_nag.bugbug_utils import BugbugScript
 from bugbug.models.component import ComponentModel
 
@@ -43,15 +44,27 @@ class Component(BugbugScript):
         return lambda p: (-p[3], -int(p[0]))
 
     def get_bz_params(self, date):
-        params = {
-            'component': 'Untriaged',
+        start_date, end_date = self.get_dates(date)
+
+        return {
             # Ignore bugs for which somebody has ever modified the product or the component.
             'n1': 1, 'f1': 'product', 'o1': 'changedafter', 'v1': '1970-01-01',
             'n2': 1, 'f2': 'component', 'o2': 'changedafter', 'v2': '1970-01-01',
-            'bug_status': '__open__',
-        }
 
-        return params
+            # Ignore closed bugs.
+            'bug_status': '__open__',
+
+            # Get recent General bugs, and all Untriaged bugs.
+            'j3': 'OR',
+            'f3': 'OP',
+                'j4': 'AND',  # noqa
+                'f4': 'OP',  # noqa
+                    'f5': 'component', 'o5': 'equals', 'v5': 'General',  # noqa
+                    'f6': 'creation_ts', 'o6': 'greaterthan', 'v6': start_date,  # noqa
+                'f7': 'CP',  # noqa
+                'f8': 'component', 'o8': 'equals', 'v8': 'Untriaged',  # noqa
+            'f9': 'CP',
+        }
 
     def get_bugs(self, date='today', bug_ids=[]):
         # Retrieve bugs to analyze.
@@ -73,22 +86,34 @@ class Component(BugbugScript):
         # Get the encoded component.
         indexes = probs.argmax(axis=-1)
         # Apply inverse transformation to get the component name from the encoded value.
-        components = self.model.clf._le.inverse_transform(indexes)
+        suggestions = self.model.clf._le.inverse_transform(indexes)
 
         results = {}
-        for bug, prob, index, component in zip(bugs, probs, indexes, components):
+        for bug, prob, index, suggestion in zip(bugs, probs, indexes, suggestions):
             # Skip product-only suggestions that are not useful.
-            if '::' not in component and bug['product'] == component:
+            if '::' not in suggestion and bug['product'] == suggestion:
                 continue
 
-            component = self.model.CONFLATED_COMPONENTS_MAPPING.get(component, component)
+            suggestion = self.model.CONFLATED_COMPONENTS_MAPPING.get(suggestion, suggestion)
+
+            if '::' not in suggestion:
+                logger.error(f'There is something wrong with this component suggestion! {suggestion}')  # noqa
+                continue
+
+            i = suggestion.index('::')
+            suggested_product = suggestion[:i]
+            suggested_component = suggestion[i + 2:]
+
+            # When moving bugs out of the 'General' component, we don't want to change the product (unless it is Firefox).
+            if bug['component'] == 'General' and bug['product'] not in {suggested_product, 'Firefox'}:
+                continue
 
             bug_id = str(bug['id'])
 
             result = {
                 'id': bug_id,
                 'summary': self.get_summary(bug),
-                'component': component,
+                'component': suggestion,
                 'confidence': int(round(100 * prob[index])),
                 'autofixed': False,
             }
@@ -97,17 +122,13 @@ class Component(BugbugScript):
             if self.frequency == 'daily':
                 results[bug_id] = result
 
-            if prob[index] >= self.get_config('confidence_threshold'):
-                # If we were able to predict both product and component, assign both product and component.
-                # Otherwise, just change the product.
-                if '::' in component:
-                    i = component.index('::')
-                    self.autofix_component[bug_id] = {
-                        'product': component[:i],
-                        'component': component[i + 2:],
-                    }
-                else:
-                    self.autofix_component[bug_id] = {'product': component}
+            confidence_threshold_conf = 'confidence_threshold' if bug['product'] != 'General' else 'general_confidence_threshold'
+
+            if prob[index] >= self.get_config(confidence_threshold_conf):
+                self.autofix_component[bug_id] = {
+                    'product': suggested_product,
+                    'component': suggested_component,
+                }
 
                 result['autofixed'] = True
 
