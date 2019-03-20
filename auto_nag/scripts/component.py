@@ -50,7 +50,7 @@ class Component(BugbugScript):
             'n2': 1, 'f2': 'component', 'o2': 'changedafter', 'v2': '1970-01-01',
             'f3': 'bug_status',
             'o3': 'anyexact',
-            'v3': 'UNCONFIRMED,NEW',
+            'v3': 'UNCONFIRMED,NEW,ASSIGNED,REOPENED',
         }
 
         return params
