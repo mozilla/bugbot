@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import copy
+import datetime
 from dateutil.relativedelta import relativedelta
 import json
 from libmozdata import utils as lmdutils
@@ -388,3 +389,16 @@ def get_checked_versions():
 
     logger.info('Not consecutive versions in product/details')
     return None
+
+
+def get_info_from_hg(json):
+    res = {}
+    push = json['pushdate'][0]
+    push = datetime.datetime.utcfromtimestamp(push)
+    push = lmdutils.as_utc(push)
+    res['date'] = lmdutils.get_date_str(push)
+    res['backedout'] = json.get('backedoutby', '') != ''
+    m = BUG_PAT.search(json['desc'])
+    res['bugid'] = m.group(1) if m else ''
+
+    return res
