@@ -41,8 +41,8 @@ class Regression(BugbugScript):
 
         params = {
             'f1': 'keywords',
-            'o1': 'notsubstring',
-            'v1': 'regression',
+            'o1': 'nowords',
+            'v1': 'regression,feature,meta',
             'f2': 'longdesc',
             'o2': 'anywordssubstr',
             'v2': 'regress caus',
