@@ -1,0 +1,2 @@
+There{{ plural('\'s a r+ patch', extra[bugid], pword=' are some r+ patches') }} which didn't land and no activity in this bug for {{ extra['nweeks'] }} {{ plural('week', extra['nweeks']) }}.
+:{{ nickname }}, could you have a look please?
