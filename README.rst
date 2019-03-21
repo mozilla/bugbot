@@ -121,8 +121,9 @@ Running on a server
 This needs to run on a private server because it will have login for smtp and bugzilla key so it can't currently be shared access.
 
 Cronjob::
+
   00 14 * * 1-5 $HOME/run_autonags_daily.sh &> /tmp/autonag.log
-  15 */1 * * 1-5 $HOME/runauto_nag_hourly.sh &> /tmp/autonag-hour.log
+  15 */1 * * * $HOME/runauto_nag_hourly.sh &> /tmp/autonag-hour.log
 
 
 Running the testsuite
