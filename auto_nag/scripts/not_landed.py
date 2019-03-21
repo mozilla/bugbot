@@ -255,7 +255,6 @@ class NotLanded(BzCleaner):
         fields = ['flags']
         params = {
             'include_fields': fields,
-            #'bug_id': '1529516',
             'resolution': '---',
             'f1': 'attachment.ispatch',
             'n2': 1,
