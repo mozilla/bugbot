@@ -332,6 +332,7 @@ class BzCleaner(object):
                     nickname=nick,
                     extra=self.get_extra_for_needinfo_template(),
                     plural=utils.plural,
+                    bugid=bugid,
                 )
                 data = {
                     'comment': {'body': comment},
@@ -346,6 +347,7 @@ class BzCleaner(object):
                 }
 
                 res[bugid] = data
+
         return res
 
     def has_individual_autofix(self, changes):
@@ -389,7 +391,7 @@ class BzCleaner(object):
         if dryrun or self.test_mode:
             for bugid, ch in new_changes.items():
                 logger.info(
-                    'The bugs: {}\n will be autofixed with:\n{}'.format(bugids, change)
+                    'The bugs: {}\n will be autofixed with:\n{}'.format(bugid, ch)
                 )
         else:
             for bugid, ch in new_changes.items():
