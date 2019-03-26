@@ -253,7 +253,7 @@ class BzCleaner(object):
             params.update({'f' + n: 'keywords', 'o' + n: 'nowords', 'v' + n: 'meta'})
 
         if self.has_default_products():
-            params['product'] = utils.get_config('common', 'products')
+            params['product'] = utils.get_config(self.name(), 'products')
 
         self.has_flags = 'flags' in params.get('include_fields', [])
 
