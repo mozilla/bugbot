@@ -255,6 +255,7 @@ class BzCleaner(object):
             n = utils.get_last_field_num(params)
             params.update({'f' + n: 'keywords', 'o' + n: 'nowords', 'v' + n: 'meta'})
 
+        # Limit the checkers to X years. Unlimited if max_years = -1
         max_years = self.get_max_years()
         if max_years > 0:
             n = utils.get_last_field_num(params)
