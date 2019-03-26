@@ -71,6 +71,10 @@ python -m auto_nag.scripts.mismatch-priority-tracking-release
 python -m auto_nag.scripts.mismatch-priority-tracking-beta
 python -m auto_nag.scripts.mismatch-priority-tracking-nightly
 
+# Bug is tracked for a release but the bug severity is small
+# pretty common
+python -m auto_nag.scripts.tracked_bad_severity
+
 # Move info (signatures, product/component) from/to bugs & their dups
 # Pretty common
 python -m auto_nag.scripts.copy_duplicate_info

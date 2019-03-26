@@ -58,10 +58,6 @@ python -m auto_nag.scripts.unaffected_affected_no_reg
 # Very common
 python -m auto_nag.scripts.version_affected
 
-# Bug is tracked for a release but the bug severity is small
-# pretty common
-python -m auto_nag.scripts.tracked_bad_severity
-
 # Detect one word summary
 # a bit rare
 python -m auto_nag.scripts.one_two_word_summary
