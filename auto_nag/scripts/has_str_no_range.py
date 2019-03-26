@@ -61,7 +61,8 @@ class HasSTRNoRange(BzCleaner):
                             'body': ':{}, could you try to find a regression range in using for example [mozregression](https://wiki.mozilla.org/Auto-tools/Projects/Mozregression)?'.format(
                                 bug['nick']
                             )
-                        }
+                        },
+                        'keywords': {'add': ['regressionwindow-wanted']},
                     }
                 else:
                     self.autofix_reporters[bugid] = {
