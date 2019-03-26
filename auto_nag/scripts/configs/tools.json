@@ -430,7 +430,7 @@
     {
         "confidence_threshold": 0.6,
         "general_confidence_threshold": 0.8,
-        "days_lookup": 49,
+        "days_lookup": 365,
         "receivers":
         [
             "calixte@mozilla.com",
