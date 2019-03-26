@@ -91,6 +91,13 @@ class NotLanded(BzCleaner):
         )
         r.raise_for_status()
         data = r.json()['result']['data'][0]
+
+        # this is a timestamp
+        last_modified = data['fields']['dateModified']
+        last_modified = lmdutils.get_date_from_timestamp(last_modified)
+        if (self.date - last_modified).days <= self.nweeks * 7:
+            return False
+
         reviewers = data['attachments']['reviewers']['reviewers']
         if not reviewers:
             return False
@@ -250,8 +257,8 @@ class NotLanded(BzCleaner):
         return nicknames
 
     def get_bz_params(self, date):
-        date = lmdutils.get_date_ymd(date)
-        start_date = date - relativedelta(years=self.nyears)
+        self.date = lmdutils.get_date_ymd(date)
+        start_date = self.date - relativedelta(years=self.nyears)
         fields = ['flags']
         params = {
             'include_fields': fields,
