@@ -58,7 +58,7 @@ class HasSTRNoRange(BzCleaner):
                 if bug['regression']:
                     self.autofix_reporters[bugid] = {
                         'comment': {
-                            'body': ':{}, could try to find a regression range in using for example [mozregression](https://wiki.mozilla.org/Auto-tools/Projects/Mozregression)?'.format(
+                            'body': ':{}, could you try to find a regression range in using for example [mozregression](https://wiki.mozilla.org/Auto-tools/Projects/Mozregression)?'.format(
                                 bug['nick']
                             )
                         }
@@ -66,7 +66,7 @@ class HasSTRNoRange(BzCleaner):
                 else:
                     self.autofix_reporters[bugid] = {
                         'comment': {
-                            'body': ':{}, if you think that\'s a regression, then could try to find a regression range in using for example [mozregression](https://wiki.mozilla.org/Auto-tools/Projects/Mozregression)?'.format(
+                            'body': ':{}, if you think that\'s a regression, then could you try to find a regression range in using for example [mozregression](https://wiki.mozilla.org/Auto-tools/Projects/Mozregression)?'.format(
                                 bug['nick']
                             )
                         }
