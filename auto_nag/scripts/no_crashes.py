@@ -154,7 +154,7 @@ class NoCrashes(BzCleaner):
                 )
             },
             'status': 'RESOLVED',
-            'resolution': 'WONTFIX',
+            'resolution': 'WORKSFORME',
         }
 
     def get_bugs(self, date='today', bug_ids=[]):
