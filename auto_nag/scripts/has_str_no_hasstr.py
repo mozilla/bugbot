@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from libmozdata.bugzilla import Bugzilla
+from libmozdata import utils as lmdutils
 import re
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag import utils
@@ -52,6 +53,7 @@ class HasStrNoHasstr(BzCleaner):
         return data
 
     def get_bz_params(self, date):
+        tomorrow = lmdutils.get_date('tomorrow')
         start_date, _ = self.get_dates(date)
         fields = ['creator']
         params = {
@@ -65,12 +67,16 @@ class HasStrNoHasstr(BzCleaner):
             'f2': 'cf_has_str',
             'o2': 'equals',
             'v2': '---',
-            'f3': 'creation_ts',
-            'o3': 'greaterthan',
-            'v3': start_date,
-            'f4': 'keywords',
-            'o4': 'notsubstring',
-            'v4': 'testcase-wanted',
+            'n3': 1,
+            'f3': 'cf_has_str',
+            'o3': 'changedbefore',
+            'v3': tomorrow,
+            'f4': 'creation_ts',
+            'o4': 'greaterthan',
+            'v4': start_date,
+            'f5': 'keywords',
+            'o5': 'notsubstring',
+            'v5': 'testcase-wanted',
         }
 
         return params
