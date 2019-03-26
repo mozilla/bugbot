@@ -311,6 +311,7 @@ def merge_bz_changes(c1, c2):
 
     return c
 
+
 def is_test_file(path):
     e = os.path.splitext(path)[1][1:].lower()
     return 'test' in path and e not in {'ini', 'list', 'in', 'py', 'json', 'manifest'}
