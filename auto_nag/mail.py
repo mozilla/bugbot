@@ -116,7 +116,14 @@ def sendMail(From, To, msg, login={}, dryrun=False):
         logger.info(out)
         return
 
-    mailserver = smtplib.SMTP_SSL(SMTP, PORT)
+    if login:
+        if login.get('smtp_ssl', True):
+            mailserver = smtplib.SMTP_SSL(login['smtp_server'], login['smtp_port'])
+        else:
+            mailserver = smtplib.SMTP(login['smtp_server'], login['smtp_port'])
+    else:
+        mailserver = smtplib.SMTP_SSL(SMTP, PORT)
+
     mailserver.set_debuglevel(1)
     if login:
         username = login.get('ldap_username')
