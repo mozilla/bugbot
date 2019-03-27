@@ -96,6 +96,7 @@ class NotLanded(BzCleaner):
         last_modified = data['fields']['dateModified']
         last_modified = lmdutils.get_date_from_timestamp(last_modified)
         if (self.date - last_modified).days <= self.nweeks * 7:
+            # Do not do anything if recent changes in the bug
             return False
 
         reviewers = data['attachments']['reviewers']['reviewers']
