@@ -137,6 +137,9 @@ class BzCleaner(object):
     def get_product_component(self):
         return self.prod_comp
 
+    def get_max_years(self):
+        return self.get_config('max-years', -1)
+
     def handle_bug(self, bug, data):
         """Implement this function to get all the bugs from the query"""
         return bug
@@ -251,6 +254,16 @@ class BzCleaner(object):
         if self.ignore_meta():
             n = utils.get_last_field_num(params)
             params.update({'f' + n: 'keywords', 'o' + n: 'nowords', 'v' + n: 'meta'})
+
+        # Limit the checkers to X years. Unlimited if max_years = -1
+        max_years = self.get_max_years()
+        if max_years > 0:
+            n = utils.get_last_field_num(params)
+            today = lmdutils.get_date_ymd('today')
+            few_years_ago = today - relativedelta(years=max_years)
+            params.update(
+                {'f' + n: 'creation_ts', 'o' + n: 'greaterthan', 'v' + n: few_years_ago}
+            )
 
         if self.has_default_products():
             params['product'] = utils.get_config(self.name(), 'products')

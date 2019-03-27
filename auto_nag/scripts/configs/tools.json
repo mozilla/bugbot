@@ -330,6 +330,7 @@
     },
     "workflow-no-priority":
     {
+        "max-years": 2,
         "first-step": 2,
         "second-step": 4,
         "escalation-first":
