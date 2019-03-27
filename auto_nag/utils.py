@@ -402,3 +402,7 @@ def get_info_from_hg(json):
     res['bugid'] = m.group(1) if m else ''
 
     return res
+
+
+def bz_ignore_case(s):
+    return '[' + ']['.join(c + c.upper() for c in s) + ']'
