@@ -8,8 +8,8 @@ from bugbug.models.regression import RegressionModel
 
 class Regression(BugbugScript):
     def __init__(self):
-        super(Regression, self).__init__()
-        self.model = RegressionModel.load(self.retrieve_model('regression'))
+        super().__init__()
+        self.model = RegressionModel.load(self.retrieve_model())
         self.autofix_regression = []
 
     def description(self):
@@ -62,41 +62,26 @@ class Regression(BugbugScript):
 
         return params
 
+    # Remove bugs for which the regression keyword was set and removed in the past.
     def remove_using_history(self, bugs):
-        to_remove = set()
-        for bug_id, bug in bugs.items():
+        def should_remove(bug):
             for h in bug['history']:
-                changes = h.get('changes', [])
-                for change in changes:
+                for change in h['changes']:
                     if (
                         change['field_name'] == 'keywords'
                         and change['removed'] == 'regression'
                     ):
-                        to_remove.add(bug_id)
-                        break
+                        return True
 
-        for bug_id in to_remove:
-            del bugs[bug_id]
+            return False
+
+        return [bug for bug in bugs if not should_remove(bug)]
 
     def get_bugs(self, date='today', bug_ids=[]):
         # Retrieve bugs to analyze.
-        all_bug_data = super(Regression, self).get_bugs(date=date, bug_ids=bug_ids)
-
-        bugs = all_bug_data['bugs']
-
-        # Retrieve history.
-        self.retrieve_history(bugs)
-
-        # Remove bugs for which the regression keyword was set and removed in the past.
-        self.remove_using_history(bugs)
-
-        # Retrieve comments and attachments.
-        self.retrieve_comments_and_attachments(bugs)
-
-        bugs = list(bugs.values())
-
-        # Analyze bugs.
-        probs = self.model.classify(bugs, True)
+        bugs, probs = super().get_bugs(date=date, bug_ids=bug_ids)
+        if len(bugs) == 0:
+            return {}
 
         result = {}
         for bug, prob in zip(bugs, probs):
