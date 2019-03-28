@@ -62,10 +62,6 @@
             "release-mgmt@mozilla.com"
         ]
     },
-    "has_reg_range":
-    {
-        "days_lookup": 30
-    },
     "has_str_no_range":
     {
         "days_lookup": 10,

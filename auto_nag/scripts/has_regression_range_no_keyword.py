@@ -21,30 +21,17 @@ class HasRegressionRange(BzCleaner):
     def subject(self):
         return 'Bugs with has_regression_range=yes but no regression keyword'
 
+    def has_default_products(self):
+        return False
+
     def get_bz_params(self, date):
-        start_date, end_date = self.get_dates(date)
         params = {
-            'bug_status': [
-                '---',
-                'FIXED',
-                'INVALID',
-                'WONTFIX',
-                'DUPLICATE',
-                'WORKSFORME',
-                'INCOMPLETE',
-                'SUPPORT',
-                'EXPIRED',
-                'MOVED',
-            ],
             'f1': 'keywords',
             'o1': 'nowords',
             'v1': 'regression',
-            'f2': 'creation_ts',
-            'o2': 'greaterthan',
-            'v2': start_date,
-            'f3': 'cf_has_regression_range',
-            'o3': 'equals',
-            'v3': 'yes',
+            'f2': 'cf_has_regression_range',
+            'o2': 'equals',
+            'v2': 'yes',
         }
 
         return params
