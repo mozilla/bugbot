@@ -117,7 +117,7 @@
             "sylvestre@mozilla.com",
             "mcastelluccio@mozilla.com"
         ],
-        "days_lookup": 1,
+        "days_lookup": 3,
         "resolution_blacklist":
         [
             "DUPLICATE"
