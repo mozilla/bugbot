@@ -132,7 +132,8 @@
         "days_lookup": 7,
         "resolution_blacklist":
         [
-            "DUPLICATE"
+            "DUPLICATE",
+            "INVALID"
         ],
         "reporter_blacklist":
         [
