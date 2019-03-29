@@ -133,6 +133,7 @@
         "resolution_blacklist":
         [
             "DUPLICATE",
+            "INCOMPLETE",
             "INVALID"
         ],
         "reporter_blacklist":
