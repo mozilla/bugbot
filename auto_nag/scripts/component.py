@@ -122,7 +122,7 @@ class Component(BugbugScript):
             if self.frequency == 'daily':
                 results[bug_id] = result
 
-            confidence_threshold_conf = 'confidence_threshold' if bug['product'] != 'General' else 'general_confidence_threshold'
+            confidence_threshold_conf = 'confidence_threshold' if bug['component'] != 'General' else 'general_confidence_threshold'
 
             if prob[index] >= self.get_config(confidence_threshold_conf):
                 self.autofix_component[bug_id] = {
