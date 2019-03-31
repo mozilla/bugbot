@@ -13,3 +13,5 @@ auto_nag/scripts/configs/*
 !auto_nag/scripts/configs/rm.json
 models/
 venv/
+venv2/
+venv3/
