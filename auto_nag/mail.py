@@ -116,13 +116,20 @@ def sendMail(From, To, msg, login={}, dryrun=False):
         logger.info(out)
         return
 
-    if login:
-        if login.get('smtp_ssl', True):
-            mailserver = smtplib.SMTP_SSL(login['smtp_server'], login['smtp_port'])
-        else:
-            mailserver = smtplib.SMTP(login['smtp_server'], login['smtp_port'])
+    if login is None:
+        login = {}
+
+    # TODO: default_login has been added to fix issues with old auto_nag
+    # so need to remove that stuff once old auto_nag will have been removed.
+    default_login = utils.get_login_info()
+    smtp_server = login.get('smtp_server', default_login.get('smtp_server', SMTP))
+    smtp_port = login.get('smtp_port', default_login.get('smtp_port', PORT))
+    smtp_ssl = login.get('smtp_ssl', default_login.get('smtp_ssl', True))
+
+    if smtp_ssl:
+        mailserver = smtplib.SMTP_SSL(smtp_server, smtp_port)
     else:
-        mailserver = smtplib.SMTP_SSL(SMTP, PORT)
+        mailserver = smtplib.SMTP(smtp_server, smtp_port)
 
     mailserver.set_debuglevel(1)
     if login:
