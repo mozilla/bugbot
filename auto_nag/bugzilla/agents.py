@@ -9,6 +9,7 @@ class Http(httplib2.Http):
     def __init__(self, api_key=None):
         super(Http, self).__init__()
         self.api_key = api_key
+        self.proxy_info = None
 
     def request(self, uri, method='GET', body=None, headers=None, redirections=5, connection_type=None):
         if headers is None:
