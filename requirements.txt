@@ -16,4 +16,4 @@ python-Levenshtein>=0.12.0
 pytz>=2018.9
 whatthepatch>=0.0.5
 https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.1.0/en_core_web_sm-2.1.0.tar.gz#egg=en-core-web-sm
-bugbug==0.0.4
+bugbug==0.0.5
