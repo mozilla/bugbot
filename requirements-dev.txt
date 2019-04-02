@@ -1,4 +1,4 @@
-nose
+nose==1.3.7
 coverage
 rednose
 mock
