@@ -9,7 +9,7 @@ path.py==11.5.0
 pep8==1.7.1
 pyflakes==2.1.1
 python-dateutil>=2.5.2
-remoteobjects
+remoteobjects==1.2.1
 requests>=2.20.0
 pexpect==3.1
 python-Levenshtein>=0.12.0
