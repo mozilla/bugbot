@@ -1,5 +1,5 @@
 Jinja2==2.10
-argparse==1.2.1
+argparse==1.4.0
 certifi>=2017.4.17
 chardet<3.1.0,>=3.0.2
 httplib2>=0.9.1
