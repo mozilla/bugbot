@@ -34,14 +34,14 @@ class HasSTRNoRange(BzCleaner):
     def get_bugs_with_no_history(self, bugs):
         # The idea here is to only ask for regression window when only the bot
         # or the assignee contributed to the bug
-        bot = self.get_config('common', 'bot_bz_mail')[0]
+        # bot = utils.get_config('common', 'bot_bz_mail')[0]
 
         def history_handler(bug, data):
             bugid = str(bug['id'])
             no_hist = True
             if bug['history']:
                 bug_data = data[bugid]
-                who = {bug_data['creator'], bot}
+                who = {bug_data['creator']}
                 for h in bug['history']:
                     if h['who'] not in who:
                         no_hist = False
@@ -53,17 +53,22 @@ class HasSTRNoRange(BzCleaner):
             bugids=bugids, historyhandler=history_handler, historydata=bugs
         ).get_data().wait()
 
+        res = {}
         for bugid, bug in bugs.items():
             if bug['no_history']:
+                res[bugid] = bug
                 if bug['regression']:
                     self.autofix_reporters[bugid] = {
                         'comment': {
                             'body': ':{}, could you try to find a regression range in using for example [mozregression](https://wiki.mozilla.org/Auto-tools/Projects/Mozregression)?'.format(
                                 bug['nick']
                             )
-                        },
-                        'keywords': {'add': ['regressionwindow-wanted']},
+                        }
                     }
+                    if not bug['regwindow']:
+                        self.autofix_reporters[bugid]['keywords'] = {
+                            'add': ['regressionwindow-wanted']
+                        }
                 else:
                     self.autofix_reporters[bugid] = {
                         'comment': {
@@ -72,14 +77,21 @@ class HasSTRNoRange(BzCleaner):
                             )
                         }
                     }
+        return res
 
     def handle_bug(self, bug, data):
         bugid = str(bug['id'])
         creator = bug['creator']
         nick = bug['creator_detail']['nick']
         reg = 'regression' in bug['keywords']
+        win = 'regressionwindow-wanted' in bug['keywords']
 
-        data[bugid] = {'creator': creator, 'nick': nick, 'regression': reg}
+        data[bugid] = {
+            'creator': creator,
+            'nick': nick,
+            'regression': reg,
+            'regwindow': win,
+        }
 
         return bug
 
@@ -108,7 +120,7 @@ class HasSTRNoRange(BzCleaner):
 
     def get_bugs(self, date='today', bug_ids=[]):
         bugs = super(HasSTRNoRange, self).get_bugs(date=date, bug_ids=bug_ids)
-        self.get_bugs_with_no_history(bugs)
+        bugs = self.get_bugs_with_no_history(bugs)
 
         return bugs
 
