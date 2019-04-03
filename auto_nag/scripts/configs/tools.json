@@ -191,6 +191,7 @@
     },
     "ni-triage-owner":
     {
+        "types": ["defect"],
         "number_of_weeks": 2,
         "days_lookup": 183,
         "owners":
@@ -345,6 +346,7 @@
     },
     "workflow-no-priority":
     {
+        "types": ["defect"],
         "max-years": 2,
         "first-step": 2,
         "second-step": 4,
@@ -373,10 +375,12 @@
     },
     "workflow-p3-p4-p5":
     {
+        "types": ["defect"],
         "months_lookup": 6
     },
     "workflow-p2-no-activity":
     {
+        "types": ["defect"],
         "months_lookup": 3,
         "escalation":
         {
@@ -392,6 +396,7 @@
     },
     "workflow-p1-no-assignee":
     {
+        "types": ["defect"],
         "ndays":
         {
             "[20;+∞[": 7,
@@ -413,6 +418,7 @@
     },
     "workflow-p1-no-activity":
     {
+        "types": ["defect"],
         "ndays":
         {
             "[20;+∞[": 7,
