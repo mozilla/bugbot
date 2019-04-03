@@ -172,7 +172,8 @@
         "keyword_exception":
         [
             "testcase"
-        ]
+        ],
+        "sec": false
     },
     "newbie-with-ni":
     {

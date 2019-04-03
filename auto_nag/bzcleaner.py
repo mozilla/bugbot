@@ -140,6 +140,9 @@ class BzCleaner(object):
     def get_max_years(self):
         return self.get_config('max-years', -1)
 
+    def has_access_to_sec_bugs(self):
+        return self.get_config('sec', True)
+
     def handle_bug(self, bug, data):
         """Implement this function to get all the bugs from the query"""
         return bug
@@ -267,6 +270,10 @@ class BzCleaner(object):
 
         if self.has_default_products():
             params['product'] = utils.get_config(self.name(), 'products')
+
+        if not self.has_access_to_sec_bugs():
+            n = utils.get_last_field_num(params)
+            params.update({'f' + n: 'bug_group', 'o' + n: 'isempty'})
 
         self.has_flags = 'flags' in params.get('include_fields', [])
 
