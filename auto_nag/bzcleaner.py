@@ -143,6 +143,9 @@ class BzCleaner(object):
     def has_access_to_sec_bugs(self):
         return self.get_config('sec', True)
 
+    def only_defects(self):
+        return self.get_config('defects', False)
+
     def handle_bug(self, bug, data):
         """Implement this function to get all the bugs from the query"""
         return bug
@@ -274,6 +277,10 @@ class BzCleaner(object):
         if not self.has_access_to_sec_bugs():
             n = utils.get_last_field_num(params)
             params.update({'f' + n: 'bug_group', 'o' + n: 'isempty'})
+
+        if self.only_defects():
+            n = utils.get_last_field_num(params)
+            params.update({'f' + n: 'bug_type', 'o' + n: 'equals', 'v' + n: 'defect'})
 
         self.has_flags = 'flags' in params.get('include_fields', [])
 
