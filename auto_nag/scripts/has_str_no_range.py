@@ -114,6 +114,10 @@ class HasSTRNoRange(BzCleaner):
             'f4': 'cf_has_str',
             'o4': 'equals',
             'v4': 'yes',
+            'n5': 1,
+            'f5': 'longdesc',
+            'o5': 'casesubstring',
+            'v5': 'could you try to find a regression range in using for example [mozregression]',
         }
 
         return params
