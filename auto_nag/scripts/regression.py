@@ -40,24 +40,12 @@ class Regression(BugbugScript):
         reporter_blacklist = ','.join(reporter_blacklist)
 
         params = {
-            'f1': 'keywords',
-            'o1': 'nowords',
-            'v1': 'regression,feature,meta',
-            'f2': 'longdesc',
-            'o2': 'anywordssubstr',
-            'v2': 'regress caus',
-            'f3': 'resolution',
-            'o3': 'nowords',
-            'v3': resolution_blacklist,
-            'f4': 'longdesc',
-            'o4': 'changedafter',
-            'v4': start_date,
-            'f5': 'longdesc',
-            'o5': 'changedbefore',
-            'v5': end_date,
-            'f6': 'reporter',
-            'o6': 'nowords',
-            'v6': reporter_blacklist,
+            'f1': 'keywords', 'o1': 'nowords', 'v1': 'regression,feature,meta',
+            'f2': 'longdesc', 'o2': 'anywordssubstr', 'v2': 'regress caus',
+            'f3': 'resolution', 'o3': 'nowords', 'v3': resolution_blacklist,
+            'f4': 'longdesc', 'o4': 'changedafter', 'v4': start_date,
+            'f5': 'longdesc', 'o5': 'changedbefore', 'v5': end_date,
+            'f6': 'reporter', 'o6': 'nowords', 'v6': reporter_blacklist,
             'bug_type': 'defect',
         }
 
