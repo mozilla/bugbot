@@ -230,6 +230,10 @@
         "months_lookup": 12,
         "max_ni": 3
     },
+    "meta_defect":
+    {
+        "months_lookup": 24
+    },
     "stalled":
     {
         "days_lookup": 100
