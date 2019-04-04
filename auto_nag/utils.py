@@ -118,6 +118,11 @@ def get_login_info():
         return json.load(In)
 
 
+def get_private():
+    with open(get_config_path(), 'r') as In:
+        return json.load(In)['private']
+
+
 def plural(sword, data, pword=''):
     if isinstance(data, six.integer_types):
         p = data != 1

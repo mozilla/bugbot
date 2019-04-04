@@ -1,36 +1,5 @@
 {
-    "doc": "The triagers need to have a \"Fallback\" entry.",
-    "triagers":
-    {
-        "Honza Bambas":
-        {
-            "bzmail": "honzab.moz@firemni.cz"
-        },
-        "Michal Novotny":
-        {
-            "bzmail": "michal.novotny@gmail.com"
-        },
-        "Junior Hsu":
-        {
-            "bzmail": "juhsu@mozilla.com"
-        },
-        "Valentin Gosu":
-        {
-            "bzmail": "valentin.gosu@gmail.com"
-        },
-        "Dragana Damjanovic":
-        {
-            "bzmail": "dd.mozilla@gmail.com"
-        },
-        "Kershaw Chang":
-        {
-            "bzmail": "kershaw@mozilla.com"
-        },
-        "Fallback":
-        {
-            "bzmail": "honzab.moz@firemni.cz"
-        }
-    },
+    "fallback": "Honza Bambas",
     "components":
     {
         "Core::Networking": "default",
@@ -46,13 +15,6 @@
     },
     "default":
     {
-        "doc": "All the dates are the duty end dates.",
-        "2019-03-21": "Kershaw Chang",
-        "2019-03-28": "Honza Bambas",
-        "2019-04-04": "Michal Novotny",
-        "2019-04-11": "Junior Hsu",
-        "2019-04-18": "Valentin Gosu",
-        "2019-04-25": "Dragana Damjanovic",
-        "2019-05-02": "Kershaw Chang"
+        "calendar": "https://mozilla-necko.github.io/triage-list/triage.json"
     }
 }
