@@ -58,6 +58,7 @@ class Regression(BugbugScript):
             'f6': 'reporter',
             'o6': 'nowords',
             'v6': reporter_blacklist,
+            'bug_type': 'defect',
         }
 
         return params
