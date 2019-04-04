@@ -276,6 +276,10 @@ class NotLanded(BzCleaner):
             'f5': 'days_elapsed',
             'o5': 'greaterthaneq',
             'v5': self.nweeks * 7,
+            'n6': 1,
+            'f6': 'longdesc',
+            'o6': 'casesubstring',
+            'v6': 'which didn\'t land and no activity in this bug for',
         }
 
         return params
