@@ -89,6 +89,9 @@ python -m auto_nag.scripts.workflow.multi_nag
 # Enhancement or task with the "regression" keyword
 python -m auto_nag.scripts.regression_but_type_enhancement_task
 
+# Defect or task with the "feature" keyword
+python -m auto_nag.scripts.feature_but_type_defect_task
+
 # reporter has a needinfo and no activity for the last X weeks
 # Pretty common
 python -m auto_nag.scripts.newbie_with_ni -d
