@@ -10,7 +10,6 @@ from auto_nag import utils
 class CopyDuplicateInfo(BzCleaner):
     def __init__(self):
         super(CopyDuplicateInfo, self).__init__()
-        self.__file__ = __file__
         self.autofix_data = {}
 
     def description(self):

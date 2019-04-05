@@ -10,7 +10,6 @@ from bugbug.models.component import ComponentModel
 class Component(BugbugScript):
     def __init__(self):
         super().__init__()
-        self.__file__ = __file__
         self.model = ComponentModel.load(self.retrieve_model())
         self.autofix_component = {}
         self.frequency = 'daily'
