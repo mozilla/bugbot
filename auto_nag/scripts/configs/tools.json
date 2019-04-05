@@ -147,7 +147,8 @@
             "sledru@mozilla.com",
             "mcastelluccio@mozilla.com",
             "cdenizet@mozilla.com"
-        ]
+        ],
+        "types": ["defect"]
     },
     "auto_nag":
     {
