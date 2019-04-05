@@ -10,15 +10,6 @@ class RegressionButEnhancementTask(BzCleaner):
         super(RegressionButEnhancementTask, self).__init__()
 
     def description(self):
-        return 'Get enhancement or task with the "regression" keyword'
-
-    def name(self):
-        return "regression_but_type_enhancement_task"
-
-    def template(self):
-        return "regression_but_type_enhancement_task.html"
-
-    def subject(self):
         return 'Enhancement or task with the "regression" keyword'
 
     def get_bz_params(self, date):

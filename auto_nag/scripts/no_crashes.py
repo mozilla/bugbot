@@ -21,15 +21,6 @@ class NoCrashes(BzCleaner):
         self.summaries = {}
 
     def description(self):
-        return 'Get bugs with crash signatures which have no more crashes'
-
-    def name(self):
-        return 'nocrashes'
-
-    def template(self):
-        return 'no_crashes.html'
-
-    def subject(self):
         return 'Bugs with no more crashes in the last {} weeks'.format(self.nweeks)
 
     def get_extra_for_template(self):

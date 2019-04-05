@@ -13,15 +13,6 @@ class Regression(BugbugScript):
         self.autofix_regression = []
 
     def description(self):
-        return 'Get bugs with missing regression keyword'
-
-    def name(self):
-        return 'regression'
-
-    def template(self):
-        return 'regression.html'
-
-    def subject(self):
         return '[Using ML] Bugs with missing regression keyword'
 
     def columns(self):

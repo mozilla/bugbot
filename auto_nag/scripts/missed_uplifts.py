@@ -36,15 +36,6 @@ class MissedUplifts(BzCleaner):
     def description(self):
         return 'Bugs fixed in nightly but still affect other supported channels'
 
-    def name(self):
-        return 'missed-uplifts'
-
-    def template(self):
-        return 'missed_uplifts.html'
-
-    def subject(self):
-        return self.description()
-
     def must_run(self, date):
         weekday = date.weekday()
         return weekday <= 4

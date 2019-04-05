@@ -15,21 +15,7 @@ class TrackedNeedinfo(BzCleaner, Nag):
         self.version = self.versions[channel] if self.versions else None
 
     def description(self):
-        return 'Get bugs which are tracked or nominated for tracking with needinfo? in {} {} '.format(
-            self.channel, self.version
-        )
-
-    def name(self):
-        return 'tracked-needinfo'
-
-    def template(self):
-        return 'tracked_needinfo.html'
-
-    def nag_template(self):
-        return 'tracked_needinfo_nag.html'
-
-    def subject(self):
-        return 'Bugs which are tracked or nominated for tracking with Need-Info? in {} {} '.format(
+        return 'Bugs which are tracked or nominated for tracking with needinfo? in {} {} '.format(
             self.channel, self.version
         )
 

@@ -21,19 +21,10 @@ class P2NoActivity(BzCleaner, Nag):
         )
 
     def description(self):
-        return 'Get P2 bugs and no activity for {} months'.format(self.nmonths)
-
-    def name(self):
-        return 'workflow-p2-no-activity'
-
-    def template(self):
-        return 'workflow_p2_no_activity.html'
+        return 'P2 bugs without activity for {} months'.format(self.nmonths)
 
     def nag_template(self):
         return self.template()
-
-    def subject(self):
-        return 'P2 bugs without activity for {} months'.format(self.nmonths)
 
     def get_extra_for_template(self):
         return {'nmonths': self.nmonths}

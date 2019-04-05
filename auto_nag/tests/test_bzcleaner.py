@@ -12,10 +12,10 @@ class TestBZClearner(unittest.TestCase):
         assert BzCleaner().description() == ''
 
     def test_name(self):
-        assert BzCleaner().name() == ''
+        assert BzCleaner().name() == 'bzcleaner'
 
     def test_template(self):
-        assert BzCleaner().template() == ''
+        assert BzCleaner().template() == 'bzcleaner.html'
 
     def test_subject(self):
         assert BzCleaner().subject() == ''
@@ -42,7 +42,7 @@ class TestBZClearnerClass(unittest.TestCase):
         assert TrackedBadSeverity().name() == 'tracked_bad_severity'
 
     def test_template(self):
-        assert TrackedBadSeverity().template() == 'tracked-bad-severity.html'
+        assert TrackedBadSeverity().template() == 'tracked_bad_severity.html'
 
     def test_subject(self):
         assert 'Bug tracked' in TrackedBadSeverity().subject()

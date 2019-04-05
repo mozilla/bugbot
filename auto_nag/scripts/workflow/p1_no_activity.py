@@ -18,19 +18,10 @@ class P1NoActivity(BzCleaner, Nag):
         )
 
     def description(self):
-        return 'Get P1 bugs and no activity for few days'
-
-    def name(self):
-        return 'workflow-p1-no-activity'
-
-    def template(self):
-        return 'workflow_p1_no_activity.html'
+        return 'P1 bugs and no activity for {} days'.format(self.ndays)
 
     def nag_template(self):
         return self.template()
-
-    def subject(self):
-        return 'P1 bugs and no activity for {} days'.format(self.ndays)
 
     def get_extra_for_template(self):
         return {'ndays': self.ndays}

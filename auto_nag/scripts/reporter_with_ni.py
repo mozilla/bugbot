@@ -12,17 +12,6 @@ class ReporterWithNI(BzCleaner):
         self.nweeks = utils.get_config(self.name(), 'number_of_weeks', 12)
 
     def description(self):
-        return 'Get bugs where the reporter has a needinfo and no activity for the last {} weeks'.format(
-            self.nweeks
-        )
-
-    def name(self):
-        return 'reporter-with-ni'
-
-    def template(self):
-        return 'reporter_with_ni.html'
-
-    def subject(self):
         return 'Bugs where the reporter has a needinfo and no activity for the last {} weeks'.format(
             self.nweeks
         )

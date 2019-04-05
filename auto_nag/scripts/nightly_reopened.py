@@ -19,16 +19,7 @@ class NightlyReopened(BzCleaner):
         self.esr = utils.get_flag(self.versions['esr'], 'status', 'esr')
 
     def description(self):
-        return 'Get the reopened bugs with status flag for nightly not up-to-date'
-
-    def name(self):
-        return 'nightly-reopened'
-
-    def template(self):
-        return 'nightly_reopened.html'
-
-    def subject(self):
-        return self.description()
+        return 'Reopened bugs with status flag for nightly not up-to-date'
 
     def has_enough_data(self):
         return bool(self.versions)

@@ -14,15 +14,6 @@ class HasSTRNoRange(BzCleaner):
         self.autofix_reporters = {}
 
     def description(self):
-        return 'Get the bugs with a STR and no regression range'
-
-    def name(self):
-        return 'has_str_no_range'
-
-    def template(self):
-        return 'has_str_no_range.html'
-
-    def subject(self):
         return 'Bugs with STR and no regression range'
 
     def ignore_bug_summary(self):

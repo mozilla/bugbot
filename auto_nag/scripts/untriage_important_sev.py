@@ -10,16 +10,7 @@ class UntriagedWithImportantSev(BzCleaner):
         super(UntriagedWithImportantSev, self).__init__()
 
     def description(self):
-        return 'Get bugs in untriaged with an important severity'
-
-    def name(self):
-        return 'untriage_important_sev'
-
-    def template(self):
-        return 'untriage_important_sev.html'
-
-    def subject(self):
-        return self.description()
+        return 'Bugs in untriaged with an important severity'
 
     def get_bz_params(self, date):
         return {
