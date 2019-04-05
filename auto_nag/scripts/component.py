@@ -27,8 +27,8 @@ class Component(BugbugScript):
 
     def description(self):
         return (
-            f'[Using ML] Assign a component to untriaged bugs ({self.frequency})'
-        )  # noqa
+            f'[Using ML] Assign a component to untriaged bugs ({self.frequency})'  # noqa
+        )
 
     def columns(self):
         return ['id', 'summary', 'component', 'confidence', 'autofixed']

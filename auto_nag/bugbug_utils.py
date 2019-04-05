@@ -14,7 +14,7 @@ from auto_nag.bzcleaner import BzCleaner
 class BugbugScript(BzCleaner):
     def __init__(self):
         super().__init__()
-        self.cache_path = os.path.join('models', f'{self.name()}_cache.json')
+        self.cache_path = os.path.join('models', f'{self.name()}_cache.json')  # noqa
 
     def retrieve_model(self):
         os.makedirs('models', exist_ok=True)
