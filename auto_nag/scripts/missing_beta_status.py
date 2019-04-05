@@ -13,16 +13,7 @@ class MissingBetaStatus(BzCleaner):
         self.versions = utils.get_checked_versions()
 
     def description(self):
-        return 'Bug with a missing beta status flag'
-
-    def name(self):
-        return 'missing_beta_status'
-
-    def template(self):
-        return 'missing-beta-status.html'
-
-    def subject(self):
-        return self.description()
+        return 'Bugs with a missing beta status flag'
 
     def ignore_date(self):
         return True

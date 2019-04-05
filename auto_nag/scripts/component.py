@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import copy
 from auto_nag import logger
 from auto_nag.bugbug_utils import BugbugScript
 from bugbug.models.component import ComponentModel
@@ -10,9 +9,10 @@ from bugbug.models.component import ComponentModel
 
 class Component(BugbugScript):
     def __init__(self):
-        super(Component, self).__init__()
-        self.model = ComponentModel.load(self.retrieve_model('component'))
+        super().__init__()
+        self.model = ComponentModel.load(self.retrieve_model())
         self.autofix_component = {}
+        self.frequency = 'daily'
 
     def add_custom_arguments(self, parser):
         parser.add_argument(
@@ -26,16 +26,9 @@ class Component(BugbugScript):
         self.frequency = args.frequency
 
     def description(self):
-        return 'Assign a component to untriaged bugs'
-
-    def name(self):
-        return 'component'
-
-    def template(self):
-        return 'component.html'
-
-    def subject(self):
-        return f'[Using ML] Assign a component to untriaged bugs ({self.frequency})'  # noqa
+        return (
+            f'[Using ML] Assign a component to untriaged bugs ({self.frequency})'  # noqa
+        )
 
     def columns(self):
         return ['id', 'summary', 'component', 'confidence', 'autofixed']
@@ -48,40 +41,39 @@ class Component(BugbugScript):
 
         return {
             # Ignore bugs for which somebody has ever modified the product or the component.
-            'n1': 1, 'f1': 'product', 'o1': 'changedafter', 'v1': '1970-01-01',
-            'n2': 1, 'f2': 'component', 'o2': 'changedafter', 'v2': '1970-01-01',
-
+            'n1': 1,
+            'f1': 'product',
+            'o1': 'changedafter',
+            'v1': '1970-01-01',
+            'n2': 1,
+            'f2': 'component',
+            'o2': 'changedafter',
+            'v2': '1970-01-01',
             # Ignore closed bugs.
             'bug_status': '__open__',
-
             # Get recent General bugs, and all Untriaged bugs.
             'j3': 'OR',
             'f3': 'OP',
-                'j4': 'AND',  # noqa
-                'f4': 'OP',  # noqa
-                    'f5': 'component', 'o5': 'equals', 'v5': 'General',  # noqa
-                    'f6': 'creation_ts', 'o6': 'greaterthan', 'v6': start_date,  # noqa
-                'f7': 'CP',  # noqa
-                'f8': 'component', 'o8': 'equals', 'v8': 'Untriaged',  # noqa
+            'j4': 'AND',  # noqa
+            'f4': 'OP',  # noqa
+            'f5': 'component',
+            'o5': 'equals',
+            'v5': 'General',  # noqa
+            'f6': 'creation_ts',
+            'o6': 'greaterthan',
+            'v6': start_date,  # noqa
+            'f7': 'CP',  # noqa
+            'f8': 'component',
+            'o8': 'equals',
+            'v8': 'Untriaged',  # noqa
             'f9': 'CP',
         }
 
     def get_bugs(self, date='today', bug_ids=[]):
         # Retrieve bugs to analyze.
-        all_bug_data = super(Component, self).get_bugs(date=date, bug_ids=bug_ids)
-
-        bugs = all_bug_data['bugs']
-
-        # Retrieve history.
-        self.retrieve_history(bugs)
-
-        # Retrieve comments and attachments.
-        self.retrieve_comments_and_attachments(bugs)
-
-        bugs = list(bugs.values())
-
-        # Analyze bugs (make a copy as bugbug could change some properties of the objects).
-        probs = self.model.classify(copy.deepcopy(bugs), True)
+        bugs, probs = super().get_bugs(date=date, bug_ids=bug_ids)
+        if len(bugs) == 0:
+            return {}
 
         # Get the encoded component.
         indexes = probs.argmax(axis=-1)
@@ -94,18 +86,25 @@ class Component(BugbugScript):
             if '::' not in suggestion and bug['product'] == suggestion:
                 continue
 
-            suggestion = self.model.CONFLATED_COMPONENTS_MAPPING.get(suggestion, suggestion)
+            suggestion = self.model.CONFLATED_COMPONENTS_MAPPING.get(
+                suggestion, suggestion
+            )
 
             if '::' not in suggestion:
-                logger.error(f'There is something wrong with this component suggestion! {suggestion}')  # noqa
+                logger.error(
+                    f'There is something wrong with this component suggestion! {suggestion}'
+                )  # noqa
                 continue
 
             i = suggestion.index('::')
             suggested_product = suggestion[:i]
-            suggested_component = suggestion[i + 2:]
+            suggested_component = suggestion[i + 2 :]  # NOQA
 
             # When moving bugs out of the 'General' component, we don't want to change the product (unless it is Firefox).
-            if bug['component'] == 'General' and bug['product'] not in {suggested_product, 'Firefox'}:
+            if bug['component'] == 'General' and bug['product'] not in {
+                suggested_product,
+                'Firefox',
+            }:
                 continue
 
             bug_id = str(bug['id'])
@@ -122,7 +121,11 @@ class Component(BugbugScript):
             if self.frequency == 'daily':
                 results[bug_id] = result
 
-            confidence_threshold_conf = 'confidence_threshold' if bug['component'] != 'General' else 'general_confidence_threshold'
+            confidence_threshold_conf = (
+                'confidence_threshold'
+                if bug['component'] != 'General'
+                else 'general_confidence_threshold'
+            )
 
             if prob[index] >= self.get_config(confidence_threshold_conf):
                 self.autofix_component[bug_id] = {

@@ -19,19 +19,16 @@ class Unlanded(BzCleaner, Nag):
         self.channel_pat = Bugzilla.get_landing_patterns(channels=[channel])
 
     def description(self):
-        return 'Get bugs with unlanded {} uplifts'.format(self.channel)
+        return 'Bugs with unlanded {} uplifts'.format(self.channel)
 
     def name(self):
-        return 'unlanded-' + self.channel
+        return 'unlanded_' + self.channel
 
     def template(self):
         return 'unlanded.html'
 
     def nag_template(self):
         return self.template()
-
-    def subject(self):
-        return self.description()
 
     def has_last_comment_time(self):
         return True

@@ -13,14 +13,8 @@ class MismatchPrioTrackRelease(BzCleaner):
     def description(self):
         return 'Bug tracked for release with a bad priority (P3, P4 or P5)'
 
-    def name(self):
-        return 'mismatch-priority-tracking'
-
     def template(self):
-        return 'mismatch-priority-tracking.html'
-
-    def subject(self):
-        return self.description()
+        return 'mismatch_priority_tracking.html'
 
     def ignore_date(self):
         return True

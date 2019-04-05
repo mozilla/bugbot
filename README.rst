@@ -5,7 +5,12 @@
 
     
 This tool is used by Mozilla release management to send emails to the Firefox developers. It will query the bugzilla.mozilla.org database and send emails to Mozilla developers and their managers (if Mozilla staff).
+
 The tool will also notify release managers about potential issues in bugzilla and autofix some categories of issues.
+
+The list of checkers is documented on the Mozilla wiki: 
+https://wiki.mozilla.org/Release_Management/autonag
+
 
 This package currently uses `remoteobjects <https://github.com/saymedia/remoteobjects>`_ models, Mozilla's `Bugzilla REST API <https://wiki.mozilla.org/Bugzilla:REST_API>`_, and optionally the Mozilla LDAP `phonebook <https://github.com/mozilla/mobile-phonebook>`_ (to access bug assignees' managers & Mozilla email addresses).
 

@@ -1,17 +1,25 @@
+import copy
 import lzma
+import json
 import os
 import shutil
 from urllib.request import urlretrieve
 import requests
+from bugbug import bugzilla
+from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import Bugzilla
 from auto_nag.bzcleaner import BzCleaner
 
 
 class BugbugScript(BzCleaner):
-    def retrieve_model(self, name):
+    def __init__(self):
+        super().__init__()
+        self.cache_path = os.path.join('models', f'{self.name()}_cache.json')  # noqa
+
+    def retrieve_model(self):
         os.makedirs('models', exist_ok=True)
 
-        file_name = f'{name}model'  # noqa: E999
+        file_name = f'{self.name()}model'  # noqa: E999
         file_path = os.path.join('models', file_name)
 
         model_url = f'https://index.taskcluster.net/v1/task/project.releng.services.project.testing.bugbug_train.latest/artifacts/public/{file_name}.xz'  # noqa
@@ -39,46 +47,67 @@ class BugbugScript(BzCleaner):
     def ignore_bug_summary(self):
         return False
 
-    def all_include_fields(self):
-        return True
-
     def get_data(self):
-        return {'bugs': {}}
+        return list()
+
+    def amend_bzparams(self, params, bug_ids):
+        super().amend_bzparams(params, bug_ids)
+        params['include_fields'] = 'id'
 
     def bughandler(self, bug, data):
-        data['bugs'][bug['id']] = bug
+        data.append(bug['id'])
 
-    def retrieve_history(self, bugs):
-        """Retrieve bug history"""
+    def remove_using_history(self, bugs):
+        return bugs
 
-        def history_handler(bug):
-            bugs[int(bug['id'])]['history'] = bug['history']
+    def get_recent_bugs(self):
+        try:
+            with open(self.cache_path, 'r') as f:
+                recent_bugs = json.load(f)
+        except FileNotFoundError:
+            recent_bugs = {}
 
-        Bugzilla(
-            bugids=[bug_id for bug_id in bugs.keys()], historyhandler=history_handler
-        ).get_data().wait()
+        cleaned_recent_bugs = {}
+        for bug_id, date in recent_bugs.items():
+            delta = lmdutils.get_date_ymd('today') - lmdutils.get_date_ymd(date)
+            if delta.days < 7:
+                cleaned_recent_bugs[int(bug_id)] = date
 
-    def retrieve_comments_and_attachments(self, bugs):
-        """Retrieve bug comments and attachments"""
+        return cleaned_recent_bugs
 
-        def comment_handler(bug, bug_id):
-            bugs[int(bug_id)]['comments'] = bug['comments']
+    def add_recent_bugs(self, recent_bugs, bugs):
+        for bug in bugs:
+            recent_bugs[int(bug['id'])] = lmdutils.get_today()
 
-        def attachment_handler(bug, bug_id):
-            bugs[int(bug_id)]['attachments'] = bug
+        with open(self.cache_path, 'w') as f:
+            json.dump(recent_bugs, f)
 
-        Bugzilla(
-            bugids=[bug_id for bug_id in bugs.keys()],
-            commenthandler=comment_handler,
-            attachmenthandler=attachment_handler,
-            comment_include_fields=['text', 'creation_time', 'count'],
-            attachment_include_fields=[
-                'id',
-                'is_obsolete',
-                'flags',
-                'is_patch',
-                'creator',
-                'content_type',
-                'creation_time',
-            ],
-        ).get_data().wait()
+    def get_bugs(self, date='today', bug_ids=[]):
+        # Retrieve bugs to analyze.
+        old_CHUNK_SIZE = Bugzilla.BUGZILLA_CHUNK_SIZE
+        try:
+            Bugzilla.BUGZILLA_CHUNK_SIZE = 7000
+            bug_ids = super().get_bugs(date=date, bug_ids=bug_ids)
+        finally:
+            Bugzilla.BUGZILLA_CHUNK_SIZE = old_CHUNK_SIZE
+
+        # Ignore bugs that we didn't manage to classify recently.
+        recent_bugs = self.get_recent_bugs()
+
+        bug_ids = [bug_id for bug_id in bug_ids if bug_id not in recent_bugs]
+
+        bugs = bugzilla._download(bug_ids)
+        bugs = list(bugs.values())
+
+        # Add bugs that we are classifying now to the cache.
+        self.add_recent_bugs(recent_bugs, bugs)
+
+        bugs = self.remove_using_history(bugs)
+
+        # Analyze bugs (make a copy as bugbug could change some properties of the objects).
+        if len(bug_ids) > 0:
+            probs = self.model.classify(copy.deepcopy(bugs), True)
+        else:
+            probs = []
+
+        return bugs, probs

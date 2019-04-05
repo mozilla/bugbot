@@ -10,15 +10,6 @@ class Stalled(BzCleaner):
         super(Stalled, self).__init__()
 
     def description(self):
-        return 'Get the closed bugs with stalled keyword'
-
-    def name(self):
-        return 'stalled'
-
-    def template(self):
-        return 'stalled.html'
-
-    def subject(self):
         return 'Closed bugs with stalled keyword'
 
     def get_bz_params(self, date):

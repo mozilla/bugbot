@@ -19,15 +19,6 @@ class P2MergeDay(BzCleaner):
         return False
 
     def description(self):
-        return 'Get P2 bugs and assigned on merge day'
-
-    def name(self):
-        return 'workflow-p2-merge-day'
-
-    def template(self):
-        return 'workflow_p2_merge_day.html'
-
-    def subject(self):
         return 'P2 bugs with an assignee on merge day'
 
     def has_product_component(self):
