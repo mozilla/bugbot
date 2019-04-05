@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import copy
 from auto_nag import logger
 from auto_nag.bugbug_utils import BugbugScript
 from bugbug.models.component import ComponentModel
@@ -10,8 +9,8 @@ from bugbug.models.component import ComponentModel
 
 class Component(BugbugScript):
     def __init__(self):
-        super(Component, self).__init__()
-        self.model = ComponentModel.load(self.retrieve_model('component'))
+        super().__init__()
+        self.model = ComponentModel.load(self.retrieve_model())
         self.autofix_component = {}
 
     def add_custom_arguments(self, parser):
@@ -68,20 +67,9 @@ class Component(BugbugScript):
 
     def get_bugs(self, date='today', bug_ids=[]):
         # Retrieve bugs to analyze.
-        all_bug_data = super(Component, self).get_bugs(date=date, bug_ids=bug_ids)
-
-        bugs = all_bug_data['bugs']
-
-        # Retrieve history.
-        self.retrieve_history(bugs)
-
-        # Retrieve comments and attachments.
-        self.retrieve_comments_and_attachments(bugs)
-
-        bugs = list(bugs.values())
-
-        # Analyze bugs (make a copy as bugbug could change some properties of the objects).
-        probs = self.model.classify(copy.deepcopy(bugs), True)
+        bugs, probs = super().get_bugs(date=date, bug_ids=bug_ids)
+        if len(bugs) == 0:
+            return {}
 
         # Get the encoded component.
         indexes = probs.argmax(axis=-1)
