@@ -74,10 +74,6 @@
             "release-mgmt@mozilla.com"
         ]
     },
-    "has_reg_range":
-    {
-        "days_lookup": 30
-    },
     "has_str_no_range":
     {
         "days_lookup": 10,
@@ -98,26 +94,6 @@
             "^[rR]emove",
             "^[cC]reate",
             "^[iI]mplement"
-        ]
-    },
-    "unaffected_affected_no_reg":
-    {
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "ehumphries@mozilla.com",
-            "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com"
-        ],
-        "days_lookup": 7,
-        "word_blacklist":
-        [
-            "[pP]ermafailing",
-            "[pP]erma-fail",
-            "[pP]erma ",
-            "[iI]ntermittent ",
-            "[bB]uild bustage",
-            "^[bB]ustage"
         ]
     },
     "regression":

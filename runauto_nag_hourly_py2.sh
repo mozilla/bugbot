@@ -18,10 +18,6 @@ python -m auto_nag.scripts.leave_open
 # common
 # python -m auto_nag.scripts.has_str_no_hasstr
 
-# hasRegressionRange is set but no regression keyword
-# common
-python -m auto_nag.scripts.has_regression_range_no_keyword
-
 # Closes crash bug without any crashes for the last 12 weeks
 # pretty common
 python -m auto_nag.scripts.no_crashes
