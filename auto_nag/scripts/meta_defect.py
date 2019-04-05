@@ -12,7 +12,7 @@ class MetaDefect(BzCleaner):
         self.nmonths = utils.get_config(self.name(), 'months_lookup')
 
     def description(self):
-        return 'Get task with the "meta" keyword for the last {} months'.format(
+        return 'Get defect with the "meta" keyword for the last {} months'.format(
             self.nmonths
         )
 
@@ -23,7 +23,7 @@ class MetaDefect(BzCleaner):
         return "meta_defect.html"
 
     def subject(self):
-        return 'Task with the "meta" keyword with activity for the last {} months'.format(
+        return 'Defect with the "meta" keyword with activity for the last {} months'.format(
             self.nmonths
         )
 
