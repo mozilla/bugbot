@@ -7,9 +7,11 @@ from datetime import datetime
 import dateutil.parser
 from dateutil.relativedelta import relativedelta
 import humanize
+import inspect
 from jinja2 import Environment, FileSystemLoader
 from libmozdata.bugzilla import Bugzilla
 from libmozdata import utils as lmdutils
+import os
 import pytz
 import six
 from auto_nag import mail, utils, logger
@@ -19,11 +21,30 @@ from auto_nag.nag_me import Nag
 class BzCleaner(object):
     def __init__(self):
         super(BzCleaner, self).__init__()
+        self._set_tool_name()
         self.has_autofix = False
         self.no_manager = set()
         self.auto_needinfo = {}
         self.has_flags = False
         self.test_mode = utils.get_config('common', 'test', False)
+
+    def _is_a_bzcleaner_init(self, info):
+        if info[3] == '__init__':
+            frame = info[0]
+            args = inspect.getargvalues(frame)
+            if 'self' in args.locals:
+                zelf = args.locals['self']
+                return isinstance(zelf, BzCleaner)
+        return False
+
+    def _set_tool_name(self):
+        stack = inspect.stack()
+        init = [s for s in stack if self._is_a_bzcleaner_init(s)]
+        last = init[-1]
+        info = inspect.getframeinfo(last[0])
+        name = os.path.basename(info.filename)
+        name = os.path.splitext(name)[0]
+        self.__tool_name__ = name
 
     def description(self):
         """Get the description for the help"""
@@ -31,19 +52,19 @@ class BzCleaner(object):
 
     def name(self):
         """Get the tool name"""
-        return ''
+        return self.__tool_name__
 
     def needinfo_template(self):
         """Get the txt template filename"""
-        return ''
+        return self.name() + '_needinfo.txt'
 
     def template(self):
         """Get the html template filename"""
-        return ''
+        return self.name() + '.html'
 
     def subject(self):
         """Get the partial email subject"""
-        return ''
+        return self.description()
 
     def get_email_subject(self, date):
         """Get the email subject with a date or not"""

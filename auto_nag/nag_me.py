@@ -74,7 +74,7 @@ class Nag(object):
         return True
 
     def nag_template(self):
-        return ''
+        return self.name() + '_nag.html'
 
     def get_extra_for_nag_template(self):
         return {}

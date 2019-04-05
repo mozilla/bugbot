@@ -10,15 +10,6 @@ class RegressionButDefectTask(BzCleaner):
         super(RegressionButDefectTask, self).__init__()
 
     def description(self):
-        return "Get defect or task with the 'feature' keyword"
-
-    def name(self):
-        return "feature_but_type_defect_task"
-
-    def template(self):
-        return "feature_but_type_defect_task.html"
-
-    def subject(self):
         return "Defect or task with the 'feature' keyword"
 
     def get_bz_params(self, date):

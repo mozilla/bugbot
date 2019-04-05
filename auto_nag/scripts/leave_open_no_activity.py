@@ -16,26 +16,12 @@ class LeaveOpenNoActivity(BzCleaner):
         self.blacklist = set(utils.get_config(self.name(), 'blacklist', []))
 
     def description(self):
-        return 'Get bugs with leave-open keyword and no activity for the last {} months'.format(
-            self.nmonths
-        )
-
-    def name(self):
-        return 'leave-open-no-activity'
-
-    def template(self):
-        return 'leave_open_no_activity.html'
-
-    def needinfo_template(self):
-        return 'ni_for_leave_open_no_activity_comment.txt'
-
-    def get_extra_for_needinfo_template(self):
-        return self.get_extra_for_template()
-
-    def subject(self):
         return 'Bugs with leave-open keyword and no activity for the last {} months'.format(
             self.nmonths
         )
+
+    def get_extra_for_needinfo_template(self):
+        return self.get_extra_for_template()
 
     def get_extra_for_template(self):
         return {'nmonths': self.nmonths}

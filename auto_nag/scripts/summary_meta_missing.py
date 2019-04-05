@@ -10,16 +10,7 @@ class MetaSummaryMissing(BzCleaner):
         super(MetaSummaryMissing, self).__init__()
 
     def description(self):
-        return 'Get bugs without the meta keyword but with [meta] in the title'
-
-    def name(self):
-        return 'summary_meta_missing'
-
-    def template(self):
-        return 'summary_meta_missing.html'
-
-    def subject(self):
-        return self.description()
+        return 'Bugs without the meta keyword but with [meta] in the title'
 
     def get_bz_params(self, date):
         days_lookup = self.get_config('days_lookup', default=180)

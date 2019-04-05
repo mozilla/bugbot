@@ -17,17 +17,6 @@ class AssigneeNoLogin(BzCleaner):
         self.people = people.People()
 
     def description(self):
-        return 'Get the open and assigned bugs where the assignee\'s last login was more than {} months ago'.format(
-            self.nmonths
-        )
-
-    def name(self):
-        return 'assignee-no-login'
-
-    def template(self):
-        return 'assignee_no_login.html'
-
-    def subject(self):
         return 'Open and assigned bugs where the assignee\'s last login was more than {} months ago'.format(
             self.nmonths
         )
@@ -37,9 +26,6 @@ class AssigneeNoLogin(BzCleaner):
 
     def has_assignee(self):
         return True
-
-    def needinfo_template(self):
-        return 'assignee_no_login_comment.txt'
 
     def get_extra_for_needinfo_template(self):
         return self.get_extra_for_template()

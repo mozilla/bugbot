@@ -14,15 +14,6 @@ class TrackedBadSeverity(BzCleaner):
     def description(self):
         return 'Bug tracked in a release but with a small severity'
 
-    def name(self):
-        return 'tracked_bad_severity'
-
-    def template(self):
-        return 'tracked-bad-severity.html'
-
-    def subject(self):
-        return self.description()
-
     def ignore_date(self):
         return True
 

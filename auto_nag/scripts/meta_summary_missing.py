@@ -11,16 +11,7 @@ class MetaSummaryMissing(BzCleaner):
         self.autofix_meta = {}
 
     def description(self):
-        return 'Get bugs with the meta keyword but not [meta] in the title'
-
-    def name(self):
-        return 'meta_summary_missing'
-
-    def template(self):
-        return 'meta_summary_missing.html'
-
-    def subject(self):
-        return self.description()
+        return 'Bugs with the meta keyword but not [meta] in the title'
 
     def get_autofix_change(self):
         return self.autofix_meta

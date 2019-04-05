@@ -7,7 +7,7 @@
             "necko": "necko_round_robin.json"
         }
     },
-    "no-assignee":
+    "no_assignee":
     {
         "days_lookup": 45,
         "reporter_exception":
@@ -54,7 +54,7 @@
         ],
         "log": "/tmp/auto_nag_errors.log"
     },
-    "has-str-no-hasstr":
+    "has_str_no_hasstr":
     {
         "products":
         [
@@ -66,7 +66,7 @@
             "WebExtensions"
         ]
     },
-    "missed-uplifts":
+    "missed_uplifts":
     {
         "receivers":
         [
@@ -139,7 +139,7 @@
         ],
         "from": "release-mgmt@mozilla.com"
     },
-    "nocrashes":
+    "no_crashes":
     {
         "number_of_weeks": 12,
         "reporter_exception":
@@ -152,21 +152,21 @@
         ],
         "sec": false
     },
-    "newbie-with-ni":
+    "newbie_with_ni":
     {
         "number_of_days": 14,
         "number_of_comments": 2
     },
-    "assignee-no-login":
+    "assignee_no_login":
     {
         "number_of_months": 12
     },
-    "not-landed":
+    "not_landed":
     {
         "number_of_weeks": 2,
         "number_of_years": 2
     },
-    "ni-triage-owner":
+    "ni_triage_owner":
     {
         "types": ["defect"],
         "number_of_weeks": 2,
@@ -180,7 +180,7 @@
             }
         }
     },
-    "ni-from-manager":
+    "ni_from_manager":
     {
         "white-list":
         [
@@ -189,7 +189,7 @@
         "days_lookup": 183,
         "number_of_weeks": 1
     },
-    "leave-open-no-activity":
+    "leave_open_no_activity":
     {
         "blacklist":
         [
@@ -198,7 +198,7 @@
         "months_lookup": 6,
         "max_ni": 3
     },
-    "meta-no-deps-no-activity":
+    "meta_no_deps_no_activity":
     {
         "blacklist":
         [
@@ -215,7 +215,7 @@
     {
         "days_lookup": 100
     },
-    "duplicate":
+    "copy_duplicate_info":
     {
         "days_lookup": 10
     },
@@ -227,10 +227,6 @@
             "sylvestre@mozilla.com",
             "release-mgmt@mozilla.com"
         ]
-    },
-    "reporter-with-ni":
-    {
-        "reverse_order": true
     },
     "escalation":
     {
@@ -325,7 +321,7 @@
             "dcamp@mozilla.com"
         ]
     },
-    "workflow-no-priority":
+    "workflow_no_priority":
     {
         "types": ["defect"],
         "max-years": 2,
@@ -354,12 +350,12 @@
             }
         }
     },
-    "workflow-p3-p4-p5":
+    "workflow_p3_p4_p5":
     {
         "types": ["defect"],
         "months_lookup": 6
     },
-    "workflow-p2-no-activity":
+    "workflow_p2_no_activity":
     {
         "types": ["defect"],
         "months_lookup": 3,
@@ -375,7 +371,7 @@
             }
         }
     },
-    "workflow-p1-no-assignee":
+    "workflow_p1_no_assignee":
     {
         "types": ["defect"],
         "ndays":
@@ -397,7 +393,7 @@
             }
         }
     },
-    "workflow-p1-no-activity":
+    "workflow_p1_no_activity":
     {
         "types": ["defect"],
         "ndays":
@@ -448,7 +444,7 @@
             "cdenizet@mozilla.com"
         ]
     },
-    "code-freeze-week":
+    "code_freeze_week":
     {
         "receivers":
         [
