@@ -46,7 +46,6 @@ class Regression(BugbugScript):
             'f4': 'longdesc', 'o4': 'changedafter', 'v4': start_date,
             'f5': 'longdesc', 'o5': 'changedbefore', 'v5': end_date,
             'f6': 'reporter', 'o6': 'nowords', 'v6': reporter_blacklist,
-            'bug_type': 'defect',
         }
 
         return params
