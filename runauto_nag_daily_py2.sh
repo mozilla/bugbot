@@ -37,10 +37,6 @@ python -m auto_nag.scripts.topcrash_bad_severity
 # Pretty rare
 python -m auto_nag.scripts.feature_regression
 
-# Bug marked as unaffecting the release bug affecting beta/nightly
-# Pretty common
-python -m auto_nag.scripts.unaffected_affected_no_reg
-
 # Version is set but status_firefox isn't
 # Very common
 python -m auto_nag.scripts.version_affected
