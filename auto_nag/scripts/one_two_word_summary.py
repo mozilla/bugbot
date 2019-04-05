@@ -10,16 +10,7 @@ class OneTwoWordSummary(BzCleaner):
         super(OneTwoWordSummary, self).__init__()
 
     def description(self):
-        return 'Get bugs with only one or two words in the summary'
-
-    def name(self):
-        return 'one_two_word_summary'
-
-    def template(self):
-        return 'one_two_word_summary.html'
-
-    def subject(self):
-        return self.description()
+        return 'Bugs with only one or two words in the summary'
 
     def get_bz_params(self, date):
         days_lookup = self.get_config('days_lookup', default=7)

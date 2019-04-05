@@ -18,28 +18,20 @@ class Tracking(BzCleaner, Nag):
 
     def description(self):
         if self.untouched:
-            return 'Get the tracked bugs in {} {} and untouched this week'.format(
+            return 'Bugs which are tracked in {} {} and untouched this week'.format(
                 self.channel, self.version
             )
 
-        return 'Get the tracked bugs in {} {}'.format(self.channel, self.version)
+        return 'Bugs which are tracked in {} {}'.format(self.channel, self.version)
 
     def name(self):
-        return 'tracking' + ('-untouched' if self.untouched else '')
+        return 'tracking' + ('_untouched' if self.untouched else '')
 
     def template(self):
         return 'tracking.html'
 
     def nag_template(self):
         return 'tracking_nag.html'
-
-    def subject(self):
-        if self.untouched:
-            return 'Bugs which are tracked in {} {} and untouched this week'.format(
-                self.channel, self.version
-            )
-
-        return 'Bugs which are tracked in {} {}'.format(self.channel, self.version)
 
     def has_last_comment_time(self):
         return True

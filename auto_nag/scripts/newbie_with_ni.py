@@ -17,17 +17,6 @@ class NewbieWithNI(BzCleaner):
         self.autofix_reporters = {}
 
     def description(self):
-        return 'Get bugs where the reporter has a needinfo and no activity for the last {} weeks'.format(
-            self.ndays
-        )
-
-    def name(self):
-        return 'newbie-with-ni'
-
-    def template(self):
-        return 'newbie_with_ni.html'
-
-    def subject(self):
         return 'Bugs where the reporter has a needinfo and no activity for the last {} weeks'.format(
             self.ndays
         )

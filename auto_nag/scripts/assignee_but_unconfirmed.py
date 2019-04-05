@@ -12,15 +12,6 @@ class assigneeButUnconfirmed(BzCleaner):
     def description(self):
         return 'Get unconfirmed bugs with assignee'
 
-    def name(self):
-        return 'assignee_but_unconfirmed'
-
-    def template(self):
-        return 'assignee_but_unconfirmed.html'
-
-    def subject(self):
-        return self.description()
-
     def get_bz_params(self, date):
         params = {
             'resolution': '---',

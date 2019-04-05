@@ -22,16 +22,7 @@ class NoAssignee(BzCleaner):
         self.hgdata = {}
 
     def description(self):
-        return 'Get bugs with no assignees and a patch which landed in m-c'
-
-    def name(self):
-        return 'no-assignee'
-
-    def template(self):
-        return 'no_assignee.html'
-
-    def subject(self):
-        return 'Bugs with no assignees'
+        return 'Bugs with no assignees and a patch which landed in m-c'
 
     def columns(self):
         return ['id', 'summary', 'email']

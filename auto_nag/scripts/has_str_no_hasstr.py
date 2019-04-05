@@ -17,18 +17,7 @@ class HasStrNoHasstr(BzCleaner):
         super(HasStrNoHasstr, self).__init__()
 
     def description(self):
-        return (
-            'Get the bugs with no has_str and a "Steps to reproduce" in first comment'
-        )
-
-    def name(self):
-        return 'has-str-no-hasstr'
-
-    def template(self):
-        return 'has_str_no_hasstr.html'
-
-    def subject(self):
-        return 'Bugs with no has_str and str in the first comment'
+        return 'Bugs with no has_str and STR in the first comment'
 
     def get_autofix_change(self):
         return {'cf_has_str': 'yes'}

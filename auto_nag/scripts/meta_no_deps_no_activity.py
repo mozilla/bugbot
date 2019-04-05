@@ -16,26 +16,12 @@ class MetaNoDepsNoActivity(BzCleaner):
         self.blacklist = set(utils.get_config(self.name(), 'blacklist', []))
 
     def description(self):
-        return 'Get bugs with meta keyword, not depending on bugs and no activity for the last {} months'.format(
+        return 'Bugs with meta keyword, not depending on bugs and no activity for the last {} months'.format(
             self.nmonths
         )
-
-    def name(self):
-        return 'meta-no-deps-no-activity'
-
-    def template(self):
-        return 'meta_no_deps_no_activity.html'
-
-    def needinfo_template(self):
-        return 'ni_for_meta_no_deps_no_activity_comment.txt'
 
     def get_extra_for_needinfo_template(self):
         return self.get_extra_for_template()
-
-    def subject(self):
-        return 'Bugs with meta keyword, no depending on bugs and no activity for the last {} months'.format(
-            self.nmonths
-        )
 
     def get_extra_for_template(self):
         return {'nmonths': self.nmonths}

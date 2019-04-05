@@ -14,15 +14,6 @@ class VersionAffected(BzCleaner):
     def description(self):
         return 'Bug with version set but not status_firefox'
 
-    def name(self):
-        return 'version_affected'
-
-    def template(self):
-        return 'version_affected.html'
-
-    def subject(self):
-        return self.description()
-
     def get_bz_params(self, date):
         params = {
             'resolution': ['---', 'FIXED'],

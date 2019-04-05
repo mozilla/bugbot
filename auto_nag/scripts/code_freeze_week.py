@@ -41,15 +41,6 @@ class CodeFreezeWeek(BzCleaner):
     def description(self):
         return 'Bugs with patches which landed during the soft freeze week'
 
-    def name(self):
-        return 'code-freeze-week'
-
-    def template(self):
-        return 'code_freeze_week.html'
-
-    def subject(self):
-        return self.description()
-
     def get_extra_for_template(self):
         return {
             'nightly': self.nightly,
