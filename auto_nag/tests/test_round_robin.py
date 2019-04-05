@@ -4,46 +4,55 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import json
 import unittest
 from mock import patch
 
 from auto_nag.people import People
-from auto_nag.round_robin import BadFallback, RoundRobin
+from auto_nag.round_robin import RoundRobin
+from auto_nag.calendar import BadFallback
 
 
 class TestRoundRobin(unittest.TestCase):
 
-    config = {
-        'doc': 'The triagers need to have a \'Fallback\' entry.',
-        'triagers': {
-            'A B': {'bzmail': 'ab@mozilla.com'},
-            'C D': {'bzmail': 'cd@mozilla.com'},
-            'E F': {'bzmail': 'ef@mozilla.com'},
-            'Fallback': {'bzmail': 'gh@mozilla.com'},
-        },
-        'components': {'P1::C1': 'default', 'P2::C2': 'default', 'P3::C3': 'special'},
-        'default': {
-            'doc': 'All the dates are the duty end dates.',
+    default = {
+        'duty-start-dates': {
+            '2019-02-14': 'A B',
+            '2019-02-21': 'C D',
+            '2019-02-28': 'E F',
+        }
+    }
+
+    special = {
+        'duty-start-dates': {
+            '2019-02-14': 'E F',
             '2019-02-21': 'A B',
             '2019-02-28': 'C D',
-            '2019-03-07': 'E F',
-        },
-        'special': {
-            'doc': 'All the dates are the duty end dates.',
-            '2019-02-21': 'E F',
-            '2019-02-28': 'A B',
-            '2019-03-07': 'C D',
-        },
+        }
+    }
+
+    config = {
+        'fallback': 'G H',
+        'components': {'P1::C1': 'default', 'P2::C2': 'default', 'P3::C3': 'special'},
+        'default': {'calendar': json.dumps(default)},
+        'special': {'calendar': json.dumps(special)},
+    }
+
+    config_ics = {
+        'fallback': 'G H',
+        'components': {'P1::C1': 'default', 'P2::C2': 'default'},
+        'default': {'calendar': 'auto_nag/tests/calendar.ics'},
     }
 
     people = People(
         [
             {
-                'mail': 'gh@mozilla.com',
-                'cn': 'G H',
+                'mail': '{}{}@mozilla.com'.format(x, y),
+                'cn': '{} {}'.format(x.upper(), y.upper()),
                 'ismanager': 'FALSE',
                 'title': 'nothing',
             }
+            for x, y in zip('aceg', 'bdfh')
         ]
     )
 
@@ -93,16 +102,16 @@ class TestRoundRobin(unittest.TestCase):
             )
 
             assert rr.get(self.mk_bug('P1::C1'), '2019-02-28') == (
-                'cd@mozilla.com',
-                'cd',
+                'ef@mozilla.com',
+                'ef',
             )
             assert rr.get(self.mk_bug('P2::C2'), '2019-02-28') == (
-                'cd@mozilla.com',
-                'cd',
+                'ef@mozilla.com',
+                'ef',
             )
             assert rr.get(self.mk_bug('P3::C3'), '2019-02-28') == (
-                'ab@mozilla.com',
-                'ab',
+                'cd@mozilla.com',
+                'cd',
             )
 
             assert rr.get(self.mk_bug('P1::C1'), '2019-03-05') == (
@@ -136,18 +145,76 @@ class TestRoundRobin(unittest.TestCase):
                 'ij',
             )
 
+    def test_get_ics(self):
+        with patch.object(RoundRobin, 'get_nick', new=TestRoundRobin._get_nick):
+            rr = RoundRobin(
+                rr={'team': TestRoundRobin.config_ics}, people=TestRoundRobin.people
+            )
+
+            assert rr.get(self.mk_bug('P1::C1'), '2019-02-17') == (
+                'ab@mozilla.com',
+                'ab',
+            )
+            assert rr.get(self.mk_bug('P2::C2'), '2019-02-17') == (
+                'ab@mozilla.com',
+                'ab',
+            )
+
+            assert rr.get(self.mk_bug('P1::C1'), '2019-02-24') == (
+                'cd@mozilla.com',
+                'cd',
+            )
+            assert rr.get(self.mk_bug('P2::C2'), '2019-02-24') == (
+                'cd@mozilla.com',
+                'cd',
+            )
+
+            assert rr.get(self.mk_bug('P1::C1'), '2019-02-28') == (
+                'ef@mozilla.com',
+                'ef',
+            )
+            assert rr.get(self.mk_bug('P2::C2'), '2019-02-28') == (
+                'ef@mozilla.com',
+                'ef',
+            )
+
+            assert rr.get(self.mk_bug('P1::C1'), '2019-03-05') == (
+                'ef@mozilla.com',
+                'ef',
+            )
+            assert rr.get(self.mk_bug('P2::C2'), '2019-03-05') == (
+                'ef@mozilla.com',
+                'ef',
+            )
+
+            assert rr.get(self.mk_bug('P1::C1'), '2019-03-08') == (
+                'gh@mozilla.com',
+                'gh',
+            )
+            assert rr.get(self.mk_bug('P2::C2'), '2019-03-08') == (
+                'gh@mozilla.com',
+                'gh',
+            )
+
+            assert rr.get(self.mk_bug('Foo::Bar'), '2019-03-01') == (
+                'ij@mozilla.com',
+                'ij',
+            )
+
     def test_get_who_to_nag(self):
         rr = RoundRobin(
             rr={'team': TestRoundRobin.config}, people=TestRoundRobin.people
         )
 
-        assert rr.get_who_to_nag('2019-02-25') == {}
-        assert rr.get_who_to_nag('2019-02-28') == {'gh@mozilla.com': ['']}
-        assert rr.get_who_to_nag('2019-03-05') == {'gh@mozilla.com': ['']}
-        assert rr.get_who_to_nag('2019-03-07') == {'gh@mozilla.com': ['']}
-        assert rr.get_who_to_nag('2019-03-10') == {'gh@mozilla.com': ['']}
+        empty = {'team': {'nobody': True, 'persons': []}}
 
-        with patch.object(RoundRobin, 'is_mozilla', return_value=False):
+        assert rr.get_who_to_nag('2019-02-25') == {}
+        assert rr.get_who_to_nag('2019-03-01') == {'gh@mozilla.com': empty}
+        assert rr.get_who_to_nag('2019-03-05') == {'gh@mozilla.com': empty}
+        assert rr.get_who_to_nag('2019-03-07') == {'gh@mozilla.com': empty}
+        assert rr.get_who_to_nag('2019-03-10') == {'gh@mozilla.com': empty}
+
+        with patch.object(People, 'get_moz_mail', return_value=None):
             rr = RoundRobin(
                 rr={'team': TestRoundRobin.config}, people=TestRoundRobin.people
             )

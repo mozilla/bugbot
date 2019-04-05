@@ -1,6 +1,17 @@
-<p>The following {{ plural('file', filenames) }} need to be updated in order to have a triage owner:</p>
+<p>The following {{ plural('calendar needs', calendars, pword='calendar need') }} to be updated in order to have a triage owner:</p>
 <ul>
-  {% for filename, url in filenames -%}
-  <li><a href="{{ url }}">{{ filename }}</a></li>
+  {% for name, calendar in calendars.items() -%}
+  {% if calendar['nobody'] -%}
+  <li>{{ name }}: no triage owner for the next week.</li>
+  {% else -%}
+  <li>
+    {{ name }}: cannot find the following {{ plural('person', calendar['persons']) }}:
+    <ul>
+      {% for person in calendar['persons'] -%}
+      <li>{{ person }}</li>
+      {% endfor -%}
+    </ul>
+  </li>
+  {% endif -%}
   {% endfor -%}
 </ul>

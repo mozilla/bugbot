@@ -4,7 +4,8 @@
         "days_to_nag": 7,
         "teams":
         {
-            "necko": "necko_round_robin.json"
+            "necko": "necko_round_robin.json",
+            "Core::General": "core_general_round_robin.json"
         }
     },
     "no_assignee":
