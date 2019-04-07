@@ -69,6 +69,7 @@
     },
     "missed_uplifts":
     {
+        "types": ["defect"],
         "receivers":
         [
             "calixte@mozilla.com",
