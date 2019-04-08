@@ -459,5 +459,22 @@
         [
             "wptsync@mozilla.bugs"
         ]
+    },
+    "defectenhancementtask":
+    {
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "ehumphries@mozilla.com",
+            "sylvestre@mozilla.com",
+            "mcastelluccio@mozilla.com"
+        ],
+        "days_lookup": 3,
+        "reporter_blacklist":
+        [
+            "intermittent-bug-filer@mozilla.bugs",
+            "wptsync@mozilla.bugs"
+        ],
+        "confidence_threshold": 0.8
     }
 }
