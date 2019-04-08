@@ -8,24 +8,24 @@ from .round_robin import RoundRobin
 
 
 def send_mail(nag, dryrun=False):
-    for fb, filenames in nag.items():
+    for fb, calendars in nag.items():
         mail.send_from_template(
             'round_robin_fallback_email.html',
             fb,
             'Triage owners need to be updated',
             Cc=utils.get_config('common', 'receivers'),
             dryrun=dryrun,
-            filenames=filenames,
+            calendars=calendars,
             plural=utils.plural,
         )
 
 
 def check_people(date, dryrun=False):
     rr = RoundRobin()
-    # nag is a dict: mozmail -> list of filenames
+    # nag is a dict: persons -> list of persons
+    #                team -> team name
     nag = rr.get_who_to_nag(date)
-    url = 'https://github.com/mozilla/relman-auto-nag/tree/master/auto_nag/scripts/configs/{}'
-    nag = {fb: [(fn, url.format(fn)) for fn in fns] for fb, fns in nag.items()}
+    print(nag)
     send_mail(nag, dryrun=dryrun)
 
 

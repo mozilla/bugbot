@@ -13,15 +13,6 @@ class CopyDuplicateInfo(BzCleaner):
         self.autofix_data = {}
 
     def description(self):
-        return 'Get the bugs which are DUPLICATE and some info haven\'t been moved'
-
-    def name(self):
-        return 'duplicate'
-
-    def template(self):
-        return 'duplicate.html'
-
-    def subject(self):
         return 'Bugs which are DUPLICATE and some info haven\'t been moved'
 
     def has_product_component(self):

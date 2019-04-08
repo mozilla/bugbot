@@ -37,10 +37,6 @@ python -m auto_nag.scripts.topcrash_bad_severity
 # Pretty rare
 python -m auto_nag.scripts.feature_regression
 
-# Bug marked as unaffecting the release bug affecting beta/nightly
-# Pretty common
-python -m auto_nag.scripts.unaffected_affected_no_reg
-
 # Version is set but status_firefox isn't
 # Very common
 python -m auto_nag.scripts.version_affected
@@ -85,6 +81,15 @@ python -m auto_nag.scripts.not_landed
 # https://docs.google.com/document/d/1EHuWa-uR-7Sq63X1ZiDN1mvJ9gQtWiqYrCifkySJyW0/edit#
 # https://docs.google.com/drawings/d/1oZA-AUvkOxGMNhZNofL8Wlfk6ol3o5ATQCV5DJJKbwM/edit
 python -m auto_nag.scripts.workflow.multi_nag
+
+# Enhancement or task with the "regression" keyword
+python -m auto_nag.scripts.regression_but_type_enhancement_task
+
+# Defect or task with the "feature" keyword
+python -m auto_nag.scripts.feature_but_type_defect_task
+
+# Defect with the "meta" keyword
+python -m auto_nag.scripts.meta_defect
 
 # reporter has a needinfo and no activity for the last X weeks
 # Pretty common

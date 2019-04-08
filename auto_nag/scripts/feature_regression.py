@@ -6,29 +6,21 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class FeatureRegression(BzCleaner):
-
     def __init__(self):
         super(FeatureRegression, self).__init__()
 
     def description(self):
-        return 'Get the bug with both feature and regression keywords'
-
-    def name(self):
-        return 'feature_regression'
-
-    def template(self):
-        return 'feature_regression.html'
-
-    def subject(self):
         return 'Bugs with feature and regression keywords'
 
     def ignore_date(self):
         return True
 
     def get_bz_params(self, date):
-        return {'resolution': ['---', 'FIXED'],
-                'keywords': ['feature', 'regression'],
-                'keywords_type': 'allwords'}
+        return {
+            'resolution': ['---', 'FIXED'],
+            'keywords': ['feature', 'regression'],
+            'keywords_type': 'allwords',
+        }
 
 
 if __name__ == '__main__':

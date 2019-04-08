@@ -4,7 +4,7 @@ certifi>=2017.4.17
 chardet<3.1.0,>=3.0.2
 httplib2>=0.9.1
 humanize>=0.5.1
-libmozdata>=0.1.49
+libmozdata>=0.1.52
 path.py==11.5.0
 pep8==1.7.1
 pyflakes==2.1.1
@@ -16,4 +16,5 @@ python-Levenshtein>=0.12.0
 pytz>=2018.9
 whatthepatch>=0.0.5
 https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.1.0/en_core_web_sm-2.1.0.tar.gz#egg=en-core-web-sm
-bugbug==0.0.5
+bugbug==0.0.10
+icalevents==0.1.19

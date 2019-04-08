@@ -18,22 +18,10 @@ class P1NoAssignee(BzCleaner, Nag):
         )
 
     def description(self):
-        return 'Get P1 bugs, no assignee and no activity for few days'
-
-    def name(self):
-        return 'workflow-p1-no-assignee'
-
-    def template(self):
-        return 'workflow_p1_no_assignee.html'
+        return 'P1 Bugs, no assignee and no activity for {} days'.format(self.ndays)
 
     def nag_template(self):
         return self.template()
-
-    def needinfo_template(self):
-        return 'workflow_p1_no_assignee_comment.txt'
-
-    def subject(self):
-        return 'P1 Bugs, no assignee and no activity for {} days'.format(self.ndays)
 
     def get_extra_for_template(self):
         return {'ndays': self.ndays}

@@ -18,10 +18,6 @@ python -m auto_nag.scripts.leave_open
 # common
 # python -m auto_nag.scripts.has_str_no_hasstr
 
-# hasRegressionRange is set but no regression keyword
-# common
-python -m auto_nag.scripts.has_regression_range_no_keyword
-
 # Closes crash bug without any crashes for the last 12 weeks
 # pretty common
 python -m auto_nag.scripts.no_crashes
@@ -57,10 +53,10 @@ python -m auto_nag.scripts.has_str_no_range
 # Notify bugs tracked (+ or blocking)
 # with P3, P4 or P5 priorities for the ongoing releases
 # Pretty common
-python -m auto_nag.scripts.mismatch-priority-tracking-esr
-python -m auto_nag.scripts.mismatch-priority-tracking-release
-python -m auto_nag.scripts.mismatch-priority-tracking-beta
-python -m auto_nag.scripts.mismatch-priority-tracking-nightly
+python -m auto_nag.scripts.mismatch_priority_tracking_esr
+python -m auto_nag.scripts.mismatch_priority_tracking_release
+python -m auto_nag.scripts.mismatch_priority_tracking_beta
+python -m auto_nag.scripts.mismatch_priority_tracking_nightly
 
 # Bug is tracked for a release but the bug severity is small
 # pretty common

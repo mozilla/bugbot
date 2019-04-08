@@ -2,24 +2,32 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import bisect
+from dateutil.relativedelta import relativedelta
 import json
 from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import BugzillaUser
+from random import randint
 
 from auto_nag import utils
 from auto_nag.people import People
-
-
-class BadFallback(Exception):
-    pass
+from auto_nag.calendar import Calendar
 
 
 class RoundRobin(object):
     def __init__(self, rr=None, people=None):
+        self.people = People() if people is None else people
+        self.all_calendars = []
         self.feed(rr=rr)
         self.nicks = {}
-        self.people = People() if people is None else people
+
+    def get_calendar(self, team, data):
+        fallback = data['fallback']
+        strats = set(data['components'].values())
+        res = {}
+        for strat in strats:
+            url = data[strat]['calendar']
+            res[strat] = Calendar.get(url, fallback, team, people=self.people)
+        return res
 
     def feed(self, rr=None):
         self.data = {}
@@ -27,7 +35,7 @@ class RoundRobin(object):
         if rr is None:
             rr = {}
             for team, path in utils.get_config(
-                'round-robin', "teams", default={}
+                'round-robin', 'teams', default={}
             ).items():
                 with open('./auto_nag/scripts/configs/{}'.format(path), 'r') as In:
                     rr[team] = json.load(In)
@@ -35,54 +43,19 @@ class RoundRobin(object):
 
         # rr is dictionary:
         # - doc -> documentation
-        # - triagers -> dictionary: Real Name -> {bzmail: bugzilla email, nick: bugzilla nickname}
         # - components -> dictionary: Product::Component -> strategy name
-        # - strategies: dictionay: {duty en date -> Real Name}
+        # - strategies: dictionary: {calendar: url}
 
         # Get all the strategies for each team
         for team, data in rr.items():
-            if 'doc' in data:
-                del data['doc']
-            strategies = {}
-            triagers = data['triagers']
-            fallback_bzmail = triagers['Fallback']['bzmail']
-            path = filenames.get(team, '')
-
-            # collect strategies
-            for pc, strategy in data['components'].items():
-                strategy_data = data[strategy]
-                if strategy not in strategies:
-                    strategies[strategy] = strategy_data
-
-            # rewrite strategy to have a sorted list of end dates
-            for strat_name, strategy in strategies.items():
-                if 'doc' in strategy:
-                    del strategy['doc']
-                date_name = []
-
-                # end date and real name of the triager
-                for date, name in strategy.items():
-                    # collect the tuple (end_date, bzmail)
-                    date = lmdutils.get_date_ymd(date)
-                    bzmail = triagers[name]['bzmail']
-                    date_name.append((date, bzmail))
-
-                # we sort the list to use bisection to find the triager
-                date_name = sorted(date_name)
-                strategies[strat_name] = {
-                    'dates': [d for d, _ in date_name],
-                    'mails': [m for _, m in date_name],
-                    'fallback': fallback_bzmail,
-                    'filename': path,
-                }
+            calendars = self.get_calendar(team, data)
+            self.all_calendars += list(calendars.values())
 
             # finally self.data is a dictionary:
-            # - Product::Component -> dictionary {dates: sorted list of end date
-            #                                     mails: list
-            #                                     fallback: who to nag when we've nobody
-            #                                     filename: the file containing strategy}
+            # - Product::Component -> dictionary {fallback: who to nag when we've nobody
+            #                                     calendar}
             for pc, strategy in data['components'].items():
-                self.data[pc] = strategies[strategy]
+                self.data[pc] = calendars[strategy]
 
     def get_nick(self, bzmail):
         if bzmail not in self.nicks:
@@ -94,24 +67,24 @@ class RoundRobin(object):
 
         return self.nicks[bzmail]
 
-    def is_mozilla(self, bzmail):
-        return self.people.is_mozilla(bzmail)
-
     def get(self, bug, date):
-        pc = '{}::{}'.format(bug['product'], bug['component'])
+        pc = bug['product'] + '::' + bug['component']
         if pc not in self.data:
             mail = bug['triage_owner']
             nick = bug['triage_owner_detail']['nick']
             return mail, nick
 
-        date = lmdutils.get_date_ymd(date)
-        strategy = self.data[pc]
-        dates = strategy['dates']
-        i = bisect.bisect_left(strategy['dates'], date)
-        if i == len(dates):
-            bzmail = strategy['fallback']
-        else:
-            bzmail = strategy['mails'][i]
+        cal = self.data[pc]
+        persons = cal.get_persons(date)
+        fb = cal.get_fallback_bzmail()
+        if not persons or all(p is None for _, p in persons):
+            return fb, self.get_nick(fb)
+
+        bzmails = []
+        for _, p in persons:
+            bzmails.append(fb if p is None else p)
+
+        bzmail = bzmails[randint(0, len(bzmails) - 1)]
         nick = self.get_nick(bzmail)
 
         return bzmail, nick
@@ -120,23 +93,24 @@ class RoundRobin(object):
         fallbacks = {}
         date = lmdutils.get_date_ymd(date)
         days = utils.get_config('round-robin', 'days_to_nag', 7)
-        for pc, strategy in self.data.items():
-            last_date = strategy['dates'][-1]
-            if (last_date - date).days <= days and strategy[
-                'filename'
-            ] not in fallbacks:
-                fallbacks[strategy['filename']] = strategy['fallback']
+        next_date = date + relativedelta(days=days)
+        for cal in self.all_calendars:
+            persons = cal.get_persons(next_date)
+            if persons and all(p is not None for _, p in persons):
+                continue
 
-        # create a dict: mozmail -> list of filenames to check
-        res = {}
-        for fn, fb in fallbacks.items():
-            if not self.is_mozilla(fb):
-                raise BadFallback()
-            mozmail = self.people.get_moz_mail(fb)
-            if mozmail not in res:
-                res[mozmail] = []
-            res[mozmail].append(fn)
+            name = cal.get_team_name()
+            fb = cal.get_fallback_mozmail()
+            if fb not in fallbacks:
+                fallbacks[fb] = {}
+            if name not in fallbacks[fb]:
+                fallbacks[fb][name] = {'nobody': False, 'persons': []}
+            info = fallbacks[fb][name]
 
-        res = {fb: sorted(fn) for fb, fn in res.items()}
-
-        return res
+            if not persons:
+                info['nobody'] = True
+            else:
+                people_names = [n for n, p in persons if p is None]
+                if people_names:
+                    info['persons'] += people_names
+        return fallbacks

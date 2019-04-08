@@ -25,15 +25,6 @@ class NotLanded(BzCleaner):
         self.extra_ni = {}
 
     def description(self):
-        return 'Get open bugs with no ativity and with a r+ patch which hasn\'t landed'
-
-    def name(self):
-        return 'not-landed'
-
-    def template(self):
-        return 'not-landed.html'
-
-    def subject(self):
         return 'Open bugs with no activity for {} weeks and a r+ patch which hasn\'t landed'.format(
             self.nweeks
         )
@@ -43,9 +34,6 @@ class NotLanded(BzCleaner):
 
     def get_extra_for_template(self):
         return {'nweeks': self.nweeks}
-
-    def needinfo_template(self):
-        return 'not_landed_comment.txt'
 
     def get_extra_for_needinfo_template(self):
         self.extra_ni.update(self.get_extra_for_template())
@@ -276,6 +264,10 @@ class NotLanded(BzCleaner):
             'f5': 'days_elapsed',
             'o5': 'greaterthaneq',
             'v5': self.nweeks * 7,
+            'n6': 1,
+            'f6': 'longdesc',
+            'o6': 'casesubstring',
+            'v6': 'which didn\'t land and no activity in this bug for',
         }
 
         return params

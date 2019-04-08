@@ -3,6 +3,14 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import json
+from math import sqrt
+import numpy as np
+import re
+import six
+
+
+WORDS = re.compile(r'(\w+)')
+MAIL = re.compile(r'^([^@]+@[^ ]+)')
 
 
 class People:
@@ -13,7 +21,7 @@ class People:
         else:
             self.data = p
 
-        self.people = {}
+        self.people = self._get_people()
         self.people_by_bzmail = {}
         self.managers = set()
         self.people_with_bzmail = set()
@@ -21,14 +29,91 @@ class People:
         self.rm_or_directors = set()
         self.directors = set()
         self.vps = set()
+        self.names = {}
         self._amend()
+        self.matrix = None
+
+    def _get_name_parts(self, name):
+        """Get names from name"""
+        return set(s.lower() for s in WORDS.findall(name))
 
     def _get_people(self):
-        if not self.people:
+        people = {}
+        for person in self.data:
+            mail = self.get_preferred_mail(person)
+            person['mail'] = mail
+            people[mail] = person
+        return people
+
+    def _get_names(self):
+        if not self.names:
             for person in self.data:
-                mail = person['mail']
-                self.people[mail] = person
-        return self.people
+                cn = person['cn']
+                parts = self._get_name_parts(cn)
+                parts = tuple(sorted(parts))
+                self.names[parts] = person
+        return self.names
+
+    def _get_bigrams(self, text):
+        text = ''.join(s.lower() for s in WORDS.findall(text))
+        return [text[i : (i + 2)] for i in range(len(text) - 1)]  # NOQA
+
+    def _get_bigrams_stats(self, text):
+        stats = {}
+        for bi in self._get_bigrams(text):
+            stats[bi] = stats.get(bi, 0) + 1
+
+        return stats
+
+    def _get_matrix_names(self):
+        if self.matrix is None:
+            res = {}
+            bigrams = set()
+            cns = {}
+            for person in self.data:
+                cn = person['cn']
+                cns[cn] = person
+                res[cn] = stats = self._get_bigrams_stats(cn)
+                L = sqrt(sum(v * v for v in stats.values()))
+                for k, v in stats.items():
+                    stats[k] = float(v) / L
+                    bigrams.add(k)
+
+            bigrams = sorted(bigrams)
+            self.bigrams = {x: i for i, x in enumerate(bigrams)}
+            self.matrix = np.zeros((len(res), len(self.bigrams)))
+            self.matrix_map = [None] * len(res.items())
+            for i, (name, stats) in enumerate(res.items()):
+                for b, n in stats.items():
+                    self.matrix[i][self.bigrams[b]] = n
+                self.matrix_map[i] = cns[name]
+
+    def search_by_name(self, name):
+        # Try to find name in using cosine similarity
+        self._get_matrix_names()
+        stats = self._get_bigrams_stats(name)
+        for k in set(stats.keys()) - set(self.bigrams.keys()):
+            del stats[k]
+        L = sqrt(sum(v * v for v in stats.values()))
+        x = np.zeros((len(self.bigrams), 1))
+        for k, v in stats.items():
+            x[self.bigrams[k]][0] = float(v) / L
+        res = np.matmul(self.matrix, x)
+        for cos in [0.99, 0.9, 0.8, 0.7]:
+            index = np.argwhere(res > cos)
+            if index.shape[0] == 1:
+                return self.matrix_map[index[0][0]]
+
+        found = None
+        name_parts = self._get_name_parts(name)
+        for parts, info in self._get_names().items():
+            if name_parts <= set(parts):
+                if found is None:
+                    found = info
+                else:
+                    found = None
+                    break
+        return found
 
     def _get_people_by_bzmail(self):
         if not self.people_by_bzmail:
@@ -51,8 +136,7 @@ class People:
     def get_people_with_bzmail(self):
         """Get all the people who have a bugzilla email"""
         if not self.people_with_bzmail:
-            people = self._get_people()
-            for person, info in people.items():
+            for person, info in self.people.items():
                 mail = info['bugzillaEmail']
                 if mail:
                     self.people_with_bzmail.add(mail)
@@ -68,8 +152,7 @@ class People:
     def get_directors(self):
         """Get the directors: people who 'director' in their job title"""
         if not self.directors:
-            people = self._get_people()
-            for person, info in people.items():
+            for person, info in self.people.items():
                 title = info.get('title', '').lower()
                 if 'director' in title:
                     self.directors.add(person)
@@ -78,8 +161,7 @@ class People:
     def get_vps(self):
         """Get the vp: people who've 'vp' in their job title"""
         if not self.vps:
-            people = self._get_people()
-            for person, info in people.items():
+            for person, info in self.people.items():
                 title = info.get('title', '').lower()
                 if (
                     title.startswith('vp') or title.startswith('vice president')
@@ -101,9 +183,8 @@ class People:
         """Get a set of release managers and directors who've a bugzilla email"""
         if not self.rm_or_directors:
             ms = self.get_directors() | self.get_rm()
-            people = self._get_people()
             for m in ms:
-                info = people[m]
+                info = self.people[m]
                 mail = info['bugzillaEmail']
                 if mail:
                     self.rm_or_directors.add(mail)
@@ -135,14 +216,14 @@ class People:
 
     def is_mozilla(self, mail):
         """Check if the mail is the one from a mozilla employee"""
-        return mail in self._get_people_by_bzmail() or mail in self._get_people()
+        return mail in self._get_people_by_bzmail() or mail in self.people
 
     def is_manager(self, mail):
         """Check if the mail is the one from a mozilla manager"""
         if mail in self._get_people_by_bzmail():
             person = self._get_people_by_bzmail()[mail]
             return person['mail'] in self._get_managers()
-        elif mail in self._get_people():
+        elif mail in self.people:
             return mail in self._get_managers()
 
         return False
@@ -151,7 +232,7 @@ class People:
         """Get the manager of the person with this mail"""
         person = self._get_people_by_bzmail().get(mail, None)
         if not person:
-            person = self._get_people().get(mail, None)
+            person = self.people.get(mail, None)
         if not person:
             return None
 
@@ -198,6 +279,25 @@ class People:
                 break
         return None
 
+    def get_preferred_mail(self, person):
+        aliases = person.get('emailalias', '')
+        if not aliases:
+            return person['mail']
+        if isinstance(aliases, six.string_types):
+            alias = aliases.strip()
+            if 'preferred' in alias:
+                m = MAIL.search(alias)
+                if m:
+                    return m.group(1)
+        else:
+            for alias in aliases:
+                alias = alias.strip()
+                if 'preferred' in alias:
+                    m = MAIL.search(alias)
+                    if m:
+                        return m.group(1)
+        return person['mail']
+
     def get_moz_mail(self, mail):
         """Get the manager of the person with this mail"""
         person = self._get_people_by_bzmail().get(mail, None)
@@ -214,7 +314,7 @@ class People:
         """Get info on person with this mail"""
         person = self._get_people_by_bzmail().get(mail, None)
         if not person:
-            person = self._get_people().get(mail, None)
+            person = self.people.get(mail, None)
         return person
 
     def is_under(self, mail, manager):
@@ -226,3 +326,30 @@ class People:
                 return False
             if m == manager:
                 return True
+
+    def get_bzmail_from_name(self, name):
+        """Search bz mail for a given name"""
+
+        if '@' in name:
+            info = self.get_info(name)
+        else:
+            info = self.search_by_name(name)
+
+        if info:
+            mail = info['bugzillaEmail']
+            return mail if mail else info['mail']
+
+        return None
+
+    def get_mozmail_from_name(self, name):
+        """Search moz mail for a given name"""
+
+        if '@' in name:
+            info = self.get_info(name)
+        else:
+            info = self.search_by_name(name)
+
+        if info:
+            return info['mail']
+
+        return None

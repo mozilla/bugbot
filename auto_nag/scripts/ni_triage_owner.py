@@ -15,20 +15,6 @@ class NiTriageOwner(BzCleaner):
         self.max_ni = max_ni
 
     def description(self):
-        return 'Get bugs an empty priority flag and no activity for {} weeks'.format(
-            self.nweeks
-        )
-
-    def name(self):
-        return 'ni-triage-owner'
-
-    def template(self):
-        return 'ni_triage_owner.html'
-
-    def needinfo_template(self):
-        return 'ni_triage_owner_comment.txt'
-
-    def subject(self):
         return 'Bugs with no priority and no activity for {} weeks'.format(self.nweeks)
 
     def get_extra_for_template(self):

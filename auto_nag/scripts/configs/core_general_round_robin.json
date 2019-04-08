@@ -1,0 +1,11 @@
+{
+    "fallback": "Andrew Overholt",
+    "components":
+    {
+        "Core::General": "default"
+    },
+    "default":
+    {
+        "calendar": "private://Core::General"
+    }
+}
