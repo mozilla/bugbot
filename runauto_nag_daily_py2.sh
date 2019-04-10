@@ -56,11 +56,6 @@ python -m auto_nag.scripts.assignee_but_unconfirmed
 # Notify bugs in untriaged with an important severity
 python -m auto_nag.scripts.untriage_important_sev
 
-# Needinfo the triage owner when we find bugs without the priority set
-# Pretty common
-# Only on Andrew for now
-python -m auto_nag.scripts.ni_triage_owner
-
 # Needinfo the assignee or the triage owner when a bug has leave-open keyword an no activty
 # Pretty common
 python -m auto_nag.scripts.leave_open_no_activity
