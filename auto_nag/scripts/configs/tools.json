@@ -91,6 +91,7 @@
     },
     "one_two_word_summary":
     {
+        "types": ["defect"],
         "regex_blacklist":
         [
             "^[rR]emove",
