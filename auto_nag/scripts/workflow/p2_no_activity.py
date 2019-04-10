@@ -49,6 +49,10 @@ class P2NoActivity(BzCleaner, Nag):
         if not self.filter_bug(priority):
             return None
 
+        # check if the product::component is in the list
+        if not utils.check_pc(self.components, bug):
+            return None
+
         owner = bug['triage_owner']
         self.add_triage_owner(owner, utils.get_config('workflow', 'components'))
         if not self.add(owner, buginfo, priority=priority):
@@ -60,10 +64,10 @@ class P2NoActivity(BzCleaner, Nag):
         start_date = date - relativedelta(months=self.nmonths)
         days = (date - start_date).days
         fields = ['triage_owner']
-        comps = utils.get_config('workflow', 'components')
+        self.components = utils.get_config('workflow', 'components')
         params = {
             'include_fields': fields,
-            'component': comps,
+            'component': utils.get_components(self.components),
             'resolution': '---',
             'f1': 'priority',
             'o1': 'equals',

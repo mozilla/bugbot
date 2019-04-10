@@ -30,10 +30,16 @@ class P2MergeDay(BzCleaner):
     def columns(self):
         return ['component', 'id', 'summary']
 
+    def handle_bug(self, bug, data):
+        # check if the product::component is in the list
+        if not utils.check_pc(self.components, bug):
+            return None
+        return bug
+
     def get_bz_params(self, date):
-        comps = utils.get_config('workflow', 'components')
+        self.components = utils.get_config('workflow', 'components')
         params = {
-            'component': comps,
+            'component': utils.get_components(self.components),
             'resolution': '---',
             'f1': 'priority',
             'o1': 'equals',

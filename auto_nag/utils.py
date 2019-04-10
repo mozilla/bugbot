@@ -411,3 +411,19 @@ def get_info_from_hg(json):
 
 def bz_ignore_case(s):
     return '[' + ']['.join(c + c.upper() for c in s) + ']'
+
+
+def check_pc(data, bug):
+    prod = bug['product']
+    comp = bug['component']
+    pc = prod + '::' + comp
+    return pc in data or comp in data
+
+
+def get_components(data):
+    res = []
+    for comp in data:
+        if '::' in comp:
+            _, comp = comp.split('::', 1)
+        res.append(comp)
+    return res
