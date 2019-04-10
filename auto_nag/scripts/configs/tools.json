@@ -316,14 +316,25 @@
             "Spelling checker",
             "Widget",
             "Widget: Win32",
-            "Widget: WinRT"
+            "Widget: WinRT",
+            "about:debugging",
+            "Application Panel",
+            "Scratchpad",
+            "WebIDE",
+            "Hardware Abstraction Layer (HAL)",
+            "File Handling",
+            "Toolbars and Customization",
+            "Blocklist Implementation",
+            "Reader Mode",
+            "Toolbars and Toolbar Customization",
+            "Framework"
         ],
         "supervisor_blacklist":
         [
             "dcamp@mozilla.com"
         ]
     },
-    "workflow_no_priority":
+    "no_priority":
     {
         "types": ["defect"],
         "max-years": 2,
@@ -352,12 +363,12 @@
             }
         }
     },
-    "workflow_p3_p4_p5":
+    "p3_p4_p5":
     {
         "types": ["defect"],
         "months_lookup": 6
     },
-    "workflow_p2_no_activity":
+    "p2_no_activity":
     {
         "types": ["defect"],
         "months_lookup": 3,
@@ -373,7 +384,7 @@
             }
         }
     },
-    "workflow_p1_no_assignee":
+    "p1_no_assignee":
     {
         "types": ["defect"],
         "ndays":
@@ -395,7 +406,7 @@
             }
         }
     },
-    "workflow_p1_no_activity":
+    "p1_no_activity":
     {
         "types": ["defect"],
         "ndays":
