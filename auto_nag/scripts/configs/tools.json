@@ -169,20 +169,6 @@
         "number_of_weeks": 2,
         "number_of_years": 2
     },
-    "ni_triage_owner":
-    {
-        "types": ["defect"],
-        "number_of_weeks": 2,
-        "days_lookup": 183,
-        "owners":
-        {
-            "overholt@mozilla.com":
-            {
-                "nick": ":overholt",
-                "max_ni": 3
-            }
-        }
-    },
     "ni_from_manager":
     {
         "white-list":
@@ -328,7 +314,16 @@
             "Blocklist Implementation",
             "Reader Mode",
             "Toolbars and Toolbar Customization",
-            "Framework"
+            "Framework",
+            "DevTools::General",
+            "Core::General",
+            "DOM: IndexedDB",
+            "DOM: Push Notifications",
+            "DOM: Quota Manager",
+            "DOM: Service Workers",
+            "DOM: Web Payments",
+            "DOM: Web Storage",
+            "DOM: Workers"
         ],
         "supervisor_blacklist":
         [
