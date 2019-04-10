@@ -20,7 +20,9 @@ class NoPriority(BzCleaner, Nag):
         self.lookup_second = utils.get_config(self.name(), 'second-step', 4)
         self.escalation = Escalation(
             self.people,
-            data=utils.get_config(self.name(), 'escalation-{}'.format(typ)),
+            data=utils.get_config(
+                'workflow_' + self.name(), 'escalation-{}'.format(typ)
+            ),
             blacklist=utils.get_config('workflow', 'supervisor_blacklist', []),
         )
         self.round_robin = RoundRobin(people=self.people)

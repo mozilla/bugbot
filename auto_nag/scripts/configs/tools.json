@@ -316,7 +316,18 @@
             "Spelling checker",
             "Widget",
             "Widget: Win32",
-            "Widget: WinRT"
+            "Widget: WinRT",
+            "about:debugging",
+            "Application Panel",
+            "Scratchpad",
+            "WebIDE",
+            "Hardware Abstraction Layer (HAL)",
+            "File Handling",
+            "Toolbars and Customization",
+            "Blocklist Implementation",
+            "Reader Mode",
+            "Toolbars and Toolbar Customization",
+            "Framework"
         ],
         "supervisor_blacklist":
         [
