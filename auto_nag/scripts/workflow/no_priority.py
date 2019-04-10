@@ -63,6 +63,10 @@ class NoPriority(BzCleaner, Nag):
         if not self.filter_bug(priority):
             return None
 
+        # check if the product::component is in the list
+        if not utils.check_product_component(self.components, bug):
+            return None
+
         owner, _ = self.round_robin.get(bug, self.date)
         real_owner = bug['triage_owner']
         self.add_triage_owner(
@@ -74,9 +78,9 @@ class NoPriority(BzCleaner, Nag):
 
     def get_bz_params(self, date):
         fields = ['triage_owner', 'flags']
-        comps = utils.get_config('workflow', 'components')
+        self.components = utils.get_config('workflow', 'components')
         params = {
-            'component': comps,
+            'component': utils.get_components(self.components),
             'include_fields': fields,
             'resolution': '---',
             'f1': 'priority',

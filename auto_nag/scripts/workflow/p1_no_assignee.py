@@ -58,6 +58,10 @@ class P1NoAssignee(BzCleaner, Nag):
         if not self.filter_bug(priority):
             return None
 
+        # check if the product::component is in the list
+        if not utils.check_product_component(self.components, bug):
+            return None
+
         owner = bug['triage_owner']
         self.add_triage_owner(owner, utils.get_config('workflow', 'components'))
         if not self.add(owner, buginfo, priority=priority):
@@ -70,9 +74,9 @@ class P1NoAssignee(BzCleaner, Nag):
             (utils.get_next_release_date() - self.nag_date).days
         )
         fields = ['triage_owner', 'flags']
-        comps = utils.get_config('workflow', 'components')
+        self.components = utils.get_config('workflow', 'components')
         params = {
-            'component': comps,
+            'component': utils.get_components(self.components),
             'include_fields': fields,
             'resolution': '---',
             'f1': 'priority',

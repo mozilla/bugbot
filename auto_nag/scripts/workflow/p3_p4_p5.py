@@ -28,13 +28,19 @@ class P3P4P5(BzCleaner):
     def columns(self):
         return ['component', 'id', 'summary']
 
+    def handle_bug(self, bug, data):
+        # check if the product::component is in the list
+        if not utils.check_product_component(self.components, bug):
+            return None
+        return bug
+
     def get_bz_params(self, date):
         date = lmdutils.get_date_ymd(date)
         start_date = date - relativedelta(months=self.nmonths)
         days = (date - start_date).days
-        comps = utils.get_config('workflow', 'components')
+        self.components = utils.get_config('workflow', 'components')
         params = {
-            'component': comps,
+            'component': utils.get_components(self.components),
             'resolution': '---',
             'f1': 'priority',
             'o1': 'anywordssubstr',
