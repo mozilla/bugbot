@@ -13,7 +13,7 @@ class P1NoAssignee(BzCleaner, Nag):
         super(P1NoAssignee, self).__init__()
         self.escalation = Escalation(
             self.people,
-            data=utils.get_config('workflow_' + self.name(), 'escalation'),
+            data=utils.get_config(self.name(), 'escalation'),
             blacklist=utils.get_config('workflow', 'supervisor_blacklist', []),
         )
 

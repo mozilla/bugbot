@@ -11,7 +11,7 @@ from auto_nag import utils
 class P3P4P5(BzCleaner):
     def __init__(self):
         super(P3P4P5, self).__init__()
-        self.nmonths = utils.get_config('workflow_' + self.name(), 'months_lookup', 6)
+        self.nmonths = utils.get_config(self.name(), 'months_lookup', 6)
 
     def description(self):
         return 'P3, P4 or P5 bugs without activity for {} months'.format(self.nmonths)
