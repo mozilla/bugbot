@@ -10,7 +10,7 @@ from random import randint
 
 from auto_nag import utils
 from auto_nag.people import People
-from auto_nag.calendar import Calendar
+from auto_nag.round_robin_calendar import Calendar
 
 
 class RoundRobin(object):

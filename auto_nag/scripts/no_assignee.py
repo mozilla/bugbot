@@ -9,7 +9,7 @@ from libmozdata.bugzilla import Bugzilla, BugzillaUser
 from libmozdata.connection import Query
 import re
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag import logger, utils
+from auto_nag import utils
 
 
 HG_MAIL = re.compile(r'^([^<]*)<([^>]+)>$')
@@ -20,6 +20,7 @@ class NoAssignee(BzCleaner):
     def __init__(self):
         super(NoAssignee, self).__init__()
         self.hgdata = {}
+        self.autofix_assignee = {}
 
     def description(self):
         return 'Bugs with no assignees and a patch which landed in m-c'
@@ -274,15 +275,13 @@ class NoAssignee(BzCleaner):
 
         return self.hgdata
 
-    def autofix(self, bugs, dryrun):
-        for bugid, email in self.hgdata.items():
-            if email:
-                self.has_autofix = True
-                if dryrun or self.test_mode:
-                    logger.info('Auto assign {}: {}'.format(bugid, email))
-                else:
-                    Bugzilla([bugid]).put({'assigned_to': email})
-        return bugs
+    def get_autofix_change(self):
+        return self.autofix_assignee
+
+    def get_db_extra(self):
+        return {
+            bugid: v['assigned_to'] for bugid, v in self.get_autofix_change().items()
+        }
 
     def get_bugs(self, date='today', bug_ids=[]):
         bugs = super(NoAssignee, self).get_bugs(date=date, bug_ids=bug_ids)
@@ -296,8 +295,9 @@ class NoAssignee(BzCleaner):
                 res[bugid] = {
                     'id': bugid,
                     'email': email,
-                    'summary': bugs[bugid]['summary'],
+                    'summary': self.get_summary(bugs[bugid]),
                 }
+                self.autofix_assignee[bugid] = {'assigned_to': email}
 
         return res
 
