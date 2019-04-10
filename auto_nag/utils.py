@@ -413,7 +413,7 @@ def bz_ignore_case(s):
     return '[' + ']['.join(c + c.upper() for c in s) + ']'
 
 
-def check_pc(data, bug):
+def check_product_component(data, bug):
     prod = bug['product']
     comp = bug['component']
     pc = prod + '::' + comp

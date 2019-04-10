@@ -50,7 +50,7 @@ class P2NoActivity(BzCleaner, Nag):
             return None
 
         # check if the product::component is in the list
-        if not utils.check_pc(self.components, bug):
+        if not utils.check_product_component(self.components, bug):
             return None
 
         owner = bug['triage_owner']
