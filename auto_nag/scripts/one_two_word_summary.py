@@ -18,6 +18,7 @@ class OneTwoWordSummary(BzCleaner):
 
         params = {
             'resolution': '---',
+            'bug_type': 'defect',
             'f1': 'days_elapsed',
             'o1': 'lessthan',
             'v1': days_lookup,
