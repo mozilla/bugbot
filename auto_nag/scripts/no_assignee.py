@@ -295,7 +295,7 @@ class NoAssignee(BzCleaner):
                 res[bugid] = {
                     'id': bugid,
                     'email': email,
-                    'summary': self.get_summary(bugs[bugid]),
+                    'summary': bugs[bugid]['summary'],
                 }
                 self.autofix_assignee[bugid] = {'assigned_to': email}
 
