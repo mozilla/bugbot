@@ -3,11 +3,9 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import dateutil.parser
-from mock import patch
 import unittest
 
 import auto_nag.db as db
-from auto_nag.history import History
 
 
 class TestDB(unittest.TestCase):
@@ -215,30 +213,29 @@ class TestDB(unittest.TestCase):
         return res
 
     def test_bugchange(self):
-        with patch.object(History, 'get', return_value=TestDB.HISTORY):
-            db.session.query(db.BugChange).delete()
-            db.session.commit()
+        db.session.query(db.BugChange).delete()
+        db.session.commit()
 
-            db.init()
+        db.BugChange.read_dict(TestDB.HISTORY)
 
-            data = db.BugChange.get()
-            data = list(data)
+        data = db.BugChange.get()
+        data = list(data)
 
-            assert len(data) == len(TestDB.HISTORY)
+        assert len(data) == len(TestDB.HISTORY)
 
-            data = self.by_tool(TestDB.HISTORY)
-            for tool, info in data.items():
-                _data = db.BugChange.get(name=tool).order_by(db.BugChange.date.asc())
-                _data = list(_data)
-                assert len(_data) == len(info)
+        data = self.by_tool(TestDB.HISTORY)
+        for tool, info in data.items():
+            _data = db.BugChange.get(name=tool).order_by(db.BugChange.date.asc())
+            _data = list(_data)
+            assert len(_data) == len(info)
 
-                for expected, got in zip(info, _data):
-                    assert expected['tool'] == got.tool.name
-                    assert expected['bugid'] == got.bugid
-                    assert expected['date'] == str(got.get_date())
+            for expected, got in zip(info, _data):
+                assert expected['tool'] == got.tool.name
+                assert expected['bugid'] == got.bugid
+                assert expected['date'] == str(got.get_date())
 
-                    got_extra = got.extra.extra if got.extra else ''
-                    assert expected['extra'] == got_extra
+                got_extra = got.extra.extra if got.extra else ''
+                assert expected['extra'] == got_extra
 
         db.BugChange.add('A', 123, ts=123456789, extra='')
         db.BugChange.add('A', 456, ts=123456789, extra='B')
