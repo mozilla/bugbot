@@ -9,6 +9,7 @@ install:
     - travis_retry pip install -r requirements-test.txt
 
 script:
+    - alembic upgrade head
     - flake8 auto_nag/ --exclude=auto_nag/tests/
     - tox -e $TOX_ENV
 

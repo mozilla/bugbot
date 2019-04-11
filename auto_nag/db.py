@@ -13,6 +13,7 @@ import six
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import Column, ForeignKey, Integer, String
 
 from auto_nag import logger, utils
@@ -21,22 +22,11 @@ from auto_nag.history import History
 
 Base = declarative_base()
 lock_path = utils.get_config('common', 'lock')
-db_path = utils.get_config('common', 'database')
-engine = create_engine(db_path)
+db_url = utils.get_config('common', 'database')
+engine = create_engine(db_url)
 DBSession = sessionmaker(bind=engine)
 Base.metadata.bind = engine
 session = DBSession()
-
-
-def clear():
-    Base.metadata.drop_all()
-    session.commit()
-
-
-def create():
-    if not engine.dialect.has_table(engine, 'tools'):
-        Base.metadata.create_all(engine)
-        init()
 
 
 def init():
@@ -60,27 +50,26 @@ def get_ts(date, default=0):
 
 
 class Tool(Base):
-    __tablename__ = 'tools'
+    __tablename__ = 'autonag_tools'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(128), unique=True)
     bugchanges = relationship('BugChange', backref='tool')
-    sentmails = relationship('SentEmail', backref='tool')
+    emails = relationship('Email', backref='tool')
 
     def __init__(self, name):
         self.name = name
 
     @staticmethod
-    def get(name):
-        e = session.query(Tool).filter(Tool.name == name).first()
-        if e:
+    def get_or_create(name):
+        try:
+            return session.query(Tool).filter(Tool.name == name).one()
+        except NoResultFound:
+            e = Tool(name)
+            session.add(e)
+            session.commit()
+
             return e
-
-        e = Tool(name)
-        session.add(e)
-        session.commit()
-
-        return e
 
     def __repr__(self):
         return self.name
@@ -90,19 +79,19 @@ class Tool(Base):
 
 
 class BugChange(Base):
-    __tablename__ = 'bugchanges'
+    __tablename__ = 'autonag_bugchanges'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    tool_id = Column(Integer, ForeignKey('tools.id', ondelete='CASCADE'))
-    extra_id = Column(Integer, ForeignKey('extras.id', ondelete='CASCADE'))
+    tool_id = Column(Integer, ForeignKey('autonag_tools.id', ondelete='CASCADE'))
+    extra_id = Column(Integer, ForeignKey('autonag_extras.id', ondelete='CASCADE'))
     date = Column(Integer)
     bugid = Column(Integer)
 
     def __init__(self, tool, date, bugid, extra):
-        self.tool = Tool.get(tool)
+        self.tool = Tool.get_or_create(tool)
         self.date = get_ts(date)
         self.bugid = int(bugid)
-        self.extra = Extra.get(extra)
+        self.extra = Extra.get_or_create(extra)
 
     def get_date(self):
         return lmdutils.get_date_from_timestamp(self.date)
@@ -117,7 +106,8 @@ class BugChange(Base):
     def get(name=None, start_date=None, end_date=None):
         with FileLock(lock_path):
             start_date = get_ts(start_date, default=0)
-            end_date = get_ts(start_date, default='now')
+            end_date = get_ts(end_date, default='now')
+            print((start_date, end_date))
             if name:
                 rs = (
                     session.query(BugChange)
@@ -133,7 +123,7 @@ class BugChange(Base):
                     BugChange.date >= start_date, BugChange.date < end_date
                 )
 
-            return [r for r in rs]
+            return rs
 
     @staticmethod
     def has_already_nagged(bugids, name=None, start_date=None, end_date=None):
@@ -141,7 +131,7 @@ class BugChange(Base):
             data = {int(bugid): False for bugid in bugids}
             bugids = list(data.keys())
             start_date = get_ts(start_date, default=0)
-            end_date = get_ts(start_date, default='now')
+            end_date = get_ts(end_date, default='now')
             if name:
                 res = (
                     session.query(BugChange.bugid)
@@ -228,31 +218,30 @@ class BugChange(Base):
         return self.__repr__()
 
 
-class Email(Base):
-    __tablename__ = 'emails'
+class User(Base):
+    __tablename__ = 'autonag_users'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     email = Column(String(254), unique=True)
-    sentmails = relationship('SentEmail', backref='email')
+    mails = relationship('Email', backref='user')
 
     def __init__(self, email):
         self.email = email
 
     @staticmethod
-    def get(email):
-        e = session.query(Email).filter(Email.email == email).first()
-        if e:
+    def get_or_create(email):
+        try:
+            return session.query(User).filter(User.email == email).one()
+        except NoResultFound:
+            e = User(email)
+            session.add(e)
+            session.commit()
+
             return e
-
-        e = Email(email)
-        session.add(e)
-        session.commit()
-
-        return e
 
     @staticmethod
     def dump():
-        for x in session.query(Email):
+        for x in session.query(User):
             print(x)
 
     def __repr__(self):
@@ -263,30 +252,30 @@ class Email(Base):
 
 
 class Extra(Base):
-    __tablename__ = 'extras'
+    __tablename__ = 'autonag_extras'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     extra = Column(String(256), unique=True)
-    sentmails = relationship('SentEmail', backref='extra')
+    mails = relationship('Email', backref='extra')
     bugchanges = relationship('BugChange', backref='extra')
 
     def __init__(self, extra):
         self.extra = extra
 
     @staticmethod
-    def get(extra):
-        if not extra:
-            return None
+    def get_or_create(extra):
+        try:
+            return (
+                session.query(Extra).filter(Extra.extra == extra).one()
+                if extra
+                else None
+            )
+        except NoResultFound:
+            e = Extra(extra)
+            session.add(e)
+            session.commit()
 
-        e = session.query(Extra).filter(Extra.extra == extra).first()
-        if e:
             return e
-
-        e = Extra(extra)
-        session.add(e)
-        session.commit()
-
-        return e
 
     @staticmethod
     def dump():
@@ -300,48 +289,53 @@ class Extra(Base):
         return self.__repr__()
 
 
-class SentEmail(Base):
-    __tablename__ = 'sentemails'
+class Email(Base):
+    __tablename__ = 'autonag_emails'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    tool_id = Column(Integer, ForeignKey('tools.id', ondelete='CASCADE'))
-    email_id = Column(Integer, ForeignKey('emails.id', ondelete='CASCADE'))
-    extra_id = Column(Integer, ForeignKey('extras.id', ondelete='CASCADE'))
+    tool_id = Column(Integer, ForeignKey('autonag_tools.id', ondelete='CASCADE'))
+    user_id = Column(Integer, ForeignKey('autonag_users.id', ondelete='CASCADE'))
+    extra_id = Column(Integer, ForeignKey('autonag_extras.id', ondelete='CASCADE'))
     date = Column(Integer)
+    result = Column(Integer)
 
-    def __init__(self, tool, date, email, extra):
-        self.tool = tool if isinstance(tool, Tool) else Tool.get(tool)
+    def __init__(self, tool, date, user, extra, result):
+        self.tool = tool if isinstance(tool, Tool) else Tool.get_or_create(tool)
         self.date = get_ts(date)
-        self.email = Email.get(email)
-        self.extra = Extra.get(extra)
+        self.user = User.get_or_create(user)
+        self.extra = Extra.get_or_create(extra)
+        self.result = 0 if result.lower() == 'failure' else 1
 
     def get_date(self):
         return lmdutils.get_date_from_timestamp(self.date)
 
     @staticmethod
     def dump(path=''):
-        res = session.query(SentEmail).join(SentEmail.tool).join(SentEmail.email)
+        res = session.query(Email).join(Email.tool).join(Email.user)
         ext = os.path.splitext(path)[1]
         if ext == '.csv':
             with open(path, 'w') as Out:
                 writer = csv.writer(Out, delimiter=',')
-                writer.writerow(['Tool', 'email', 'Date', 'Extra'])
+                writer.writerow(['Tool', 'User', 'Date', 'Extra', 'Result'])
                 for x in res:
                     extra = x.extra.extra if x.extra else ''
+                    res = 'Success' if x.result != 0 else 'Failure'
                     writer.writerow(
-                        [x.tool.name, x.email.email, str(x.get_date()), extra]
+                        [x.tool.name, x.user.email, str(x.get_date()), extra, res]
                     )
         elif ext == '.json':
             with open(path, 'w') as Out:
                 data = []
                 for x in res:
                     extra = x.extra.extra if x.extra else ''
+                    res = 'Success' if x.result != 0 else 'Failure'
                     data.append(
                         {
                             'tool': x.tool.name,
-                            'email': x.email.email,
+                            'user': x.user.email,
                             'date': str(x.get_date()),
-                            'extra': x.extra,
+                            'extra': extra,
+                            'result': res,
                         }
                     )
                 json.dump(data, Out)
@@ -350,72 +344,72 @@ class SentEmail(Base):
                 print(x)
 
     @staticmethod
+    def read_dict(data):
+        for x in data:
+            tool, date, user, extra, result = (
+                x[f] for f in ['tool', 'date', 'user', 'extra', 'result']
+            )
+            session.add(Email(tool, date, user, extra, result))
+        session.commit()
+
+    @staticmethod
     def read_from(path):
         ext = os.path.splitext(path)[1]
         if ext == '.csv':
             with open(path, 'r') as In:
                 reader = csv.reader(In, delimiter=',')
-                for tool, email, date, extra in reader:
-                    session.add(SentEmail(tool, date, email, extra))
+                for tool, user, date, extra, result in reader:
+                    session.add(Email(tool, date, user, extra, result))
                 session.commit()
         elif ext == '.json':
             with open(path, 'r') as In:
                 data = json.load(In)
-                for x in data:
-                    tool, date, bugid, extra = (
-                        x[f] for f in ['tool', 'date', 'email', 'extra']
-                    )
-                    session.add(SentEmail(tool, date, email, extra))
-                session.commit()
+                Email.read_dict(data)
         else:
             assert False, 'Unable to read file: {}'.format(path)
 
     @staticmethod
-    def add(tool, mails, extra, ts=lmdutils.get_timestamp('now')):
+    def add(tool, mails, extra, result, ts=lmdutils.get_timestamp('now')):
         with FileLock(lock_path):
-            tool = Tool.get(tool)
+            tool = Tool.get_or_create(tool)
             for mail in mails:
-                session.add(SentEmail(tool, ts, mail, extra))
+                session.add(Email(tool, ts, mail, extra, result))
             session.commit()
 
     @staticmethod
-    def get(name=None, start_date=None, end_date=None, first=False):
+    def get(name=None, start_date=None, end_date=None):
         start_date = get_ts(start_date, 0)
-        end_date = get_ts(start_date, 'now')
+        end_date = get_ts(end_date, 'now')
         with FileLock(lock_path):
             if name:
                 rs = (
-                    session.query(SentEmail)
-                    .join(SentEmail.tool)
+                    session.query(Email)
+                    .join(Email.tool)
                     .filter(
                         Tool.name == name,
-                        SentEmail.date >= start_date,
-                        SentEmail.date < end_date,
+                        Email.date >= start_date,
+                        Email.date < end_date,
                     )
                 )
             else:
-                rs = session.query(SentEmail).filter(
-                    SentEmail.date >= start_date, SentEmail.date < end_date
+                rs = session.query(Email).filter(
+                    Email.date >= start_date, Email.date < end_date
                 )
 
-            if first:
-                return rs.first()
-
-            return [r for r in rs]
+            return rs
 
     @staticmethod
     def has_already_nagged(name=None, start_date=None, end_date=None):
         return (
-            SentEmail.get(
-                name=name, start_date=start_date, end_date=end_date, first=True
-            )
+            Email.get(name=name, start_date=start_date, end_date=end_date).first()
             is not None
         )
 
     def __repr__(self):
         extra = self.extra.extra if self.extra else ''
-        return '<Email ({}) sent for {}: to {}, the {}, extra={}>'.format(
-            self.extra, self.tool, self.email, self.get_date(), extra
+        res = 'Success' if self.result != 0 else 'Failure'
+        return '<Email ({}) sent for {}: to {}, the {}, extra={}, result={}>'.format(
+            self.extra, self.tool, self.user.email, self.get_date(), extra, res
         )
 
     def __str__(self):
