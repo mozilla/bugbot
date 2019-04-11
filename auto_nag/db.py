@@ -107,7 +107,6 @@ class BugChange(Base):
         with FileLock(lock_path):
             start_date = get_ts(start_date, default=0)
             end_date = get_ts(end_date, default='now')
-            print((start_date, end_date))
             if name:
                 rs = (
                     session.query(BugChange)
