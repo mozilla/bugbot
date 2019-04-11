@@ -511,16 +511,22 @@ class BzCleaner(object):
         title, body = self.get_email(login_info['bz_api_key'], date, dryrun)
         if title:
             receivers = utils.get_config(self.name(), 'receivers')
-            mail.send(
-                login_info['ldap_username'],
-                receivers,
-                title,
-                body,
-                html=True,
-                login=login_info,
-                dryrun=dryrun,
-            )
-            db.SentEmail.add(self.name(), receivers, 'global')
+            status = 'Success'
+            try:
+                mail.send(
+                    login_info['ldap_username'],
+                    receivers,
+                    title,
+                    body,
+                    html=True,
+                    login=login_info,
+                    dryrun=dryrun,
+                )
+            except:  # NOQA
+                logger.exception('Tool {}'.format(self.name()))
+                status = 'Failure'
+
+            db.Email.add(self.name(), receivers, 'global', status)
             if isinstance(self, Nag):
                 self.send_mails(title, dryrun=dryrun)
         else:

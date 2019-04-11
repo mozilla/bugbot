@@ -4,7 +4,7 @@
 
 import copy
 from jinja2 import Environment, FileSystemLoader
-from auto_nag import db, mail, utils
+from auto_nag import db, logger, mail, utils
 from auto_nag.people import People
 from auto_nag.escalation import Escalation
 
@@ -151,17 +151,23 @@ class Nag(object):
                 Cc.add(m['manager'])
             body = common.render(message=m['body'], query_url=None, has_table=True)
             receivers = set(m['to']) | set(Cc)
-            mail.send(
-                From,
-                sorted(m['to']),
-                title,
-                body,
-                Cc=sorted(Cc),
-                html=True,
-                login=login_info,
-                dryrun=dryrun,
-            )
-            db.SentEmail.add(self.name(), receivers, 'individual')
+            status = 'Success'
+            try:
+                mail.send(
+                    From,
+                    sorted(m['to']),
+                    title,
+                    body,
+                    Cc=sorted(Cc),
+                    html=True,
+                    login=login_info,
+                    dryrun=dryrun,
+                )
+            except:  # NOQA
+                logger.exception('Tool {}'.format(self.name()))
+                status = 'Failure'
+
+            db.Email.add(self.name(), receivers, 'individual', status)
 
     def prepare_mails(self):
         if not self.data:
