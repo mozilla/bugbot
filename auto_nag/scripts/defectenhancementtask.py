@@ -19,7 +19,18 @@ class DefectEnhancementTask(BugbugScript):
         return ['id', 'summary', 'type', 'bugbug_type', 'confidence']
 
     def sort_columns(self):
-        return lambda p: (-p[4], -p[0])
+        def _sort_columns(p):
+            if p[2] == 'defect':  # defect -> non-defect is what we plan to autofix, so we show it first in the email.
+                prio = 0
+            elif p[3] == 'defect':  # non-defect -> defect has more priority than the rest, as 'enhancement' and 'task' can be often confused.
+                prio = 1
+            else:
+                prio = 2
+
+            # Then, we sort by confidence and ID.
+            return (prio, -p[4], -p[0])
+
+        return _sort_columns
 
     def get_bz_params(self, date):
         start_date, _ = self.get_dates(date)
