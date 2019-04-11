@@ -10,7 +10,7 @@ class RegressionButEnhancementTask(BzCleaner):
         super(RegressionButEnhancementTask, self).__init__()
 
     def description(self):
-        return 'Enhancement or task with the "regression" keyword'
+        return 'Enhancement or task with the "regression", "crash" or "assertion" keyword'
 
     def get_bz_params(self, date):
         days_lookup = self.get_config('days_lookup')
