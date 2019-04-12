@@ -191,22 +191,6 @@ class BugChange(Base):
             session.add(BugChange(tool, date, bugid, extra))
         session.commit()
 
-    @staticmethod
-    def read_from(path):
-        ext = os.path.splitext(path)[1]
-        if ext == '.csv':
-            with open(path, 'r') as In:
-                reader = csv.reader(In, delimiter=',')
-                for tool, bugid, date, extra in reader:
-                    session.add(BugChange(tool, date, bugid, extra))
-                session.commit()
-        elif ext == '.json':
-            with open(path, 'r') as In:
-                data = json.load(In)
-                BugChange.read_dict(data)
-        else:
-            assert False, 'Unable to read file: {}'.format(path)
-
     def __repr__(self):
         extra = self.extra.extra if self.extra else ''
         return '<Bug change ({}): bug {}, the {}, extra={}>'.format(
@@ -350,22 +334,6 @@ class Email(Base):
             )
             session.add(Email(tool, date, user, extra, result))
         session.commit()
-
-    @staticmethod
-    def read_from(path):
-        ext = os.path.splitext(path)[1]
-        if ext == '.csv':
-            with open(path, 'r') as In:
-                reader = csv.reader(In, delimiter=',')
-                for tool, user, date, extra, result in reader:
-                    session.add(Email(tool, date, user, extra, result))
-                session.commit()
-        elif ext == '.json':
-            with open(path, 'r') as In:
-                data = json.load(In)
-                Email.read_dict(data)
-        else:
-            assert False, 'Unable to read file: {}'.format(path)
 
     @staticmethod
     def add(tool, mails, extra, result, ts=lmdutils.get_timestamp('now')):
