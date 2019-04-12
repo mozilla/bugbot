@@ -3,7 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.bzcleaner import BzCleaner
-import re
+from auto_nag import utils
 
 
 class DupemeWhiteboardKeyword(BzCleaner):
@@ -20,26 +20,22 @@ class DupemeWhiteboardKeyword(BzCleaner):
     def handle_bug(self, bug, data):
         bugid = str(bug['id'])
         whiteboard = bug['whiteboard']
-
-        def ireplace(old, repl, text):
-            return re.sub('(?i)' + re.escape(old), lambda m: repl, text)
-
-        wb = ireplace("[dupeme]", "", whiteboard)
+        wb = utils.ireplace("[dupeme]", "", whiteboard)
         self.autofix_whiteboard[bugid] = {'whiteboard': wb,
                                           'keywords': {'add': ['dupeme']}}
         return bug
 
     def get_bz_params(self, date):
         days_lookup = self.get_config('days_lookup', default=180)
-        fields = ['summary', 'whiteboard']
+        fields = ['whiteboard']
         return {
             'include_fields': fields,
             'resolution': ['---'],
             'status_whiteboard_type': 'allwordssubstr',
             'status_whiteboard': '[dupeme]',
-            'f2': 'days_elapsed',
-            'o2': 'lessthan',
-            'v2': days_lookup,
+            'f1': 'days_elapsed',
+            'o1': 'lessthan',
+            'v1': days_lookup,
         }
 
 

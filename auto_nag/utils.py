@@ -427,3 +427,7 @@ def get_components(data):
             _, comp = comp.split('::', 1)
         res.append(comp)
     return res
+
+
+def ireplace(old, repl, text):
+    return re.sub('(?i)' + re.escape(old), lambda m: repl, text)
