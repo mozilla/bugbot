@@ -354,7 +354,7 @@
                 "[0;+∞[":
                 {
                     "supervisor": "n+1",
-                    "days": ["Mon", "Thu", "Fri"]
+                    "days": ["Mon", "Thu"]
                 }
             }
         }
