@@ -333,7 +333,7 @@
     "no_priority":
     {
         "types": ["defect"],
-        "max-years": 2,
+        "max-years": 1,
         "first-step": 2,
         "second-step": 4,
         "escalation-first":
@@ -354,7 +354,7 @@
                 "[0;+∞[":
                 {
                     "supervisor": "n+1",
-                    "days": ["Mon", "Thu"]
+                    "days": ["Mon", "Thu", "Fri"]
                 }
             }
         }
