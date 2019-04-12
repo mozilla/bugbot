@@ -66,6 +66,14 @@ python -m auto_nag.scripts.tracked_bad_severity
 # Pretty common
 python -m auto_nag.scripts.copy_duplicate_info
 
+# Move dupeme from whiteboard to keyword
+# Pretty rare
+python -m auto_nag.scripts.dupeme_whiteboard_keyword
+
+# Remove dupeme keyword when the bug is closed
+# Pretty rare
+python -m auto_nag.scripts.closed_dupeme
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send

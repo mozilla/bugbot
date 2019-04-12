@@ -200,6 +200,10 @@
     {
         "months_lookup": 24
     },
+    "closed_dupeme":
+    {
+        "days_lookup": 100
+    },
     "stalled":
     {
         "days_lookup": 100
