@@ -67,6 +67,7 @@ class P2NoActivity(BzCleaner, Nag):
         self.components = utils.get_config('workflow', 'components')
         params = {
             'include_fields': fields,
+            'bug_type': 'defect',
             'component': utils.get_components(self.components),
             'resolution': '---',
             'f1': 'priority',

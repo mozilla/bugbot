@@ -41,6 +41,7 @@ class P3P4P5(BzCleaner):
         self.components = utils.get_config('workflow', 'components')
         params = {
             'component': utils.get_components(self.components),
+            'bug_type': 'defect',
             'resolution': '---',
             'f1': 'priority',
             'o1': 'anywordssubstr',
