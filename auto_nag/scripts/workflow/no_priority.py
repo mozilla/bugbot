@@ -81,6 +81,7 @@ class NoPriority(BzCleaner, Nag):
         self.components = utils.get_config('workflow', 'components')
         params = {
             'component': utils.get_components(self.components),
+            'bug_type': 'defect',
             'include_fields': fields,
             'resolution': '---',
             'f1': 'priority',
