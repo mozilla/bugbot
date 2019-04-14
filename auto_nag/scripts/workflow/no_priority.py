@@ -67,6 +67,9 @@ class NoPriority(BzCleaner, Nag):
         if not utils.check_product_component(self.components, bug):
             return None
 
+        if self.typ == 'first':
+            return bug
+
         owner, _ = self.round_robin.get(bug, self.date)
         real_owner = bug['triage_owner']
         self.add_triage_owner(
