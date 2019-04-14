@@ -67,6 +67,7 @@ class NoPriority(BzCleaner, Nag):
         if not utils.check_product_component(self.components, bug):
             return None
 
+        # don't nag in the first step (just a ni is enough)
         if self.typ == 'first':
             return bug
 
