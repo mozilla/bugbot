@@ -93,26 +93,111 @@ class NoPriority(BzCleaner, Nag):
             'v1': '--',
         }
         self.date = lmdutils.get_date_ymd(date)
+        first = self.date - relativedelta(days=self.lookup_first * 7)
+        second = self.date - relativedelta(days=self.lookup_second * 7)
         if self.typ == 'first':
+            # TODO: change this when https://bugzilla.mozilla.org/1543984 will be fixed
+            # Here we have to get bugs where product/component have been set (bug has been triaged)
+            # between 4 and 2 weeks
+            # If the product/component never changed after bug creation, we need to get them too
+            # (second < p < first && c < first) ||
+            # (second < c < first && p < first) ||
+            # ((second < creation < first) && pc never changed)
             params.update(
                 {
                     'f2': 'flagtypes.name',
                     'o2': 'notequals',
                     'v2': 'needinfo?',
-                    'f3': 'creation_ts',
-                    'o3': 'lessthaneq',
-                    'v3': self.date - relativedelta(days=self.lookup_first * 7),
-                    'f4': 'creation_ts',
-                    'o4': 'greaterthan',
-                    'v4': self.date - relativedelta(days=self.lookup_second * 7),
+                    'j3': 'OR',
+                    'f3': 'OP',
+                    'j4': 'AND',
+                    'f4': 'OP',
+                    'n5': 1,  # we use a negation here to be sure that no change after first
+                    'f5': 'product',
+                    'o5': 'changedafter',
+                    'v5': first,
+                    'f6': 'product',  # here the bug has changed
+                    'o6': 'changedafter',
+                    'v6': second,
+                    'n7': 1,
+                    'f7': 'component',
+                    'o7': 'changedafter',
+                    'v7': first,
+                    'f8': 'CP',
+                    'j9': 'AND',
+                    'f9': 'OP',
+                    'n10': 1,
+                    'f10': 'component',
+                    'o10': 'changedafter',
+                    'v10': first,
+                    'f11': 'component',
+                    'o11': 'changedafter',
+                    'v11': second,
+                    'n12': 1,
+                    'f12': 'product',
+                    'o12': 'changedafter',
+                    'v12': first,
+                    'f13': 'CP',
+                    'j14': 'AND',
+                    'f14': 'OP',
+                    'f15': 'creation_ts',
+                    'o15': 'lessthaneq',
+                    'v15': first,
+                    'f16': 'creation_ts',
+                    'o16': 'greaterthan',
+                    'v16': second,
+                    'n17': 1,
+                    'f17': 'product',
+                    'o17': 'changedafter',
+                    'v17': '1970-01-01',
+                    'n18': 1,
+                    'f18': 'component',
+                    'o18': 'changedafter',
+                    'v18': '1970-01-01',
+                    'f19': 'CP',
+                    'f20': 'CP',
                 }
             )
         else:
             params.update(
                 {
-                    'f2': 'creation_ts',
-                    'o2': 'lessthaneq',
-                    'v2': self.date - relativedelta(days=self.lookup_second * 7),
+                    'j2': 'OR',
+                    'f2': 'OP',
+                    'j3': 'AND',
+                    'f3': 'OP',
+                    'f4': 'product',
+                    'o4': 'changedbefore',
+                    'v4': second,
+                    'n5': 1,
+                    'f5': 'product',
+                    'o5': 'changedafter',
+                    'v5': second,
+                    'f6': 'CP',
+                    'j7': 'AND',
+                    'f7': 'OP',
+                    'f8': 'component',
+                    'o8': 'changedbefore',
+                    'v8': second,
+                    'n9': 1,
+                    'f9': 'component',
+                    'o9': 'changedafter',
+                    'v9': second,
+                    'f10': 'CP',
+                    'j11': 'AND',
+                    'f11': 'OP',
+                    'f12': 'creation_ts',
+                    'o12': 'lessthaneq',
+                    'v12': second,
+                    'n13': 1,
+                    'f13': 'product',
+                    'o13': 'changedafter',
+                    'v13': '1970-01-01',
+                    'n14': 1,
+                    'f14': 'component',
+                    'o14': 'changedafter',
+                    'v14': '1970-01-01',
+                    'f15': 'CP',
+                    'f16': 'CP',
                 }
             )
 
