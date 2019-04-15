@@ -90,6 +90,10 @@ python -m auto_nag.scripts.meta_defect
 # Pretty common
 python -m auto_nag.scripts.newbie_with_ni -d
 
+# Bug caused several regressions recently reported
+# Pretty rare
+python -m auto_nag.scripts.warn_regressed_by
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
