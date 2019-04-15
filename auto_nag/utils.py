@@ -135,6 +135,22 @@ def plural(sword, data, pword=''):
     return sword + 's'
 
 
+def search_prev_merge(beta):
+    tables = rc.get_all()
+
+    # the first table is the future and the second is the recent past
+    table = tables[1]
+    central = table[0].index('Central')
+    central = rc.get_versions(table[1][central])[0][0]
+
+    # just check consistency
+    assert beta == central
+
+    merge = table[0].index('Merge Date')
+
+    return lmdutils.get_date_ymd(table[1][merge])
+
+
 def get_cycle_span():
     global _CYCLE_SPAN
     if _CYCLE_SPAN is None:
@@ -143,12 +159,11 @@ def get_cycle_span():
         cycle = None
         for i, c in enumerate(cal):
             if now < c['merge']:
-                # TODO: fix me
                 if i == 0:
-                    pass
+                    cycle = [search_prev_merge(c['beta']), c['merge']]
                 else:
                     cycle = [cal[i - 1]['merge'], c['merge']]
-                    break
+                break
         if cycle:
             _CYCLE_SPAN = '-'.join(x.strftime('%Y%m%d') for x in cycle)
 
@@ -176,7 +191,7 @@ def get_report_bugs(channel, op='+'):
     # something like https://bugzilla.mozilla.org/buglist.cgi?bug_id=1493711,1502766,1499908
     url = r.headers['Location']
 
-    return url.split(',')[1:]
+    return url.split('=')[1].split(',')
 
 
 def get_flag(version, name, channel):
