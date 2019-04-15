@@ -21,9 +21,6 @@ class MissingBetaStatus(BzCleaner):
     def get_autofix_change(self):
         return self.autofix_status
 
-    def ignore_bug_summary(self):
-        return False
-
     def has_enough_data(self):
         return bool(self.versions)
 

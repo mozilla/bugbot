@@ -44,9 +44,6 @@ class BugbugScript(BzCleaner):
 
         return file_path
 
-    def ignore_bug_summary(self):
-        return False
-
     def get_data(self):
         return list()
 
