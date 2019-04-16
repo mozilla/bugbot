@@ -19,6 +19,8 @@
     },
     "common":
     {
+        "database": "sqlite:///db/autonag.sqlite",
+        "lock": "db/lock",
         "receivers":
         [
             "calixte@mozilla.com",

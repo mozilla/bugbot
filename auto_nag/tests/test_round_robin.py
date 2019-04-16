@@ -10,7 +10,7 @@ from mock import patch
 
 from auto_nag.people import People
 from auto_nag.round_robin import RoundRobin
-from auto_nag.calendar import BadFallback
+from auto_nag.round_robin_calendar import BadFallback
 
 
 class TestRoundRobin(unittest.TestCase):
