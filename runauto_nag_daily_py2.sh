@@ -37,10 +37,6 @@ python -m auto_nag.scripts.topcrash_bad_severity
 # Pretty rare
 python -m auto_nag.scripts.feature_regression
 
-# Version is set but status_firefox isn't
-# Very common
-python -m auto_nag.scripts.version_affected
-
 # Detect one word summary
 # a bit rare
 python -m auto_nag.scripts.one_two_word_summary
