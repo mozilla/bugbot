@@ -36,6 +36,7 @@ class History(object):
                 'bug_severity',
                 'resolution',
                 'bug_status',
+                'bug_type',
                 'cf_status_firefox68',
                 'cf_status_firefox67',
                 'cf_status_firefox66',
@@ -328,6 +329,45 @@ class History(object):
                             res.append(
                                 {
                                     'tool': 'regression',
+                                    'date': date,
+                                    'bugid': bugid,
+                                    'extra': '',
+                                }
+                            )
+                            break
+                        elif (
+                            change.get('field_name') == 'type'
+                            and change.get('added') == 'defect'
+                        ):
+                            res.append(
+                                {
+                                    'tool': 'regression_but_type_enhancement_task',
+                                    'date': date,
+                                    'bugid': bugid,
+                                    'extra': '',
+                                }
+                            )
+                            break
+                        elif (
+                            change.get('field_name') == 'keywords'
+                            and change.get('removed') == 'dupeme'
+                        ):
+                            res.append(
+                                {
+                                    'tool': 'closed_dupeme',
+                                    'date': date,
+                                    'bugid': bugid,
+                                    'extra': '',
+                                }
+                            )
+                            break
+                        elif (
+                            change.get('field_name') == 'keywords'
+                            and change.get('added') == 'dupeme'
+                        ):
+                            res.append(
+                                {
+                                    'tool': 'dupeme_whiteboard_keyword',
                                     'date': date,
                                     'bugid': bugid,
                                     'extra': '',
