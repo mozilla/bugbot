@@ -3,202 +3,13 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import dateutil.parser
+import json
 import unittest
 
 import auto_nag.db as db
 
 
 class TestDB(unittest.TestCase):
-
-    HISTORY = [
-        {
-            "tool": "no_assignee",
-            "bugid": 1523712,
-            "date": "2019-01-31 13:03:06+00:00",
-            "extra": "emilio@crisal.io",
-        },
-        {
-            "tool": "no_crashes",
-            "bugid": 753667,
-            "date": "2018-11-30 13:05:04+00:00",
-            "extra": "",
-        },
-        {
-            "tool": "leave_open_no_activity",
-            "bugid": 1359875,
-            "date": "2018-12-12 13:06:43+00:00",
-            "extra": "gl@mozilla.com",
-        },
-        {
-            "tool": "summary_meta_missing",
-            "bugid": 1400842,
-            "date": "2018-12-12 13:06:18+00:00",
-            "extra": "",
-        },
-        {
-            "tool": "leave_open",
-            "bugid": 1474570,
-            "date": "2018-11-07 13:01:21+00:00",
-            "extra": "",
-        },
-        {
-            "tool": "no_assignee",
-            "bugid": 1507340,
-            "date": "2018-11-15 13:02:06+00:00",
-            "extra": "mh+mozilla@glandium.org",
-        },
-        {
-            "tool": "assignee_but_unconfirmed",
-            "bugid": 1540111,
-            "date": "2019-03-29 13:56:06+00:00",
-            "extra": "",
-        },
-        {
-            "tool": "no_crashes",
-            "bugid": 696336,
-            "date": "2018-12-23 13:05:41+00:00",
-            "extra": "",
-        },
-        {
-            "tool": "assignee_but_unconfirmed",
-            "bugid": 1540113,
-            "date": "2019-03-29 13:56:05+00:00",
-            "extra": "",
-        },
-        {
-            "tool": "not_landed",
-            "bugid": 1531926,
-            "date": "2019-03-27 13:07:05+00:00",
-            "extra": "rjesup@jesup.org",
-        },
-        {
-            "tool": "no_assignee",
-            "bugid": 1531927,
-            "date": "2019-03-07 05:15:24+00:00",
-            "extra": "egao@mozilla.com",
-        },
-        {
-            "tool": "nighty_reopened",
-            "bugid": 1531927,
-            "date": "2019-03-07 19:15:46+00:00",
-            "extra": "",
-        },
-        {
-            "tool": "no_assignee",
-            "bugid": 1204247,
-            "date": "2018-12-14 17:01:23+00:00",
-            "extra": "sharma.divyansh.501@iitg.ernet.in",
-        },
-        {
-            "tool": "not_landed",
-            "bugid": 1490968,
-            "date": "2019-03-21 13:09:51+00:00",
-            "extra": "qiaopengcheng-hf@loongson.cn",
-        },
-        {
-            "tool": "summary_meta_missing",
-            "bugid": 1458202,
-            "date": "2018-11-08 08:10:56+00:00",
-            "extra": "",
-        },
-        {
-            "tool": "leave_open_no_activity",
-            "bugid": 1450012,
-            "date": "2018-11-23 13:11:57+00:00",
-            "extra": "dustin@mozilla.com",
-        },
-        {
-            "tool": "no_assignee",
-            "bugid": 1515549,
-            "date": "2019-01-11 13:00:58+00:00",
-            "extra": "achronop@gmail.com",
-        },
-        {
-            "tool": "leave_open_no_activity",
-            "bugid": 1425440,
-            "date": "2018-11-22 15:07:09+00:00",
-            "extra": "amarchesini@mozilla.com",
-        },
-        {
-            "tool": "leave_open",
-            "bugid": 1425440,
-            "date": "2018-11-23 13:01:25+00:00",
-            "extra": "",
-        },
-        {
-            "tool": "nighty_reopened",
-            "bugid": 1523755,
-            "date": "2019-02-08 13:07:03+00:00",
-            "extra": "",
-        },
-        {
-            "tool": "no_crashes",
-            "bugid": 876589,
-            "date": "2018-12-27 13:06:28+00:00",
-            "extra": "",
-        },
-        {
-            "tool": "no_assignee",
-            "bugid": 1540142,
-            "date": "2019-04-04 05:15:20+00:00",
-            "extra": "petr.sumbera@oracle.com",
-        },
-        {
-            "tool": "no_crashes",
-            "bugid": 1425461,
-            "date": "2019-03-15 00:15:24+00:00",
-            "extra": "",
-        },
-        {
-            "tool": "regression",
-            "bugid": 1425461,
-            "date": "2019-03-15 13:47:28+00:00",
-            "extra": "",
-        },
-        {
-            "tool": "no_assignee",
-            "bugid": 1540151,
-            "date": "2019-04-01 08:52:15+00:00",
-            "extra": "dwalsh@mozilla.com",
-        },
-        {
-            "tool": "leave_open_no_activity",
-            "bugid": 1073209,
-            "date": "2018-11-23 13:11:55+00:00",
-            "extra": "dbolter@mozilla.com",
-        },
-        {
-            "tool": "no_assignee",
-            "bugid": 1515582,
-            "date": "2019-02-12 13:02:23+00:00",
-            "extra": "bzbarsky@mit.edu",
-        },
-    ]
-
-    EMAILS = [
-        {
-            'tool': 'A',
-            'user': 'B',
-            'date': '2019-02-12 13:02:23+00:00',
-            'extra': 'C',
-            'result': 'Success',
-        },
-        {
-            'tool': 'D',
-            'user': 'E',
-            'date': '2019-02-13 13:02:23+00:00',
-            'extra': 'F',
-            'result': 'Failure',
-        },
-        {
-            'tool': 'G',
-            'user': 'H',
-            'date': '2019-02-14 13:02:23+00:00',
-            'extra': '',
-            'result': 'Success',
-        },
-    ]
-
     def by_tool(self, data):
         res = {}
         for x in data:
@@ -216,14 +27,17 @@ class TestDB(unittest.TestCase):
         db.session.query(db.BugChange).delete()
         db.session.commit()
 
-        db.BugChange.read_dict(TestDB.HISTORY)
+        with open('./auto_nag/tests/db_history.json', 'r') as In:
+            HISTORY = json.load(In)['history']
+
+        db.BugChange.import_from_dict(HISTORY)
 
         data = db.BugChange.get()
         data = list(data)
 
-        assert len(data) == len(TestDB.HISTORY)
+        assert len(data) == len(HISTORY)
 
-        data = self.by_tool(TestDB.HISTORY)
+        data = self.by_tool(HISTORY)
         for tool, info in data.items():
             _data = db.BugChange.get(name=tool).order_by(db.BugChange.date.asc())
             _data = list(_data)
@@ -260,14 +74,17 @@ class TestDB(unittest.TestCase):
         db.session.query(db.Email).delete()
         db.session.commit()
 
-        db.Email.read_dict(TestDB.EMAILS)
+        with open('./auto_nag/tests/db_history.json', 'r') as In:
+            EMAILS = json.load(In)['emails']
+
+        db.Email.import_from_dict(EMAILS)
 
         data = db.Email.get().order_by(db.Email.date.asc())
         data = list(data)
 
-        assert len(data) == len(TestDB.EMAILS)
+        assert len(data) == len(EMAILS)
 
-        for expected, got in zip(TestDB.EMAILS, data):
+        for expected, got in zip(EMAILS, data):
             assert expected['tool'] == got.tool.name
             assert expected['user'] == got.user.email
             assert expected['date'] == str(got.get_date())

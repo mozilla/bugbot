@@ -32,7 +32,7 @@ session = DBSession()
 def init():
     hist = History().get()
     logger.info('Put history in db: start...')
-    BugChange.read_dict(hist)
+    BugChange.import_from_dict(hist)
     logger.info('Put history in db: end.')
 
 
@@ -183,7 +183,7 @@ class BugChange(Base):
                 print(x)
 
     @staticmethod
-    def read_dict(data):
+    def import_from_dict(data):
         for x in data:
             tool, date, bugid, extra = (
                 x[f] for f in ['tool', 'date', 'bugid', 'extra']
@@ -327,7 +327,7 @@ class Email(Base):
                 print(x)
 
     @staticmethod
-    def read_dict(data):
+    def import_from_dict(data):
         for x in data:
             tool, date, user, extra, result = (
                 x[f] for f in ['tool', 'date', 'user', 'extra', 'result']
