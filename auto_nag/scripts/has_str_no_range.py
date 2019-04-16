@@ -106,6 +106,10 @@ class HasSTRNoRange(BzCleaner):
             'f5': 'longdesc',
             'o5': 'casesubstring',
             'v5': 'could you try to find a regression range in using for example [mozregression]',
+            'n6': 1,
+            'f6': 'reporter',
+            'o6': 'regexp',
+            'v6': r'^.*@softvision\.ro$',
         }
 
         return params
