@@ -31,6 +31,7 @@ class Regression(BugbugScript):
         reporter_blacklist = ','.join(reporter_blacklist)
 
         params = {
+            'bug_type': 'defect',
             'f1': 'keywords', 'o1': 'nowords', 'v1': 'regression,feature,meta',
             'f2': 'longdesc', 'o2': 'anywordssubstr', 'v2': 'regress caus',
             'f3': 'resolution', 'o3': 'nowords', 'v3': resolution_blacklist,

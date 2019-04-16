@@ -14,7 +14,7 @@ from libmozdata import utils as lmdutils
 import os
 import pytz
 import six
-from auto_nag import mail, utils, logger
+from auto_nag import db, mail, utils, logger
 from auto_nag.nag_me import Nag
 
 
@@ -164,12 +164,17 @@ class BzCleaner(object):
     def has_access_to_sec_bugs(self):
         return self.get_config('sec', True)
 
-    def get_bug_types(self):
-        return self.get_config('types', [])
-
     def handle_bug(self, bug, data):
         """Implement this function to get all the bugs from the query"""
         return bug
+
+    def get_db_extra(self):
+        """Get extra information required for db insertion"""
+        return {
+            bugid: ni_mail
+            for ni_mail, v in self.auto_needinfo.items()
+            for bugid in v['bugids']
+        }
 
     def get_auto_ni_blacklist(self):
         return set()
@@ -299,14 +304,6 @@ class BzCleaner(object):
             n = utils.get_last_field_num(params)
             params.update({'f' + n: 'bug_group', 'o' + n: 'isempty'})
 
-        types = self.get_bug_types()
-        if types:
-            assert set(types) <= {'defect', 'enhancement', 'task'}
-            n = utils.get_last_field_num(params)
-            params.update(
-                {'f' + n: 'bug_type', 'o' + n: 'anywords', 'v' + n: ','.join(types)}
-            )
-
         self.has_flags = 'flags' in params.get('include_fields', [])
 
     def get_bugs(self, date='today', bug_ids=[]):
@@ -328,7 +325,7 @@ class BzCleaner(object):
 
         self.get_comments(bugs)
 
-        return bugs  # TODO: attention au reverse_order (config/tools.json)
+        return bugs
 
     def commenthandler(self, bug, bugid, data):
         return
@@ -446,8 +443,10 @@ class BzCleaner(object):
                     'The bugs: {}\n will be autofixed with:\n{}'.format(bugid, ch)
                 )
         else:
+            extra = self.get_db_extra()
             for bugid, ch in new_changes.items():
                 Bugzilla([str(bugid)]).put(ch)
+                db.BugChange.add(self.name(), bugid, extra=extra.get(bugid, ''))
 
         return bugs
 
@@ -500,16 +499,23 @@ class BzCleaner(object):
         login_info = utils.get_login_info()
         title, body = self.get_email(login_info['bz_api_key'], date, dryrun)
         if title:
-            mail.send(
-                login_info['ldap_username'],
-                utils.get_config(self.name(), 'receivers'),
-                title,
-                body,
-                html=True,
-                login=login_info,
-                dryrun=dryrun,
-            )
+            receivers = utils.get_config(self.name(), 'receivers')
+            status = 'Success'
+            try:
+                mail.send(
+                    login_info['ldap_username'],
+                    receivers,
+                    title,
+                    body,
+                    html=True,
+                    login=login_info,
+                    dryrun=dryrun,
+                )
+            except:  # NOQA
+                logger.exception('Tool {}'.format(self.name()))
+                status = 'Failure'
 
+            db.Email.add(self.name(), receivers, 'global', status)
             if isinstance(self, Nag):
                 self.send_mails(title, dryrun=dryrun)
         else:

@@ -148,6 +148,12 @@ class Component(BugbugScript):
             for bug_id, data in self.autofix_component.items()
         }
 
+    def get_db_extra(self):
+        return {
+            bugid: '{}::{}'.format(v['product'], v['component'])
+            for bugid, v in self.get_autofix_change().items()
+        }
+
 
 if __name__ == '__main__':
     Component().run()

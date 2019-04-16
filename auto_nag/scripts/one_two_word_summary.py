@@ -17,6 +17,7 @@ class OneTwoWordSummary(BzCleaner):
         blacklist = self.get_config('regex_blacklist', [])
 
         params = {
+            'bug_type': 'defect',
             'resolution': '---',
             'f1': 'days_elapsed',
             'o1': 'lessthan',

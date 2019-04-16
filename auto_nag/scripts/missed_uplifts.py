@@ -102,6 +102,7 @@ class MissedUplifts(BzCleaner):
         ]
         params = {
             'include_fields': fields,
+            'bug_type': 'defect',
             'resolution': ['---', 'FIXED'],
             'f1': self.status_central,
             'o1': 'anyexact',
