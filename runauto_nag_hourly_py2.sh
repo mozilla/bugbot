@@ -66,6 +66,9 @@ python -m auto_nag.scripts.tracked_bad_severity
 # Pretty common
 python -m auto_nag.scripts.copy_duplicate_info
 
+# Enhancement or task with the "regression" keyword
+python -m auto_nag.scripts.regression_but_type_enhancement_task
+
 # Move dupeme from whiteboard to keyword
 # Pretty rare
 python -m auto_nag.scripts.dupeme_whiteboard_keyword
