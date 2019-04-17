@@ -150,5 +150,5 @@ class Unlanded(BzCleaner, Nag):
 
 if __name__ == '__main__':
     Unlanded('beta').run()
-    Unlanded('release').run()
-    Unlanded('esr').run()
+    # Unlanded('release').run()
+    # Unlanded('esr').run()
