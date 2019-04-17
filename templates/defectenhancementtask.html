@@ -6,7 +6,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for i, (bugid, summary, type, bugbug_type, confidence) in enumerate(data) -%}
+      {% for i, (bugid, summary, type, bugbug_type, confidence, autofixed) in enumerate(data) -%}
       <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
         <td>
           <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
@@ -20,7 +20,7 @@
         <td>
           {{ bugbug_type }}
         </td>
-        <td>
+        <td {% if autofixed %}bgcolor="#00FF00"{% endif -%}>
           {{ confidence }}
         </td>
       </tr>
