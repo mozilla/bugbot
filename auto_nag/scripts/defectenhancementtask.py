@@ -105,7 +105,7 @@ class DefectEnhancementTask(BugbugScript):
                     'add': cc
                 },
                 'comment': {
-                    'body': 'The bot thinks this bug is a {}, but please change it back in case of error'.format(suggestion),
+                    'body': 'The bot thinks this bug is a {}, but please change it back in case of error.'.format(suggestion),
                 },
             }
             for bug_id, suggestion in self.autofix_type.items()
