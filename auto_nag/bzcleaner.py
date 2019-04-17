@@ -517,7 +517,7 @@ class BzCleaner(object):
 
             db.Email.add(self.name(), receivers, 'global', status)
             if isinstance(self, Nag):
-                self.send_mails(title)
+                self.send_mails(title, dryrun=self.dryrun)
         else:
             name = self.name().upper()
             if date:
