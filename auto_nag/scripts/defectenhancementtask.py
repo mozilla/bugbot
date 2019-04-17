@@ -11,12 +11,13 @@ class DefectEnhancementTask(BugbugScript):
     def __init__(self):
         super().__init__()
         self.model = DefectEnhancementTaskModel.load(self.retrieve_model())
+        self.autofix_type = {}
 
     def description(self):
         return '[Using ML] Check that the bug type is the same as predicted by bugbug'
 
     def columns(self):
-        return ['id', 'summary', 'type', 'bugbug_type', 'confidence']
+        return ['id', 'summary', 'type', 'bugbug_type', 'confidence', 'autofixed']
 
     def sort_columns(self):
         def _sort_columns(p):
@@ -48,6 +49,18 @@ class DefectEnhancementTask(BugbugScript):
             'f2': 'reporter', 'o2': 'nowords', 'v2': reporter_blacklist,
         }
 
+    # Remove bugs for which the type was already changed.
+    def remove_using_history(self, bugs):
+        def should_remove(bug):
+            for h in bug['history']:
+                for change in h['changes']:
+                    if change["field_name"] == "type":
+                        return True
+
+            return False
+
+        return [bug for bug in bugs if not should_remove(bug)]
+
     def get_bugs(self, date='today', bug_ids=[]):
         # Retrieve bugs to analyze.
         bugs, probs = super().get_bugs(date=date, bug_ids=bug_ids)
@@ -63,9 +76,6 @@ class DefectEnhancementTask(BugbugScript):
         for bug, prob, index, suggestion in zip(bugs, probs, indexes, suggestions):
             assert suggestion in {'defect', 'enhancement', 'task'}, f'Suggestion {suggestion} is invalid'  # noqa
 
-            if prob[index] < self.get_config('confidence_threshold'):
-                continue
-
             if bug['type'] == suggestion:
                 continue
 
@@ -75,9 +85,31 @@ class DefectEnhancementTask(BugbugScript):
                 'type': bug['type'],
                 'bugbug_type': suggestion,
                 'confidence': int(round(100 * prob[index])),
+                'autofixed': False,
             }
 
+            # Only autofix results for which we are sure enough.
+            # And only autofix defect -> task/enhancement for now, unless we're 100% sure.
+            if prob[index] >= self.get_config('confidence_threshold') and (bug['type'] == 'defect' or prob[index] == 1.0):
+                results[bug['id']]['autofixed'] = True
+                self.autofix_type[bug['id']] = suggestion
+
         return results
+
+    def get_autofix_change(self):
+        cc = self.get_config('cc')
+        return {
+            bug_id: {
+                'type': suggestion,
+                'cc': {
+                    'add': cc
+                },
+                'comment': {
+                    'body': 'The bot thinks this bug is a {}, but please change it back in case of error.'.format(suggestion),
+                },
+            }
+            for bug_id, suggestion in self.autofix_type.items()
+        }
 
 
 if __name__ == '__main__':
