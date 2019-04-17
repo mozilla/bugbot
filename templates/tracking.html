@@ -1,12 +1,12 @@
-<p>The following {{ plural('bug is', data, pword='bugs are') }} tracked in {{ extra['channel'] }} {{ extra['version'] }}{% if extra['untouched'] %} and untouched this week{% endif %} (when the bug is red, then the assignee is a person with no manager):
+<p>The following {{ plural('bug is', data, pword='bugs are') }} tracked in {{ extra['channel'] }} {{ extra['version'] }}{% if extra['untouched'] %} and untouched in the last 3 days{% endif %} (when the bug is red, then the assignee is a person with no manager):
   <table border="1">
     <thead>
       <tr>
-        <th>Bug</th><th>Summary</th><th>Assignee</th><th>Last comment</th>
+        <th>Bug</th><th>Summary</th><th>Assignee</th><th>Needinfo</th><th>Last comment</th>
       </tr>
     </thead>
     <tbody>
-      {% for i, (bugid, summary, assignee, last_comment) in enumerate(data) -%}
+      {% for i, (bugid, summary, needinfos, assignee, last_comment) in enumerate(data) -%}
       <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
         <td {% if bugid in no_manager %}style="background:red;"{% endif %}>
           <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
@@ -16,6 +16,15 @@
         </td>
         <td>
           {{ assignee | e }}
+        </td>
+        <td>
+          {% if needinfos -%}
+          <ul>
+            {% for ni in needinfos -%}
+            <li><a href="mailto:{{ ni }}">{{ ni | e }}</a></li>
+            {% endfor -%}
+          </ul>
+          {% endif -%}
         </td>
         <td>
           {{ last_comment }}

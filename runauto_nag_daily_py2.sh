@@ -60,9 +60,11 @@ python -m auto_nag.scripts.leave_open_no_activity
 # Pretty common
 python -m auto_nag.scripts.meta_no_deps_no_activity
 
-# has an unlanded patch or some flags not up-to-date
-# Pretty rare
-python -m auto_nag.scripts.unlanded
+# Several tools here
+#  1) has an unlanded patch or some flags not up-to-date
+#     Pretty rare
+#  2) Tracked bugs
+python -m auto_nag.scripts.multi_nag
 
 # has a r+ patch, is open, has no activity for few weeks
 # Pretty common

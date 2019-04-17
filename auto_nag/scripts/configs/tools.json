@@ -486,6 +486,25 @@
             "sledru@mozilla.com",
             "mcastelluccio@mozilla.com",
             "cdenizet@mozilla.com"
+    },
+    "tracking":
+    {
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "release-mgmt@mozilla.com",
+            "tgrabowski@mozilla.com",
+            "yor@mozilla.com"
+        ]
+    },
+    "tracking_untouched":
+    {
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "release-mgmt@mozilla.com",
+            "tgrabowski@mozilla.com",
+            "yor@mozilla.com"
         ]
     }
 }

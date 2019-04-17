@@ -59,13 +59,7 @@ urls = [
     (5, ["Tracked or Nominated for Tracking with Need-Info? Beta " + beta_version + " Bugs", "needinfo_beta", needinfo_beta_url]),
     (5, ["Tracked or Nominated for Tracking with Need-Info? Nightly " + central_version + " Bugs", "needinfo_central", needinfo_central_url]),
     (5, ["Tracked or Nominated for Tracking with Need-Info? ESR" + esr_version + " Bugs", "needinfo_esr", needinfo_esr_url]),
-    (0, ["Bugs Tracked for Beta " + beta_version, "tracking_beta", tracking_beta_url]),
-    (0, ["Bugs Tracked for Nightly " + central_version, "tracking_central", tracking_central_url]),
-    (0, ["Bugs Tracked for ESR" + esr_version, "tracking_esr", tracking_esr_url]),
-    (3, ["Tracked Beta " + beta_version + " Bugs, untouched this week", "untouched_tracking_beta", tracking_beta_touch_url]),
-    (3, ["Tracked Nightly " + central_version + " Bugs, untouched this week", "untouched_tracking_nightly", tracking_central_touch_url])
 ]
-
 
 if __name__ == '__main__':
     # basic setups
