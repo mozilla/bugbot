@@ -27,6 +27,9 @@ class Unlanded(BzCleaner, Nag):
     def template(self):
         return 'unlanded.html'
 
+    def get_config(self, entry, default=None):
+        return utils.get_config('unlanded', entry, default=default)
+
     def nag_template(self):
         return self.template()
 

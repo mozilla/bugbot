@@ -8,7 +8,7 @@ from auto_nag.multinaggers import MultiNaggers
 from .unlanded import Unlanded
 from .tracking import Tracking
 
-# from .tracked_needinfo import TrackedNeedinfo
+from .tracked_needinfo import TrackedNeedinfo
 
 
 class TrackingMultiNag(MultiNaggers):
@@ -22,9 +22,9 @@ class TrackingMultiNag(MultiNaggers):
             Tracking('central', False),
             Tracking('central', True),
             Tracking('esr', False),
-            # TrackedNeedinfo('beta'),
-            # TrackedNeedinfo('central'),
-            # TrackedNeedinfo('esr'),
+            TrackedNeedinfo('beta'),
+            TrackedNeedinfo('central'),
+            TrackedNeedinfo('esr'),
         )
 
     def description(self):

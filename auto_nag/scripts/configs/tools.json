@@ -55,7 +55,17 @@
             "Toolkit",
             "WebExtensions"
         ],
-        "log": "/tmp/auto_nag_errors.log"
+        "log": "/tmp/auto_nag_errors.log",
+        "receiver_list":
+        {
+            "rm":
+            [
+                "calixte@mozilla.com",
+                "release-mgmt@mozilla.com",
+                "tgrabowski@mozilla.com",
+                "yor@mozilla.com"
+            ]
+        }
     },
     "has_str_no_hasstr":
     {
@@ -490,22 +500,18 @@
     },
     "tracking":
     {
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "release-mgmt@mozilla.com",
-            "tgrabowski@mozilla.com",
-            "yor@mozilla.com"
-        ]
+        "receivers": "rm"
     },
     "tracking_untouched":
     {
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "release-mgmt@mozilla.com",
-            "tgrabowski@mozilla.com",
-            "yor@mozilla.com"
-        ]
+        "receivers": "rm"
+    },
+    "tracked_needinfo":
+    {
+        "receivers": "rm"
+    },
+    "unlanded":
+    {
+        "receivers": "rm"
     }
 }

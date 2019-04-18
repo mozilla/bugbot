@@ -4,12 +4,14 @@
 
 import copy
 import datetime
+import dateutil.parser
 from dateutil.relativedelta import relativedelta
 import json
 from libmozdata import utils as lmdutils
 from libmozdata import release_calendar as rc
 from libmozdata.hgmozilla import Mercurial
 import os
+import pytz
 import re
 import requests
 import six
@@ -205,10 +207,14 @@ def get_flag(version, name, channel):
         return 'approval-mozilla-{}'.format(channel)
 
 
-def get_needinfo(bug):
+def get_needinfo(bug, days=-1):
+    now = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
     for flag in bug.get('flags', []):
         if flag.get('name', '') == 'needinfo' and flag['status'] == '?':
-            yield flag
+            date = flag['modification_date']
+            date = dateutil.parser.parse(date)
+            if (now - date).days >= days:
+                yield flag
 
 
 def get_last_field_num(params):
