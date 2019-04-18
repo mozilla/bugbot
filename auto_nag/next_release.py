@@ -8,19 +8,28 @@ from libmozdata import release_owners as ro, utils as lmdutils
 import pytz
 import re
 import requests
-from . import mail, utils, logger
+from . import db, mail, utils, logger
 
 
 def send_mail(next_date, bad_date_nrd, bad_date_ro, dryrun=False):
-    mail.send_from_template(
-        'next_release_email',
-        utils.get_config('next-release', 'receivers'),
-        'Next release date is not up-to-date',
-        dryrun=dryrun,
-        next_date=next_date,
-        bad_date_nrd=bad_date_nrd,
-        bad_date_ro=bad_date_ro,
-    )
+    status = 'Success'
+    receivers = utils.get_config('next_release', 'receivers')
+    try:
+        mail.send_from_template(
+            'next_release.html',
+            receivers,  # To
+            'Next release date is not up-to-date',
+            dryrun=dryrun,
+            next_date=next_date,
+            bad_date_nrd=bad_date_nrd,
+            bad_date_ro=bad_date_ro,
+        )
+    except:  # NOQA
+        logger.exception('Tool {}'.format('next_release'))
+        status = 'Failure'
+
+    if not dryrun:
+        db.Email.add('next_release', receivers, 'global', status)
 
 
 def check_dates(dryrun=False):

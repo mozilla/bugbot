@@ -167,7 +167,8 @@ class Nag(object):
                 logger.exception('Tool {}'.format(self.name()))
                 status = 'Failure'
 
-            db.Email.add(self.name(), receivers, 'individual', status)
+            if not dryrun:
+                db.Email.add(self.name(), receivers, 'individual', status)
 
     def prepare_mails(self):
         if not self.data:

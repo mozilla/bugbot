@@ -3,21 +3,29 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import argparse
-from . import logger, mail, utils
+from . import db, logger, mail, utils
 from .round_robin import RoundRobin
 
 
 def send_mail(nag, dryrun=False):
     for fb, calendars in nag.items():
-        mail.send_from_template(
-            'round_robin_fallback_email.html',
-            fb,
-            'Triage owners need to be updated',
-            Cc=utils.get_config('common', 'receivers'),
-            dryrun=dryrun,
-            calendars=calendars,
-            plural=utils.plural,
-        )
+        Cc = utils.get_config('common', 'receivers')
+        try:
+            mail.send_from_template(
+                'round_robin_fallback.html',
+                fb,  # To
+                'Triage owners need to be updated',
+                Cc=Cc,
+                dryrun=dryrun,
+                calendars=calendars,
+                plural=utils.plural,
+            )
+        except:  # NOQA
+            logger.exception('Tool {}'.format('next_release'))
+            status = 'Failure'
+
+        if not dryrun:
+            db.Email.add('next_release', Cc + fb, 'global', status)
 
 
 def check_people(date, dryrun=False):
@@ -25,7 +33,6 @@ def check_people(date, dryrun=False):
     # nag is a dict: persons -> list of persons
     #                team -> team name
     nag = rr.get_who_to_nag(date)
-    print(nag)
     send_mail(nag, dryrun=dryrun)
 
 

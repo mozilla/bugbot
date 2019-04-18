@@ -515,7 +515,9 @@ class BzCleaner(object):
                 logger.exception('Tool {}'.format(self.name()))
                 status = 'Failure'
 
-            db.Email.add(self.name(), receivers, 'global', status)
+            if not self.dryrun:
+                db.Email.add(self.name(), receivers, 'global', status)
+
             if isinstance(self, Nag):
                 self.send_mails(title, dryrun=self.dryrun)
         else:

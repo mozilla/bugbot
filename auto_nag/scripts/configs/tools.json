@@ -211,7 +211,7 @@
     {
         "days_lookup": 10
     },
-    "next-release":
+    "next_release":
     {
         "receivers":
         [
