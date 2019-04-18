@@ -16,7 +16,7 @@ python -m auto_nag.scripts.regression
 python -m auto_nag.scripts.component --frequency daily
 
 # Try to detect potential wrong bug types using bugbug
-# python -m auto_nag.scripts.defectenhancementtask
+python -m auto_nag.scripts.defectenhancementtask
 
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
