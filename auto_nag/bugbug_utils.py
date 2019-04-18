@@ -58,6 +58,9 @@ class BugbugScript(BzCleaner):
         return bugs
 
     def get_recent_bugs(self):
+        if self.dryrun:
+            return {}
+
         try:
             with open(self.cache_path, 'r') as f:
                 recent_bugs = json.load(f)
@@ -73,6 +76,9 @@ class BugbugScript(BzCleaner):
         return cleaned_recent_bugs
 
     def add_recent_bugs(self, recent_bugs, bugs):
+        if self.dryrun:
+            return
+
         for bug in bugs:
             recent_bugs[int(bug['id'])] = lmdutils.get_today()
 

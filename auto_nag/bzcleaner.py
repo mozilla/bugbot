@@ -364,7 +364,7 @@ class BzCleaner(object):
             raise Exception
         return utils.has_bot_set_ni(bug)
 
-    def set_needinfo(self, dryrun):
+    def set_needinfo(self):
         if not self.auto_needinfo:
             return {}
 
@@ -411,9 +411,9 @@ class BzCleaner(object):
         """Get the change to do to autofix the bugs"""
         return {}
 
-    def autofix(self, bugs, dryrun):
+    def autofix(self, bugs):
         """Autofix the bugs according to what is returned by get_autofix_change"""
-        ni_changes = self.set_needinfo(dryrun)
+        ni_changes = self.set_needinfo()
         change = self.get_autofix_change()
 
         if not ni_changes and not change:
@@ -437,7 +437,7 @@ class BzCleaner(object):
                 if mrg:
                     new_changes[bugid] = mrg
 
-        if dryrun or self.test_mode:
+        if self.dryrun or self.test_mode:
             for bugid, ch in new_changes.items():
                 logger.info(
                     'The bugs: {}\n will be autofixed with:\n{}'.format(bugid, ch)
@@ -453,11 +453,11 @@ class BzCleaner(object):
     def organize(self, bugs):
         return utils.organize(bugs, self.columns(), key=self.sort_columns())
 
-    def get_email(self, bztoken, date, dryrun, bug_ids=[]):
+    def get_email(self, bztoken, date, bug_ids=[]):
         """Get title and body for the email"""
         Bugzilla.TOKEN = bztoken
         bugs = self.get_bugs(date=date, bug_ids=bug_ids)
-        bugs = self.autofix(bugs, dryrun)
+        bugs = self.autofix(bugs)
         if bugs:
             bugs = self.organize(bugs)
             extra = self.get_extra_for_template()
@@ -481,7 +481,7 @@ class BzCleaner(object):
             return self.get_email_subject(date), body
         return None, None
 
-    def send_email(self, date='today', dryrun=False):
+    def send_email(self, date='today'):
         """Send the email"""
         if date:
             date = lmdutils.get_date(date)
@@ -497,7 +497,7 @@ class BzCleaner(object):
             return
 
         login_info = utils.get_login_info()
-        title, body = self.get_email(login_info['bz_api_key'], date, dryrun)
+        title, body = self.get_email(login_info['bz_api_key'], date)
         if title:
             receivers = utils.get_config(self.name(), 'receivers')
             status = 'Success'
@@ -509,7 +509,7 @@ class BzCleaner(object):
                     body,
                     html=True,
                     login=login_info,
-                    dryrun=dryrun,
+                    dryrun=self.dryrun,
                 )
             except:  # NOQA
                 logger.exception('Tool {}'.format(self.name()))
@@ -517,7 +517,7 @@ class BzCleaner(object):
 
             db.Email.add(self.name(), receivers, 'global', status)
             if isinstance(self, Nag):
-                self.send_mails(title, dryrun=dryrun)
+                self.send_mails(title, dryrun=self.dryrun)
         else:
             name = self.name().upper()
             if date:
@@ -561,7 +561,8 @@ class BzCleaner(object):
         args = self.get_args_parser().parse_args()
         self.parse_custom_arguments(args)
         date = '' if self.ignore_date() else args.date
+        self.dryrun = args.dryrun
         try:
-            self.send_email(date=date, dryrun=args.dryrun)
+            self.send_email(date=date)
         except Exception:
             logger.exception('Tool {}'.format(self.name()))
