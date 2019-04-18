@@ -94,5 +94,5 @@ class TrackedNeedinfo(BzCleaner, Nag):
 
 if __name__ == '__main__':
     TrackedNeedinfo('beta').run()
-    # TrackedNeedinfo('central').run()
-    # TrackedNeedinfo('esr').run()
+    TrackedNeedinfo('central').run()
+    TrackedNeedinfo('esr').run()
