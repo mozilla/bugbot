@@ -487,5 +487,13 @@
             "mcastelluccio@mozilla.com",
             "cdenizet@mozilla.com"
         ]
+    },
+    "warn_regressed_by":
+    {
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "release-mgmt@mozilla.com"
+        ]
     }
 }
