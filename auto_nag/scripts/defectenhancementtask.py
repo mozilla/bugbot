@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from auto_nag import logger
 from auto_nag.bugbug_utils import BugbugScript
 from bugbug.models.defect_enhancement_task import DefectEnhancementTaskModel
 
@@ -105,7 +104,7 @@ class DefectEnhancementTask(BugbugScript):
                     'add': cc
                 },
                 'comment': {
-                    'body': '[Bugbug](https://github.com/mozilla/bugbug/) thinks this bug is a {}, but please change it back in case of error.'.format(suggestion),
+                    'body': '[Bugbug](https://github.com/mozilla/bugbug/) thinks this bug is a [{}](https://mozilla.github.io/bug-handling/bug-types), but please change it back in case of error.'.format(suggestion),
                 },
             }
             for bug_id, suggestion in self.autofix_type.items()
