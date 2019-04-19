@@ -504,7 +504,7 @@ class BzCleaner(object):
             return
 
         login_info = utils.get_login_info()
-        title, body = self.get_email(date, dryrun)
+        title, body = self.get_email(date)
         if title:
             receivers = self.get_receivers()
             status = 'Success'
