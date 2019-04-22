@@ -524,6 +524,7 @@ class BzCleaner(object):
                 logger.info('{}: No data for {}'.format(name, date))
             else:
                 logger.info('{}: No data'.format(name))
+            logger.info('Query: {}'.format(self.query_url))
 
     def add_custom_arguments(self, parser):
         pass
