@@ -15,11 +15,13 @@
           {{ summary | e }}
         </td>
         <td>
+          {% if needinfos -%}
           <ul>
-          {% for ni in needinfos[bugid] -%}
-          <li><a href="mailto:{{ ni }}">{{ ni | e }}</a></li>
-          {% endfor -%}
+            {% for ni in needinfos -%}
+            <li><a href="mailto:{{ ni }}">{{ ni | e }}</a></li>
+            {% endfor -%}
           </ul>
+          {% endif -%}
         </td>
         <td>
           {{ assignee | e }}

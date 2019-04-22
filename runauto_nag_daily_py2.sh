@@ -21,10 +21,6 @@ python -m auto_nag.scripts.code_freeze_week -D yesterday
 # Daily
 python -m auto_nag.round_robin_fallback
 
-# Nag to developers
-# Daily
-python -m auto_nag.scripts.query_creator
-
 # What is fixed in nightly but affecting beta or release
 # Daily
 python -m auto_nag.scripts.missed_uplifts
@@ -60,9 +56,12 @@ python -m auto_nag.scripts.leave_open_no_activity
 # Pretty common
 python -m auto_nag.scripts.meta_no_deps_no_activity
 
-# has an unlanded patch or some flags not up-to-date
-# Pretty rare
-python -m auto_nag.scripts.unlanded
+# Several tools here
+#  1) has an unlanded patch or some flags not up-to-date
+#     Pretty rare
+#  2) Tracked bugs
+#  3) Tracked bugs with needinfos
+python -m auto_nag.scripts.multi_nag
 
 # has a r+ patch, is open, has no activity for few weeks
 # Pretty common

@@ -121,7 +121,7 @@ class BzCleaner(object):
     def get_dates(self, date):
         """Get the dates for the bugzilla query (changedafter and changedbefore fields)"""
         date = lmdutils.get_date_ymd(date)
-        lookup = utils.get_config(self.name(), 'days_lookup', 7)
+        lookup = self.get_config('days_lookup', 7)
         start_date = date - relativedelta(days=lookup)
         end_date = date + relativedelta(days=1)
 
@@ -196,6 +196,14 @@ class BzCleaner(object):
                 'nickname': data['nickname'],
                 'bugids': [str(bugid)],
             }
+
+    def get_receivers(self):
+        receivers = self.get_config('receivers')
+        if isinstance(receivers, six.string_types):
+            receivers = utils.get_config('common', 'receiver_list', default={})[
+                receivers
+            ]
+        return receivers
 
     def bughandler(self, bug, data):
         """bug handler for the Bugzilla query"""
@@ -298,7 +306,7 @@ class BzCleaner(object):
             )
 
         if self.has_default_products():
-            params['product'] = utils.get_config(self.name(), 'products')
+            params['product'] = self.get_config('products')
 
         if not self.has_access_to_sec_bugs():
             n = utils.get_last_field_num(params)
@@ -320,7 +328,7 @@ class BzCleaner(object):
             params,
             bughandler=self.bughandler,
             bugdata=bugs,
-            timeout=utils.get_config(self.name(), 'bz_query_timeout'),
+            timeout=self.get_config('bz_query_timeout'),
         ).get_data().wait()
 
         self.get_comments(bugs)
@@ -499,7 +507,7 @@ class BzCleaner(object):
         login_info = utils.get_login_info()
         title, body = self.get_email(login_info['bz_api_key'], date)
         if title:
-            receivers = utils.get_config(self.name(), 'receivers')
+            receivers = self.get_receivers()
             status = 'Success'
             try:
                 mail.send(

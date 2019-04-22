@@ -18,7 +18,7 @@ class Tracking(BzCleaner, Nag):
 
     def description(self):
         if self.untouched:
-            return 'Bugs which are tracked in {} {} and untouched this week'.format(
+            return 'Bugs which are tracked in {} {} and untouched in the last 3 days'.format(
                 self.channel, self.version
             )
 
@@ -39,6 +39,9 @@ class Tracking(BzCleaner, Nag):
     def has_default_products(self):
         return False
 
+    def has_needinfo(self):
+        return True
+
     def has_assignee(self):
         return True
 
@@ -47,6 +50,7 @@ class Tracking(BzCleaner, Nag):
             'channel': self.channel,
             'version': self.version,
             'untouched': self.untouched,
+            'next_release': (utils.get_next_release_date() - self.nag_date).days,
         }
 
     def get_extra_for_nag_template(self):
@@ -56,10 +60,10 @@ class Tracking(BzCleaner, Nag):
         return bool(self.versions)
 
     def columns(self):
-        return ['id', 'summary', 'assignee', 'last_comment']
+        return ['id', 'summary', 'needinfos', 'assignee', 'last_comment']
 
     def columns_nag(self):
-        return ['id', 'summary', 'To', 'last_comment']
+        return ['id', 'summary', 'needinfos', 'To', 'last_comment']
 
     def set_people_to_nag(self, bug, buginfo):
         priority = self.get_priority(bug)
@@ -92,19 +96,26 @@ class Tracking(BzCleaner, Nag):
             'f2': status,
             'o2': 'nowordssubstr',
             'v2': ','.join(['wontfix', 'fixed', 'disabled', 'verified', 'unaffected']),
+            'f3': self.tracking,
+            'o3': 'changedbefore',
+            'v3': '-1d',
+            'n4': 1,
+            'f4': self.tracking,
+            'o4': 'changedafter',
+            'v4': '-1d',
         }
 
         if self.channel == 'central':
             tracking = utils.get_flag(self.versions['beta'], 'tracking', 'beta')
-            params.update({'f3': tracking, 'o3': 'nowordssubstr', 'v3': '+,blocking'})
+            params.update({'f5': tracking, 'o5': 'nowordssubstr', 'v5': '+,blocking'})
         elif self.channel != 'esr':
             approval = utils.get_flag(v, 'approval', self.channel)
             params.update(
-                {'f3': 'flagtypes.name', 'o3': 'notsubstring', 'v3': approval + '?'}
+                {'f5': 'flagtypes.name', 'o5': 'notsubstring', 'v5': approval + '?'}
             )
 
         if self.untouched:
-            params.update({'f4': 'days_elapsed', 'o4': 'greaterthan', 'v4': 3})
+            params.update({'f6': 'days_elapsed', 'o6': 'greaterthan', 'v6': 3})
 
         return params
 

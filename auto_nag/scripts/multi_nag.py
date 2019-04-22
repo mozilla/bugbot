@@ -3,16 +3,18 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.multinaggers import MultiNaggers
-from .ni_from_manager import NiFromManager
+
+# from .ni_from_manager import NiFromManager
 from .unlanded import Unlanded
 from .tracking import Tracking
+
 from .tracked_needinfo import TrackedNeedinfo
 
 
 class TrackingMultiNag(MultiNaggers):
     def __init__(self):
         super(TrackingMultiNag, self).__init__(
-            NiFromManager(),
+            # NiFromManager(),
             Unlanded('beta'),
             Unlanded('esr'),
             Tracking('beta', False),

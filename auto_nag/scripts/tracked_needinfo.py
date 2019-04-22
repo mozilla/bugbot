@@ -44,7 +44,7 @@ class TrackedNeedinfo(BzCleaner, Nag):
         return ['id', 'summary', 'needinfos', 'assignee', 'last_comment']
 
     def columns_nag(self):
-        return ['id', 'summary', 'to', 'assignee', 'last_comment']
+        return self.columns()
 
     def set_people_to_nag(self, bug, buginfo):
         priority = self.get_priority(bug)
@@ -52,10 +52,9 @@ class TrackedNeedinfo(BzCleaner, Nag):
             return None
 
         has_manager = False
-        for flag in utils.get_needinfo(bug):
+        for flag in utils.get_needinfo(bug, days=1):
             requestee = flag.get('requestee', '')
             if requestee:
-                buginfo['to'] = requestee
                 if self.add(requestee, buginfo, priority=priority):
                     has_manager = True
 
@@ -79,8 +78,15 @@ class TrackedNeedinfo(BzCleaner, Nag):
             'o2': 'equals',
             'v2': 'needinfo?',
             'f3': status,
-            'o3': 'nowordssubstr',
-            'v3': ','.join(['wontfix', 'fixed', 'disabled', 'verified', 'unaffected']),
+            'o3': 'equals',
+            'v3': 'affected',
+            'f4': self.tracking,
+            'o4': 'changedbefore',
+            'v4': '-1d',
+            'n5': 1,
+            'f5': self.tracking,
+            'o5': 'changedafter',
+            'v5': '-1d',
         }
 
         return params

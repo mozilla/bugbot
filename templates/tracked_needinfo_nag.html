@@ -2,11 +2,11 @@
   <table border="1">
     <thead>
       <tr>
-        <th>Bug</th><th>Summary</th><th>Needinfo to</th><th>Assignee</th><th>Last comment</th>
+        <th>Bug</th><th>Summary</th><th>Needinfo</th><th>Assignee</th><th>Last comment</th>
       </tr>
     </thead>
     <tbody>
-      {% for i, (bugid, summary, to, assignee, last_comment) in enumerate(data) -%}
+      {% for i, (bugid, summary, needinfos, assignee, last_comment) in enumerate(data) -%}
       <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
         <td>
           <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
@@ -15,7 +15,11 @@
           {{ summary | e }}
         </td>
         <td>
-          {{ to | e }}
+          <ul>
+            {% for ni in needinfos -%}
+            <li><a href="mailto:{{ ni }}">{{ ni | e }}</a></li>
+            {% endfor -%}
+          </ul>
         </td>
         <td>
           {{ assignee | e }}
