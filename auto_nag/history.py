@@ -5,7 +5,7 @@
 from libmozdata.bugzilla import Bugzilla
 from pprint import pprint
 
-from auto_nag import logger, utils
+from auto_nag import logger
 
 
 class History(object):
