@@ -57,10 +57,13 @@ class Calendar(object):
     def get_persons(self, date):
         return []
 
-    def set_team(self, team):
+    def set_team(self, team, triagers):
         self.team = []
         for p in team:
-            bzmail = self.people.get_bzmail_from_name(p)
+            if p in triagers and 'bzmail' in triagers[p]:
+                bzmail = triagers[p]['bzmail']
+            else:
+                bzmail = self.people.get_bzmail_from_name(p)
             self.team.append((p, bzmail))
 
     @staticmethod
@@ -84,7 +87,6 @@ class Calendar(object):
 
         try:
             cal = json.loads(data)
-            cal = cal['duty-start-dates']
             return JSONCalendar(cal, fallback, team_name, people=people)
         except JSONDecodeError:
             try:
@@ -107,9 +109,11 @@ class Calendar(object):
 
 class JSONCalendar(Calendar):
     def __init__(self, cal, fallback, team_name, people=None):
-        super(JSONCalendar, self).__init__(cal, fallback, team_name, people=people)
-        dates = sorted((lmdutils.get_date_ymd(d), d) for d in cal.keys())
-        self.set_team(cal[d] for _, d in dates)
+        super(JSONCalendar, self).__init__(
+            cal['duty-start-dates'], fallback, team_name, people=people
+        )
+        dates = sorted((lmdutils.get_date_ymd(d), d) for d in self.cal.keys())
+        self.set_team(list(self.cal[d] for _, d in dates), cal.get('triagers', {}))
         self.dates = [d for d, _ in dates]
         cycle = self.guess_cycle()
         self.dates.append(self.dates[-1] + relativedelta(days=cycle))
