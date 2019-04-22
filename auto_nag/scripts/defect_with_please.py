@@ -4,7 +4,6 @@
 
 from auto_nag.bzcleaner import BzCleaner
 
-#https://bugzilla.mozilla.org/buglist.cgi?bug_type=defect&list_id=14677864&short_desc_type=regexp&short_desc=%5Eplease&resolution=---&classification=Client%20Software&classification=Developer%20Infrastructure&classification=Components&classification=Server%20Software&classification=Other&query_format=advanced
 
 class DefectWithPlease(BzCleaner):
     def __init__(self):
@@ -19,7 +18,7 @@ class DefectWithPlease(BzCleaner):
     def get_bz_params(self, date):
         params = {
             "resolution": "---",
-            "short_desc": r'^please',
+            "short_desc": r"^please",
             "short_desc_type": "regexp",
             "bug_type": ["defect"],
         }
