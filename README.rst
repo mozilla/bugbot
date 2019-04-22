@@ -98,21 +98,8 @@ Before running::
     {
       "ldap_username": "you@mozilla.com",
       "ldap_password": "xxxxxxxxxxxxxx",
+      "bz_api_key": "xxxxxxxxxxxxxx"
     }
-
-    # in scripts/configs/mozdata.ini
-    [User-Agent]
-    name = relman-auto-nag
-
-    [Mercurial]
-    URL = https://hg.mozilla.org
-
-    [Socorro]
-    URL = https://crash-stats.mozilla.com
-
-    [Bugzilla]
-    URL = https://bugzilla.mozilla.org
-    token = YOUR_BUGZILLA_API_KEY
 
 Do a dryrun::
     python auto_nag/scripts/query_creator.py -d
@@ -123,6 +110,7 @@ The script does the following:
     {
         "ldap_username": "you@mozilla.com",
         "ldap_password": "xxxxxxxxxxxxxx",
+        "bz_api_key": "xxxxxxxxxxxxxx"
     }
 * Creates queries based on the day of the week the script is run
 * Polls the bugzilla API with each query supplied and builds a dictionary of bugs found per query
