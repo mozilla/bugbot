@@ -10,7 +10,7 @@ class DefectWithPlease(BzCleaner):
         super(DefectWithPlease, self).__init__()
 
     def description(self):
-        return "Defect with description starting with 'Please'"
+        return "Defect with description starting with 'Please' or 'Enable'"
 
     def ignore_date(self):
         return True
@@ -19,7 +19,7 @@ class DefectWithPlease(BzCleaner):
         days_lookup = self.get_config('days_lookup')
         params = {
             "resolution": "---",
-            "short_desc": r"^please",
+            "short_desc": r"^(please|enable)",
             "short_desc_type": "regexp",
             "bug_type": ["defect"],
             'f1': 'days_elapsed',
