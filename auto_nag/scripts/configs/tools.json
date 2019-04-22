@@ -251,7 +251,7 @@
             },
             "[0;5[":
             {
-                "supervisor": "vp",
+                "supervisor": "director",
                 "days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
             }
         },
@@ -274,7 +274,7 @@
             },
             "[0;3[":
             {
-                "supervisor": "vp",
+                "supervisor": "director",
                 "days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
             }
         },
@@ -513,5 +513,13 @@
     "unlanded":
     {
         "receivers": "rm"
+    },
+    "warn_regressed_by":
+    {
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "release-mgmt@mozilla.com"
+        ]
     }
 }

@@ -86,6 +86,9 @@ python -m auto_nag.scripts.newbie_with_ni -d
 # Pretty rare
 python -m auto_nag.scripts.warn_regressed_by
 
+# Defect starting with please in the title
+python -m auto_nag.scripts.defect_with_please
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send

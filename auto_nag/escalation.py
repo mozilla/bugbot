@@ -5,7 +5,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import re
-from auto_nag import utils
+from auto_nag import logger, utils
 
 
 RANGE_PAT = re.compile(r'\[([0-9]+)[ \t]*;[ \t]*([0-9]*|\+∞)\[', re.UNICODE)
@@ -53,24 +53,30 @@ class Supervisor(object):
         self.who = who
         self.people = people
 
-    def get(self, person, **kwargs):
+    def get(self, person, blacklist, **kwargs):
         m = NPLUS_PAT.match(self.who)
         if m:
-            return self.people.get_nth_manager_mail(person, int(m.group(1)))
-        if self.who == 'director':
+            sup = self.people.get_nth_manager_mail(person, int(m.group(1)))
+        elif self.who == 'director':
             sup = self.people.get_director_mail(person)
         elif self.who == 'vp':
             sup = self.people.get_vp_mail(person)
         elif self.who == 'self':
-            return self.people.get_moz_mail(person)
+            sup = self.people.get_moz_mail(person)
         else:
             assert self.who in kwargs, '{} required as keyword argument in add'.format(
                 self.who
             )
-            return self.people.get_moz_mail(kwargs[self.who])
+            sup = self.people.get_moz_mail(kwargs[self.who])
+
+        if not sup or sup in blacklist:
+            sup = self.people.get_nth_manager_mail(person, 1)
 
         if not sup:
-            return self.people.get_nth_manager_mail(person, 1)
+            # we don't have any supervisor so nag self
+            logger.info('No supervisor for {}: {}'.format(self, person))
+            sup = self.people.get_moz_mail(person)
+
         return sup
 
     def __str__(self):
@@ -87,9 +93,9 @@ class Step(object):
         self.supervisor = supervisor
         self.days = days
 
-    def get_supervisor(self, days, person, **kwargs):
+    def get_supervisor(self, days, person, blacklist, **kwargs):
         if self.rang.is_in(days):
-            return self.supervisor.get(person, **kwargs)
+            return self.supervisor.get(person, blacklist, **kwargs)
         return None
 
     def filter(self, days, weekday):
@@ -123,10 +129,8 @@ class Escalation(object):
     def get_supervisor(self, priority, days, person, **kwargs):
         steps = self.data[priority]
         for step in steps:
-            s = step.get_supervisor(days, person, **kwargs)
+            s = step.get_supervisor(days, person, self.blacklist, **kwargs)
             if s is not None:
-                if s in self.blacklist:
-                    return self.people.get_moz_mail(person)
                 return s
 
     def filter(self, priority, days, weekday):
