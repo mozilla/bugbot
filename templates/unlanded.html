@@ -1,4 +1,4 @@
-<p>The following {{ plural('bug has', data, pword='bugs have') }} an unlanded patch or some flags not up-to-date{% if not nag %} (when the bug is red, then the assignee is a person with no manager){% endif %}.
+<p>The following {{ plural('bug has', data, pword='bugs have') }} an unlanded patch in {{ extra['channel'] }} {{ extra['version'] }} or some flags not up-to-date{% if not nag %} (when the bug is red, then the assignee is a person with no manager){% endif %}.
 </p>
 <p>
   If the patch has landed then the status flags are not up-to-date.

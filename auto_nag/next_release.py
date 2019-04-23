@@ -29,7 +29,7 @@ def check_dates(dryrun=False):
 
     pat = re.compile(r'<p>(.*)</p>', re.DOTALL)
     url = 'https://wiki.mozilla.org/Template:NextReleaseDate'
-    template_page = str(requests.get(url).text.encode('utf-8'))
+    template_page = str(requests.get(url).text)
     m = pat.search(template_page)
     date = dateutil.parser.parse(m.group(1).strip())
     date = pytz.utc.localize(date)

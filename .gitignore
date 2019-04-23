@@ -2,10 +2,6 @@
 *.pyc
 *~
 .DS_Store
-build/
-bztools.egg-info/
-dist/
-queries/
 scripts/configs/config.json
 auto_nag/scripts/configs/*
 !auto_nag/scripts/configs/tools.json
@@ -18,3 +14,5 @@ venv3/
 db/*
 !db/lock
 cache/
+.coverage
+.tox/

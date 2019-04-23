@@ -11,15 +11,15 @@ from auto_nag.mail import replaceUnicode
 
 class TestMail(unittest.TestCase):
     def test_replaceUnicode(self):
-        s = 'some letters and a é and a è, what else ?...'.decode('utf-8')
+        s = 'some letters and a é and a è, what else ?...'
         r = replaceUnicode(s)
         assert r == 'some letters and a &#233; and a &#232;, what else ?...'
 
-        s = 'some letters and a é and a è'.decode('utf-8')
+        s = 'some letters and a é and a è'
         r = replaceUnicode(s)
         assert r == 'some letters and a &#233; and a &#232;'
 
-        s = 'some letters with no accents, just pure ascii'.decode('utf-8')
+        s = 'some letters with no accents, just pure ascii'
         r = replaceUnicode(s)
         assert r == s
 

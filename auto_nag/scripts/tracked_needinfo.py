@@ -32,7 +32,10 @@ class TrackedNeedinfo(BzCleaner, Nag):
         return False
 
     def get_extra_for_template(self):
-        return {'channel': self.channel, 'version': self.version}
+        return {
+            'channel': 'nightly' if self.channel == 'central' else self.channel,
+            'version': self.version,
+        }
 
     def get_extra_for_nag_template(self):
         return self.get_extra_for_template()

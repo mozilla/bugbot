@@ -48,7 +48,7 @@ class Tracking(BzCleaner, Nag):
 
     def get_extra_for_template(self):
         return {
-            'channel': self.channel,
+            'channel': 'nightly' if self.channel == 'central' else self.channel,
             'version': self.version,
             'untouched': self.untouched,
             'next_release': (utils.get_next_release_date() - self.nag_date).days,

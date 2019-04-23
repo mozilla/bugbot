@@ -3,7 +3,6 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag.bugzilla.utils import getVersions
 from auto_nag import utils
 
 
@@ -21,7 +20,7 @@ class MismatchPrioTrackESR(BzCleaner):
         return True
 
     def get_bz_params(self, date):
-        _, _, _, esr_version = getVersions()
+        esr_version = utils.get_versions(channel='esr')
         value = ','.join(['---', 'affected'])
         params = {
             'resolution': [
