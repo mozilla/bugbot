@@ -21,6 +21,12 @@ class WarnRegressedBy(BzCleaner):
     def get_extra_for_template(self):
         return {'threshold': self.threshold, 'days': self.days}
 
+    def has_product_component(self):
+        return True
+
+    def columns(self):
+        return ['id', 'summary', 'product', 'component']
+
     def handle_bug(self, bug, data):
         # since we use the bughandler for the second round we mustn't look at regressed_by stuff
         if self.regressions is None:
@@ -43,7 +49,7 @@ class WarnRegressedBy(BzCleaner):
             if len(bids) >= self.threshold:
                 bugids.append(reg_id)
 
-        fields = ['id', 'summary', 'groups']
+        fields = ['id', 'summary', 'groups', 'product', 'component']
         self.regressions = None
         data = {}
         Bugzilla(
