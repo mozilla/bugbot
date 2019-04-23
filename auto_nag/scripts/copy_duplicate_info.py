@@ -79,7 +79,8 @@ class CopyDuplicateInfo(BzCleaner):
 
     def get_dups(self, bugs):
         def handler(bug, data):
-            self.handle_bug(bug, data)
+            if bug['product'] in self.get_config('products'):
+                self.handle_bug(bug, data)
 
         bugids = [info['dupe'] for info in bugs.values()]
         data = {}
