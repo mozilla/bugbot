@@ -21,9 +21,9 @@ class TrackingMultiNag(MultiNaggers):
             Tracking('central', False),
             Tracking('central', True),
             Tracking('esr', False),
-            # TrackedNeedinfo('beta'),
-            # TrackedNeedinfo('central'),
-            # TrackedNeedinfo('esr'),
+            TrackedNeedinfo('beta'),
+            TrackedNeedinfo('central'),
+            TrackedNeedinfo('esr'),
         )
 
     def description(self):
