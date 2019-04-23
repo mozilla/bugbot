@@ -36,6 +36,13 @@ def init():
     logger.info('Put history in db: end.')
 
 
+def check(table_name):
+    if not engine.dialect.has_table(engine, table_name):
+        raise Exception(
+            'No database here: you can create it in using \'alembic upgrade head\' and you can fill it with Bugzilla data in calling auto_nag.db.init()'
+        )
+
+
 def get_ts(date, default=0):
     if isinstance(date, six.integer_types):
         return date
@@ -98,6 +105,7 @@ class BugChange(Base):
 
     @staticmethod
     def add(tool, bugid, ts=lmdutils.get_timestamp('now'), extra=''):
+        check(BugChange.__tablename__)
         with FileLock(lock_path):
             session.add(BugChange(tool, ts, bugid, extra))
             session.commit()
@@ -337,6 +345,7 @@ class Email(Base):
 
     @staticmethod
     def add(tool, mails, extra, result, ts=lmdutils.get_timestamp('now')):
+        check(Email.__tablename__)
         with FileLock(lock_path):
             tool = Tool.get_or_create(tool)
             for mail in mails:
