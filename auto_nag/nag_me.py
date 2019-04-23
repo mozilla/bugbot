@@ -149,7 +149,7 @@ class Nag(object):
             Cc = Default_Cc.copy()
             if m['manager']:
                 Cc.add(m['manager'])
-            body = common.render(message=m['body'], query_url=None, has_table=True)
+            body = common.render(message=m['body'], query_url=None)
             receivers = set(m['to']) | set(Cc)
             status = 'Success'
             try:
@@ -201,6 +201,7 @@ class Nag(object):
                 data=self.organize_nag(data),
                 nag=True,
                 query_url_nag=query_url,
+                table_attrs=self.get_config('table_attrs'),
             )
 
             m = {'manager': manager, 'to': set(info.keys()), 'body': body}

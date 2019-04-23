@@ -478,13 +478,10 @@ class BzCleaner(object):
                 enumerate=enumerate,
                 plural=utils.plural,
                 no_manager=self.no_manager,
+                table_attrs=self.get_config('table_attrs'),
             )
             common = env.get_template('common.html')
-            body = common.render(
-                message=message,
-                query_url=self.query_url,
-                has_table='<thead>' in message,
-            )
+            body = common.render(message=message, query_url=self.query_url)
             return self.get_email_subject(date), body
         return None, None
 

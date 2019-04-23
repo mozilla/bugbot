@@ -1,5 +1,5 @@
 <p>The following {{ plural('bug has', data, pword='bugs have') }} more than {{ extra['threshold'] }} {{ plural('regression', extra['threshold']) }} reported in the last {{ extra['days'] }} {{ plural('day', extra['days']) }}:
-  <table border="1">
+  <table {{ table_attrs }}>
     <thead>
       <tr>
         <th>Bug</th><th>Summary</th><th>Product</th><th>Component</th>

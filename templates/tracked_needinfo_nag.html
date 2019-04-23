@@ -1,5 +1,5 @@
 <p>The following {{ plural('bug is', data, pword='bugs are') }} tracked or nominated for tracking with a needinfo? in {{ extra['channel'] }} {{ extra['version'] }}:
-  <table border="1">
+  <table {{ table_attrs }}>
     <thead>
       <tr>
         <th>Bug</th><th>Summary</th><th>Needinfo</th><th>Assignee</th><th>Last comment</th>
