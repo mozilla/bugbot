@@ -5,7 +5,7 @@
 from libmozdata.bugzilla import Bugzilla
 from pprint import pprint
 
-from auto_nag import logger, utils
+from auto_nag import logger
 
 
 class History(object):
@@ -14,7 +14,6 @@ class History(object):
 
     def __init__(self):
         super(History, self).__init__()
-        Bugzilla.TOKEN = utils.get_login_info()['bz_api_key']
 
     def get_bugs(self):
         logger.info('History: get bugs: start...')

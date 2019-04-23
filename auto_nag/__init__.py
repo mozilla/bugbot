@@ -4,6 +4,7 @@
 
 import logging
 import sys
+from . import config  # NOQA
 from . import utils
 
 
