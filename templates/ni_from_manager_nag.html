@@ -1,5 +1,5 @@
 <p>The following {{ plural('bug has', data, pword='bugs have') }} a needinfo from a release manager or a director and no activity for the last {{ extra['nweeks'] }} {{ plural('week', extra['nweeks']) }}:
-  <table border="1">
+  <table {{ table_attrs }}>
     <thead>
       <tr>
         <th>Bug</th><th>Summary</th><th>Needinfo</th><th>Last comment</th>

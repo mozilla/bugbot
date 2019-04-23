@@ -34,6 +34,7 @@
             "mcastelluccio@mozilla.com"
         ],
         "bot_bz_mail": ["release-mgmt-account-bot@mozilla.tld"],
+        "table_attrs": "style=\"border:1px solid black;border-collapse:collapse;\" border=\"1\"",
         "days_lookup": 7,
         "bz_query_timeout": 240,
         "reverse_order": false,
