@@ -1,0 +1,180 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at http://mozilla.org/MPL/2.0/.
+
+from libmozdata.bugzilla import Bugzilla, BugzillaUser
+from auto_nag.bzcleaner import BzCleaner
+from auto_nag import utils
+
+
+class RegressionWithoutRegressedBy(BzCleaner):
+    def __init__(self):
+        super(RegressionWithoutRegressedBy, self).__init__()
+
+    def description(self):
+        return 'Regressions without regressed_by and some dependencies'
+
+    def handle_bug(self, bug, data):
+        bugid = bug['id']
+        deps = set(bug['blocks']) | set(bug['depends_on'])
+        deps = set(x for x in deps if x < bugid)
+        if deps:
+            assignee = bug['assigned_to_detail']
+            if utils.is_no_assignee(assignee['email']):
+                assignee = None
+
+            data[str(bugid)] = {
+                'deps': deps,
+                'assignee': assignee,
+                'creator': bug['creator_detail'],
+            }
+            return bug
+        return None
+
+    def filter_bugs(self, bugs):
+        deps = set()
+        for info in bugs.values():
+            deps |= info['deps']
+
+        def bug_handler(bug, data):
+            if 'meta' in bug['keywords'] or not bug['cf_last_resolved']:
+                data.add(bug['id'])
+
+        bugids = list(deps)
+        invalids = set()
+        Bugzilla(
+            bugids=bugids,
+            include_fields=['id', 'keywords', 'cf_last_resolved'],
+            bughandler=bug_handler,
+            bugdata=invalids,
+        ).get_data().wait()
+
+        to_rm = []
+        for bugid, info in bugs.items():
+            deps = info['deps'] - invalids
+            if not deps:
+                to_rm.append(bugid)
+            else:
+                info['deps'] = deps
+
+        for bugid in to_rm:
+            del bugs[bugid]
+
+        return bugs
+
+    def set_autofix(self, bugs):
+        def history_handler(bug, data):
+            stats = {}
+            for h in bug['history']:
+                for change in h['changes']:
+                    if change.get('field_name', '') in {
+                        'blocks',
+                        'depends_on',
+                    } and change.get('added', ''):
+                        who = h['who']
+                        stats[who] = stats.get(who, 0) + 1
+
+            bugid = str(bug['id'])
+            data[bugid]['winner'] = (
+                max(stats.items(), key=lambda p: p[1])[0] if stats else None
+            )
+
+        no_assignee = [bugid for bugid, info in bugs.items() if not info['assignee']]
+        Bugzilla(
+            bugids=no_assignee, historyhandler=history_handler, historydata=bugs
+        ).get_data().wait()
+
+        no_nick = {}
+        for bugid, info in bugs.items():
+            if info['assignee']:
+                winner = {
+                    'mail': info['assignee']['email'],
+                    'nickname': info['assignee']['nick'],
+                }
+                self.add_auto_ni(bugid, winner)
+            elif info['winner']:
+                winner = info['winner']
+                if winner not in no_nick:
+                    no_nick[winner] = []
+                no_nick[winner].append(bugid)
+            else:
+                winner = {
+                    'mail': info['creator']['email'],
+                    'nickname': info['creator']['nick'],
+                }
+                self.add_auto_ni(bugid, winner)
+
+        if no_nick:
+
+            def user_handler(user, data):
+                data[user['name']] = user['nick']
+
+            data = {}
+            BugzillaUser(
+                user_names=list(no_nick.keys()),
+                include_fields=['name', 'nick'],
+                user_handler=user_handler,
+                user_data=data,
+            ).wait()
+
+            for bzmail, bugids in no_nick.items():
+                nick = data[bzmail]
+                for bugid in bugids:
+                    self.add_auto_ni(bugid, {'mail': bzmail, 'nickname': nick})
+
+    def get_bz_params(self, date):
+        start_date, end_date = self.get_dates(date)
+        fields = ['blocks', 'depends_on', 'assigned_to', 'creator']
+        reporter_blacklist = self.get_config('reporter_blacklist', default=[])
+        reporter_blacklist = ','.join(reporter_blacklist)
+        params = {
+            'include_fields': fields,
+            'bug_status': '__open__',
+            'j1': 'OR',
+            'f1': 'OP',
+            'f2': 'keywords',
+            'o2': 'casesubstring',
+            'v2': 'regression',
+            'f3': 'cf_has_regression_range',
+            'o3': 'equals',
+            'v3': 'yes',
+            'f4': 'CP',
+            'f5': 'regressed_by',
+            'o5': 'isempty',
+            'j6': 'OR',
+            'f6': 'OP',
+            'f7': 'blocked',
+            'o7': 'isnotempty',
+            'f8': 'dependson',
+            'o8': 'isnotempty',
+            'f9': 'CP',
+            'f10': 'creation_ts',
+            'o10': 'greaterthan',
+            'v10': start_date,
+            'f11': 'reporter',
+            'o11': 'nowords',
+            'v11': reporter_blacklist,
+            'n12': 1,
+            'f12': 'regressed_by',
+            'o12': 'changedafter',
+            'v12': '1970-01-01',
+            'n13': 1,
+            'f13': 'longdesc',
+            'o13': 'casesubstring',
+            'v13': 'since this bug is a regression, could you fill (if possible) the regressed_by field',
+        }
+
+        return params
+
+    def get_bugs(self, date='today', bug_ids=[]):
+        bugs = super(RegressionWithoutRegressedBy, self).get_bugs(
+            date=date, bug_ids=bug_ids
+        )
+        bugs = self.filter_bugs(bugs)
+        self.set_autofix(bugs)
+
+        return bugs
+
+
+if __name__ == '__main__':
+    RegressionWithoutRegressedBy().run()

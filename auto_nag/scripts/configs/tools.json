@@ -530,5 +530,13 @@
             "calixte@mozilla.com",
             "release-mgmt@mozilla.com"
         ]
+    },
+    "regression_without_regressed_by":
+    {
+        "days_lookup": 30,
+        "reporter_blacklist":
+        [
+            "intermittent-bug-filer@mozilla.bugs"
+        ]
     }
 }
