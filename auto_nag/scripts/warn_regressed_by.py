@@ -2,8 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from libmozdata.bugzilla import Bugzilla
 from auto_nag.bzcleaner import BzCleaner
+from auto_nag import utils
 
 
 class WarnRegressedBy(BzCleaner):
@@ -12,6 +12,7 @@ class WarnRegressedBy(BzCleaner):
         self.regressions = {}
         self.threshold = self.get_config('threshold', 3)
         self.days = self.get_config('days_lookup', 14)
+        self.step = 0
 
     def description(self):
         return 'Bugs with more than {} regressions reported in the last {} days'.format(
@@ -22,63 +23,78 @@ class WarnRegressedBy(BzCleaner):
         return {'threshold': self.threshold, 'days': self.days}
 
     def has_product_component(self):
-        return True
+        return self.step != 0
+
+    def has_assignee(self):
+        return self.step != 0
+
+    def has_last_comment_time(self):
+        return self.step != 0
 
     def columns(self):
-        return ['id', 'summary', 'product', 'component']
+        return [
+            'id',
+            'summary',
+            'product',
+            'component',
+            'creation',
+            'priority',
+            'severity',
+            'assignee',
+            'last_comment',
+        ]
 
     def handle_bug(self, bug, data):
-        # since we use the bughandler for the second round we mustn't look at regressed_by stuff
-        if self.regressions is None:
-            return bug
-
         bugid = str(bug['id'])
 
-        for reg_id in bug['regressed_by']:
-            reg_id = str(reg_id)
-            if reg_id not in self.regressions:
-                self.regressions[reg_id] = [bugid]
-            else:
-                self.regressions[reg_id].append(bugid)
+        if self.step == 0:
+            for reg_id in bug['regressed_by']:
+                reg_id = str(reg_id)
+                if reg_id not in self.regressions:
+                    self.regressions[reg_id] = [bugid]
+                else:
+                    self.regressions[reg_id].append(bugid)
+        else:
+            data[bugid] = {
+                'creation': utils.get_human_lag(bug['creation_time']),
+                'priority': bug['priority'],
+                'severity': bug['severity'],
+            }
 
         return bug
 
     def to_warn(self):
-        bugids = []
+        self.bugs_to_warn = []
         for reg_id, bids in self.regressions.items():
             if len(bids) >= self.threshold:
-                bugids.append(reg_id)
-
-        fields = ['id', 'summary', 'groups', 'product', 'component']
-        self.regressions = None
-        data = {}
-        Bugzilla(
-            bugids=bugids,
-            include_fields=fields,
-            bughandler=self.bughandler,
-            bugdata=data,
-        ).get_data().wait()
-
-        return data
+                self.bugs_to_warn.append(reg_id)
 
     def get_bz_params(self, date):
-        start_date, _ = self.get_dates(date)
-        fields = ['regressed_by']
-        params = {
-            'include_fields': fields,
-            'bug_type': 'defect',
-            'f1': 'regressed_by',
-            'o1': 'isnotempty',
-            'f2': 'creation_ts',
-            'o2': 'greaterthan',
-            'v2': start_date,
-        }
+        if self.step == 0:
+            start_date, _ = self.get_dates(date)
+            fields = ['regressed_by']
+            params = {
+                'include_fields': fields,
+                'bug_type': 'defect',
+                'f1': 'regressed_by',
+                'o1': 'isnotempty',
+                'f2': 'creation_ts',
+                'o2': 'greaterthan',
+                'v2': start_date,
+            }
+        else:
+            fields = ['creation_time', 'priority', 'severity']
+            params = {'include_fields': fields}
 
         return params
 
     def get_bugs(self, date='today', bug_ids=[]):
         bugs = super(WarnRegressedBy, self).get_bugs(date=date, bug_ids=bug_ids)
-        bugs = self.to_warn()
+        self.to_warn()
+        self.step = 1
+        bugs = super(WarnRegressedBy, self).get_bugs(
+            date=date, bug_ids=self.bugs_to_warn
+        )
 
         return bugs
 

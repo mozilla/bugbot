@@ -3,16 +3,12 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import argparse
-from datetime import datetime
-import dateutil.parser
 from dateutil.relativedelta import relativedelta
-import humanize
 import inspect
 from jinja2 import Environment, FileSystemLoader
 from libmozdata.bugzilla import Bugzilla
 from libmozdata import utils as lmdutils
 import os
-import pytz
 import six
 from auto_nag import db, mail, utils, logger
 from auto_nag.nag_me import Nag
@@ -343,10 +339,7 @@ class BzCleaner(object):
         bugid = str(bugid)
         if self.has_last_comment_time():
             if comments:
-                # get the timestamp of the last comment
-                today = pytz.utc.localize(datetime.utcnow())
-                dt = dateutil.parser.parse(comments[-1]['time'])
-                data[bugid]['last_comment'] = humanize.naturaldelta(today - dt)
+                data[bugid]['last_comment'] = utils.get_human_lag(comments[-1]['time'])
             else:
                 data[bugid]['last_comment'] = ''
 

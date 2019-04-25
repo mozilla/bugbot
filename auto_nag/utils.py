@@ -7,6 +7,7 @@ import datetime
 import dateutil.parser
 from dateutil.relativedelta import relativedelta
 import json
+import humanize
 from libmozdata import utils as lmdutils
 from libmozdata import release_calendar as rc
 from libmozdata.hgmozilla import Mercurial
@@ -452,3 +453,10 @@ def get_components(data):
 
 def ireplace(old, repl, text):
     return re.sub('(?i)' + re.escape(old), lambda m: repl, text)
+
+
+def get_human_lag(date):
+    today = pytz.utc.localize(datetime.datetime.utcnow())
+    dt = dateutil.parser.parse(date)
+
+    return humanize.naturaldelta(today - dt)
