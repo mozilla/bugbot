@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import dateutil.parser
 from libmozdata.bugzilla import Bugzilla, BugzillaUser
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag import utils
@@ -17,36 +18,59 @@ class RegressionWithoutRegressedBy(BzCleaner):
     def handle_bug(self, bug, data):
         bugid = bug['id']
         deps = set(bug['blocks']) | set(bug['depends_on'])
-        deps = set(x for x in deps if x < bugid)
-        if deps:
-            assignee = bug['assigned_to_detail']
-            if utils.is_no_assignee(assignee['email']):
-                assignee = None
+        assignee = bug['assigned_to_detail']
+        if utils.is_no_assignee(assignee['email']):
+            assignee = None
 
-            data[str(bugid)] = {
-                'deps': deps,
-                'assignee': assignee,
-                'creator': bug['creator_detail'],
-            }
-            return bug
-        return None
+        data[str(bugid)] = {
+            'deps': deps,
+            'assignee': assignee,
+            'creator': bug['creator_detail'],
+            'creation': dateutil.parser.parse(bug['creation_time']),
+        }
+        return bug
 
     def filter_bugs(self, bugs):
-        deps = set()
-        for info in bugs.values():
-            deps |= info['deps']
+        all_deps = set()
+        dep_bug_creation = {}
+
+        for bugid, info in bugs.items():
+            bugid = int(bugid)
+            info['deps'] = deps = set(x for x in info['deps'] if x < bugid)
+            if deps:
+                all_deps |= deps
+                for dep in deps:
+                    dep_bug_creation[dep] = info['creation']
 
         def bug_handler(bug, data):
             if 'meta' in bug['keywords'] or not bug['cf_last_resolved']:
                 data.add(bug['id'])
 
-        bugids = list(deps)
+        def history_handler(bug, data):
+            bugid = bug['id']
+            resolved_before = False
+            for h in bug['history']:
+                if resolved_before:
+                    break
+                for change in h['changes']:
+                    if change.get(
+                        'field_name', ''
+                    ) == 'cf_last_resolved' and change.get('added', ''):
+                        date = dateutil.parser.parse(change['added'])
+                        if date < dep_bug_creation[bugid]:
+                            resolved_before = True
+                            break
+            if not resolved_before:
+                data.add(bugid)
+
         invalids = set()
         Bugzilla(
-            bugids=bugids,
+            bugids=list(all_deps),
             include_fields=['id', 'keywords', 'cf_last_resolved'],
             bughandler=bug_handler,
             bugdata=invalids,
+            historyhandler=history_handler,
+            historydata=invalids,
         ).get_data().wait()
 
         to_rm = []
@@ -124,7 +148,7 @@ class RegressionWithoutRegressedBy(BzCleaner):
 
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
-        fields = ['blocks', 'depends_on', 'assigned_to', 'creator']
+        fields = ['blocks', 'depends_on', 'assigned_to', 'creator', 'creation_time']
         reporter_blacklist = self.get_config('reporter_blacklist', default=[])
         reporter_blacklist = ','.join(reporter_blacklist)
         params = {
