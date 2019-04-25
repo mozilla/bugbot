@@ -382,6 +382,10 @@ class BzCleaner(object):
         template = env.get_template(template_name)
         res = {}
 
+        doc = 'For more information, please visit [auto_nag documentation](https://wiki.mozilla.org/Release_Management/autonag#{}.py)'.format(
+            self.name()
+        )
+
         for ni_mail, info in self.auto_needinfo.items():
             nick = info['nickname']
             for bugid in info['bugids']:
@@ -390,7 +394,9 @@ class BzCleaner(object):
                     extra=self.get_extra_for_needinfo_template(),
                     plural=utils.plural,
                     bugid=bugid,
+                    documentation=doc,
                 )
+                comment = comment.strip() + '\n'
                 data = {
                     'comment': {'body': comment},
                     'flags': [
