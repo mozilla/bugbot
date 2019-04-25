@@ -382,7 +382,7 @@ class BzCleaner(object):
         template = env.get_template(template_name)
         res = {}
 
-        doc = 'For more information, please visit [auto_nag documentation](https://wiki.mozilla.org/Release_Management/autonag#{}.py)'.format(
+        doc = 'For more information, please visit [auto_nag documentation](https://wiki.mozilla.org/Release_Management/autonag#{}.py).'.format(
             self.name()
         )
 
