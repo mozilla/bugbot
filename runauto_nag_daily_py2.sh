@@ -89,6 +89,10 @@ python -m auto_nag.scripts.warn_regressed_by
 # Defect starting with please or enable in the title
 python -m auto_nag.scripts.defect_with_please_or_enable
 
+# Regressions without regressed_by and some dependencies (blocks, depends_on)
+# Pretty rare
+python -m auto_nag.scripts.regression_without_regressed_by
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send

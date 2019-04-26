@@ -1,0 +1,2 @@
+:{{ nickname }}, since this bug is a regression, could you fill (if possible) the regressed_by field?
+{{ documentation }}

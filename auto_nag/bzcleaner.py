@@ -42,6 +42,9 @@ class BzCleaner(object):
         init = [s for s in stack if self._is_a_bzcleaner_init(s)]
         last = init[-1]
         info = inspect.getframeinfo(last[0])
+        base = os.path.dirname(__file__)
+        scripts = os.path.join(base, 'scripts')
+        self.__tool_path__ = os.path.relpath(info.filename, scripts)
         name = os.path.basename(info.filename)
         name = os.path.splitext(name)[0]
         self.__tool_name__ = name
@@ -53,6 +56,10 @@ class BzCleaner(object):
     def name(self):
         """Get the tool name"""
         return self.__tool_name__
+
+    def get_tool_path(self):
+        """Get the tool path"""
+        return self.__tool_path__
 
     def needinfo_template(self):
         """Get the txt template filename"""
@@ -382,6 +389,10 @@ class BzCleaner(object):
         template = env.get_template(template_name)
         res = {}
 
+        doc = 'For more information, please visit [auto_nag documentation](https://wiki.mozilla.org/Release_Management/autonag#{}).'.format(
+            self.get_tool_path()
+        )
+
         for ni_mail, info in self.auto_needinfo.items():
             nick = info['nickname']
             for bugid in info['bugids']:
@@ -390,7 +401,9 @@ class BzCleaner(object):
                     extra=self.get_extra_for_needinfo_template(),
                     plural=utils.plural,
                     bugid=bugid,
+                    documentation=doc,
                 )
+                comment = comment.strip() + '\n'
                 data = {
                     'comment': {'body': comment},
                     'flags': [
