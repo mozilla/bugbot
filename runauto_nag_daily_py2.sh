@@ -72,9 +72,6 @@ python -m auto_nag.scripts.not_landed
 # https://docs.google.com/drawings/d/1oZA-AUvkOxGMNhZNofL8Wlfk6ol3o5ATQCV5DJJKbwM/edit
 python -m auto_nag.scripts.workflow.multi_nag
 
-# Defect or task with the "feature" keyword
-python -m auto_nag.scripts.feature_but_type_defect_task
-
 # Defect with the "meta" keyword
 python -m auto_nag.scripts.meta_defect
 
@@ -85,9 +82,6 @@ python -m auto_nag.scripts.newbie_with_ni -d
 # Bug caused several regressions recently reported
 # Pretty rare
 python -m auto_nag.scripts.warn_regressed_by
-
-# Defect starting with please or enable in the title
-python -m auto_nag.scripts.defect_with_please_or_enable
 
 # Regressions without regressed_by and some dependencies (blocks, depends_on)
 # Pretty rare
