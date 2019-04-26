@@ -54,6 +54,7 @@ class RegressionWithoutRegressedBy(BzCleaner):
 
         def history_handler(bug, data):
             bugid = bug['id']
+            treated.add(bugid)
             resolved_before = False
             for h in bug['history']:
                 if resolved_before:
@@ -68,6 +69,7 @@ class RegressionWithoutRegressedBy(BzCleaner):
                 data.add(bugid)
 
         invalids = set()
+        treated = set()
         Bugzilla(
             bugids=list(all_deps),
             include_fields=['id', 'keywords', 'cf_last_resolved'],
@@ -76,6 +78,10 @@ class RegressionWithoutRegressedBy(BzCleaner):
             historyhandler=history_handler,
             historydata=invalids,
         ).get_data().wait()
+
+        # Some bugs aren't accessible so they won't appear in treated (all_deps - treated)
+        # Since we don't have any info about them, then we consider them as invalid
+        invalids |= all_deps - treated
 
         for bugid, info in bugs.items():
             info['deps'] -= invalids
