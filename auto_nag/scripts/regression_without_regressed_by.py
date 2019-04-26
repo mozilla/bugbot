@@ -32,15 +32,17 @@ class RegressionWithoutRegressedBy(BzCleaner):
 
     def filter_bugs(self, bugs):
         all_deps = set()
-        dep_bug_creation = {}
+        deps_to_max_allowed_date = {}
 
         for bugid, info in bugs.items():
             bugid = int(bugid)
+            # we just keep bugs from dependencies created before bugid
+            # since the others cannot be a regresser !
             info['deps'] = deps = set(x for x in info['deps'] if x < bugid)
             if deps:
                 all_deps |= deps
                 for dep in deps:
-                    dep_bug_creation[dep] = info['creation']
+                    deps_to_max_allowed_date[dep] = info['creation']
 
         def bug_handler(bug, data):
             if 'meta' in bug['keywords'] or not bug['cf_last_resolved']:
@@ -53,11 +55,9 @@ class RegressionWithoutRegressedBy(BzCleaner):
                 if resolved_before:
                     break
                 for change in h['changes']:
-                    if change.get(
-                        'field_name', ''
-                    ) == 'cf_last_resolved' and change.get('added', ''):
+                    if change['field_name'] == 'cf_last_resolved' and change['added']:
                         date = dateutil.parser.parse(change['added'])
-                        if date < dep_bug_creation[bugid]:
+                        if date < deps_to_max_allowed_date[bugid]:
                             resolved_before = True
                             break
             if not resolved_before:
@@ -73,32 +73,27 @@ class RegressionWithoutRegressedBy(BzCleaner):
             historydata=invalids,
         ).get_data().wait()
 
-        to_rm = []
         for bugid, info in bugs.items():
-            deps = info['deps'] - invalids
-            if not deps:
-                to_rm.append(bugid)
-            else:
-                info['deps'] = deps
+            info['deps'] -= invalids
 
-        for bugid in to_rm:
-            del bugs[bugid]
+        bugs = {bugid: info for bugid, info in bugs.items() if info['deps']}
 
         return bugs
 
     def set_autofix(self, bugs):
         def history_handler(bug, data):
+            bugid = str(bug['id'])
+            deps = data[bugid]['deps']
             stats = {}
             for h in bug['history']:
                 for change in h['changes']:
-                    if change.get('field_name', '') in {
-                        'blocks',
-                        'depends_on',
-                    } and change.get('added', ''):
+                    if (
+                        change['field_name'] in {'blocks', 'depends_on'}
+                        and change['added'] in deps
+                    ):
                         who = h['who']
                         stats[who] = stats.get(who, 0) + 1
 
-            bugid = str(bug['id'])
             data[bugid]['winner'] = (
                 max(stats.items(), key=lambda p: p[1])[0] if stats else None
             )
