@@ -537,6 +537,13 @@
         "reporter_blacklist":
         [
             "intermittent-bug-filer@mozilla.bugs"
+        ],
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "ehumphries@mozilla.com",
+            "sylvestre@mozilla.com",
+            "mcastelluccio@mozilla.com"
         ]
     }
 }
