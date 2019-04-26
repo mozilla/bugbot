@@ -8,7 +8,7 @@ from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import BugzillaUser
 from random import randint
 
-from auto_nag import utils
+from auto_nag import logger, utils
 from auto_nag.people import People
 from auto_nag.round_robin_calendar import Calendar
 
@@ -70,8 +70,14 @@ class RoundRobin(object):
     def get(self, bug, date):
         pc = bug['product'] + '::' + bug['component']
         if pc not in self.data:
-            mail = bug['triage_owner']
-            nick = bug['triage_owner_detail']['nick']
+            mail = bug.get('triage_owner')
+            nick = bug.get('triage_owner_detail', {}).get('nick')
+            if utils.is_no_assignee(mail):
+                mail, nick = None, None
+
+            if mail is None:
+                logger.error('No triage owner for {}'.format(pc))
+
             return mail, nick
 
         cal = self.data[pc]

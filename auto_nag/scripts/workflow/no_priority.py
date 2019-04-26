@@ -24,6 +24,7 @@ class NoPriority(BzCleaner, Nag):
             blacklist=utils.get_config('workflow', 'supervisor_blacklist', []),
         )
         self.round_robin = RoundRobin(people=self.people)
+        self.components_blacklist = utils.get_config('workflow', 'components_blacklist')
 
     def description(self):
         return 'Bugs without a priority set'
@@ -51,20 +52,25 @@ class NoPriority(BzCleaner, Nag):
     def columns(self):
         return ['component', 'id', 'summary']
 
+    def handle_bug(self, bug, data):
+        # check if the product::component is in the list
+        if utils.check_product_component(self.components_blacklist, bug):
+            return None
+        return bug
+
     def get_mail_to_auto_ni(self, bug):
         if self.typ == 'second':
             return None
 
         mail, nick = self.round_robin.get(bug, self.date)
-        return {'mail': mail, 'nickname': nick}
+        if mail and nick:
+            return {'mail': mail, 'nickname': nick}
+
+        return None
 
     def set_people_to_nag(self, bug, buginfo):
         priority = 'default'
         if not self.filter_bug(priority):
-            return None
-
-        # check if the product::component is in the list
-        if not utils.check_product_component(self.components, bug):
             return None
 
         # don't nag in the first step (just a ni is enough)
@@ -73,18 +79,14 @@ class NoPriority(BzCleaner, Nag):
 
         owner, _ = self.round_robin.get(bug, self.date)
         real_owner = bug['triage_owner']
-        self.add_triage_owner(
-            owner, utils.get_config('workflow', 'components'), real_owner=real_owner
-        )
+        self.add_triage_owner(owner, real_owner=real_owner)
         if not self.add(owner, buginfo, priority=priority):
             self.add_no_manager(buginfo['id'])
         return bug
 
     def get_bz_params(self, date):
         fields = ['triage_owner', 'flags']
-        self.components = utils.get_config('workflow', 'components')
         params = {
-            'component': utils.get_components(self.components),
             'bug_type': 'defect',
             'include_fields': fields,
             'resolution': '---',

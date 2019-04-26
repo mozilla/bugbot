@@ -390,7 +390,7 @@ class BzCleaner(object):
         res = {}
 
         doc = 'For more information, please visit [auto_nag documentation](https://wiki.mozilla.org/Release_Management/autonag#{}).'.format(
-            self.get_tool_path()
+            self.get_tool_path().replace('/', '.2F')
         )
 
         for ni_mail, info in self.auto_needinfo.items():
