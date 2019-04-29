@@ -17,3 +17,4 @@ venv2/
 venv3/
 db/*
 !db/lock
+cache/

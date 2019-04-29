@@ -1,12 +1,14 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at http://mozilla.org/MPL/2.0/.
+
 import copy
 import lzma
-import json
 import os
 import shutil
 from urllib.request import urlretrieve
 import requests
 from bugbug import bugzilla
-from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import Bugzilla
 from auto_nag.bzcleaner import BzCleaner
 
@@ -14,7 +16,6 @@ from auto_nag.bzcleaner import BzCleaner
 class BugbugScript(BzCleaner):
     def __init__(self):
         super().__init__()
-        self.cache_path = os.path.join('models', f'{self.name()}_cache.json')  # noqa
 
     def retrieve_model(self):
         os.makedirs('models', exist_ok=True)
@@ -52,38 +53,13 @@ class BugbugScript(BzCleaner):
         params['include_fields'] = 'id'
 
     def bughandler(self, bug, data):
-        data.append(bug['id'])
+        bugid = bug['id']
+        if bugid in self.cache:
+            return
+        data.append(bugid)
 
     def remove_using_history(self, bugs):
         return bugs
-
-    def get_recent_bugs(self):
-        if self.dryrun:
-            return {}
-
-        try:
-            with open(self.cache_path, 'r') as f:
-                recent_bugs = json.load(f)
-        except FileNotFoundError:
-            recent_bugs = {}
-
-        cleaned_recent_bugs = {}
-        for bug_id, date in recent_bugs.items():
-            delta = lmdutils.get_date_ymd('today') - lmdutils.get_date_ymd(date)
-            if delta.days < 7:
-                cleaned_recent_bugs[int(bug_id)] = date
-
-        return cleaned_recent_bugs
-
-    def add_recent_bugs(self, recent_bugs, bugs):
-        if self.dryrun:
-            return
-
-        for bug in bugs:
-            recent_bugs[int(bug['id'])] = lmdutils.get_today()
-
-        with open(self.cache_path, 'w') as f:
-            json.dump(recent_bugs, f)
 
     def get_bugs(self, date='today', bug_ids=[]):
         # Retrieve bugs to analyze.
@@ -94,16 +70,14 @@ class BugbugScript(BzCleaner):
         finally:
             Bugzilla.BUGZILLA_CHUNK_SIZE = old_CHUNK_SIZE
 
-        # Ignore bugs that we didn't manage to classify recently.
-        recent_bugs = self.get_recent_bugs()
-
-        bug_ids = [bug_id for bug_id in bug_ids if bug_id not in recent_bugs]
-
         bugs = bugzilla._download(bug_ids)
         bugs = list(bugs.values())
 
         # Add bugs that we are classifying now to the cache.
-        self.add_recent_bugs(recent_bugs, bugs)
+        # Normally it's called in bzcleaner::get_mails (with the results of get_bugs)
+        # but since some bugs (we don't want to analyze again) are removed thanks
+        # to their history, we must add_to_cache here.
+        self.add_to_cache(bug['id'] for bug in bugs)
 
         bugs = self.remove_using_history(bugs)
 

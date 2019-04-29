@@ -20,6 +20,7 @@
     "common":
     {
         "database": "sqlite:///db/autonag.sqlite",
+        "cache": "cache",
         "lock": "db/lock",
         "receivers":
         [
@@ -115,6 +116,7 @@
     },
     "regression":
     {
+        "max_days_in_cache": 7,
         "receivers":
         [
             "calixte@mozilla.com",
@@ -508,6 +510,7 @@
         "confidence_threshold": 0.6,
         "general_confidence_threshold": 0.8,
         "days_lookup": 365,
+        "max_days_in_cache": 7,
         "receivers":
         [
             "calixte@mozilla.com",
@@ -538,6 +541,7 @@
     },
     "defectenhancementtask":
     {
+        "max_days_in_cache": 7,
         "receivers":
         [
             "calixte@mozilla.com",
@@ -585,6 +589,7 @@
     },
     "warn_regressed_by":
     {
+        "max_days_in_cache": 7,
         "receivers":
         [
             "calixte@mozilla.com",
