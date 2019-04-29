@@ -485,7 +485,10 @@ class BzCleaner(object):
 
     def add_to_cache(self, bugs):
         """Add the bug keys to cache"""
-        self.cache.add(bugs.keys())
+        if isinstance(bugs, dict):
+            self.cache.add(bugs.keys())
+        else:
+            self.cache.add(bugs)
 
     def get_email(self, date, bug_ids=[]):
         """Get title and body for the email"""

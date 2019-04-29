@@ -61,10 +61,6 @@ class BugbugScript(BzCleaner):
     def remove_using_history(self, bugs):
         return bugs
 
-    def add_to_cache(self, bugs):
-        # just to avoid to add bugs in cache after get_bugs call
-        return
-
     def get_bugs(self, date='today', bug_ids=[]):
         # Retrieve bugs to analyze.
         old_CHUNK_SIZE = Bugzilla.BUGZILLA_CHUNK_SIZE
@@ -78,7 +74,7 @@ class BugbugScript(BzCleaner):
         bugs = list(bugs.values())
 
         # Add bugs that we are classifying now to the cache.
-        self.cache.add(bug['id'] for bug in bugs)
+        self.add_to_cache(bug['id'] for bug in bugs)
 
         bugs = self.remove_using_history(bugs)
 

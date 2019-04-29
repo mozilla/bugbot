@@ -9,10 +9,12 @@ from auto_nag import utils
 
 
 class Cache(object):
-    def __init__(self, name, max_days):
+    def __init__(self, name, max_days, add_once=True):
         super(Cache, self).__init__()
         self.name = name
         self.max_days = max_days
+        self.add_once = add_once
+        self.added = False
         self.dryrun = True
         self.data = None
 
@@ -23,7 +25,7 @@ class Cache(object):
         cache_path = utils.get_config('common', 'cache')
         if not os.path.exists(cache_path):
             os.mkdir(cache_path)
-        return './{}/{}.json'.format(cache_path, self.name)
+        return '{}/{}.json'.format(cache_path, self.name)
 
     def get_data(self):
         if self.data is None:
@@ -41,7 +43,7 @@ class Cache(object):
         return self.data
 
     def add(self, bugids):
-        if self.dryrun:
+        if self.dryrun or (self.add_once and self.added):
             return
 
         data = self.get_data()
@@ -51,6 +53,8 @@ class Cache(object):
 
         with open(self.get_path(), 'w') as Out:
             json.dump(data, Out)
+
+        self.added = True
 
     def __contains__(self, key):
         return not self.dryrun and int(key) in self.get_data()
