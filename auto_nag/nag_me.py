@@ -102,14 +102,12 @@ class Nag(object):
             mail, self.black_list
         )
 
-    def add_triage_owner(self, owner, components, real_owner=None):
+    def add_triage_owner(self, owner, real_owner=None):
         if owner not in self.triage_owners:
             to = real_owner if real_owner is not None else owner
-            self.triage_owners[owner] = self.get_query_url_for_triage_owner(
-                to, components
-            )
+            self.triage_owners[owner] = self.get_query_url_for_triage_owner(to)
 
-    def get_query_url_for_triage_owner(self, owner, components):
+    def get_query_url_for_triage_owner(self, owner):
         if self.all_owners is None:
             self.all_owners = utils.get_triage_owners()
         params = copy.deepcopy(self.query_params)
@@ -117,7 +115,7 @@ class Nag(object):
             del params['include_fields']
 
         comps = self.all_owners[owner]
-        comps = set(comps) & set(components)
+        comps = set(comps)
 
         params['component'] = sorted(comps)
         url = utils.get_bz_search_url(params)
