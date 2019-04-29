@@ -15,12 +15,15 @@ class TestCache(unittest.TestCase):
         cache = Cache('test_cache', 7)
         cache.set_dry_run(False)
 
-        cache.add([123, 456, 789])
+        bugids = [123, 456, 789]
+        cache.add(bugids)
 
-        assert 123 in cache
-        assert 456 in cache
-        assert 789 in cache
+        for bugid in bugids:
+            assert bugid in cache
+            assert str(bugid) in cache
+
         assert 101112 not in cache
+        assert '101112' not in cache
 
         with open(cache.get_path(), 'r') as In:
             data = json.load(In)

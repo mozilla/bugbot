@@ -74,6 +74,9 @@ class BugbugScript(BzCleaner):
         bugs = list(bugs.values())
 
         # Add bugs that we are classifying now to the cache.
+        # Normally it's called in bzcleaner::get_mails (with the results of get_bugs)
+        # but since some bugs (we don't want to analyze again) are removed thanks
+        # to their history, we must add_to_cache here.
         self.add_to_cache(bug['id'] for bug in bugs)
 
         bugs = self.remove_using_history(bugs)
