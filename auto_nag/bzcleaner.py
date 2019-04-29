@@ -15,6 +15,7 @@ import os
 import pytz
 import six
 from auto_nag import db, mail, utils, logger
+from auto_nag.cache import Cache
 from auto_nag.nag_me import Nag
 
 
@@ -26,6 +27,7 @@ class BzCleaner(object):
         self.no_manager = set()
         self.auto_needinfo = {}
         self.has_flags = False
+        self.cache = Cache(self.name(), self.max_days_in_cache())
         self.test_mode = utils.get_config('common', 'test', False)
 
     def _is_a_bzcleaner_init(self, info):
@@ -48,6 +50,10 @@ class BzCleaner(object):
         name = os.path.basename(info.filename)
         name = os.path.splitext(name)[0]
         self.__tool_name__ = name
+
+    def max_days_in_cache(self):
+        """Get the max number of days the data must be kept in cache"""
+        return self.get_config('max_days_in_cache', -1)
 
     def description(self):
         """Get the description for the help"""
@@ -214,6 +220,9 @@ class BzCleaner(object):
 
     def bughandler(self, bug, data):
         """bug handler for the Bugzilla query"""
+        if bug['id'] in self.cache:
+            return
+
         if self.handle_bug(bug, data) is None:
             return
 
@@ -474,10 +483,15 @@ class BzCleaner(object):
     def organize(self, bugs):
         return utils.organize(bugs, self.columns(), key=self.sort_columns())
 
+    def add_to_cache(self, bugs):
+        """Add the bug keys to cache"""
+        self.cache.add(bugs.keys())
+
     def get_email(self, date, bug_ids=[]):
         """Get title and body for the email"""
         bugs = self.get_bugs(date=date, bug_ids=bug_ids)
         bugs = self.autofix(bugs)
+        self.add_to_cache(bugs)
         if bugs:
             bugs = self.organize(bugs)
             extra = self.get_extra_for_template()
@@ -580,6 +594,7 @@ class BzCleaner(object):
         self.parse_custom_arguments(args)
         date = '' if self.ignore_date() else args.date
         self.dryrun = args.dryrun
+        self.cache.set_dry_run(self.dryrun)
         try:
             self.send_email(date=date)
         except Exception:
