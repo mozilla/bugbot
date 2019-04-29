@@ -610,5 +610,9 @@
             "sylvestre@mozilla.com",
             "mcastelluccio@mozilla.com"
         ]
+    },
+    "prod_comp_changed_with_priority":
+    {
+        "days_lookup": 30
     }
 }
