@@ -8,8 +8,16 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class ProdCompChangedWithPriority(BzCleaner):
+
+    CHANGE = {
+        (True, False): 'product',
+        (True, True): 'product::component',
+        (False, True): 'component',
+    }
+
     def __init__(self):
         super(ProdCompChangedWithPriority, self).__init__()
+        self.autofix_priority = {}
 
     def description(self):
         return 'Bugs with a priority set before product::component changed'
@@ -20,6 +28,9 @@ class ProdCompChangedWithPriority(BzCleaner):
             prod_comp_date = None
             priority_who = None
             prod_comp_who = None
+            prod = False
+            comp = False
+            bugid = str(bug['id'])
             for h in bug['history']:
                 for change in h['changes']:
                     if change['field_name'] == 'priority':
@@ -28,13 +39,22 @@ class ProdCompChangedWithPriority(BzCleaner):
                     elif change['field_name'] in {'product', 'component'}:
                         prod_comp_date = dateutil.parser.parse(h['when'])
                         prod_comp_who = h['who']
+                        if priority_date is not None and priority_date < prod_comp_date:
+                            if change['field_name'] == 'product':
+                                prod = True
+                            else:
+                                comp = True
             if (
                 priority_date is None
                 or prod_comp_date is None
                 or priority_date >= prod_comp_date
                 or priority_who == prod_comp_who
             ):
-                del data[str(bug['id'])]
+                del data[bugid]
+            else:
+                data[bugid]['change_type'] = ProdCompChangedWithPriority.CHANGE[
+                    (prod, comp)
+                ]
 
         bugids = list(bugs.keys())
         Bugzilla(
@@ -42,6 +62,16 @@ class ProdCompChangedWithPriority(BzCleaner):
         ).get_data().wait()
 
         return bugs
+
+    def set_autofix(self, bugs):
+        doc = self.get_documentation()
+        body = 'The {} has been changed since the priority was decided, so we\'re resetting it.\n{}'
+        for bugid, info in bugs.items():
+            typ = info['change_type']
+            self.autofix_priority[bugid] = {
+                'comment': {'body': body.format(typ, doc)},
+                'priority': '--',
+            }
 
     def get_bz_params(self, date):
         start_date, _ = self.get_dates(date)
@@ -71,19 +101,12 @@ class ProdCompChangedWithPriority(BzCleaner):
             date=date, bug_ids=bug_ids
         )
         bugs = self.filter_bugs(bugs)
+        self.set_autofix(bugs)
 
         return bugs
 
     def get_autofix_change(self):
-        doc = self.get_documentation()
-        return {
-            'comment': {
-                'body': 'The product::component changed after the priority has been set so reset the priority.\n{}'.format(
-                    doc
-                )
-            },
-            'priority': '--',
-        }
+        return self.autofix_priority
 
 
 if __name__ == '__main__':
