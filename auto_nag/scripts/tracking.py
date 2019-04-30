@@ -9,9 +9,10 @@ from auto_nag.nag_me import Nag
 
 class Tracking(BzCleaner, Nag):
     def __init__(self, channel, untouched):
+        # since it's used in name() we must have it before to call parent ctor
+        self.untouched = untouched
         super(Tracking, self).__init__()
         self.channel = channel
-        self.untouched = untouched
         self.assignees = {}
         self.versions = utils.get_checked_versions()
         self.version = self.versions[self.channel] if self.versions else None

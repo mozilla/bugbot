@@ -12,8 +12,9 @@ from auto_nag.nag_me import Nag
 
 class Unlanded(BzCleaner, Nag):
     def __init__(self, channel):
-        super(Unlanded, self).__init__()
+        # since it's used in name() we must have it before to call parent ctor
         self.channel = channel
+        super(Unlanded, self).__init__()
         self.bug_ids = []
         self.versions = utils.get_checked_versions()
         self.channel_pat = Bugzilla.get_landing_patterns(channels=[channel])
