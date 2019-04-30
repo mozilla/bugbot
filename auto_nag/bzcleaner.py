@@ -383,6 +383,11 @@ class BzCleaner(object):
     def get_list_bugs(self, bugs):
         return [x['id'] for x in bugs.values()]
 
+    def get_documentation(self):
+        return 'For more information, please visit [auto_nag documentation](https://wiki.mozilla.org/Release_Management/autonag#{}).'.format(
+            self.get_tool_path().replace('/', '.2F')
+        )
+
     def has_bot_set_ni(self, bug):
         if not self.has_flags:
             raise Exception
@@ -398,9 +403,7 @@ class BzCleaner(object):
         template = env.get_template(template_name)
         res = {}
 
-        doc = 'For more information, please visit [auto_nag documentation](https://wiki.mozilla.org/Release_Management/autonag#{}).'.format(
-            self.get_tool_path().replace('/', '.2F')
-        )
+        doc = self.get_documentation()
 
         for ni_mail, info in self.auto_needinfo.items():
             nick = info['nickname']
