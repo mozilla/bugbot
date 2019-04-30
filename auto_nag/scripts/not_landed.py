@@ -54,9 +54,44 @@ class NotLanded(BzCleaner):
         else:
             nickname = bug['assigned_to_detail']['nick']
 
-        data[bugid] = {'assigned_to': assignee, 'nickname': nickname}
+        data[bugid] = {
+            'assigned_to': assignee,
+            'nickname': nickname,
+            'deps': set(bug['depends_on']),
+        }
 
         return bug
+
+    def filter_bugs(self, bugs):
+        # We must remove bugs which have open dependencies (except meta bugs)
+        # because devs may wait for those bugs to be fixed before their patch
+        # can land.
+
+        all_deps = set(dep for info in bugs.values() for dep in info['deps'])
+
+        def bug_handler(bug, data):
+            if (
+                bug['status'] in {'RESOLVED', 'VERIFIED', 'CLOSED'}
+                or 'meta' in bug['keywords']
+            ):
+                data.add(bug['id'])
+
+        useless = set()
+        Bugzilla(
+            bugids=list(all_deps),
+            include_fields=['id', 'keywords', 'status'],
+            bughandler=bug_handler,
+            bugdata=useless,
+        ).get_data().wait()
+
+        for bugid, info in bugs.items():
+            # finally deps will contain open bugs which are not meta
+            info['deps'] -= useless
+
+        # keep bugs with no deps
+        bugs = {bugid: info for bugid, info in bugs.items() if not info['deps']}
+
+        return bugs
 
     def check_phab(self, attachment):
         """Check if the patch in Phabricator has been r+
@@ -112,6 +147,10 @@ class NotLanded(BzCleaner):
         if attachment['is_patch'] == 0 or attachment['is_obsolete'] == 1:
             return None
 
+        data = base64.b64decode(attachment['data']).decode('utf-8')
+        if data.startswith('https://github.com'):
+            return None
+
         flags = attachment['flags']
         # no flags == no review
         if not flags:
@@ -125,6 +164,7 @@ class NotLanded(BzCleaner):
         for flag in flags:
             if flag['name'] == 'review' and flag['status'] != '+':
                 return False
+
         return True
 
     def handle_attachment(self, attachment, res):
@@ -248,7 +288,7 @@ class NotLanded(BzCleaner):
     def get_bz_params(self, date):
         self.date = lmdutils.get_date_ymd(date)
         start_date = self.date - relativedelta(years=self.nyears)
-        fields = ['flags']
+        fields = ['flags', 'depends_on']
         params = {
             'include_fields': fields,
             'resolution': '---',
@@ -274,6 +314,7 @@ class NotLanded(BzCleaner):
 
     def get_bugs(self, date='today', bug_ids=[]):
         bugs = super(NotLanded, self).get_bugs(date=date, bug_ids=bug_ids)
+        bugs = self.filter_bugs(bugs)
         bugs_patch = self.get_patch_data(bugs)
         res = {}
         nicknames = {}
