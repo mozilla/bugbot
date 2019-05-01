@@ -28,15 +28,39 @@ class MissingBetaStatus(BzCleaner):
         bugid = str(bug['id'])
         central = bug[self.status_central]
         release = bug[self.status_release]
+        doc = self.get_documentation()
 
-        if central == release and release != 'verified':
-            self.autofix_status[bugid] = {self.status_beta: central}
+        if central == release:
+            if release != 'verified':
+                self.autofix_status[bugid] = {
+                    'comment': {
+                        'body': 'Change the status for beta to have the same as nightly and release.\n{}'.format(
+                            doc
+                        )
+                    },
+                    self.status_beta: central,
+                }
+            else:
+                # if the two status are different, we don't know what to set
+                # if this verified on nightly and release, we cannot say
+                # per say if this is verified
+                self.autofix_status[bugid] = {
+                    'comment': {
+                        'body': 'Since it has been verified for nightly and release, is it verified for beta too?\n{}'.format(
+                            doc
+                        )
+                    },
+                    self.status_beta: '?',
+                }
         else:
-            # if the two status are different, we don't know what to set
-            # if this verified on nightly and release, we cannot say
-            # per say if this is verified
-            self.autofix_status[bugid] = {self.status_beta: '?'}
-
+            self.autofix_status[bugid] = {
+                'comment': {
+                    'body': 'Since the status are different for nightly and release, what\'s the status for beta?\n{}'.format(
+                        doc
+                    )
+                },
+                self.status_beta: '?',
+            }
         return bug
 
     def get_bz_params(self, date):
