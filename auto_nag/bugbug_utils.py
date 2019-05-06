@@ -7,9 +7,11 @@ import lzma
 import os
 import shutil
 from urllib.request import urlretrieve
+from urllib.error import HTTPError
 import requests
 from bugbug import bugzilla
 from libmozdata.bugzilla import Bugzilla
+from auto_nag import logger
 from auto_nag.bzcleaner import BzCleaner
 
 
@@ -34,7 +36,11 @@ class BugbugScript(BzCleaner):
             old_etag = None
 
         if old_etag != new_etag:
-            urlretrieve(model_url, f'{file_path}.xz')
+            try:
+                urlretrieve(model_url, f'{file_path}.xz')
+            except HTTPError:
+                logger.exception('Tool {}'.format(self.name()))
+                return file_path
 
             with lzma.open(f'{file_path}.xz', 'rb') as input_f:  # noqa
                 with open(file_path, 'wb') as output_f:
