@@ -91,12 +91,14 @@ class WarnRegressedBy(BzCleaner):
     def get_bugs(self, date='today', bug_ids=[]):
         bugs = super(WarnRegressedBy, self).get_bugs(date=date, bug_ids=bug_ids)
         self.to_warn()
-        self.step = 1
-        bugs = super(WarnRegressedBy, self).get_bugs(
-            date=date, bug_ids=self.bugs_to_warn
-        )
+        if self.bugs_to_warn:
+            self.step = 1
+            bugs = super(WarnRegressedBy, self).get_bugs(
+                date=date, bug_ids=self.bugs_to_warn
+            )
+            return bugs
 
-        return bugs
+        return {}
 
 
 if __name__ == '__main__':
