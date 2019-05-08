@@ -9,8 +9,8 @@ from bugbug.models.component import ComponentModel
 
 class Component(BugbugScript):
     def __init__(self):
+        self.model_class = ComponentModel
         super().__init__()
-        self.model = ComponentModel.load(self.retrieve_model())
         self.autofix_component = {}
         self.frequency = 'daily'
 

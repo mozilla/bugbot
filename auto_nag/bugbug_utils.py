@@ -18,6 +18,7 @@ from auto_nag.bzcleaner import BzCleaner
 class BugbugScript(BzCleaner):
     def __init__(self):
         super().__init__()
+        self.model = self.model_class.load(self.retrieve_model())
 
     def retrieve_model(self):
         os.makedirs('models', exist_ok=True)

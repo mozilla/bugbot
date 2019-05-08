@@ -8,8 +8,8 @@ from bugbug.models.defect_enhancement_task import DefectEnhancementTaskModel
 
 class DefectEnhancementTask(BugbugScript):
     def __init__(self):
+        self.model_class = DefectEnhancementTaskModel
         super().__init__()
-        self.model = DefectEnhancementTaskModel.load(self.retrieve_model())
         self.autofix_type = {}
 
     def description(self):

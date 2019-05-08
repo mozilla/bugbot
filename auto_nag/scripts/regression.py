@@ -8,8 +8,8 @@ from bugbug.models.regression import RegressionModel
 
 class Regression(BugbugScript):
     def __init__(self):
+        self.model_class = RegressionModel
         super().__init__()
-        self.model = RegressionModel.load(self.retrieve_model())
         self.autofix_regression = []
 
     def description(self):
