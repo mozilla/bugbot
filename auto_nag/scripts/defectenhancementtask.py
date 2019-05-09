@@ -89,9 +89,7 @@ class DefectEnhancementTask(BugbugScript):
 
             # Only autofix results for which we are sure enough.
             # And only autofix defect -> task/enhancement for now, unless we're 100% sure.
-            # if prob[index] >= self.get_config('confidence_threshold') and (bug['type'] == 'defect' or prob[index] == 1.0):
-            # XXX: For now, only autofix bugs for which we are 100% sure.
-            if prob[index] == 1.0:
+            if prob[index] >= self.get_config('confidence_threshold') and (bug['type'] == 'defect' or prob[index] == 1.0):
                 results[bug['id']]['autofixed'] = True
                 self.autofix_type[bug['id']] = suggestion
 
