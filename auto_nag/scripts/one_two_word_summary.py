@@ -14,7 +14,7 @@ class OneTwoWordSummary(BzCleaner):
 
     def get_bz_params(self, date):
         days_lookup = self.get_config('days_lookup', default=7)
-        blacklist = self.get_config('regex_blacklist', [])
+        skiplist = self.get_config('regex_skiplist', [])
 
         params = {
             'bug_type': 'defect',
@@ -27,8 +27,8 @@ class OneTwoWordSummary(BzCleaner):
             'v2': '^([a-zA-Z0-9_]+ [a-zA-Z0-9_]+|[a-zA-Z0-9_]+)$',
         }
 
-        if blacklist:
-            for i, regex in enumerate(blacklist):
+        if skiplist:
+            for i, regex in enumerate(skiplist):
                 j = str(i + 3)
                 params['f' + j] = 'short_desc'
                 params['o' + j] = 'notregexp'

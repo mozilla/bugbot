@@ -154,8 +154,8 @@ class RegressionWithoutRegressedBy(BzCleaner):
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
         fields = ['blocks', 'depends_on', 'assigned_to', 'creator', 'creation_time']
-        reporter_blacklist = self.get_config('reporter_blacklist', default=[])
-        reporter_blacklist = ','.join(reporter_blacklist)
+        reporter_skiplist = self.get_config('reporter_skiplist', default=[])
+        reporter_skiplist = ','.join(reporter_skiplist)
         params = {
             'include_fields': fields,
             'bug_status': '__open__',
@@ -189,7 +189,7 @@ class RegressionWithoutRegressedBy(BzCleaner):
             'v12': 'regressionwindow-wanted',
             'f13': 'reporter',
             'o13': 'nowords',
-            'v13': reporter_blacklist,
+            'v13': reporter_skiplist,
             'n14': 1,
             'f14': 'longdesc',
             'o14': 'casesubstring',

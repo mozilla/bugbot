@@ -24,20 +24,20 @@ class Regression(BugbugScript):
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
 
-        resolution_blacklist = self.get_config('resolution_blacklist', default=[])
-        resolution_blacklist = ' '.join(resolution_blacklist)
+        resolution_skiplist = self.get_config('resolution_skiplist', default=[])
+        resolution_skiplist = ' '.join(resolution_skiplist)
 
-        reporter_blacklist = self.get_config('reporter_blacklist', default=[])
-        reporter_blacklist = ','.join(reporter_blacklist)
+        reporter_skiplist = self.get_config('reporter_skiplist', default=[])
+        reporter_skiplist = ','.join(reporter_skiplist)
 
         params = {
             'bug_type': 'defect',
             'f1': 'keywords', 'o1': 'nowords', 'v1': 'regression,feature,meta',
             'f2': 'longdesc', 'o2': 'anywordssubstr', 'v2': 'regress caus',
-            'f3': 'resolution', 'o3': 'nowords', 'v3': resolution_blacklist,
+            'f3': 'resolution', 'o3': 'nowords', 'v3': resolution_skiplist,
             'f4': 'longdesc', 'o4': 'changedafter', 'v4': start_date,
             'f5': 'longdesc', 'o5': 'changedbefore', 'v5': end_date,
-            'f6': 'reporter', 'o6': 'nowords', 'v6': reporter_blacklist,
+            'f6': 'reporter', 'o6': 'nowords', 'v6': reporter_skiplist,
         }
 
         return params

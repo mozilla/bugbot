@@ -13,7 +13,7 @@ class LeaveOpenNoActivity(BzCleaner):
         self.people = People()
         self.nmonths = utils.get_config(self.name(), 'months_lookup')
         self.max_ni = utils.get_config(self.name(), 'max_ni')
-        self.blacklist = set(utils.get_config(self.name(), 'blacklist', []))
+        self.skiplist = set(utils.get_config(self.name(), 'skiplist', []))
 
     def description(self):
         return 'Bugs with leave-open keyword and no activity for the last {} months'.format(
@@ -26,8 +26,8 @@ class LeaveOpenNoActivity(BzCleaner):
     def get_extra_for_template(self):
         return {'nmonths': self.nmonths}
 
-    def get_auto_ni_blacklist(self):
-        return self.blacklist
+    def get_auto_ni_skiplist(self):
+        return self.skiplist
 
     def get_max_ni(self):
         return self.max_ni

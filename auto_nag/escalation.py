@@ -53,7 +53,7 @@ class Supervisor(object):
         self.who = who
         self.people = people
 
-    def get(self, person, blacklist, **kwargs):
+    def get(self, person, skiplist, **kwargs):
         m = NPLUS_PAT.match(self.who)
         if m:
             sup = self.people.get_nth_manager_mail(person, int(m.group(1)))
@@ -69,7 +69,7 @@ class Supervisor(object):
             )
             sup = self.people.get_moz_mail(kwargs[self.who])
 
-        if not sup or sup in blacklist:
+        if not sup or sup in skiplist:
             sup = self.people.get_nth_manager_mail(person, 1)
 
         if not sup:
@@ -93,9 +93,9 @@ class Step(object):
         self.supervisor = supervisor
         self.days = days
 
-    def get_supervisor(self, days, person, blacklist, **kwargs):
+    def get_supervisor(self, days, person, skiplist, **kwargs):
         if self.rang.is_in(days):
-            return self.supervisor.get(person, blacklist, **kwargs)
+            return self.supervisor.get(person, skiplist, **kwargs)
         return None
 
     def filter(self, days, weekday):
@@ -116,10 +116,10 @@ class Step(object):
 
 
 class Escalation(object):
-    def __init__(self, people, data=None, blacklist=[]):
+    def __init__(self, people, data=None, skiplist=[]):
         super(Escalation, self).__init__()
         self.people = people
-        self.blacklist = blacklist
+        self.skiplist = skiplist
         self.data = {
             'high': Escalation._get_steps('high', people, data),
             'normal': Escalation._get_steps('normal', people, data),
@@ -129,7 +129,7 @@ class Escalation(object):
     def get_supervisor(self, priority, days, person, **kwargs):
         steps = self.data[priority]
         for step in steps:
-            s = step.get_supervisor(days, person, self.blacklist, **kwargs)
+            s = step.get_supervisor(days, person, self.skiplist, **kwargs)
             if s is not None:
                 return s
 

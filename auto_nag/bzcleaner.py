@@ -185,7 +185,7 @@ class BzCleaner(object):
             for bugid in v['bugids']
         }
 
-    def get_auto_ni_blacklist(self):
+    def get_auto_ni_skiplist(self):
         return set()
 
     def add_auto_ni(self, bugid, data):
@@ -193,7 +193,7 @@ class BzCleaner(object):
             return
 
         ni_mail = data['mail']
-        if ni_mail in self.get_auto_ni_blacklist():
+        if ni_mail in self.get_auto_ni_skiplist():
             return
         if ni_mail in self.auto_needinfo:
             max_ni = self.get_max_ni()

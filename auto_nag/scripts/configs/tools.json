@@ -108,7 +108,7 @@
     },
     "one_two_word_summary":
     {
-        "regex_blacklist":
+        "regex_skiplist":
         [
             "^[rR]emove",
             "^[cC]reate",
@@ -126,13 +126,13 @@
             "mcastelluccio@mozilla.com"
         ],
         "days_lookup": 3,
-        "resolution_blacklist":
+        "resolution_skiplist":
         [
             "DUPLICATE",
             "INCOMPLETE",
             "INVALID"
         ],
-        "reporter_blacklist":
+        "reporter_skiplist":
         [
             "intermittent-bug-filer@mozilla.bugs",
             "wptsync@mozilla.bugs"
@@ -196,7 +196,7 @@
     },
     "leave_open_no_activity":
     {
-        "blacklist":
+        "skiplist":
         [
             "sdeckelmann@mozilla.com"
         ],
@@ -205,7 +205,7 @@
     },
     "meta_no_deps_no_activity":
     {
-        "blacklist":
+        "skiplist":
         [
             "sdeckelmann@mozilla.com"
         ],
@@ -296,7 +296,7 @@
     },
     "workflow":
     {
-        "components_blacklist":
+        "components_skiplist":
         [
             "Core::Widget: Gtk",
             "Firefox::Untriaged",
@@ -353,7 +353,7 @@
             "NSS::Build",
             "Firefox for Android::Web Apps"
         ],
-        "supervisor_blacklist":
+        "supervisor_skiplist":
         [
             "dcamp@mozilla.com"
         ]
@@ -486,7 +486,7 @@
             "tgrabowski@mozilla.com",
             "yor@mozilla.com"
         ],
-        "assignee_blacklist":
+        "assignee_skiplist":
         [
             "wptsync@mozilla.bugs"
         ]
@@ -502,7 +502,7 @@
             "mcastelluccio@mozilla.com"
         ],
         "days_lookup": 3,
-        "reporter_blacklist":
+        "reporter_skiplist":
         [
             "intermittent-bug-filer@mozilla.bugs",
             "wptsync@mozilla.bugs"
@@ -551,7 +551,7 @@
     "regression_without_regressed_by":
     {
         "days_lookup": 30,
-        "reporter_blacklist":
+        "reporter_skiplist":
         [
             "intermittent-bug-filer@mozilla.bugs"
         ],

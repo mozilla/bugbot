@@ -35,8 +35,8 @@ class DefectEnhancementTask(BugbugScript):
     def get_bz_params(self, date):
         start_date, _ = self.get_dates(date)
 
-        reporter_blacklist = self.get_config('reporter_blacklist', default=[])
-        reporter_blacklist = ','.join(reporter_blacklist)
+        reporter_skiplist = self.get_config('reporter_skiplist', default=[])
+        reporter_skiplist = ','.join(reporter_skiplist)
 
         return {
             # Ignore closed bugs.
@@ -45,7 +45,7 @@ class DefectEnhancementTask(BugbugScript):
             # Check only recently opened bugs.
             'f1': 'creation_ts', 'o1': 'greaterthan', 'v1': start_date,
 
-            'f2': 'reporter', 'o2': 'nowords', 'v2': reporter_blacklist,
+            'f2': 'reporter', 'o2': 'nowords', 'v2': reporter_skiplist,
         }
 
     # Remove bugs for which the type was already changed.

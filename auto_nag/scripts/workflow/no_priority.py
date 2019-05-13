@@ -21,10 +21,10 @@ class NoPriority(BzCleaner, Nag):
         self.escalation = Escalation(
             self.people,
             data=utils.get_config(self.name(), 'escalation-{}'.format(typ)),
-            blacklist=utils.get_config('workflow', 'supervisor_blacklist', []),
+            skiplist=utils.get_config('workflow', 'supervisor_skiplist', []),
         )
         self.round_robin = RoundRobin(people=self.people)
-        self.components_blacklist = utils.get_config('workflow', 'components_blacklist')
+        self.components_skiplist = utils.get_config('workflow', 'components_skiplist')
 
     def description(self):
         return 'Bugs without a priority set'
@@ -54,7 +54,7 @@ class NoPriority(BzCleaner, Nag):
 
     def handle_bug(self, bug, data):
         # check if the product::component is in the list
-        if utils.check_product_component(self.components_blacklist, bug):
+        if utils.check_product_component(self.components_skiplist, bug):
             return None
         return bug
 
