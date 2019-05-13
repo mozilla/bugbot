@@ -5,7 +5,8 @@
         "teams":
         {
             "necko": "necko_round_robin.json",
-            "Core::General": "core_general_round_robin.json"
+            "Core::General": "core_general_round_robin.json",
+            "DOM:Workers & Storage": "dom_workers_storage_round_robin.json"
         }
     },
     "no_assignee":

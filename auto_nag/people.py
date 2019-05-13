@@ -11,6 +11,21 @@ import six
 
 WORDS = re.compile(r'(\w+)')
 MAIL = re.compile(r'^([^@]+@[^ ]+)')
+IMs = [
+    'irc',
+    'slack',
+    'skype',
+    'xmpp',
+    'github',
+    'aim',
+    'telegram',
+    'irc.mozilla.org',
+    'google talk',
+    'gtalk',
+    'blog',
+    'twitter',
+]
+IM_NICK = re.compile(r'([\w\.@]+)')
 
 
 class People:
@@ -27,6 +42,7 @@ class People:
         self.people_with_bzmail = set()
         self.release_managers = set()
         self.rm_or_directors = set()
+        self.nicks = {}
         self.directors = set()
         self.vps = set()
         self.names = {}
@@ -141,6 +157,28 @@ class People:
                 if mail:
                     self.people_with_bzmail.add(mail)
         return self.people_with_bzmail
+
+    def get_info_by_nick(self, nick):
+        """Get info for a nickname"""
+        if not self.nicks:
+            doubloons = set()
+            for person, info in self.people.items():
+                bz_mail = info['bugzillaEmail']
+                if not bz_mail:
+                    continue
+                nicks = self.get_nicks_from_im(info)
+                nicks |= {person, bz_mail, info['mail'], info.get('githubprofile')}
+                nicks |= set(self.get_aliases(info))
+                nicks = {self.get_mail_prefix(n) for n in nicks if n}
+                for n in nicks:
+                    if n not in self.nicks:
+                        self.nicks[n] = info
+                    else:
+                        doubloons.add(n)
+            # doubloons are not identifiable so remove them
+            for n in doubloons:
+                del self.nicks[n]
+        return self.nicks.get(nick)
 
     def get_rm(self):
         """Get the release managers as defined in configs/rm.json"""
@@ -279,23 +317,46 @@ class People:
                 break
         return None
 
-    def get_preferred_mail(self, person):
+    def get_mail_prefix(self, mail):
+        return mail.split('@', 1)[0].lower()
+
+    def get_im(self, person):
+        im = person.get('im', '')
+        if not im:
+            return []
+        if isinstance(im, six.string_types):
+            return [im]
+        return im
+
+    def get_nicks_from_im(self, person):
+        im = self.get_im(person)
+        nicks = set()
+        for info in im:
+            info = info.lower()
+            for i in IMs:
+                info = info.replace(i, '')
+            for nick in IM_NICK.findall(info):
+                if nick.startswith('@'):
+                    nick = nick[1:]
+                nicks.add(nick)
+        return nicks
+
+    def get_aliases(self, person):
         aliases = person.get('emailalias', '')
         if not aliases:
-            return person['mail']
+            return []
         if isinstance(aliases, six.string_types):
-            alias = aliases.strip()
+            return [aliases]
+        return aliases
+
+    def get_preferred_mail(self, person):
+        aliases = self.get_aliases(person)
+        for alias in aliases:
+            alias = alias.strip()
             if 'preferred' in alias:
                 m = MAIL.search(alias)
                 if m:
                     return m.group(1)
-        else:
-            for alias in aliases:
-                alias = alias.strip()
-                if 'preferred' in alias:
-                    m = MAIL.search(alias)
-                    if m:
-                        return m.group(1)
         return person['mail']
 
     def get_moz_mail(self, mail):
@@ -333,7 +394,9 @@ class People:
         if '@' in name:
             info = self.get_info(name)
         else:
-            info = self.search_by_name(name)
+            info = self.get_info_by_nick(name)
+            if not info:
+                info = self.search_by_name(name)
 
         if info:
             mail = info['bugzillaEmail']
@@ -347,7 +410,9 @@ class People:
         if '@' in name:
             info = self.get_info(name)
         else:
-            info = self.search_by_name(name)
+            info = self.get_info_by_nick(name)
+            if not info:
+                info = self.search_by_name(name)
 
         if info:
             return info['mail']
