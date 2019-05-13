@@ -451,6 +451,17 @@ def get_components(data):
     return res
 
 
+def get_products_components(data):
+    prods = set()
+    comps = set()
+    for pc in data:
+        if '::' in pc:
+            p, c = pc.split('::', 1)
+            prods.add(c)
+        comps.add(c)
+    return prods, comps
+
+
 def ireplace(old, repl, text):
     return re.sub('(?i)' + re.escape(old), lambda m: repl, text)
 
