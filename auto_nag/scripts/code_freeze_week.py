@@ -254,8 +254,8 @@ class CodeFreezeWeek(BzCleaner):
         self.date = lmdutils.get_date_ymd(date)
         self.tomorrow = self.date + relativedelta(days=1)
         bugs = utils.get_bugs_from_pushlog(self.date, self.tomorrow)
-        assignee_blacklist = self.get_config('assignee_blacklist', default=[])
-        assignee_blacklist = ','.join(assignee_blacklist)
+        assignee_skiplist = self.get_config('assignee_skiplist', default=[])
+        assignee_skiplist = ','.join(assignee_skiplist)
         fields = [
             'assigned_to',
             'assigned_to_detail',
@@ -273,7 +273,7 @@ class CodeFreezeWeek(BzCleaner):
             'bug_id': ','.join(bugs),
             'f1': 'assigned_to',
             'o1': 'nowords',
-            'v1': assignee_blacklist,
+            'v1': assignee_skiplist,
         }
 
         return params
