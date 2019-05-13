@@ -4,6 +4,8 @@
 
 from bisect import bisect_left
 from dateutil.relativedelta import relativedelta
+from dateutil.tz import gettz, UTC
+from icalendar import Calendar as iCalendar
 from icalevents.icalparser import parse_events
 import json
 
@@ -147,9 +149,21 @@ class JSONCalendar(Calendar):
 class ICSCalendar(Calendar):
     def __init__(self, cal, fallback, team_name, people=None):
         super(ICSCalendar, self).__init__(cal, fallback, team_name, people=people)
+        self.set_tz()
+
+    def set_tz(self):
+        cal = iCalendar.from_ical(self.cal)
+        for c in cal.walk():
+            if c.name == 'VTIMEZONE':
+                self.cal_tz = gettz(str(c['TZID']))
+                break
+        else:
+            self.cal_tz = UTC
 
     def get_persons(self, date):
         date = lmdutils.get_date_ymd(date)
+        date += relativedelta(seconds=1)
+        date = date.replace(tzinfo=self.cal_tz)
         if date in self.cache:
             return self.cache[date]
 
