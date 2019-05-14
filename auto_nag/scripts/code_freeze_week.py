@@ -86,6 +86,7 @@ class CodeFreezeWeek(BzCleaner):
             'status_flags',
             'crash',
             'keywords',
+            'type',
         ]
 
     def sort_columns(self):
@@ -122,6 +123,7 @@ class CodeFreezeWeek(BzCleaner):
                 self.release: bug[self.status_release],
             },
             'keywords': ','.join(bug['keywords']),
+            'type': bug['type'],
         }
 
         return bug
@@ -265,6 +267,7 @@ class CodeFreezeWeek(BzCleaner):
             'severity',
             'keywords',
             'cf_crash_signature',
+            'type',
         ]
         fields += [self.status_nightly, self.status_beta, self.status_release]
         fields += [self.tracking_nightly]
