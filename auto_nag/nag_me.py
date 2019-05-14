@@ -27,9 +27,12 @@ class Nag(object):
     def get_from():
         return utils.get_config('auto_nag', 'from', 'release-mgmt@mozilla.com')
 
-    @staticmethod
-    def get_cc():
-        return set(utils.get_config('auto_nag', 'cc', []))
+    def get_cc(self):
+        cc = self.get_config('cc', None)
+        if cc is None:
+            cc = utils.get_config('auto_nag', 'cc', [])
+
+        return set(cc)
 
     def get_priority(self, bug):
         tracking = bug[self.tracking]
@@ -140,7 +143,7 @@ class Nag(object):
         common = env.get_template('common.html')
         login_info = utils.get_login_info()
         From = Nag.get_from()
-        Default_Cc = Nag.get_cc()
+        Default_Cc = self.get_cc()
         mails = self.prepare_mails()
 
         for m in mails:

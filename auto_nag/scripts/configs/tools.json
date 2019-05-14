@@ -573,5 +573,25 @@
             "sylvestre@mozilla.com",
             "mcastelluccio@mozilla.com"
         ]
+    },
+    "to_triage":
+    {
+        "cc": [],
+        "max-years": 1,
+        "escalation":
+        {
+            "default":
+            {
+                "[0;+∞[":
+                {
+                    "supervisor": "n+1",
+                    "days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
+                }
+            }
+        },
+        "teams":
+        [
+            "DOM:Workers & Storage"
+        ]
     }
 }

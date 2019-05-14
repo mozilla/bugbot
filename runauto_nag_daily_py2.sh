@@ -17,6 +17,10 @@ python -m auto_nag.next_release
 # Daily (but really runs during the soft freeze week)
 python -m auto_nag.scripts.code_freeze_week -D yesterday
 
+# Send a todo list to set priority
+# Daily
+python -m auto_nag.scripts.to_triage
+
 # Nag triage fallback to update calendar
 # Daily
 python -m auto_nag.round_robin_fallback

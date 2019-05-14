@@ -14,10 +14,10 @@ from auto_nag.round_robin_calendar import Calendar
 
 
 class RoundRobin(object):
-    def __init__(self, rr=None, people=None):
+    def __init__(self, rr=None, people=None, teams=None):
         self.people = People() if people is None else people
         self.all_calendars = []
-        self.feed(rr=rr)
+        self.feed(teams, rr=rr)
         self.nicks = {}
 
     def get_calendar(self, team, data):
@@ -29,7 +29,7 @@ class RoundRobin(object):
             res[strat] = Calendar.get(url, fallback, team, people=self.people)
         return res
 
-    def feed(self, rr=None):
+    def feed(self, teams, rr=None):
         self.data = {}
         filenames = {}
         if rr is None:
@@ -37,6 +37,8 @@ class RoundRobin(object):
             for team, path in utils.get_config(
                 'round-robin', 'teams', default={}
             ).items():
+                if teams is not None and team not in teams:
+                    continue
                 with open('./auto_nag/scripts/configs/{}'.format(path), 'r') as In:
                     rr[team] = json.load(In)
                     filenames[team] = path
@@ -56,6 +58,9 @@ class RoundRobin(object):
             #                                     calendar}
             for pc, strategy in data['components'].items():
                 self.data[pc] = calendars[strategy]
+
+    def get_components(self):
+        return list(self.data.keys())
 
     def get_nick(self, bzmail):
         if bzmail not in self.nicks:
