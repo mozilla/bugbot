@@ -2,11 +2,11 @@
   <table {{ table_attrs }}>
     <thead>
       <tr>
-        <th>Bug</th><th>Product</th><th>Component</th><th>Assignee</th><th># of patches</th><th>Added lines</th><th>Removed lines</th><th>Changes size</th><th>Tests size</th><th>Priority</th><th>Severity</th><th>Tracking {{ extra['nightly'] }}</th><th>Status</th><th>Status {{ extra['release'] }}</th><th>Status {{ extra['beta'] }}</th><th>Status {{ extra['nightly'] }}</th><th>Crash</th><th>Keywords</th><th>Bug Type</th>
+        <th>Bug</th><th>Product</th><th>Component</th><th>Type</th><th>Assignee</th><th># of patches</th><th>Added lines</th><th>Removed lines</th><th>Changes size</th><th>Tests size</th><th>Priority</th><th>Severity</th><th>Tracking {{ extra['nightly'] }}</th><th>Status</th><th>Status {{ extra['release'] }}</th><th>Status {{ extra['beta'] }}</th><th>Status {{ extra['nightly'] }}</th><th>Keywords</th>
       </tr>
     </thead>
     <tbody>
-      {% for i, (bugid, summary, product, component, assignee, landed_patches, addlines, rmlines, size, test_size, priority, severity, tracking, status, status_flags, crash, keywords, type) in enumerate(data) -%}
+      {% for i, (bugid, summary, product, component, assignee, landed_patches, addlines, rmlines, size, test_size, priority, severity, tracking, status, status_flags, keywords, type) in enumerate(data) -%}
       <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
         <td>
           <a title="{{ summary | e }}" href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
@@ -16,6 +16,9 @@
         </td>
         <td title="component">
           {{ component | e }}
+        </td>
+        <td title="Type">
+          {{ type | e }}
         </td>
         <td title="assignee">
           {{ assignee | e }}
@@ -56,14 +59,8 @@
         <td title="Status {{ extra['nightly'] }}">
           {{ status_flags[extra['nightly']] }}
         </td>
-        <td title="Crash">
-          {{ crash }}
-        </td>
         <td title="Keywords">
           {{ keywords | e }}
-        </td>
-        <td title="Bug Type">
-          {{ type | e }}
         </td>
       </tr>
       {% endfor -%}
