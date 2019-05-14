@@ -84,8 +84,8 @@ class CodeFreezeWeek(BzCleaner):
             'tracking',
             'status',
             'status_flags',
-            'crash',
             'keywords',
+            'type',
         ]
 
     def sort_columns(self):
@@ -106,12 +106,9 @@ class CodeFreezeWeek(BzCleaner):
         else:
             assignee = 'Nobody'
 
-        isacrash = len(utils.get_signatures(bug.get('cf_crash_signature', ''))) != 0
-
         data[bugid] = {
             'land': {},
             'assignee': assignee,
-            'crash': 'Yes' if isacrash else 'No',
             'priority': bug['priority'],
             'severity': bug['severity'],
             'tracking': bug[self.tracking_nightly],
@@ -122,6 +119,7 @@ class CodeFreezeWeek(BzCleaner):
                 self.release: bug[self.status_release],
             },
             'keywords': ','.join(bug['keywords']),
+            'type': bug['type'],
         }
 
         return bug
@@ -264,7 +262,7 @@ class CodeFreezeWeek(BzCleaner):
             'priority',
             'severity',
             'keywords',
-            'cf_crash_signature',
+            'type',
         ]
         fields += [self.status_nightly, self.status_beta, self.status_release]
         fields += [self.tracking_nightly]
