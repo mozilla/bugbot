@@ -60,7 +60,7 @@ class MultiNaggers(object):
         common = env.get_template('common.html')
         login_info = utils.get_login_info()
         From = Nag.get_from()
-        Default_Cc = Nag.get_cc()
+        Default_Cc = set(utils.get_config('auto_nag', 'cc', []))
 
         all_mails = {}
         for nagger in self.naggers:
