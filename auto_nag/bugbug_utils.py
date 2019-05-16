@@ -26,7 +26,7 @@ class BugbugScript(BzCleaner):
         file_name = f'{self.name()}model'  # noqa: E999
         file_path = os.path.join('models', file_name)
 
-        model_url = f'https://index.taskcluster.net/v1/task/project.releng.services.project.testing.bugbug_train.latest/artifacts/public/{file_name}.xz'  # noqa
+        model_url = f'https://index.taskcluster.net/v1/task/project.relman.bugbug.train_{self.name()}.latest/artifacts/public/{file_name}.xz'  # noqa
         r = requests.head(model_url, allow_redirects=True)
         new_etag = r.headers['ETag']
 
