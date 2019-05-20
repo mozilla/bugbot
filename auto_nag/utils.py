@@ -28,6 +28,7 @@ from auto_nag.common import get_current_versions
 
 _CONFIG = None
 _CYCLE_SPAN = None
+_MERGE_DAY = None
 _TRIAGE_OWNERS = None
 _DEFAULT_ASSIGNEES = None
 
@@ -179,6 +180,21 @@ def get_next_release_date():
 
 def get_release_calendar():
     return rc.get_calendar()
+
+
+def get_merge_day():
+    global _MERGE_DAY
+    if _MERGE_DAY is None:
+        cal = get_release_calendar()
+        _MERGE_DAY = cal[0]['merge']
+    return _MERGE_DAY
+
+
+def is_merge_day():
+    next_merge = get_merge_day()
+    today = lmdutils.get_date_ymd('today')
+
+    return next_merge == today
 
 
 def get_report_bugs(channel, op='+'):
@@ -407,6 +423,12 @@ def get_bugs_from_pushlog(startdate, enddate, channel='nightly'):
 
 
 def get_checked_versions():
+    if is_merge_day():
+        # Since we're bumping versions the merge day
+        # it's probably not a good idea to rely on versions number this day.
+        # The consequence is to disable tools from scripts/multi_nag.py
+        return None
+
     versions = get_current_versions()
     v = [int(versions[k]) for k in ['release', 'beta', 'central']]
     if v[0] + 2 == v[1] + 1 == v[2]:
