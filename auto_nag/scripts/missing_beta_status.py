@@ -64,10 +64,10 @@ class MissingBetaStatus(BzCleaner):
         return bug
 
     def get_bz_params(self, date):
-        r, b, c, _ = utils.get_versions()
-        self.status_central = utils.get_flag(c, 'status', 'central')
-        self.status_release = utils.get_flag(r, 'status', 'release')
-        self.status_beta = utils.get_flag(b, 'status', 'beta')
+        release, beta, central, _ = utils.get_versions()
+        self.status_central = utils.get_flag(central, 'status', 'central')
+        self.status_release = utils.get_flag(release, 'status', 'release')
+        self.status_beta = utils.get_flag(beta, 'status', 'beta')
         fields = [self.status_central, self.status_release]
         params = {
             'include_fields': fields,
