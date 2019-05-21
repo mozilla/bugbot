@@ -26,8 +26,6 @@ class Range(object):
 
     @staticmethod
     def from_string(s):
-        # TODO: remove this line when switchin to python3
-        s = s.encode('utf-8')
         mat = RANGE_PAT.match(s)
         if mat:
             m = int(mat.group(1))

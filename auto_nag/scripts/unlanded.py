@@ -34,6 +34,15 @@ class Unlanded(BzCleaner, Nag):
     def nag_template(self):
         return self.template()
 
+    def get_extra_for_template(self):
+        return {
+            'channel': 'nightly' if self.channel == 'central' else self.channel,
+            'version': self.version,
+        }
+
+    def get_extra_for_nag_template(self):
+        return self.get_extra_for_template()
+
     def has_last_comment_time(self):
         return True
 

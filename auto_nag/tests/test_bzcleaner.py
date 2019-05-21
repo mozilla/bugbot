@@ -48,7 +48,13 @@ class TestBZClearnerClass(unittest.TestCase):
         assert 'Bug tracked' in TrackedBadSeverity().subject()
 
     def test_get_bz_params(self):
-        p = TrackedBadSeverity().get_bz_params(None)
+        tool = TrackedBadSeverity()
+        if not tool.has_enough_data():
+            # we've non-following versions in product-details
+            # so cheat on versions.
+            tool.versions = {'central': 1, 'beta': 2, 'release': 3}
+
+        p = tool.get_bz_params(None)
         assert p['f1'] == 'OP'
         assert 'cf_tracking_firefox' in p['f3']
         assert 'enhancement' in p['bug_severity']

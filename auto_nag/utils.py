@@ -22,15 +22,15 @@ try:
 except ImportError:
     from urllib import urlencode
 
-from auto_nag.bugzilla.utils import get_config_path
-from auto_nag.common import get_current_versions
-
 
 _CONFIG = None
 _CYCLE_SPAN = None
 _MERGE_DAY = None
 _TRIAGE_OWNERS = None
 _DEFAULT_ASSIGNEES = None
+_CURRENT_VERSIONS = None
+_CONFIG_PATH = './auto_nag/scripts/configs/'
+
 
 BZ_FIELD_PAT = re.compile(r'^[fovj]([0-9]+)$')
 PAR_PAT = re.compile(r'\([^\)]*\)')
@@ -46,7 +46,7 @@ def _get_config():
     global _CONFIG
     if _CONFIG is None:
         try:
-            with open('./auto_nag/scripts/configs/tools.json', 'r') as In:
+            with open(_CONFIG_PATH + '/tools.json', 'r') as In:
                 data = In.read()
                 pat = re.compile(r'^[ \t]*//.*$', re.MULTILINE)
                 data = pat.sub('', data)
@@ -118,12 +118,12 @@ def is_no_assignee(mail):
 
 
 def get_login_info():
-    with open(get_config_path(), 'r') as In:
+    with open(_CONFIG_PATH + 'config.json', 'r') as In:
         return json.load(In)
 
 
 def get_private():
-    with open(get_config_path(), 'r') as In:
+    with open(_CONFIG_PATH + 'config.json', 'r') as In:
         return json.load(In)['private']
 
 
@@ -493,3 +493,48 @@ def get_human_lag(date):
     dt = dateutil.parser.parse(date)
 
     return humanize.naturaldelta(today - dt)
+
+
+def get_version(jsonVersion, key):
+    # In X.Y, we just need X
+    version = jsonVersion[key].split('.')
+    return version[0]
+
+
+def get_current_versions():
+    global _CURRENT_VERSIONS
+    if _CURRENT_VERSIONS is not None:
+        return _CURRENT_VERSIONS
+
+    jsonContent = requests.get(
+        'https://product-details.mozilla.org/1.0/firefox_versions.json'
+    ).json()
+    esr_next_version = get_version(jsonContent, 'FIREFOX_ESR_NEXT')
+    if esr_next_version:
+        esr_version = esr_next_version
+    else:
+        # We are in a cycle where we don't have esr_next
+        # For example, with 52.6, esr_next doesn't exist
+        # But it will exist, once 60 is released
+        # esr_next will be 60
+        esr_version = get_version(jsonContent, 'FIREFOX_ESR')
+
+    _CURRENT_VERSIONS = {
+        'central': get_version(jsonContent, 'FIREFOX_NIGHTLY'),
+        'beta': get_version(jsonContent, 'LATEST_FIREFOX_DEVEL_VERSION'),
+        'esr': esr_version,
+        'release': get_version(jsonContent, 'LATEST_FIREFOX_VERSION'),
+    }
+    return _CURRENT_VERSIONS
+
+
+def get_versions(channel=None):
+    versions = get_current_versions()
+    if channel and isinstance(channel, six.string_types):
+        channel = channel.lower()
+        if channel == 'nightly':
+            channel = 'central'
+        if channel in versions:
+            return versions[channel]
+
+    return tuple(versions[c] for c in ['release', 'beta', 'central', 'esr'])
