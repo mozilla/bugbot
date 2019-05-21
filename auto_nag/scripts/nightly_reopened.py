@@ -9,8 +9,7 @@ from auto_nag import utils
 class NightlyReopened(BzCleaner):
     def __init__(self):
         super(NightlyReopened, self).__init__()
-        self.versions = utils.get_checked_versions()
-        if not self.versions:
+        if not self.init_versions():
             return
 
         self.nightly = utils.get_flag(self.versions['central'], 'status', 'nightly')
@@ -20,9 +19,6 @@ class NightlyReopened(BzCleaner):
 
     def description(self):
         return 'Reopened bugs with status flag for nightly not up-to-date'
-
-    def has_enough_data(self):
-        return bool(self.versions)
 
     def get_bz_params(self, date):
         unaffected = ','.join(['---', 'unaffected'])

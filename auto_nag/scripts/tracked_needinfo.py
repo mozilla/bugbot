@@ -11,7 +11,10 @@ class TrackedNeedinfo(BzCleaner, Nag):
     def __init__(self, channel):
         super(TrackedNeedinfo, self).__init__()
         self.channel = channel
-        self.versions = utils.get_checked_versions()
+        if not self.init_versions():
+            self.version = '??'
+            return
+
         self.version = self.versions[channel] if self.versions else None
 
     def description(self):
@@ -39,9 +42,6 @@ class TrackedNeedinfo(BzCleaner, Nag):
 
     def get_extra_for_nag_template(self):
         return self.get_extra_for_template()
-
-    def has_enough_data(self):
-        return bool(self.versions)
 
     def columns(self):
         return ['id', 'summary', 'needinfos', 'assignee', 'last_comment']

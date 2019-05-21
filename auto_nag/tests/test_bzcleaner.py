@@ -5,6 +5,7 @@ import unittest
 
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.scripts.tracked_bad_severity import TrackedBadSeverity
+from auto_nag import utils
 
 
 class TestBZClearner(unittest.TestCase):
@@ -53,6 +54,9 @@ class TestBZClearnerClass(unittest.TestCase):
             # we've non-following versions in product-details
             # so cheat on versions.
             tool.versions = {'central': 1, 'beta': 2, 'release': 3}
+            tool.status_release = utils.get_flag(
+                tool.versions['release'], 'status', 'release'
+            )
 
         p = tool.get_bz_params(None)
         assert p['f1'] == 'OP'

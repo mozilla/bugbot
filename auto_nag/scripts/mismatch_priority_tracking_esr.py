@@ -9,6 +9,7 @@ from auto_nag import utils
 class MismatchPrioTrackESR(BzCleaner):
     def __init__(self):
         super(MismatchPrioTrackESR, self).__init__()
+        self.init_versions()
 
     def description(self):
         return 'Bug tracked for esr with a bad priority (P3, P4 or P5)'
@@ -20,7 +21,7 @@ class MismatchPrioTrackESR(BzCleaner):
         return True
 
     def get_bz_params(self, date):
-        esr_version = utils.get_versions(channel='esr')
+        esr_version = self.versions['esr']
         value = ','.join(['---', 'affected'])
         params = {
             'resolution': [

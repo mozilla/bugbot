@@ -16,7 +16,8 @@ class Unlanded(BzCleaner, Nag):
         self.channel = channel
         super(Unlanded, self).__init__()
         self.bug_ids = []
-        self.versions = utils.get_checked_versions()
+        if not self.init_versions():
+            return
         self.channel_pat = Bugzilla.get_landing_patterns(channels=[channel])
 
     def description(self):
@@ -59,7 +60,7 @@ class Unlanded(BzCleaner, Nag):
         return lambda p: (0 if p[3] == 'No' else 1, -int(p[0]))
 
     def has_enough_data(self):
-        if not self.versions:
+        if not super().has_enough_data():
             return False
 
         self.version = self.versions[self.channel]
