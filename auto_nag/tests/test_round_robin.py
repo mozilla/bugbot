@@ -6,7 +6,7 @@
 
 import json
 import unittest
-from mock import patch
+from unittest.mock import patch
 
 from auto_nag.people import People
 from auto_nag.round_robin import RoundRobin
