@@ -1,0 +1,4 @@
+This bug is a P1 with no assignee and no activity for {{ extra['ndays'] }} {{ plural('day', extra['ndays']) }}.
+:{{ nickname }}, could you have a look please?
+
+{{ documentation }}

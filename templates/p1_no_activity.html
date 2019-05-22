@@ -1,12 +1,12 @@
-<p>The following {{ plural('bug has', data, pword='bugs have') }} a priority P1 and no activity for the last {{ extra['ndays'] }} {{ plural('day', extra['ndays']) }}:
+<p>The following {{ plural('bug has', data, pword='bugs have') }} a priority P1 with no assignee and no activity for the last {{ extra['ndays'] }} {{ plural('day', extra['ndays']) }}:
   <table {{ table_attrs }}>
     <thead>
       <tr>
-        <th>Component</th><th>Bug</th><th>Summary</th><th>Last comment</th><th>Assignee</th>
+        <th>Component</th><th>Bug</th><th>Summary</th><th>Last comment</th>
       </tr>
     </thead>
     <tbody>
-      {% for i, (comp, bugid, summary, last_comment, assignee) in enumerate(data) -%}
+      {% for i, (comp, bugid, summary, last_comment) in enumerate(data) -%}
       <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
         <td>
           {{ comp | e }}
@@ -19,9 +19,6 @@
         </td>
         <td>
           {{ last_comment }}
-        </td>
-        <td>
-          {{ assignee | e }}
         </td>
       </tr>
       {% endfor -%}

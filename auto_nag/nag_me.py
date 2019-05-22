@@ -63,6 +63,9 @@ class Nag(object):
         return self.add_couple(person, manager, bug_data)
 
     def add_couple(self, person, manager, bug_data):
+        if manager is None:
+            return True
+
         person = self.people.get_moz_mail(person)
 
         if manager in self.data:

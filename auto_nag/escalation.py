@@ -52,6 +52,9 @@ class Supervisor(object):
         self.people = people
 
     def get(self, person, skiplist, **kwargs):
+        if self.who == 'none':
+            return None
+
         m = NPLUS_PAT.match(self.who)
         if m:
             sup = self.people.get_nth_manager_mail(person, int(m.group(1)))
