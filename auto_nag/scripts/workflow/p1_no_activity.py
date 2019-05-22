@@ -2,10 +2,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from libmozdata import utils as lmdutils
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag import utils
 from auto_nag.escalation import Escalation, NoActivityDays
 from auto_nag.nag_me import Nag
+from auto_nag.round_robin import RoundRobin
 
 
 class P1NoActivity(BzCleaner, Nag):
@@ -16,6 +18,7 @@ class P1NoActivity(BzCleaner, Nag):
             data=utils.get_config(self.name(), 'escalation'),
             skiplist=utils.get_config('workflow', 'supervisor_skiplist', []),
         )
+        self.round_robin = RoundRobin(people=self.people)
         self.components_skiplist = utils.get_config('workflow', 'components_skiplist')
 
     def description(self):
@@ -56,7 +59,7 @@ class P1NoActivity(BzCleaner, Nag):
         if not self.filter_bug(priority):
             return None
 
-        owner = bug['triage_owner']
+        owner, _ = self.round_robin.get(bug, self.date)
         assignee = bug['assigned_to']
         if not self.add(assignee, buginfo, priority=priority, triage_owner=owner):
             self.add_no_manager(buginfo['id'])
@@ -67,8 +70,8 @@ class P1NoActivity(BzCleaner, Nag):
         self.ndays = NoActivityDays(self.name()).get(
             (utils.get_next_release_date() - self.nag_date).days
         )
+        self.date = lmdutils.get_date_ymd(date)
         fields = ['triage_owner', 'assigned_to']
-        self.components = utils.get_config('workflow', 'components')
         params = {
             'bug_type': 'defect',
             'include_fields': fields,
