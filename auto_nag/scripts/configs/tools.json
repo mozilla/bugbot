@@ -443,12 +443,12 @@
                 "[15;+∞[":
                 {
                     "supervisor": "none",
-                    "days": ["Mon", "Wed"]
+                    "days": ["Mon"]
                 },
                 "[5;15[":
                 {
                     "supervisor": "n+1",
-                    "days": ["Mon", "Wed", "Thu"]
+                    "days": ["Mon", "Thu"]
                 },
                 "[0;5[":
                 {
