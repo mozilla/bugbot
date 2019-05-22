@@ -428,6 +428,15 @@
     },
     "p1_no_activity":
     {
+        "doc": ["1) How to read ndays ?",
+                " '[15;20[': 5 => if we are between 15 and 20 days until the release",
+                " and the bug has been changed more than 5 days ago...",
+                "2) How to read escalation ?",
+                " 2nd entry in 'high' => if we are between 5 and 15 days until the release",
+                " and we're Monday or Thursday then nag the assignee and his manager.",
+                " triage_owner: is the triage owner of the component or the person designed by the round robin.",
+                " n+x: n is for a person, n+1 her/his manager, n+2 the manager of her/his manager, ...",
+                " director: is the director where a person is somewhere under in hierarchy."],
         "max-years": 2,
         "ndays":
         {
