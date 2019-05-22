@@ -16,9 +16,10 @@ class P1NoActivity(BzCleaner, Nag):
             data=utils.get_config(self.name(), 'escalation'),
             skiplist=utils.get_config('workflow', 'supervisor_skiplist', []),
         )
+        self.components_skiplist = utils.get_config('workflow', 'components_skiplist')
 
     def description(self):
-        return 'P1 bugs and no activity for {} days'.format(self.ndays)
+        return 'P1 bugs and no activity for few days'
 
     def nag_template(self):
         return self.template()
@@ -44,13 +45,15 @@ class P1NoActivity(BzCleaner, Nag):
     def columns(self):
         return ['component', 'id', 'summary', 'last_comment', 'assignee']
 
+    def handle_bug(self, bug, data):
+        # check if the product::component is in the list
+        if utils.check_product_component(self.components_skiplist, bug):
+            return None
+        return bug
+
     def set_people_to_nag(self, bug, buginfo):
         priority = 'high'
         if not self.filter_bug(priority):
-            return None
-
-        # check if the product::component is in the list
-        if not utils.check_product_component(self.components, bug):
             return None
 
         owner = bug['triage_owner']
@@ -67,7 +70,6 @@ class P1NoActivity(BzCleaner, Nag):
         fields = ['triage_owner', 'assigned_to']
         self.components = utils.get_config('workflow', 'components')
         params = {
-            'component': utils.get_components(self.components),
             'bug_type': 'defect',
             'include_fields': fields,
             'resolution': '---',
@@ -79,7 +81,8 @@ class P1NoActivity(BzCleaner, Nag):
             'v2': self.ndays,
         }
 
-        utils.get_empty_assignees(params)
+        # here we get non-empty assignees
+        utils.get_empty_assignees(params, negation=True)
 
         return params
 

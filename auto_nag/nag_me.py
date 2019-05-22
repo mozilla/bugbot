@@ -34,6 +34,11 @@ class Nag(object):
 
         return set(cc)
 
+    def get_nag_documentation(self):
+        return 'see <a href=\"https://wiki.mozilla.org/Release_Management/autonag#{}\">auto_nag documentation</a>'.format(
+            self.get_tool_path().replace('/', '.2F')
+        )
+
     def get_priority(self, bug):
         tracking = bug[self.tracking]
         if tracking == 'blocking':
@@ -182,6 +187,9 @@ class Nag(object):
         env = Environment(loader=FileSystemLoader('templates'))
         template = env.get_template(template)
         mails = []
+
+        doc = self.get_nag_documentation()
+
         for manager, info in self.data.items():
             data = []
             To = sorted(info.keys())
@@ -203,6 +211,7 @@ class Nag(object):
                 nag=True,
                 query_url_nag=query_url,
                 table_attrs=self.get_config('table_attrs'),
+                documentation=doc,
             )
 
             m = {'manager': manager, 'to': set(info.keys()), 'body': body}

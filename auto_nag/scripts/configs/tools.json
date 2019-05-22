@@ -428,6 +428,7 @@
     },
     "p1_no_activity":
     {
+        "max-years": 2,
         "ndays":
         {
             "[20;+∞[": 7,
