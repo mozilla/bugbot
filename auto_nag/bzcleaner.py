@@ -25,7 +25,7 @@ class BzCleaner(object):
         self.has_flags = False
         self.cache = Cache(self.name(), self.max_days_in_cache())
         self.test_mode = utils.get_config('common', 'test', False)
-        self.versions = 'nothing'
+        self.versions = None
 
     def _is_a_bzcleaner_init(self, info):
         if info[3] == '__init__':
@@ -50,7 +50,7 @@ class BzCleaner(object):
 
     def init_versions(self):
         self.versions = utils.get_checked_versions()
-        return self.versions is not None
+        return bool(self.versions)
 
     def max_days_in_cache(self):
         """Get the max number of days the data must be kept in cache"""
@@ -97,7 +97,7 @@ class BzCleaner(object):
 
     def has_enough_data(self):
         """Check if the tool has enough data to run"""
-        if self.versions == 'nothing':
+        if self.versions is None:
             # init_versions() has never been called
             return True
         return bool(self.versions)

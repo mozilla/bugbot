@@ -12,14 +12,13 @@ class TrackedNeedinfo(BzCleaner, Nag):
         super(TrackedNeedinfo, self).__init__()
         self.channel = channel
         if not self.init_versions():
-            self.version = '??'
             return
 
         self.version = self.versions[channel] if self.versions else None
 
     def description(self):
-        return 'Bugs which are tracked or nominated for tracking with needinfo? in {} {} '.format(
-            self.channel, self.version
+        return 'Bugs which are tracked or nominated for tracking with needinfo? in {}'.format(
+            self.channel
         )
 
     def has_last_comment_time(self):

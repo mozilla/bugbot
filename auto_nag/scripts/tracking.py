@@ -15,18 +15,17 @@ class Tracking(BzCleaner, Nag):
         self.channel = channel
         self.assignees = {}
         if not self.init_versions():
-            self.version = '??'
             return
 
         self.version = self.versions[self.channel]
 
     def description(self):
         if self.untouched:
-            return 'Bugs which are tracked in {} {} and untouched in the last 3 days'.format(
-                self.channel, self.version
+            return 'Bugs which are tracked in {} and untouched in the last 3 days'.format(
+                self.channel
             )
 
-        return 'Bugs which are tracked in {} {}'.format(self.channel, self.version)
+        return 'Bugs which are tracked in {}'.format(self.channel)
 
     def name(self):
         return 'tracking' + ('_untouched' if self.untouched else '')

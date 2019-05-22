@@ -429,7 +429,7 @@ def get_checked_versions():
     # ii) not consecutive versions numbers
     # iii) bugzilla updated nightly version but p-d is not updated
     if is_merge_day():
-        return None
+        return {}
 
     versions = lmdversions.get(base=True)
     versions['central'] = versions['nightly']
@@ -441,13 +441,13 @@ def get_checked_versions():
             from . import logger
 
             logger.info('Versions mismatch between Bugzilla and product-details')
-            return None
+            return {}
         return versions
 
     from . import logger
 
     logger.info('Not consecutive versions in product/details')
-    return None
+    return {}
 
 
 def get_info_from_hg(json):
