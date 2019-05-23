@@ -8,7 +8,7 @@ from .no_priority import NoPriority
 # from .p1_no_activity import P1NoActivity
 # from .p1_no_assignee import P1NoAssignee
 # from .p2_no_activity import P2NoActivity
-# from .p2_merge_day import P2MergeDay
+from .p2_merge_day import P2MergeDay
 
 
 class WorkflowMultiNag(MultiNaggers):
@@ -29,5 +29,5 @@ class WorkflowMultiNag(MultiNaggers):
 
 
 if __name__ == '__main__':
-    # P2MergeDay().run()
+    P2MergeDay().run()
     WorkflowMultiNag().run()

@@ -9,7 +9,7 @@
       {% for i, (component, bugid, summary) in enumerate(data) -%}
       <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
         <td>
-          {{ comp | e }}
+          {{ component | e }}
         </td>
         <td>
           <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>

@@ -182,17 +182,21 @@ def get_release_calendar():
     return rc.get_calendar()
 
 
-def get_merge_day():
+def get_next_merge_day(date):
     global _MERGE_DAY
     if _MERGE_DAY is None:
         cal = get_release_calendar()
-        _MERGE_DAY = cal[0]['merge']
+        for c in cal:
+            if date <= c['merge']:
+                _MERGE_DAY = c['merge']
+                return _MERGE_DAY
+        raise Exception(f'No merge day available for {date}')
     return _MERGE_DAY
 
 
 def is_merge_day():
-    next_merge = get_merge_day()
     today = lmdutils.get_date_ymd('today')
+    next_merge = get_next_merge_day(today)
 
     return next_merge == today
 
