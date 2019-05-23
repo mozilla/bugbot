@@ -16,7 +16,7 @@ class DefectEnhancementTask(BugbugScript):
         return '[Using ML] Check that the bug type is the same as predicted by bugbug'
 
     def columns(self):
-        return ['id', 'summary', 'type', 'bugbug_type', 'confidence', 'autofixed']
+        return ['id', 'summary', 'type', 'bugbug_type', 'confidence', 'confidences', 'autofixed']
 
     def sort_columns(self):
         def _sort_columns(p):
@@ -81,31 +81,26 @@ class DefectEnhancementTask(BugbugScript):
             if bug['type'] == suggestion:
                 continue
 
+            defect_prob = prob[labels_map['defect']]
+            enhancement_prob = prob[labels_map['enhancement']]
+            task_prob = prob[labels_map['task']]
+
+            def nice_round(val):
+                return int(round(100 * val))
+
             results[bug['id']] = {
                 'id': bug['id'],
                 'summary': self.get_summary(bug),
                 'type': bug['type'],
                 'bugbug_type': suggestion,
-                'confidence': int(round(100 * prob[index])),
+                'confidence': nice_round(prob[index]),
+                'confidences': f'defect {nice_round(defect_prob)}, enhancement {nice_round(enhancement_prob)}, task {nice_round(task_prob)}',
                 'autofixed': False,
             }
 
-            do_autofix = False
-
-            # If we are 100% sure, there's no case where we wouldn't autofix.
-            if prob[index] == 1.0:
-                do_autofix = True
-
-            # Otherwise, only autofix results for which we are sure enough.
-            # And only autofix defect -> task/enhancement for now.
-            elif bug['type'] == 'defect':
-                defect_prob = prob[labels_map['defect']]
-                task_or_enhancement_prob = prob[labels_map['task']] + prob[labels_map['enhancement']]
-
-                if task_or_enhancement_prob >= self.get_config('confidence_threshold'):
-                    do_autofix = True
-
-            if do_autofix:
+            # Only autofix results for which we are sure enough.
+            # And only autofix defect -> task/enhancement for now, unless we're 100% sure.
+            if prob[index] == 1.0 or (bug['type'] == 'defect' and (enhancement_prob + task_prob) >= self.get_config('confidence_threshold')):
                 results[bug['id']]['autofixed'] = True
                 self.autofix_type[bug['id']] = suggestion
 
