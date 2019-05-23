@@ -507,7 +507,7 @@
             "intermittent-bug-filer@mozilla.bugs",
             "wptsync@mozilla.bugs"
         ],
-        "confidence_threshold": 0.95,
+        "confidence_threshold": 0.9,
         "cc":
         [
             "sledru@mozilla.com",
