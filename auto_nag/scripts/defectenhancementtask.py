@@ -66,13 +66,16 @@ class DefectEnhancementTask(BugbugScript):
         if len(bugs) == 0:
             return {}
 
+        # Apply inverse transformation to get the type name from the encoded labels.
+        labels = self.model.clf._le.inverse_transform([0, 1, 2])
+        labels_map = {label: index for label, index in zip(labels, [0, 1, 2])}
+
         # Get the encoded type.
         indexes = probs.argmax(axis=-1)
-        # Apply inverse transformation to get the type name from the encoded value.
-        suggestions = self.model.clf._le.inverse_transform(indexes)
 
         results = {}
-        for bug, prob, index, suggestion in zip(bugs, probs, indexes, suggestions):
+        for bug, prob, index in zip(bugs, probs, indexes):
+            suggestion = labels[index]
             assert suggestion in {'defect', 'enhancement', 'task'}, f'Suggestion {suggestion} is invalid'  # noqa
 
             if bug['type'] == suggestion:
@@ -87,9 +90,22 @@ class DefectEnhancementTask(BugbugScript):
                 'autofixed': False,
             }
 
-            # Only autofix results for which we are sure enough.
-            # And only autofix defect -> task/enhancement for now, unless we're 100% sure.
-            if prob[index] >= self.get_config('confidence_threshold') and (bug['type'] == 'defect' or prob[index] == 1.0):
+            do_autofix = False
+
+            # If we are 100% sure, there's no case where we wouldn't autofix.
+            if prob[index] == 1.0:
+                do_autofix = True
+
+            # Otherwise, only autofix results for which we are sure enough.
+            # And only autofix defect -> task/enhancement for now.
+            elif bug['type'] == 'defect':
+                defect_prob = prob[labels_map['defect']]
+                task_or_enhancement_prob = prob[labels_map['task']] + prob[labels_map['enhancement']]
+
+                if task_or_enhancement_prob >= self.get_config('confidence_threshold'):
+                    do_autofix = True
+
+            if do_autofix:
                 results[bug['id']]['autofixed'] = True
                 self.autofix_type[bug['id']] = suggestion
 
