@@ -2,10 +2,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from libmozdata import utils as lmdutils
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag import utils
 from auto_nag.escalation import Escalation, NoActivityDays
 from auto_nag.nag_me import Nag
+from auto_nag.round_robin import RoundRobin
 
 
 class P1NoAssignee(BzCleaner, Nag):
@@ -16,9 +18,11 @@ class P1NoAssignee(BzCleaner, Nag):
             data=utils.get_config(self.name(), 'escalation'),
             skiplist=utils.get_config('workflow', 'supervisor_skiplist', []),
         )
+        self.round_robin = RoundRobin(people=self.people)
+        self.components_skiplist = utils.get_config('workflow', 'components_skiplist')
 
     def description(self):
-        return 'P1 Bugs, no assignee and no activity for {} days'.format(self.ndays)
+        return 'P1 Bugs, no assignee and no activity for few days'
 
     def nag_template(self):
         return self.template()
@@ -44,39 +48,39 @@ class P1NoAssignee(BzCleaner, Nag):
     def columns(self):
         return ['component', 'id', 'summary', 'last_comment']
 
-    def get_mail_to_auto_ni(self, bug):
-        # Avoid to ni everyday...
-        if self.has_bot_set_ni(bug):
+    def handle_bug(self, bug, data):
+        # check if the product::component is in the list
+        if utils.check_product_component(self.components_skiplist, bug):
             return None
+        return bug
 
-        mail = bug['triage_owner']
-        nick = bug['triage_owner_detail']['nick']
-        return {'mail': mail, 'nickname': nick}
+    def get_mail_to_auto_ni(self, bug):
+        mail, nick = self.round_robin.get(bug, self.date)
+        if mail and nick:
+            return {'mail': mail, 'nickname': nick}
+
+        return None
 
     def set_people_to_nag(self, bug, buginfo):
         priority = 'high'
         if not self.filter_bug(priority):
             return None
 
-        # check if the product::component is in the list
-        if not utils.check_product_component(self.components, bug):
-            return None
-
-        owner = bug['triage_owner']
-        self.add_triage_owner(owner, utils.get_config('workflow', 'components'))
+        owner, _ = self.round_robin.get(bug, self.date)
+        real_owner = bug['triage_owner']
+        self.add_triage_owner(owner, real_owner=real_owner)
         if not self.add(owner, buginfo, priority=priority):
             self.add_no_manager(buginfo['id'])
 
         return bug
 
     def get_bz_params(self, date):
+        self.date = lmdutils.get_date_ymd(date)
         self.ndays = NoActivityDays(self.name()).get(
             (utils.get_next_release_date() - self.nag_date).days
         )
         fields = ['triage_owner', 'flags']
-        self.components = utils.get_config('workflow', 'components')
         params = {
-            'component': utils.get_components(self.components),
             'bug_type': 'defect',
             'include_fields': fields,
             'resolution': '---',
@@ -88,6 +92,7 @@ class P1NoAssignee(BzCleaner, Nag):
             'v2': self.ndays,
         }
 
+        # Only get bugs with no assignee
         utils.get_empty_assignees(params)
 
         return params

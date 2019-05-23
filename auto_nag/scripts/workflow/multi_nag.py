@@ -6,7 +6,8 @@ from auto_nag.multinaggers import MultiNaggers
 from .no_priority import NoPriority
 
 # from .p1_no_activity import P1NoActivity
-# from .p1_no_assignee import P1NoAssignee
+from .p1_no_assignee import P1NoAssignee
+
 # from .p2_no_activity import P2NoActivity
 # from .p2_merge_day import P2MergeDay
 
@@ -17,7 +18,7 @@ class WorkflowMultiNag(MultiNaggers):
             NoPriority('first'),
             NoPriority('second'),
             # P1NoActivity(),
-            # P1NoAssignee(),
+            P1NoAssignee(),
             # P2NoActivity(),
         )
 
@@ -25,7 +26,7 @@ class WorkflowMultiNag(MultiNaggers):
         return 'Bugs requiring special attention to help release management'
 
     def title(self):
-        return '{} -- Daily Priority Flag Alert'.format(self.date.strftime('%A %b %d'))
+        return '{} -- Priority Flag Alert'.format(self.date.strftime('%A %b %d'))
 
 
 if __name__ == '__main__':
