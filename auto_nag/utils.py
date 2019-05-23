@@ -8,8 +8,9 @@ import dateutil.parser
 from dateutil.relativedelta import relativedelta
 import json
 import humanize
-from libmozdata import utils as lmdutils
+from libmozdata import utils as lmdutils, versions as lmdversions
 from libmozdata import release_calendar as rc
+from libmozdata.bugzilla import Bugzilla
 from libmozdata.hgmozilla import Mercurial
 import os
 import pytz
@@ -423,21 +424,30 @@ def get_bugs_from_pushlog(startdate, enddate, channel='nightly'):
 
 
 def get_checked_versions():
+    # There are different reasons to not return versions:
+    # i) we're merge day: the versions are changing
+    # ii) not consecutive versions numbers
+    # iii) bugzilla updated nightly version but p-d is not updated
     if is_merge_day():
-        # Since we're bumping versions the merge day
-        # it's probably not a good idea to rely on versions number this day.
-        # The consequence is to disable tools from scripts/multi_nag.py
-        return None
+        return {}
 
-    versions = get_current_versions()
+    versions = lmdversions.get(base=True)
+    versions['central'] = versions['nightly']
+
     v = [int(versions[k]) for k in ['release', 'beta', 'central']]
     if v[0] + 2 == v[1] + 1 == v[2]:
+        nightly_bugzilla = get_nightly_version_from_bz()
+        if v[2] != nightly_bugzilla:
+            from . import logger
+
+            logger.info('Versions mismatch between Bugzilla and product-details')
+            return {}
         return versions
 
     from . import logger
 
     logger.info('Not consecutive versions in product/details')
-    return None
+    return {}
 
 
 def get_info_from_hg(json):
@@ -495,46 +505,17 @@ def get_human_lag(date):
     return humanize.naturaldelta(today - dt)
 
 
-def get_version(jsonVersion, key):
-    # In X.Y, we just need X
-    version = jsonVersion[key].split('.')
-    return version[0]
+def get_nightly_version_from_bz():
+    def bug_handler(bug, data):
+        status = 'cf_status_firefox'
+        N = len(status)
+        for k in bug.keys():
+            if k.startswith(status):
+                k = k[N:]
+                if k.isdigit():
+                    data.append(int(k))
 
+    data = []
+    Bugzilla(bugids=['1234567'], bughandler=bug_handler, bugdata=data).get_data().wait()
 
-def get_current_versions():
-    global _CURRENT_VERSIONS
-    if _CURRENT_VERSIONS is not None:
-        return _CURRENT_VERSIONS
-
-    jsonContent = requests.get(
-        'https://product-details.mozilla.org/1.0/firefox_versions.json'
-    ).json()
-    esr_next_version = get_version(jsonContent, 'FIREFOX_ESR_NEXT')
-    if esr_next_version:
-        esr_version = esr_next_version
-    else:
-        # We are in a cycle where we don't have esr_next
-        # For example, with 52.6, esr_next doesn't exist
-        # But it will exist, once 60 is released
-        # esr_next will be 60
-        esr_version = get_version(jsonContent, 'FIREFOX_ESR')
-
-    _CURRENT_VERSIONS = {
-        'central': get_version(jsonContent, 'FIREFOX_NIGHTLY'),
-        'beta': get_version(jsonContent, 'LATEST_FIREFOX_DEVEL_VERSION'),
-        'esr': esr_version,
-        'release': get_version(jsonContent, 'LATEST_FIREFOX_VERSION'),
-    }
-    return _CURRENT_VERSIONS
-
-
-def get_versions(channel=None):
-    versions = get_current_versions()
-    if channel and isinstance(channel, six.string_types):
-        channel = channel.lower()
-        if channel == 'nightly':
-            channel = 'central'
-        if channel in versions:
-            return versions[channel]
-
-    return tuple(versions[c] for c in ['release', 'beta', 'central', 'esr'])
+    return max(data)

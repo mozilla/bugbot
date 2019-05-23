@@ -3,12 +3,12 @@
 # You can obtain one at http://mozilla.org/MPL/
 
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag import utils
 
 
 class MismatchPrioTrackRelease(BzCleaner):
     def __init__(self):
         super(MismatchPrioTrackRelease, self).__init__()
+        self.init_versions()
 
     def description(self):
         return 'Bug tracked for release with a bad priority (P3, P4 or P5)'
@@ -20,7 +20,7 @@ class MismatchPrioTrackRelease(BzCleaner):
         return True
 
     def get_bz_params(self, date):
-        release_version = utils.get_versions(channel='release')
+        release_version = self.versions['release']
         value = ','.join(['---', 'affected'])
         params = {
             'resolution': [

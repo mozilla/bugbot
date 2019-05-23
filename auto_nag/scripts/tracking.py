@@ -14,16 +14,18 @@ class Tracking(BzCleaner, Nag):
         super(Tracking, self).__init__()
         self.channel = channel
         self.assignees = {}
-        self.versions = utils.get_checked_versions()
-        self.version = self.versions[self.channel] if self.versions else None
+        if not self.init_versions():
+            return
+
+        self.version = self.versions[self.channel]
 
     def description(self):
         if self.untouched:
-            return 'Bugs which are tracked in {} {} and untouched in the last 3 days'.format(
-                self.channel, self.version
+            return 'Bugs which are tracked in {} and untouched in the last 3 days'.format(
+                self.channel
             )
 
-        return 'Bugs which are tracked in {} {}'.format(self.channel, self.version)
+        return 'Bugs which are tracked in {}'.format(self.channel)
 
     def name(self):
         return 'tracking' + ('_untouched' if self.untouched else '')
@@ -57,9 +59,6 @@ class Tracking(BzCleaner, Nag):
     def get_extra_for_nag_template(self):
         return self.get_extra_for_template()
 
-    def has_enough_data(self):
-        return bool(self.versions)
-
     def columns(self):
         return ['id', 'summary', 'needinfos', 'assignee', 'last_comment']
 
@@ -82,9 +81,8 @@ class Tracking(BzCleaner, Nag):
         return bug
 
     def get_bz_params(self, date):
-        v = self.versions[self.channel]
-        status = utils.get_flag(v, 'status', self.channel)
-        self.tracking = utils.get_flag(v, 'tracking', self.channel)
+        status = utils.get_flag(self.version, 'status', self.channel)
+        self.tracking = utils.get_flag(self.version, 'tracking', self.channel)
         tracking_value = (
             '+,blocking' if self.channel != 'esr' else self.versions['beta'] + '+'
         )
@@ -110,7 +108,7 @@ class Tracking(BzCleaner, Nag):
             tracking = utils.get_flag(self.versions['beta'], 'tracking', 'beta')
             params.update({'f5': tracking, 'o5': 'nowordssubstr', 'v5': '+,blocking'})
         elif self.channel != 'esr':
-            approval = utils.get_flag(v, 'approval', self.channel)
+            approval = utils.get_flag(self.version, 'approval', self.channel)
             params.update(
                 {'f5': 'flagtypes.name', 'o5': 'notsubstring', 'v5': approval + '?'}
             )

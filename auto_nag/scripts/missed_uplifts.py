@@ -9,8 +9,7 @@ from auto_nag import utils
 class MissedUplifts(BzCleaner):
     def __init__(self):
         super(MissedUplifts, self).__init__()
-        self.versions = utils.get_checked_versions()
-        if not self.versions:
+        if not self.init_versions():
             return
 
         self.beta = self.versions['beta']
@@ -39,9 +38,6 @@ class MissedUplifts(BzCleaner):
     def must_run(self, date):
         weekday = date.weekday()
         return weekday <= 4
-
-    def has_enough_data(self):
-        return bool(self.versions)
 
     def columns(self):
         return ['id', 'priority', 'severity', 'affected', 'approvals', 'summary']

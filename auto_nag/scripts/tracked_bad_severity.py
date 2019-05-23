@@ -9,16 +9,18 @@ from auto_nag import utils
 class TrackedBadSeverity(BzCleaner):
     def __init__(self):
         super(TrackedBadSeverity, self).__init__()
-        self.versions = utils.get_checked_versions()
+        if not self.init_versions():
+            return
+
+        self.status_release = utils.get_flag(
+            self.versions['release'], 'status', 'release'
+        )
 
     def description(self):
         return 'Bug tracked in a release but with a small severity'
 
     def ignore_date(self):
         return True
-
-    def has_enough_data(self):
-        return bool(self.versions)
 
     def get_bz_params(self, date):
         # TODO add support for ESR here?
@@ -31,7 +33,7 @@ class TrackedBadSeverity(BzCleaner):
             'f3': utils.get_flag(self.versions['release'], 'tracking', 'release'),
             'o3': 'equals',
             'v3': 'blocking',
-            'f4': utils.get_flag(self.versions['release'], 'status', 'release'),
+            'f4': self.status_release,
             'o4': 'anyexact',
             'v4': value,
             'f5': 'CP',

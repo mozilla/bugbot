@@ -3,12 +3,12 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag import utils
 
 
 class MismatchPrioTrackNightly(BzCleaner):
     def __init__(self):
         super(MismatchPrioTrackNightly, self).__init__()
+        self.init_versions()
 
     def description(self):
         return 'Bug tracked for nightly with a bad priority (P3, P4 or P5)'
@@ -20,7 +20,7 @@ class MismatchPrioTrackNightly(BzCleaner):
         return True
 
     def get_bz_params(self, date):
-        central_version = utils.get_versions(channel='central')
+        central_version = self.versions['central']
         value = ','.join(['---', 'affected'])
         params = {
             'resolution': [

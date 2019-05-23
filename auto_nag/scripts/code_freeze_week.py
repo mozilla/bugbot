@@ -23,8 +23,7 @@ BACKOUT_PAT = re.compile('^back(ed)?[ \t]*out', re.I)
 class CodeFreezeWeek(BzCleaner):
     def __init__(self):
         super(CodeFreezeWeek, self).__init__()
-        self.versions = utils.get_checked_versions()
-        if not self.versions:
+        if not self.init_versions():
             return
 
         self.people = People()
@@ -51,9 +50,6 @@ class CodeFreezeWeek(BzCleaner):
 
     def filter_no_nag_keyword(self):
         return False
-
-    def has_enough_data(self):
-        return bool(self.versions)
 
     def must_run(self, date):
         for c in get_calendar():

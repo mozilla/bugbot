@@ -10,7 +10,16 @@ class MissingBetaStatus(BzCleaner):
     def __init__(self):
         super(MissingBetaStatus, self).__init__()
         self.autofix_status = {}
-        self.versions = utils.get_checked_versions()
+        if not self.init_versions():
+            return
+
+        self.status_nightly = utils.get_flag(
+            self.versions['central'], 'status', 'nightly'
+        )
+        self.status_beta = utils.get_flag(self.versions['beta'], 'status', 'beta')
+        self.status_release = utils.get_flag(
+            self.versions['release'], 'status', 'release'
+        )
 
     def description(self):
         return 'Bugs with a missing beta status flag'
@@ -20,9 +29,6 @@ class MissingBetaStatus(BzCleaner):
 
     def get_autofix_change(self):
         return self.autofix_status
-
-    def has_enough_data(self):
-        return bool(self.versions)
 
     def handle_bug(self, bug, data):
         bugid = str(bug['id'])
@@ -64,10 +70,6 @@ class MissingBetaStatus(BzCleaner):
         return bug
 
     def get_bz_params(self, date):
-        release, beta, central, _ = utils.get_versions()
-        self.status_central = utils.get_flag(central, 'status', 'central')
-        self.status_release = utils.get_flag(release, 'status', 'release')
-        self.status_beta = utils.get_flag(beta, 'status', 'beta')
         fields = [self.status_central, self.status_release]
         params = {
             'include_fields': fields,

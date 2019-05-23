@@ -25,6 +25,7 @@ class BzCleaner(object):
         self.has_flags = False
         self.cache = Cache(self.name(), self.max_days_in_cache())
         self.test_mode = utils.get_config('common', 'test', False)
+        self.versions = None
 
     def _is_a_bzcleaner_init(self, info):
         if info[3] == '__init__':
@@ -46,6 +47,10 @@ class BzCleaner(object):
         name = os.path.basename(info.filename)
         name = os.path.splitext(name)[0]
         self.__tool_name__ = name
+
+    def init_versions(self):
+        self.versions = utils.get_checked_versions()
+        return bool(self.versions)
 
     def max_days_in_cache(self):
         """Get the max number of days the data must be kept in cache"""
@@ -92,7 +97,10 @@ class BzCleaner(object):
 
     def has_enough_data(self):
         """Check if the tool has enough data to run"""
-        return True
+        if self.versions is None:
+            # init_versions() has never been called
+            return True
+        return bool(self.versions)
 
     def filter_no_nag_keyword(self):
         """If True, then remove the bugs with [no-nag] in whiteboard from the bug list"""
