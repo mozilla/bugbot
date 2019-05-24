@@ -520,5 +520,6 @@ def get_nightly_version_from_bz():
 
     return max(data)
 
+
 def nice_round(val):
     return int(round(100 * val))
