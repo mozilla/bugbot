@@ -13,7 +13,7 @@ class MissingBetaStatus(BzCleaner):
         if not self.init_versions():
             return
 
-        self.status_nightly = utils.get_flag(
+        self.status_central = utils.get_flag(
             self.versions['central'], 'status', 'nightly'
         )
         self.status_beta = utils.get_flag(self.versions['beta'], 'status', 'beta')
