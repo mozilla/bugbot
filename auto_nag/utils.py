@@ -434,7 +434,9 @@ def get_checked_versions():
     versions = lmdversions.get(base=True)
     versions['central'] = versions['nightly']
 
-    v = [int(versions[k]) for k in ['release', 'beta', 'central']]
+    v = [versions[k] for k in ['release', 'beta', 'central']]
+    versions = {k: str(v) for k, v in versions.items()}
+
     if v[0] + 2 == v[1] + 1 == v[2]:
         nightly_bugzilla = get_nightly_version_from_bz()
         if v[2] != nightly_bugzilla:
