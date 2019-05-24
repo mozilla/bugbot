@@ -519,3 +519,6 @@ def get_nightly_version_from_bz():
     Bugzilla(bugids=['1234567'], bughandler=bug_handler, bugdata=data).get_data().wait()
 
     return max(data)
+
+def nice_round(val):
+    return int(round(100 * val))

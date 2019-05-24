@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.bugbug_utils import BugbugScript
+from auto_nag.utils import nice_round
 from bugbug.models.regression import RegressionModel
 
 
@@ -72,7 +73,7 @@ class Regression(BugbugScript):
             result[bug_id] = {
                 'id': bug_id,
                 'summary': self.get_summary(bug),
-                'confidence': int(round(100 * prob[1])),
+                'confidence': nice_round(prob[1]),
                 'autofixed': False,
             }
 

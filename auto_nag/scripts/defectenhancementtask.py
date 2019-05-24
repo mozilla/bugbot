@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.bugbug_utils import BugbugScript
+from auto_nag.utils import nice_round
 from bugbug.models.defect_enhancement_task import DefectEnhancementTaskModel
 
 
@@ -84,9 +85,6 @@ class DefectEnhancementTask(BugbugScript):
             defect_prob = prob[labels_map['defect']]
             enhancement_prob = prob[labels_map['enhancement']]
             task_prob = prob[labels_map['task']]
-
-            def nice_round(val):
-                return int(round(100 * val))
 
             results[bug['id']] = {
                 'id': bug['id'],
