@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.bugbug_utils import BugbugScript
+from auto_nag.utils import nice_round
 from bugbug.models.defect_enhancement_task import DefectEnhancementTaskModel
 
 
@@ -16,7 +17,7 @@ class DefectEnhancementTask(BugbugScript):
         return '[Using ML] Check that the bug type is the same as predicted by bugbug'
 
     def columns(self):
-        return ['id', 'summary', 'type', 'bugbug_type', 'confidence', 'autofixed']
+        return ['id', 'summary', 'type', 'bugbug_type', 'confidence', 'confidences', 'autofixed']
 
     def sort_columns(self):
         def _sort_columns(p):
@@ -66,30 +67,38 @@ class DefectEnhancementTask(BugbugScript):
         if len(bugs) == 0:
             return {}
 
+        # Apply inverse transformation to get the type name from the encoded labels.
+        labels = self.model.clf._le.inverse_transform([0, 1, 2])
+        labels_map = {label: index for label, index in zip(labels, [0, 1, 2])}
+
         # Get the encoded type.
         indexes = probs.argmax(axis=-1)
-        # Apply inverse transformation to get the type name from the encoded value.
-        suggestions = self.model.clf._le.inverse_transform(indexes)
 
         results = {}
-        for bug, prob, index, suggestion in zip(bugs, probs, indexes, suggestions):
+        for bug, prob, index in zip(bugs, probs, indexes):
+            suggestion = labels[index]
             assert suggestion in {'defect', 'enhancement', 'task'}, f'Suggestion {suggestion} is invalid'  # noqa
 
             if bug['type'] == suggestion:
                 continue
+
+            defect_prob = prob[labels_map['defect']]
+            enhancement_prob = prob[labels_map['enhancement']]
+            task_prob = prob[labels_map['task']]
 
             results[bug['id']] = {
                 'id': bug['id'],
                 'summary': self.get_summary(bug),
                 'type': bug['type'],
                 'bugbug_type': suggestion,
-                'confidence': int(round(100 * prob[index])),
+                'confidence': nice_round(prob[index]),
+                'confidences': f'defect {nice_round(defect_prob)}, enhancement {nice_round(enhancement_prob)}, task {nice_round(task_prob)}',
                 'autofixed': False,
             }
 
             # Only autofix results for which we are sure enough.
             # And only autofix defect -> task/enhancement for now, unless we're 100% sure.
-            if prob[index] >= self.get_config('confidence_threshold') and (bug['type'] == 'defect' or prob[index] == 1.0):
+            if prob[index] == 1.0 or (bug['type'] == 'defect' and (enhancement_prob + task_prob) >= self.get_config('confidence_threshold')):
                 results[bug['id']]['autofixed'] = True
                 self.autofix_type[bug['id']] = suggestion
 

@@ -4,6 +4,7 @@
 
 from auto_nag import logger
 from auto_nag.bugbug_utils import BugbugScript
+from auto_nag.utils import nice_round
 from bugbug.models.component import ComponentModel
 
 
@@ -113,7 +114,7 @@ class Component(BugbugScript):
                 'id': bug_id,
                 'summary': self.get_summary(bug),
                 'component': suggestion,
-                'confidence': int(round(100 * prob[index])),
+                'confidence': nice_round(prob[index]),
                 'autofixed': False,
             }
 
