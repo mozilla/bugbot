@@ -14,6 +14,7 @@ from libmozdata.bugzilla import Bugzilla
 from libmozdata.hgmozilla import Mercurial
 import os
 import pytz
+import random
 import re
 import requests
 import six
@@ -66,6 +67,12 @@ def get_config(name, entry, default=None):
         return tool_conf[entry]
     tool_conf = conf['common']
     return tool_conf.get(entry, default)
+
+
+def init_random():
+    now = datetime.datetime.utcnow()
+    now = now.timestamp()
+    random.seed(now)
 
 
 def get_signatures(sgns):

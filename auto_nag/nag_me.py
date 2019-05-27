@@ -55,24 +55,30 @@ class Nag(object):
         days = (utils.get_next_release_date() - self.nag_date).days
         return self.escalation.get_supervisor(priority, days, person, **kwargs)
 
-    def add(self, person, bug_data, priority='default', **kwargs):
-        if not self.people.is_mozilla(person):
+    def add(self, persons, bug_data, priority='default', **kwargs):
+        if not isinstance(persons, list):
+            persons = [persons]
+
+        persons = [p for p in persons if self.people.is_mozilla(p)]
+        if not persons:
             return False
 
-        manager = self.escalate(person, priority, **kwargs)
-        return self.add_couple(person, manager, bug_data)
+        managers = {p: self.escalate(p, priority, **kwargs) for p in persons}
+        return self.add_couples(managers, bug_data)
 
-    def add_couple(self, person, manager, bug_data):
-        person = self.people.get_moz_mail(person)
+    def add_couples(self, managers, bug_data):
+        for person, manager in managers.items():
+            person = self.people.get_moz_mail(person)
 
-        if manager in self.data:
-            data = self.data[manager]
-        else:
-            self.data[manager] = data = {}
-        if person in data:
-            data[person].append(bug_data)
-        else:
-            data[person] = [bug_data]
+            if manager in self.data:
+                data = self.data[manager]
+            else:
+                self.data[manager] = data = {}
+
+            if person in data:
+                data[person].append(bug_data)
+            else:
+                data[person] = [bug_data]
 
         return True
 
@@ -105,10 +111,14 @@ class Nag(object):
             mail, self.black_list
         )
 
-    def add_triage_owner(self, owner, real_owner=None):
-        if owner not in self.triage_owners:
-            to = real_owner if real_owner is not None else owner
-            self.triage_owners[owner] = self.get_query_url_for_triage_owner(to)
+    def add_triage_owner(self, owners, real_owner):
+        if not isinstance(owners, list):
+            owners = [owners]
+        for owner in owners:
+            if owner not in self.triage_owners:
+                self.triage_owners[owner] = self.get_query_url_for_triage_owner(
+                    real_owner
+                )
 
     def get_query_url_for_triage_owner(self, owner):
         if self.all_owners is None:

@@ -77,10 +77,10 @@ class NoPriority(BzCleaner, Nag):
         if self.typ == 'first':
             return bug
 
-        owner, _ = self.round_robin.get(bug, self.date)
+        owners = self.round_robin.get(bug, self.date, only_one=False, has_nick=False)
         real_owner = bug['triage_owner']
-        self.add_triage_owner(owner, real_owner=real_owner)
-        if not self.add(owner, buginfo, priority=priority):
+        self.add_triage_owner(owners, real_owner=real_owner)
+        if not self.add(owners, buginfo, priority=priority):
             self.add_no_manager(buginfo['id'])
         return bug
 

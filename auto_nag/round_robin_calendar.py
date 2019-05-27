@@ -38,6 +38,7 @@ class Calendar(object):
         self.fb_bzmail = self.people.get_bzmail_from_name(self.fallback)
         self.fb_mozmail = self.people.get_moz_mail(self.fb_bzmail)
         self.team_name = team_name
+        self.team = []
         self.cache = {}
 
     def get_fallback(self):
@@ -60,7 +61,6 @@ class Calendar(object):
         return []
 
     def set_team(self, team, triagers):
-        self.team = []
         for p in team:
             if p in triagers and 'bzmail' in triagers[p]:
                 bzmail = triagers[p]['bzmail']
@@ -108,23 +108,41 @@ class Calendar(object):
             except ValueError:
                 raise InvalidCalendar('Cannot decode calendar: {}'.format(url))
 
+    def __str__(self):
+        return f"""Round robin calendar:
+team name: {self.team_name}
+fallback: {self.fallback}, bz: {self.fb_bzmail}, moz: {self.fb_mozmail}
+team: {self.team}"""
+
+    def __repr__(self):
+        return self.__str__()
+
 
 class JSONCalendar(Calendar):
     def __init__(self, cal, fallback, team_name, people=None):
         super(JSONCalendar, self).__init__(
-            cal['duty-start-dates'], fallback, team_name, people=people
+            cal.get('duty-start-dates', {}), fallback, team_name, people=people
         )
-        dates = sorted((lmdutils.get_date_ymd(d), d) for d in self.cal.keys())
-        self.set_team(list(self.cal[d] for _, d in dates), cal.get('triagers', {}))
-        self.dates = [d for d, _ in dates]
-        cycle = self.guess_cycle()
-        self.dates.append(self.dates[-1] + relativedelta(days=cycle))
-        self.team.append(None)
+        if self.cal:
+            dates = sorted((lmdutils.get_date_ymd(d), d) for d in self.cal.keys())
+            self.set_team(list(self.cal[d] for _, d in dates), cal.get('triagers', {}))
+            self.dates = [d for d, _ in dates]
+            cycle = self.guess_cycle()
+            self.dates.append(self.dates[-1] + relativedelta(days=cycle))
+            self.team.append(None)
+        else:
+            triagers = cal['triagers']
+            self.set_team(triagers.keys(), triagers)
+            self.dates = []
 
     def get_persons(self, date):
         date = lmdutils.get_date_ymd(date)
         if date in self.cache:
             return self.cache[date]
+
+        if not self.dates:
+            # no dates so only triagers
+            return self.team
 
         i = bisect_left(self.dates, date)
         if i == len(self.dates):
