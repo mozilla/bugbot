@@ -19,6 +19,7 @@ class RoundRobin(object):
         self.all_calendars = []
         self.feed(teams, rr=rr)
         self.nicks = {}
+        utils.init_random()
 
     def get_calendar(self, team, data):
         fallback = data['fallback']
@@ -72,7 +73,7 @@ class RoundRobin(object):
 
         return self.nicks[bzmail]
 
-    def get(self, bug, date):
+    def get(self, bug, date, only_one=True, has_nick=True):
         pc = bug['product'] + '::' + bug['component']
         if pc not in self.data:
             mail = bug.get('triage_owner')
@@ -83,7 +84,9 @@ class RoundRobin(object):
             if mail is None:
                 logger.error('No triage owner for {}'.format(pc))
 
-            return mail, nick
+            if has_nick:
+                return mail, nick if only_one else [(mail, nick)]
+            return mail if only_one else [mail]
 
         cal = self.data[pc]
         persons = cal.get_persons(date)
@@ -95,10 +98,16 @@ class RoundRobin(object):
         for _, p in persons:
             bzmails.append(fb if p is None else p)
 
-        bzmail = bzmails[randint(0, len(bzmails) - 1)]
-        nick = self.get_nick(bzmail)
+        if only_one:
+            bzmail = bzmails[randint(0, len(bzmails) - 1)]
+            if has_nick:
+                nick = self.get_nick(bzmail)
+                return bzmail, nick
+            return bzmail
 
-        return bzmail, nick
+        if has_nick:
+            return [(bzmail, self.get_nick(bzmail)) for bzmail in bzmails]
+        return bzmails
 
     def get_who_to_nag(self, date):
         fallbacks = {}

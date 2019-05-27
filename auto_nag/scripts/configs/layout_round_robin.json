@@ -2,7 +2,7 @@
     "fallback": "Sean Voisen",
     "components":
     {
-        "Core::CSS Animations and Transitions": "animation",
+        "Core::CSS Transitions and Animations": "animation",
         "Core::CSS Parsing and Computation": "style-system",
         "Core::DOM: CSS Object Model": "style-system",
         "Core::Layout": "layout-general",
