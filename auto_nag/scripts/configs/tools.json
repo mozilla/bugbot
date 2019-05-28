@@ -36,6 +36,7 @@
             "sylvestre@mozilla.com",
             "mcastelluccio@mozilla.com"
         ],
+        "bugzilla_max_retries": 3,
         "bot_bz_mail": ["release-mgmt-account-bot@mozilla.tld"],
         "table_attrs": "style=\"border:1px solid black;border-collapse:collapse;\" border=\"1\"",
         "days_lookup": 7,

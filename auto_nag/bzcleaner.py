@@ -10,6 +10,7 @@ from libmozdata.bugzilla import Bugzilla
 from libmozdata import utils as lmdutils
 import os
 import six
+import time
 from auto_nag import db, mail, utils, logger
 from auto_nag.cache import Cache
 from auto_nag.nag_me import Nag
@@ -478,9 +479,21 @@ class BzCleaner(object):
                 )
         else:
             extra = self.get_db_extra()
+            max_retries = utils.get_config('common', 'bugzilla_max_retries', 3)
             for bugid, ch in new_changes.items():
-                Bugzilla([str(bugid)]).put(ch)
-                db.BugChange.add(self.name(), bugid, extra=extra.get(bugid, ''))
+                added = False
+                for _ in range(max_retries):
+                    failures = Bugzilla([str(bugid)]).put(ch)
+                    if failures:
+                        time.sleep(1)
+                    else:
+                        added = True
+                        db.BugChange.add(self.name(), bugid, extra=extra.get(bugid, ''))
+                        break
+                if not added:
+                    logger.error(
+                        '{}: Cannot put data for bug {}.'.format(self.name(), bugid)
+                    )
 
         return bugs
 
