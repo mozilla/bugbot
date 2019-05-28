@@ -15,10 +15,6 @@ class RegressionWithoutRegressedBy(BzCleaner):
     def description(self):
         return 'Regressions without regressed_by and some dependencies'
 
-    def add_auto_ni(self, bugid, data):
-        # TODO: remove this function to have autofix with a needinfo
-        return
-
     def handle_bug(self, bug, data):
         bugid = bug['id']
         deps = set(bug['blocks']) | set(bug['depends_on'])
