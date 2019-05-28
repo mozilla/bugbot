@@ -498,7 +498,9 @@ def get_products_components(data):
     for pc in data:
         if '::' in pc:
             p, c = pc.split('::', 1)
-            prods.add(c)
+            prods.add(p)
+        else:
+            c = pc
         comps.add(c)
     return prods, comps
 

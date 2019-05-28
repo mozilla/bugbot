@@ -63,6 +63,16 @@ class RoundRobin(object):
     def get_components(self):
         return list(self.data.keys())
 
+    def get_fallback(self, bug):
+        pc = bug['product'] + '::' + bug['component']
+        if pc not in self.data:
+            mail = bug.get('triage_owner')
+        else:
+            cal = self.data[pc]
+            mail = cal.get_fallback_bzmail()
+
+        return self.people.get_moz_mail(mail)
+
     def get_nick(self, bzmail):
         if bzmail not in self.nicks:
 
