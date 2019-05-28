@@ -482,7 +482,7 @@ class BzCleaner(object):
             max_retries = utils.get_config('common', 'bugzilla_max_retries', 3)
             for bugid, ch in new_changes.items():
                 added = False
-                for _ in range(0, max_retries):
+                for _ in range(max_retries):
                     failures = Bugzilla([str(bugid)]).put(ch)
                     if failures:
                         time.sleep(1)
