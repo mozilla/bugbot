@@ -18,6 +18,8 @@ class ToTriage(BzCleaner, Nag):
             people=self.people, teams=self.get_config('teams', [])
         )
         self.components = self.round_robin.get_components()
+        for person in self.get_config('persons', []):
+            self.components += utils.get_triage_owners()[person]
 
     def description(self):
         return 'Bugs to triage'
@@ -50,11 +52,13 @@ class ToTriage(BzCleaner, Nag):
         if not self.filter_bug(priority):
             return None
 
-        owner, _ = self.round_robin.get(bug, self.date)
-        real_owner = bug['triage_owner']
         buginfo['type'] = bug['type']
-        self.add_triage_owner(owner, real_owner=real_owner)
-        if not self.add(owner, buginfo, priority=priority):
+        fallback = self.round_robin.get_fallback(bug)
+
+        owners = self.round_robin.get(bug, self.date, only_one=False, has_nick=False)
+        real_owner = bug['triage_owner']
+        self.add_triage_owner(owners, real_owner=real_owner)
+        if not self.add(owners, buginfo, priority=priority, fallback=fallback):
             self.add_no_manager(buginfo['id'])
         return bug
 

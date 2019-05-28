@@ -565,7 +565,7 @@
             {
                 "[0;+∞[":
                 {
-                    "supervisor": "n+1",
+                    "supervisor": "fallback",
                     "days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
                 }
             }
@@ -573,6 +573,10 @@
         "teams":
         [
             "DOM:Workers & Storage"
+        ],
+        "persons":
+        [
+            "jdescottes@mozilla.com"
         ]
     }
 }
