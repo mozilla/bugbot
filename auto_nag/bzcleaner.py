@@ -492,7 +492,9 @@ class BzCleaner(object):
                         break
                 if not added:
                     logger.error(
-                        '{}: Cannot put data for bug {}.'.format(self.name(), bugid)
+                        '{}: Cannot put data for bug {} (change => {}).'.format(
+                            self.name(), bugid, ch
+                        )
                     )
 
         return bugs
