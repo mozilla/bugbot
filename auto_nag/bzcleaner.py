@@ -488,6 +488,7 @@ class BzCleaner(object):
                         time.sleep(1)
                     else:
                         added = True
+                        self.failure_callback(bugid)
                         db.BugChange.add(self.name(), bugid, extra=extra.get(bugid, ''))
                         break
                 if not added:
@@ -498,6 +499,14 @@ class BzCleaner(object):
                     )
 
         return bugs
+
+    def failure_callback(self, bugid):
+        """Called on Bugzilla.put failures"""
+        return
+
+    def terminate(self):
+        """Called when everything is done"""
+        return
 
     def organize(self, bugs):
         return utils.organize(bugs, self.columns(), key=self.sort_columns())
@@ -619,5 +628,6 @@ class BzCleaner(object):
         self.cache.set_dry_run(self.dryrun)
         try:
             self.send_email(date=date)
+            self.terminate()
         except Exception:
             logger.exception('Tool {}'.format(self.name()))
