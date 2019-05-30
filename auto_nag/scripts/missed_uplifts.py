@@ -69,11 +69,6 @@ class MissedUplifts(BzCleaner):
         if bugid in self.accepted_release:
             approvals.append('release+')
 
-        if bugid in self.pending_release:
-            approvals.append('release?')
-        if bugid in self.accepted_release:
-            approvals.append('release+')
-
         if bugid in self.pending_esr:
             approvals.append(self.esr_str + '?')
         if bugid in self.accepted_esr:
