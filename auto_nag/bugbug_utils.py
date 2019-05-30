@@ -19,6 +19,7 @@ class BugbugScript(BzCleaner):
     def __init__(self):
         super().__init__()
         self.model = self.model_class.load(self.retrieve_model())
+        self.to_cache = set()
 
     def retrieve_model(self):
         os.makedirs('models', exist_ok=True)
@@ -68,6 +69,12 @@ class BugbugScript(BzCleaner):
     def remove_using_history(self, bugs):
         return bugs
 
+    def failure_callback(self, bugid):
+        self.to_cache.remove(int(bugid))
+
+    def terminate(self):
+        self.add_to_cache(self.to_cache)
+
     def get_bugs(self, date='today', bug_ids=[]):
         # Retrieve bugs to analyze.
         old_CHUNK_SIZE = Bugzilla.BUGZILLA_CHUNK_SIZE
@@ -84,7 +91,7 @@ class BugbugScript(BzCleaner):
         # Normally it's called in bzcleaner::get_mails (with the results of get_bugs)
         # but since some bugs (we don't want to analyze again) are removed thanks
         # to their history, we must add_to_cache here.
-        self.add_to_cache(bug['id'] for bug in bugs)
+        self.to_cache = {bug['id'] for bug in bugs}
 
         bugs = self.remove_using_history(bugs)
 
