@@ -199,6 +199,12 @@ class Nag(object):
                 bug_data = info[person]
                 data += bug_data
 
+            # The same bug can be several times in the list
+            # because we send an email to a team.
+            # So remove dups in tuplifying them (to have hashable types)
+            data = {tuple(d.items()) for d in data}
+            data = [dict(d) for d in data]
+
             if len(To) == 1 and To[0] in self.triage_owners:
                 query_url = self.triage_owners[To[0]]
             else:
