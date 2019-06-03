@@ -34,6 +34,7 @@ class StepsToReproduce(BugbugScript):
             'f3': 'reporter', 'o3': 'nowords', 'v3': reporter_skiplist,
             'f4': 'cf_has_str', 'o4': 'equals', 'v4': '---',
             'n5': 1, 'f5': 'cf_has_str', 'o5': 'changedafter', 'v5': '1970-01-01',
+            'f6': 'keywords', 'o6': 'nowords', 'v6': 'intermittent-failure',
             # Ignore closed bugs.
             'bug_status': '__open__',
         }
