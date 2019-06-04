@@ -41,10 +41,6 @@ class StepsToReproduce(BugbugScript):
 
         return params
 
-    # TODO: Remove this filtering once this is fixed in bugbug.
-    def remove_using_history(self, bugs):
-        return [bug for bug in bugs if "cf_has_str" in bug]
-
     def get_bugs(self, date='today', bug_ids=[]):
         # Retrieve bugs to analyze.
         bugs, probs = super().get_bugs(date=date, bug_ids=bug_ids)
