@@ -1,24 +1,26 @@
-<p>The following {{ plural('bug has', data, pword='bugs have') }} no priority flag set for the last {{ extra['nweeks'] }} {{ plural('week', extra['nweeks']) }} (see the triage <a href="https://mozilla.github.io/bug-handling/triage-bugzilla#what-do-you-triage">documentation</a>):
-  <table {{ table_attrs }}>
-    <thead>
-      <tr>
-        <th>Component</th><th>Bug</th><th>Summary</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for i, (comp, bugid, summary) in enumerate(data) -%}
-      <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
-        <td>
-          {{ comp | e }}
-        </td>
-        <td>
-          <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
-        </td>
-        <td>
-          {{ summary | e }}
-        </td>
-      </tr>
-      {% endfor -%}
-    </tbody>
-  </table>
+{{ nag_preamble }}
+<p>
+  The following {{ plural('bug has', data, pword='bugs have') }} no priority flag set for the last {{ extra['nweeks'] }} {{ plural('week', extra['nweeks']) }}:
 </p>
+<table {{ table_attrs }}>
+  <thead>
+    <tr>
+      <th>Component</th><th>Bug</th><th>Summary</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for i, (comp, bugid, summary) in enumerate(data) -%}
+    <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
+      <td>
+        {{ comp | e }}
+      </td>
+      <td>
+        <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+      </td>
+      <td>
+        {{ summary | e }}
+        </td>
+    </tr>
+    {% endfor -%}
+  </tbody>
+</table>
