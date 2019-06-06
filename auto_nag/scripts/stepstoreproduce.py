@@ -56,7 +56,7 @@ class StepsToReproduce(BugbugScript):
                 'id': bug_id,
                 'summary': self.get_summary(bug),
                 'has_str': 'yes' if prob[1] > 0.5 else 'no',
-                'confidence': nice_round(abs(prob[index] - 0.5)) * 2,
+                'confidence': nice_round(prob[index]),
                 'autofixed': False,
             }
 
