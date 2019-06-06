@@ -193,17 +193,19 @@ class Nag(object):
         template = env.get_template(template)
         mails = []
         for manager, info in self.data.items():
+            # The same bug can be several times in the list
+            # because we send an email to a team.
+            added_bug_ids = set()
+
             data = []
             To = sorted(info.keys())
             for person in To:
-                bug_data = info[person]
-                data += bug_data
-
-            # The same bug can be several times in the list
-            # because we send an email to a team.
-            # So remove dups in tuplifying them (to have hashable types)
-            data = {tuple(d.items()) for d in data}
-            data = [dict(d) for d in data]
+                data += [
+                    bug_data
+                    for bug_data in info[person]
+                    if bug_data['id'] not in added_bug_ids
+                ]
+                added_bug_ids.update(bug_data['id'] for bug_data in info[person])
 
             if len(To) == 1 and To[0] in self.triage_owners:
                 query_url = self.triage_owners[To[0]]

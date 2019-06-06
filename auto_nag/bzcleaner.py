@@ -27,6 +27,7 @@ class BzCleaner(object):
         self.cache = Cache(self.name(), self.max_days_in_cache())
         self.test_mode = utils.get_config('common', 'test', False)
         self.versions = None
+        logger.info("Run tool {}".format(self.get_tool_path()))
 
     def _is_a_bzcleaner_init(self, info):
         if info[3] == '__init__':
@@ -629,5 +630,6 @@ class BzCleaner(object):
         try:
             self.send_email(date=date)
             self.terminate()
+            logger.info("Tool {} has finished.".format(self.get_tool_path()))
         except Exception:
             logger.exception('Tool {}'.format(self.name()))
