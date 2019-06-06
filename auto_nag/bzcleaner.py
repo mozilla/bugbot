@@ -489,10 +489,10 @@ class BzCleaner(object):
                         time.sleep(1)
                     else:
                         added = True
-                        self.failure_callback(bugid)
                         db.BugChange.add(self.name(), bugid, extra=extra.get(bugid, ''))
                         break
                 if not added:
+                    self.failure_callback(bugid)
                     logger.error(
                         '{}: Cannot put data for bug {} (change => {}).'.format(
                             self.name(), bugid, ch
