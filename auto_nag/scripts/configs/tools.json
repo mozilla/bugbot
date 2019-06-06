@@ -601,5 +601,21 @@
             "mcastelluccio@mozilla.com",
             "cdenizet@mozilla.com"
         ]
+    },
+    "regressor":
+    {
+        "max_days_in_cache": 7,
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "sylvestre@mozilla.com",
+            "mcastelluccio@mozilla.com"
+        ],
+        "cc":
+        [
+            "sledru@mozilla.com",
+            "mcastelluccio@mozilla.com",
+            "cdenizet@mozilla.com"
+        ]
     }
 }
