@@ -58,6 +58,9 @@ class BzCleaner(object):
         """Get the max number of days the data must be kept in cache"""
         return self.get_config('max_days_in_cache', -1)
 
+    def preamble(self):
+        return None
+
     def description(self):
         """Get the description for the help"""
         return ''
@@ -538,6 +541,7 @@ class BzCleaner(object):
                 plural=utils.plural,
                 no_manager=self.no_manager,
                 table_attrs=self.get_config('table_attrs'),
+                preamble=self.preamble(),
             )
             common = env.get_template('common.html')
             body = common.render(message=message, query_url=self.query_url)

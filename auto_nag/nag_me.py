@@ -85,6 +85,9 @@ class Nag(object):
     def nag_template(self):
         return self.name() + '_nag.html'
 
+    def nag_preamble(self):
+        return None
+
     def get_extra_for_nag_template(self):
         return {}
 
@@ -221,6 +224,7 @@ class Nag(object):
                 nag=True,
                 query_url_nag=query_url,
                 table_attrs=self.get_config('table_attrs'),
+                nag_preamble=self.nag_preamble(),
             )
 
             m = {'manager': manager, 'to': set(info.keys()), 'body': body}
