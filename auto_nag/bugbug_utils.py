@@ -84,7 +84,7 @@ class BugbugScript(BzCleaner):
         finally:
             Bugzilla.BUGZILLA_CHUNK_SIZE = old_CHUNK_SIZE
 
-        bugs = bugzilla._download(bug_ids)
+        bugs = bugzilla.get(bug_ids)
         bugs = list(bugs.values())
 
         # Add bugs that we are classifying now to the cache.
