@@ -24,11 +24,11 @@ class RoundRobin(object):
 
     def get_calendar(self, team, data):
         fallback = data["fallback"]
-        strats = set(data["components"].values())
+        strategies = set(data["components"].values())
         res = {}
-        for strat in strats:
-            url = data[strat]["calendar"]
-            res[strat] = Calendar.get(url, fallback, team, people=self.people)
+        for strategy in strategies:
+            url = data[strategy]["calendar"]
+            res[strategy] = Calendar.get(url, fallback, team, people=self.people)
         return res
 
     def feed(self, teams, rr=None):

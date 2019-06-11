@@ -25,6 +25,11 @@ repos:
     -   id: name-tests-test
         args: ['--django']
     -   id: check-json
+-   repo: https://github.com/codespell-project/codespell
+    rev: bcb5b06d0202cc9b3ea7600c9e4dfa868dc7dba1
+    hooks:
+    -   id: codespell
+        exclude: "\\.ics$"
 -   repo: meta
     hooks:
     -   id: check-hooks-apply
