@@ -3,12 +3,12 @@
 .. image:: https://coveralls.io/repos/github/mozilla/relman-auto-nag/badge.svg
     :target: https://coveralls.io/github/mozilla/relman-auto-nag
 
-    
+
 This tool is used by Mozilla release management to send emails to the Firefox developers. It will query the bugzilla.mozilla.org database and send emails to Mozilla developers and their managers (if Mozilla staff).
 
 The tool will also notify release managers about potential issues in bugzilla and autofix some categories of issues.
 
-The list of checkers is documented on the Mozilla wiki: 
+The list of checkers is documented on the Mozilla wiki:
 https://wiki.mozilla.org/Release_Management/autonag
 
 
