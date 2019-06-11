@@ -7,7 +7,7 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from auto_nag.db import Base, db_url  # NOQA
+from auto_nag.db import Base, db_url
 
 sys.path.append(os.getcwd())
 

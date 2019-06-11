@@ -33,4 +33,5 @@ class MyConfig(config.Config):
         return default
 
 
-config.set_config(MyConfig())
+def load():
+    config.set_config(MyConfig())

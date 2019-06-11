@@ -72,7 +72,7 @@ class People:
 
     def _get_bigrams(self, text):
         text = "".join(s.lower() for s in WORDS.findall(text))
-        return [text[i : (i + 2)] for i in range(len(text) - 1)]  # NOQA
+        return [text[i : (i + 2)] for i in range(len(text) - 1)]
 
     def _get_bigrams_stats(self, text):
         stats = {}

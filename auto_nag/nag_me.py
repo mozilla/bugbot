@@ -179,7 +179,7 @@ class Nag(object):
                     login=login_info,
                     dryrun=dryrun,
                 )
-            except:  # NOQA
+            except Exception:
                 logger.exception("Tool {}".format(self.name()))
                 status = "Failure"
 

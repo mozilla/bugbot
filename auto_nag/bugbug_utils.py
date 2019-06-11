@@ -26,15 +26,15 @@ class BugbugScript(BzCleaner):
     def retrieve_model(self):
         os.makedirs("models", exist_ok=True)
 
-        file_name = f"{self.name()}model"  # noqa: E999
+        file_name = f"{self.name()}model"
         file_path = os.path.join("models", file_name)
 
-        model_url = f"https://index.taskcluster.net/v1/task/project.relman.bugbug.train_{self.name()}.latest/artifacts/public/{file_name}.xz"  # noqa
+        model_url = f"https://index.taskcluster.net/v1/task/project.relman.bugbug.train_{self.name()}.latest/artifacts/public/{file_name}.xz"
         r = requests.head(model_url, allow_redirects=True)
         new_etag = r.headers["ETag"]
 
         try:
-            with open(f"{file_path}.etag", "r") as f:  # noqa
+            with open(f"{file_path}.etag", "r") as f:
                 old_etag = f.read()
         except IOError:
             old_etag = None
@@ -46,11 +46,11 @@ class BugbugScript(BzCleaner):
                 logger.exception("Tool {}".format(self.name()))
                 return file_path
 
-            with lzma.open(f"{file_path}.xz", "rb") as input_f:  # noqa
+            with lzma.open(f"{file_path}.xz", "rb") as input_f:
                 with open(file_path, "wb") as output_f:
                     shutil.copyfileobj(input_f, output_f)
 
-            with open(f"{file_path}.etag", "w") as f:  # noqa
+            with open(f"{file_path}.etag", "w") as f:
                 f.write(new_etag)
 
         return file_path

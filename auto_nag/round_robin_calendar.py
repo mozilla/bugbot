@@ -6,6 +6,7 @@ import json
 import os
 import re
 from bisect import bisect_left
+from json.decoder import JSONDecodeError
 
 import requests
 from dateutil.relativedelta import relativedelta
@@ -16,11 +17,6 @@ from libmozdata import utils as lmdutils
 
 from auto_nag import utils
 from auto_nag.people import People
-
-try:
-    from json.decoder import JSONDecodeError
-except:  # NOQA
-    JSONDecodeError = ValueError
 
 
 class InvalidCalendar(Exception):

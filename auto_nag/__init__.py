@@ -5,8 +5,9 @@
 import logging
 import sys
 
-from . import config  # NOQA
-from . import utils
+from . import config, utils
+
+config.load()
 
 VERSION = (0, 0, 1)
 __version__ = ".".join(map(str, VERSION))

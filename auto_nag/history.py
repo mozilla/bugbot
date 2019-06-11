@@ -137,7 +137,7 @@ class History(object):
                 c = change["added"]
                 ni = "needinfo?("
                 if c.startswith(ni):
-                    return c[len(ni) : -1]  # NOQA
+                    return c[len(ni) : -1]
         return ""
 
     def guess_tool(self, data):
