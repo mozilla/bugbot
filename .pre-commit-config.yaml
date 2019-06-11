@@ -20,4 +20,9 @@ repos:
     rev: v2.2.1
     hooks:
     -   id: trailing-whitespace
+    -   id: check-yaml
+    -   id: mixed-line-ending
+    -   id: name-tests-test
+        args: ['--django']
+    -   id: check-json
 python_version: python3.6

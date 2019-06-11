@@ -51,10 +51,7 @@ def _get_config():
     if _CONFIG is None:
         try:
             with open(_CONFIG_PATH + "/tools.json", "r") as In:
-                data = In.read()
-                pat = re.compile(r"^[ \t]*//.*$", re.MULTILINE)
-                data = pat.sub("", data)
-                _CONFIG = json.loads(data)
+                _CONFIG = json.load(In)
         except IOError:
             _CONFIG = {}
     return _CONFIG
