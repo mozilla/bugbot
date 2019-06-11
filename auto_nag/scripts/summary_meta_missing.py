@@ -10,24 +10,24 @@ class MetaSummaryMissing(BzCleaner):
         super(MetaSummaryMissing, self).__init__()
 
     def description(self):
-        return 'Bugs without the meta keyword but with [meta] in the title'
+        return "Bugs without the meta keyword but with [meta] in the title"
 
     def get_bz_params(self, date):
-        days_lookup = self.get_config('days_lookup', default=180)
+        days_lookup = self.get_config("days_lookup", default=180)
         return {
-            'resolution': ['---', 'FIXED'],
-            'keywords': 'meta',
-            'keywords_type': 'nowords',
-            'short_desc': r'(\[meta\]|\[tracking\])',
-            'short_desc_type': 'regexp',
-            'f1': 'days_elapsed',
-            'o1': 'lessthan',
-            'v1': days_lookup,
+            "resolution": ["---", "FIXED"],
+            "keywords": "meta",
+            "keywords_type": "nowords",
+            "short_desc": r"(\[meta\]|\[tracking\])",
+            "short_desc_type": "regexp",
+            "f1": "days_elapsed",
+            "o1": "lessthan",
+            "v1": days_lookup,
         }
 
     def get_autofix_change(self):
-        return {'keywords': {'add': ['meta']}}
+        return {"keywords": {"add": ["meta"]}}
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     MetaSummaryMissing().run()

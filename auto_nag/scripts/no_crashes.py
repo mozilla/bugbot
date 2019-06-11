@@ -3,11 +3,11 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from dateutil.relativedelta import relativedelta
-from libmozdata.socorro import SuperSearch
 from libmozdata import utils as lmdutils
+from libmozdata.socorro import SuperSearch
 
-from auto_nag.bzcleaner import BzCleaner
 from auto_nag import utils
+from auto_nag.bzcleaner import BzCleaner
 
 
 class SocorroError(Exception):
@@ -17,43 +17,43 @@ class SocorroError(Exception):
 class NoCrashes(BzCleaner):
     def __init__(self):
         super(NoCrashes, self).__init__()
-        self.nweeks = utils.get_config(self.name(), 'number_of_weeks', 12)
+        self.nweeks = utils.get_config(self.name(), "number_of_weeks", 12)
         self.summaries = {}
 
     def description(self):
-        return 'Bugs with no more crashes in the last {} weeks'.format(self.nweeks)
+        return "Bugs with no more crashes in the last {} weeks".format(self.nweeks)
 
     def get_extra_for_template(self):
-        return {'nweeks': self.nweeks}
+        return {"nweeks": self.nweeks}
 
     def get_data(self):
-        return {'signatures': set(), 'ids': {}}
+        return {"signatures": set(), "ids": {}}
 
     def get_bz_params(self, date):
         date = lmdutils.get_date_ymd(date) - relativedelta(weeks=self.nweeks)
-        reporters = self.get_config('reporter_exception', default=[])
-        reporters = ','.join(reporters)
-        keywords = self.get_config('keyword_exception', default=[])
-        keywords = ','.join(keywords)
-        fields = ['cf_crash_signature']
+        reporters = self.get_config("reporter_exception", default=[])
+        reporters = ",".join(reporters)
+        keywords = self.get_config("keyword_exception", default=[])
+        keywords = ",".join(keywords)
+        fields = ["cf_crash_signature"]
         params = {
-            'include_fields': fields,
-            'resolution': '---',
-            'f1': 'cf_crash_signature',
-            'o1': 'isnotempty',
-            'f2': 'creation_ts',
-            'o2': 'lessthan',
-            'v2': date,
-            'f3': 'days_elapsed',
-            'o3': 'greaterthan',
-            'v3': self.nweeks * 7,
+            "include_fields": fields,
+            "resolution": "---",
+            "f1": "cf_crash_signature",
+            "o1": "isnotempty",
+            "f2": "creation_ts",
+            "o2": "lessthan",
+            "v2": date,
+            "f3": "days_elapsed",
+            "o3": "greaterthan",
+            "v3": self.nweeks * 7,
         }
 
         if reporters:
-            params.update({'f4': 'reporter', 'o4': 'nowordssubstr', 'v4': reporters})
+            params.update({"f4": "reporter", "o4": "nowordssubstr", "v4": reporters})
 
         if keywords:
-            params.update({'f5': 'keywords', 'o5': 'nowords', 'v5': keywords})
+            params.update({"f5": "keywords", "o5": "nowords", "v5": keywords})
 
         return params
 
@@ -80,39 +80,39 @@ class NoCrashes(BzCleaner):
 
     def bughandler(self, bug, data):
         """bug handler for the Bugzilla query"""
-        if 'cf_crash_signature' not in bug:
+        if "cf_crash_signature" not in bug:
             return
-        sgns = utils.get_signatures(bug['cf_crash_signature'])
-        id = bug['id']
+        sgns = utils.get_signatures(bug["cf_crash_signature"])
+        id = bug["id"]
         self.summaries[str(id)] = self.get_summary(bug)
-        data['ids'][id] = sgns
-        signatures = data['signatures']
+        data["ids"][id] = sgns
+        signatures = data["signatures"]
         for s in sgns:
             signatures.add(s)
 
     def get_stats(self, signatures, date):
         def handler(json, data):
-            if json['errors']:
+            if json["errors"]:
                 raise SocorroError()
-            del json['hits']
-            for facet in json['facets'].get('signature', {}):
-                data.remove(facet['term'])
+            del json["hits"]
+            for facet in json["facets"].get("signature", {}):
+                data.remove(facet["term"])
 
         date = lmdutils.get_date_ymd(date) - relativedelta(weeks=self.nweeks)
         search_date = SuperSearch.get_search_date(date)
         chunks, size = self.chunkify(signatures)
         base = {
-            'date': search_date,
-            'signature': '',
-            '_result_number': 0,
-            '_facets': 'signature',
-            '_facets_size': size,
+            "date": search_date,
+            "signature": "",
+            "_result_number": 0,
+            "_facets": "signature",
+            "_facets_size": size,
         }
 
         searches = []
         for chunk in chunks:
             params = base.copy()
-            params['signature'] = ['=' + x for x in chunk]
+            params["signature"] = ["=" + x for x in chunk]
             searches.append(
                 SuperSearch(
                     params=params,
@@ -129,31 +129,31 @@ class NoCrashes(BzCleaner):
         # data['ids'] contains bugid => set(...signatures...)
         # data['signatures'] is a set of signatures with no crashes
         res = {}
-        signatures = data['signatures']
-        for bugid, bug_sgns in data['ids'].items():
+        signatures = data["signatures"]
+        for bugid, bug_sgns in data["ids"].items():
             if bug_sgns < signatures:
                 # all the signatures in the bug have no crashes
                 bugid = str(bugid)
-                res[bugid] = {'id': bugid, 'summary': self.summaries[bugid]}
+                res[bugid] = {"id": bugid, "summary": self.summaries[bugid]}
         return res
 
     def get_autofix_change(self):
         return {
-            'comment': {
-                'body': 'Closing because no crashes reported for {} weeks.'.format(
+            "comment": {
+                "body": "Closing because no crashes reported for {} weeks.".format(
                     self.nweeks
                 )
             },
-            'status': 'RESOLVED',
-            'resolution': 'WORKSFORME',
+            "status": "RESOLVED",
+            "resolution": "WORKSFORME",
         }
 
-    def get_bugs(self, date='today', bug_ids=[]):
+    def get_bugs(self, date="today", bug_ids=[]):
         data = super(NoCrashes, self).get_bugs(date=date, bug_ids=bug_ids)
-        self.get_stats(data['signatures'], date)
+        self.get_stats(data["signatures"], date)
         bugs = self.get_bugs_without_crashes(data)
         return bugs
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     NoCrashes().run()

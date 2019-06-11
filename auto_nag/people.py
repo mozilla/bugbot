@@ -3,35 +3,35 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import json
-from math import sqrt
-import numpy as np
 import re
+from math import sqrt
+
+import numpy as np
 import six
 
-
-WORDS = re.compile(r'(\w+)')
-MAIL = re.compile(r'^([^@]+@[^ ]+)')
+WORDS = re.compile(r"(\w+)")
+MAIL = re.compile(r"^([^@]+@[^ ]+)")
 IMs = [
-    'irc',
-    'slack',
-    'skype',
-    'xmpp',
-    'github',
-    'aim',
-    'telegram',
-    'irc.mozilla.org',
-    'google talk',
-    'gtalk',
-    'blog',
-    'twitter',
+    "irc",
+    "slack",
+    "skype",
+    "xmpp",
+    "github",
+    "aim",
+    "telegram",
+    "irc.mozilla.org",
+    "google talk",
+    "gtalk",
+    "blog",
+    "twitter",
 ]
-IM_NICK = re.compile(r'([\w\.@]+)')
+IM_NICK = re.compile(r"([\w\.@]+)")
 
 
 class People:
     def __init__(self, p=None):
         if p is None:
-            with open('./auto_nag/scripts/configs/people.json', 'r') as In:
+            with open("./auto_nag/scripts/configs/people.json", "r") as In:
                 self.data = json.load(In)
         else:
             self.data = p
@@ -57,22 +57,22 @@ class People:
         people = {}
         for person in self.data:
             mail = self.get_preferred_mail(person)
-            person['mail'] = mail
+            person["mail"] = mail
             people[mail] = person
         return people
 
     def _get_names(self):
         if not self.names:
             for person in self.data:
-                cn = person['cn']
+                cn = person["cn"]
                 parts = self._get_name_parts(cn)
                 parts = tuple(sorted(parts))
                 self.names[parts] = person
         return self.names
 
     def _get_bigrams(self, text):
-        text = ''.join(s.lower() for s in WORDS.findall(text))
-        return [text[i : (i + 2)] for i in range(len(text) - 1)]  # NOQA
+        text = "".join(s.lower() for s in WORDS.findall(text))
+        return [text[i : (i + 2)] for i in range(len(text) - 1)]
 
     def _get_bigrams_stats(self, text):
         stats = {}
@@ -87,7 +87,7 @@ class People:
             bigrams = set()
             cns = {}
             for person in self.data:
-                cn = person['cn']
+                cn = person["cn"]
                 cns[cn] = person
                 res[cn] = stats = self._get_bigrams_stats(cn)
                 L = sqrt(sum(v * v for v in stats.values()))
@@ -134,9 +134,9 @@ class People:
     def _get_people_by_bzmail(self):
         if not self.people_by_bzmail:
             for person in self.data:
-                bzmail = person['bugzillaEmail']
+                bzmail = person["bugzillaEmail"]
                 if not bzmail:
-                    bzmail = person['mail']
+                    bzmail = person["mail"]
                 self.people_by_bzmail[bzmail] = person
         return self.people_by_bzmail
 
@@ -144,16 +144,16 @@ class People:
         """Get all the managers"""
         if not self.managers:
             for person in self.data:
-                manager = person['manager']
+                manager = person["manager"]
                 if manager:
-                    self.managers.add(manager['dn'])
+                    self.managers.add(manager["dn"])
         return self.managers
 
     def get_people_with_bzmail(self):
         """Get all the people who have a bugzilla email"""
         if not self.people_with_bzmail:
             for person, info in self.people.items():
-                mail = info['bugzillaEmail']
+                mail = info["bugzillaEmail"]
                 if mail:
                     self.people_with_bzmail.add(mail)
         return self.people_with_bzmail
@@ -163,11 +163,11 @@ class People:
         if not self.nicks:
             doubloons = set()
             for person, info in self.people.items():
-                bz_mail = info['bugzillaEmail']
+                bz_mail = info["bugzillaEmail"]
                 if not bz_mail:
                     continue
                 nicks = self.get_nicks_from_im(info)
-                nicks |= {person, bz_mail, info['mail'], info.get('githubprofile')}
+                nicks |= {person, bz_mail, info["mail"], info.get("githubprofile")}
                 nicks |= set(self.get_aliases(info))
                 nicks = {self.get_mail_prefix(n) for n in nicks if n}
                 for n in nicks:
@@ -183,7 +183,7 @@ class People:
     def get_rm(self):
         """Get the release managers as defined in configs/rm.json"""
         if not self.release_managers:
-            with open('./auto_nag/scripts/configs/rm.json', 'r') as In:
+            with open("./auto_nag/scripts/configs/rm.json", "r") as In:
                 self.release_managers = set(json.load(In))
         return self.release_managers
 
@@ -191,8 +191,8 @@ class People:
         """Get the directors: people who 'director' in their job title"""
         if not self.directors:
             for person, info in self.people.items():
-                title = info.get('title', '').lower()
-                if 'director' in title:
+                title = info.get("title", "").lower()
+                if "director" in title:
                     self.directors.add(person)
         return self.directors
 
@@ -200,9 +200,9 @@ class People:
         """Get the vp: people who've 'vp' in their job title"""
         if not self.vps:
             for person, info in self.people.items():
-                title = info.get('title', '').lower()
+                title = info.get("title", "").lower()
                 if (
-                    title.startswith('vp') or title.startswith('vice president')
+                    title.startswith("vp") or title.startswith("vice president")
                 ) and self.get_distance(person) <= 3:
                     self.vps.add(person)
         return self.vps
@@ -223,34 +223,34 @@ class People:
             ms = self.get_directors() | self.get_rm()
             for m in ms:
                 info = self.people[m]
-                mail = info['bugzillaEmail']
+                mail = info["bugzillaEmail"]
                 if mail:
                     self.rm_or_directors.add(mail)
         return self.rm_or_directors
 
     def _get_mail_from_dn(self, dn):
-        dn = dn.split(',')
+        dn = dn.split(",")
         assert len(dn) >= 2
-        dn = dn[0].split('=')
+        dn = dn[0].split("=")
         assert len(dn) == 2
         return dn[1]
 
     def _amend(self):
         for person in self.data:
-            if 'manager' not in person:
-                person['manager'] = {}
-            if 'title' not in person:
-                person['title'] = ''
-            manager = person['manager']
+            if "manager" not in person:
+                person["manager"] = {}
+            if "title" not in person:
+                person["title"] = ""
+            manager = person["manager"]
             if manager:
-                manager['dn'] = self._get_mail_from_dn(manager['dn'])
-            if 'bugzillaEmail' in person:
-                person['bugzillaEmail'] = person['bugzillaEmail'].lower()
-            elif 'bugzillaemail' in person:
-                person['bugzillaEmail'] = person['bugzillaemail'].lower()
-                del person['bugzillaemail']
+                manager["dn"] = self._get_mail_from_dn(manager["dn"])
+            if "bugzillaEmail" in person:
+                person["bugzillaEmail"] = person["bugzillaEmail"].lower()
+            elif "bugzillaemail" in person:
+                person["bugzillaEmail"] = person["bugzillaemail"].lower()
+                del person["bugzillaemail"]
             else:
-                person['bugzillaEmail'] = ''
+                person["bugzillaEmail"] = ""
 
     def is_mozilla(self, mail):
         """Check if the mail is the one from a mozilla employee"""
@@ -260,7 +260,7 @@ class People:
         """Check if the mail is the one from a mozilla manager"""
         if mail in self._get_people_by_bzmail():
             person = self._get_people_by_bzmail()[mail]
-            return person['mail'] in self._get_managers()
+            return person["mail"] in self._get_managers()
         elif mail in self.people:
             return mail in self._get_managers()
 
@@ -274,9 +274,9 @@ class People:
         if not person:
             return None
 
-        manager = person['manager']
+        manager = person["manager"]
         if manager:
-            return manager['dn']
+            return manager["dn"]
 
         return None
 
@@ -318,10 +318,10 @@ class People:
         return None
 
     def get_mail_prefix(self, mail):
-        return mail.split('@', 1)[0].lower()
+        return mail.split("@", 1)[0].lower()
 
     def get_im(self, person):
-        im = person.get('im', '')
+        im = person.get("im", "")
         if not im:
             return []
         if isinstance(im, six.string_types):
@@ -334,15 +334,15 @@ class People:
         for info in im:
             info = info.lower()
             for i in IMs:
-                info = info.replace(i, '')
+                info = info.replace(i, "")
             for nick in IM_NICK.findall(info):
-                if nick.startswith('@'):
+                if nick.startswith("@"):
                     nick = nick[1:]
                 nicks.add(nick)
         return nicks
 
     def get_aliases(self, person):
-        aliases = person.get('emailalias', '')
+        aliases = person.get("emailalias", "")
         if not aliases:
             return []
         if isinstance(aliases, six.string_types):
@@ -353,23 +353,23 @@ class People:
         aliases = self.get_aliases(person)
         for alias in aliases:
             alias = alias.strip()
-            if 'preferred' in alias:
+            if "preferred" in alias:
                 m = MAIL.search(alias)
                 if m:
                     return m.group(1)
-        return person['mail']
+        return person["mail"]
 
     def get_moz_mail(self, mail):
         """Get the manager of the person with this mail"""
         person = self._get_people_by_bzmail().get(mail, None)
         if person:
-            return person['mail']
+            return person["mail"]
         return mail
 
     def get_moz_name(self, mail):
         """Get the manager of the person with this mail"""
         person = self._get_people_by_bzmail().get(mail, None)
-        return person['cn']
+        return person["cn"]
 
     def get_info(self, mail):
         """Get info on person with this mail"""
@@ -391,7 +391,7 @@ class People:
     def get_bzmail_from_name(self, name):
         """Search bz mail for a given name"""
 
-        if '@' in name:
+        if "@" in name:
             info = self.get_info(name)
         else:
             info = self.get_info_by_nick(name)
@@ -399,15 +399,15 @@ class People:
                 info = self.search_by_name(name)
 
         if info:
-            mail = info['bugzillaEmail']
-            return mail if mail else info['mail']
+            mail = info["bugzillaEmail"]
+            return mail if mail else info["mail"]
 
         return None
 
     def get_mozmail_from_name(self, name):
         """Search moz mail for a given name"""
 
-        if '@' in name:
+        if "@" in name:
             info = self.get_info(name)
         else:
             info = self.get_info_by_nick(name)
@@ -415,6 +415,6 @@ class People:
                 info = self.search_by_name(name)
 
         if info:
-            return info['mail']
+            return info["mail"]
 
         return None

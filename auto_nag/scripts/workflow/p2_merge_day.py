@@ -3,8 +3,9 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from libmozdata import release_calendar as rc
-from auto_nag.bzcleaner import BzCleaner
+
 from auto_nag import utils
+from auto_nag.bzcleaner import BzCleaner
 
 
 class P2MergeDay(BzCleaner):
@@ -14,12 +15,12 @@ class P2MergeDay(BzCleaner):
     def must_run(self, date):
         cal = rc.get_calendar()
         for c in cal:
-            if date == c['merge']:
+            if date == c["merge"]:
                 return True
         return False
 
     def description(self):
-        return 'P2 bugs with an assignee on merge day'
+        return "P2 bugs with an assignee on merge day"
 
     def has_product_component(self):
         return True
@@ -28,7 +29,7 @@ class P2MergeDay(BzCleaner):
         return True
 
     def columns(self):
-        return ['component', 'id', 'summary']
+        return ["component", "id", "summary"]
 
     def handle_bug(self, bug, data):
         # check if the product::component is in the list
@@ -37,13 +38,13 @@ class P2MergeDay(BzCleaner):
         return bug
 
     def get_bz_params(self, date):
-        self.components = utils.get_config('workflow', 'components')
+        self.components = utils.get_config("workflow", "components")
         params = {
-            'component': utils.get_components(self.components),
-            'resolution': '---',
-            'f1': 'priority',
-            'o1': 'equals',
-            'v1': 'P2',
+            "component": utils.get_components(self.components),
+            "resolution": "---",
+            "f1": "priority",
+            "o1": "equals",
+            "v1": "P2",
         }
 
         utils.get_empty_assignees(params)
@@ -52,12 +53,12 @@ class P2MergeDay(BzCleaner):
 
     def get_autofix_change(self):
         return {
-            'comment': {
-                'body': 'Set the priority to P1 since today is the merge day.\nSee [What Do You Triage](https://mozilla.github.io/bug-handling/triage-bugzilla#what-do-you-triage) for more information.'
+            "comment": {
+                "body": "Set the priority to P1 since today is the merge day.\nSee [What Do You Triage](https://mozilla.github.io/bug-handling/triage-bugzilla#what-do-you-triage) for more information."
             },
-            'priority': 'P1',
+            "priority": "P1",
         }
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     P2MergeDay().run()

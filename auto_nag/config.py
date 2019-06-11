@@ -3,33 +3,35 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import json
-from libmozdata import config
 import os
+
+from libmozdata import config
 
 
 class MyConfig(config.Config):
 
-    PATH = 'auto_nag/scripts/configs/config.json'
+    PATH = "auto_nag/scripts/configs/config.json"
 
     def __init__(self):
         super(MyConfig, self).__init__()
         if not os.path.exists(MyConfig.PATH):
-            self.conf = {'bz_api_key': ''}
+            self.conf = {"bz_api_key": ""}
         else:
             with open(MyConfig.PATH) as In:
                 self.conf = json.load(In)
-                if not self.conf.get('bz_api_key', None):
+                if not self.conf.get("bz_api_key", None):
                     raise Exception(
-                        'Your config.json file must contain a Bugzilla token'
+                        "Your config.json file must contain a Bugzilla token"
                     )
 
     def get(self, section, option, default=None, type=str):
-        if section == 'Bugzilla':
-            if option == 'token':
-                return self.conf['bz_api_key']
-        elif section == 'User-Agent':
-            return 'relman-auto-nag'
+        if section == "Bugzilla":
+            if option == "token":
+                return self.conf["bz_api_key"]
+        elif section == "User-Agent":
+            return "relman-auto-nag"
         return default
 
 
-config.set_config(MyConfig())
+def load():
+    config.set_config(MyConfig())

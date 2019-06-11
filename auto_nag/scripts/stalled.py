@@ -10,28 +10,28 @@ class Stalled(BzCleaner):
         super(Stalled, self).__init__()
 
     def description(self):
-        return 'Closed bugs with stalled keyword'
+        return "Closed bugs with stalled keyword"
 
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
         params = {
-            'bug_status': ['RESOLVED', 'VERIFIED', 'CLOSED'],
-            'f1': 'keywords',
-            'o1': 'casesubstring',
-            'v1': 'stalled',
-            'f2': 'resolution',
-            'o2': 'changedafter',
-            'v2': start_date,
-            'f3': 'resolution',
-            'o3': 'changedbefore',
-            'v3': end_date,
+            "bug_status": ["RESOLVED", "VERIFIED", "CLOSED"],
+            "f1": "keywords",
+            "o1": "casesubstring",
+            "v1": "stalled",
+            "f2": "resolution",
+            "o2": "changedafter",
+            "v2": start_date,
+            "f3": "resolution",
+            "o3": "changedbefore",
+            "v3": end_date,
         }
 
         return params
 
     def get_autofix_change(self):
-        return {'keywords': {'remove': ['stalled']}}
+        return {"keywords": {"remove": ["stalled"]}}
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     Stalled().run()

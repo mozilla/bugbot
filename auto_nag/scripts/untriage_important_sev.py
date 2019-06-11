@@ -10,15 +10,15 @@ class UntriagedWithImportantSev(BzCleaner):
         super(UntriagedWithImportantSev, self).__init__()
 
     def description(self):
-        return 'Bugs in untriaged with an important severity'
+        return "Bugs in untriaged with an important severity"
 
     def get_bz_params(self, date):
         return {
-            'resolution': ['---'],
-            'bug_severity': ['blocker', 'critical', 'major'],
-            'component': 'Untriaged',
+            "resolution": ["---"],
+            "bug_severity": ["blocker", "critical", "major"],
+            "component": "Untriaged",
         }
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     UntriagedWithImportantSev().run()

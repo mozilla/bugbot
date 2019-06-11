@@ -10,7 +10,9 @@ class DefectWithPlease(BzCleaner):
         super(DefectWithPlease, self).__init__()
 
     def description(self):
-        return "Defect with description starting with 'Please', 'Enable', 'Disable', etc"
+        return (
+            "Defect with description starting with 'Please', 'Enable', 'Disable', etc"
+        )
 
     def ignore_date(self):
         return True

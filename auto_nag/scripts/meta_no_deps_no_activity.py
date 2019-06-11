@@ -2,21 +2,21 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.people import People
-from auto_nag import utils
 
 
 class MetaNoDepsNoActivity(BzCleaner):
     def __init__(self):
         super(MetaNoDepsNoActivity, self).__init__()
         self.people = People()
-        self.nmonths = utils.get_config(self.name(), 'months_lookup')
-        self.max_ni = utils.get_config(self.name(), 'max_ni')
-        self.skiplist = set(utils.get_config(self.name(), 'skiplist', []))
+        self.nmonths = utils.get_config(self.name(), "months_lookup")
+        self.max_ni = utils.get_config(self.name(), "max_ni")
+        self.skiplist = set(utils.get_config(self.name(), "skiplist", []))
 
     def description(self):
-        return 'Bugs with meta keyword, not depending on bugs and no activity for the last {} months'.format(
+        return "Bugs with meta keyword, not depending on bugs and no activity for the last {} months".format(
             self.nmonths
         )
 
@@ -24,7 +24,7 @@ class MetaNoDepsNoActivity(BzCleaner):
         return self.get_extra_for_template()
 
     def get_extra_for_template(self):
-        return {'nmonths': self.nmonths}
+        return {"nmonths": self.nmonths}
 
     def get_auto_ni_skiplist(self):
         return self.skiplist
@@ -33,30 +33,30 @@ class MetaNoDepsNoActivity(BzCleaner):
         return self.max_ni
 
     def get_mail_to_auto_ni(self, bug):
-        for f in ['assigned_to', 'triage_owner']:
-            person = bug.get(f, '')
+        for f in ["assigned_to", "triage_owner"]:
+            person = bug.get(f, "")
             if person and self.people.is_mozilla(person):
-                return {'mail': person, 'nickname': bug[f + '_detail']['nick']}
+                return {"mail": person, "nickname": bug[f + "_detail"]["nick"]}
 
         return None
 
     def get_bz_params(self, date):
-        fields = ['assigned_to', 'triage_owner']
+        fields = ["assigned_to", "triage_owner"]
         params = {
-            'include_fields': fields,
-            'resolution': '---',
-            'f1': 'keywords',
-            'o1': 'casesubstring',
-            'v1': 'meta',
-            'f2': 'days_elapsed',
-            'o2': 'greaterthan',
-            'v2': self.nmonths * 30,
-            'f3': 'dependson',
-            'o3': 'isempty',
+            "include_fields": fields,
+            "resolution": "---",
+            "f1": "keywords",
+            "o1": "casesubstring",
+            "v1": "meta",
+            "f2": "days_elapsed",
+            "o2": "greaterthan",
+            "v2": self.nmonths * 30,
+            "f3": "dependson",
+            "o3": "isempty",
         }
 
         return params
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     MetaNoDepsNoActivity().run()

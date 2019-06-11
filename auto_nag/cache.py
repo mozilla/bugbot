@@ -3,8 +3,10 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import json
-from libmozdata import utils as lmdutils
 import os
+
+from libmozdata import utils as lmdutils
+
 from auto_nag import utils
 
 
@@ -22,20 +24,20 @@ class Cache(object):
         self.dryrun = dryrun or self.max_days < 1
 
     def get_path(self):
-        cache_path = utils.get_config('common', 'cache')
+        cache_path = utils.get_config("common", "cache")
         if not os.path.exists(cache_path):
             os.mkdir(cache_path)
-        return '{}/{}.json'.format(cache_path, self.name)
+        return "{}/{}.json".format(cache_path, self.name)
 
     def get_data(self):
         if self.data is None:
             path = self.get_path()
             self.data = {}
             if os.path.exists(path):
-                with open(path, 'r') as In:
+                with open(path, "r") as In:
                     data = json.load(In)
                     for bugid, date in data.items():
-                        delta = lmdutils.get_date_ymd('today') - lmdutils.get_date_ymd(
+                        delta = lmdutils.get_date_ymd("today") - lmdutils.get_date_ymd(
                             date
                         )
                         if delta.days < self.max_days:
@@ -51,7 +53,7 @@ class Cache(object):
         for bugid in bugids:
             data[int(bugid)] = today
 
-        with open(self.get_path(), 'w') as Out:
+        with open(self.get_path(), "w") as Out:
             json.dump(data, Out)
 
         self.added = True
