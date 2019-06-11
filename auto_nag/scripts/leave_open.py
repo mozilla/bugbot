@@ -10,28 +10,28 @@ class LeaveOpen(BzCleaner):
         super(LeaveOpen, self).__init__()
 
     def description(self):
-        return 'Closed bugs with leave-open keyword'
+        return "Closed bugs with leave-open keyword"
 
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
         params = {
-            'bug_status': ['RESOLVED', 'VERIFIED', 'CLOSED'],
-            'f1': 'keywords',
-            'o1': 'casesubstring',
-            'v1': 'leave-open',
-            'f2': 'resolution',
-            'o2': 'changedafter',
-            'v2': start_date,
-            'f3': 'resolution',
-            'o3': 'changedbefore',
-            'v3': end_date,
+            "bug_status": ["RESOLVED", "VERIFIED", "CLOSED"],
+            "f1": "keywords",
+            "o1": "casesubstring",
+            "v1": "leave-open",
+            "f2": "resolution",
+            "o2": "changedafter",
+            "v2": start_date,
+            "f3": "resolution",
+            "o3": "changedbefore",
+            "v3": end_date,
         }
 
         return params
 
     def get_autofix_change(self):
-        return {'keywords': {'remove': ['leave-open']}}
+        return {"keywords": {"remove": ["leave-open"]}}
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     LeaveOpen().run()

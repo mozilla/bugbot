@@ -1,17 +1,16 @@
 from __future__ import with_statement
 
+import os
+import sys
 from logging.config import fileConfig
 
-import os
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-import sys
-
 from alembic import context
+from sqlalchemy import engine_from_config, pool
+
+from auto_nag.db import Base, db_url  # NOQA
 
 sys.path.append(os.getcwd())
 
-from auto_nag.db import Base, db_url  # NOQA
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -21,7 +20,7 @@ config = context.config
 # This line sets up loggers basically.
 fileConfig(config.config_file_name)
 
-config.set_main_option('sqlalchemy.url', db_url)
+config.set_main_option("sqlalchemy.url", db_url)
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel

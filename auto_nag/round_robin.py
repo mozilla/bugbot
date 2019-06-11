@@ -2,11 +2,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from dateutil.relativedelta import relativedelta
 import json
+from random import randint
+
+from dateutil.relativedelta import relativedelta
 from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import BugzillaUser
-from random import randint
 
 from auto_nag import logger, utils
 from auto_nag.people import People
@@ -22,11 +23,11 @@ class RoundRobin(object):
         utils.init_random()
 
     def get_calendar(self, team, data):
-        fallback = data['fallback']
-        strats = set(data['components'].values())
+        fallback = data["fallback"]
+        strats = set(data["components"].values())
         res = {}
         for strat in strats:
-            url = data[strat]['calendar']
+            url = data[strat]["calendar"]
             res[strat] = Calendar.get(url, fallback, team, people=self.people)
         return res
 
@@ -36,11 +37,11 @@ class RoundRobin(object):
         if rr is None:
             rr = {}
             for team, path in utils.get_config(
-                'round-robin', 'teams', default={}
+                "round-robin", "teams", default={}
             ).items():
                 if teams is not None and team not in teams:
                     continue
-                with open('./auto_nag/scripts/configs/{}'.format(path), 'r') as In:
+                with open("./auto_nag/scripts/configs/{}".format(path), "r") as In:
                     rr[team] = json.load(In)
                     filenames[team] = path
 
@@ -57,16 +58,16 @@ class RoundRobin(object):
             # finally self.data is a dictionary:
             # - Product::Component -> dictionary {fallback: who to nag when we've nobody
             #                                     calendar}
-            for pc, strategy in data['components'].items():
+            for pc, strategy in data["components"].items():
                 self.data[pc] = calendars[strategy]
 
     def get_components(self):
         return list(self.data.keys())
 
     def get_fallback(self, bug):
-        pc = bug['product'] + '::' + bug['component']
+        pc = bug["product"] + "::" + bug["component"]
         if pc not in self.data:
-            mail = bug.get('triage_owner')
+            mail = bug.get("triage_owner")
         else:
             cal = self.data[pc]
             mail = cal.get_fallback_bzmail()
@@ -77,22 +78,22 @@ class RoundRobin(object):
         if bzmail not in self.nicks:
 
             def handler(user):
-                self.nicks[bzmail] = user['nick']
+                self.nicks[bzmail] = user["nick"]
 
             BugzillaUser(user_names=[bzmail], user_handler=handler).wait()
 
         return self.nicks[bzmail]
 
     def get(self, bug, date, only_one=True, has_nick=True):
-        pc = bug['product'] + '::' + bug['component']
+        pc = bug["product"] + "::" + bug["component"]
         if pc not in self.data:
-            mail = bug.get('triage_owner')
-            nick = bug.get('triage_owner_detail', {}).get('nick')
+            mail = bug.get("triage_owner")
+            nick = bug.get("triage_owner_detail", {}).get("nick")
             if utils.is_no_assignee(mail):
                 mail, nick = None, None
 
             if mail is None:
-                logger.error('No triage owner for {}'.format(pc))
+                logger.error("No triage owner for {}".format(pc))
 
             if has_nick:
                 return mail, nick if only_one else [(mail, nick)]
@@ -122,7 +123,7 @@ class RoundRobin(object):
     def get_who_to_nag(self, date):
         fallbacks = {}
         date = lmdutils.get_date_ymd(date)
-        days = utils.get_config('round-robin', 'days_to_nag', 7)
+        days = utils.get_config("round-robin", "days_to_nag", 7)
         next_date = date + relativedelta(days=days)
         for cal in self.all_calendars:
             persons = cal.get_persons(next_date)
@@ -134,13 +135,13 @@ class RoundRobin(object):
             if fb not in fallbacks:
                 fallbacks[fb] = {}
             if name not in fallbacks[fb]:
-                fallbacks[fb][name] = {'nobody': False, 'persons': []}
+                fallbacks[fb][name] = {"nobody": False, "persons": []}
             info = fallbacks[fb][name]
 
             if not persons:
-                info['nobody'] = True
+                info["nobody"] = True
             else:
                 people_names = [n for n, p in persons if p is None]
                 if people_names:
-                    info['persons'] += people_names
+                    info["persons"] += people_names
         return fallbacks

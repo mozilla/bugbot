@@ -10,24 +10,24 @@ class assigneeButUnconfirmed(BzCleaner):
         super(assigneeButUnconfirmed, self).__init__()
 
     def description(self):
-        return 'Get unconfirmed bugs with assignee'
+        return "Get unconfirmed bugs with assignee"
 
     def get_bz_params(self, date):
         params = {
-            'resolution': '---',
-            'bug_status': 'UNCONFIRMED',
-            'emailtype1': 'notequals',
-            'email1': 'nobody@mozilla.org',
-            'emailassigned_to1': '1',
-            'emailtype2': 'notregexp',
-            'email2': '.*@.*.bugs',
-            'emailassigned_to2': '1',
+            "resolution": "---",
+            "bug_status": "UNCONFIRMED",
+            "emailtype1": "notequals",
+            "email1": "nobody@mozilla.org",
+            "emailassigned_to1": "1",
+            "emailtype2": "notregexp",
+            "email2": ".*@.*.bugs",
+            "emailassigned_to2": "1",
         }
         return params
 
     def get_autofix_change(self):
-        return {'bug_status': 'ASSIGNED'}
+        return {"bug_status": "ASSIGNED"}
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     assigneeButUnconfirmed().run()

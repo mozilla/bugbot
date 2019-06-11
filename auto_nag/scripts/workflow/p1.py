@@ -5,7 +5,6 @@
 from auto_nag.scripts.workflow.p1_no_activity import P1NoActivity
 from auto_nag.scripts.workflow.p1_no_assignee import P1NoAssignee
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     P1NoAssignee().run()
     P1NoActivity().run()

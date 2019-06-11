@@ -10,18 +10,18 @@ class FeatureRegression(BzCleaner):
         super(FeatureRegression, self).__init__()
 
     def description(self):
-        return 'Bugs with feature and regression keywords'
+        return "Bugs with feature and regression keywords"
 
     def ignore_date(self):
         return True
 
     def get_bz_params(self, date):
         return {
-            'resolution': ['---', 'FIXED'],
-            'keywords': ['feature', 'regression'],
-            'keywords_type': 'allwords',
+            "resolution": ["---", "FIXED"],
+            "keywords": ["feature", "regression"],
+            "keywords_type": "allwords",
         }
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     FeatureRegression().run()

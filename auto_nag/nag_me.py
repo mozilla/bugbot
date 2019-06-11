@@ -3,10 +3,12 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import copy
+
 from jinja2 import Environment, FileSystemLoader
+
 from auto_nag import db, logger, mail, utils
-from auto_nag.people import People
 from auto_nag.escalation import Escalation
+from auto_nag.people import People
 
 
 class Nag(object):
@@ -25,20 +27,20 @@ class Nag(object):
 
     @staticmethod
     def get_from():
-        return utils.get_config('auto_nag', 'from', 'release-mgmt@mozilla.com')
+        return utils.get_config("auto_nag", "from", "release-mgmt@mozilla.com")
 
     def get_cc(self):
-        cc = self.get_config('cc', None)
+        cc = self.get_config("cc", None)
         if cc is None:
-            cc = utils.get_config('auto_nag', 'cc', [])
+            cc = utils.get_config("auto_nag", "cc", [])
 
         return set(cc)
 
     def get_priority(self, bug):
         tracking = bug[self.tracking]
-        if tracking == 'blocking':
-            return 'high'
-        return 'normal'
+        if tracking == "blocking":
+            return "high"
+        return "normal"
 
     def filter_bug(self, priority):
         days = (utils.get_next_release_date() - self.nag_date).days
@@ -55,7 +57,7 @@ class Nag(object):
         days = (utils.get_next_release_date() - self.nag_date).days
         return self.escalation.get_supervisor(priority, days, person, **kwargs)
 
-    def add(self, persons, bug_data, priority='default', **kwargs):
+    def add(self, persons, bug_data, priority="default", **kwargs):
         if not isinstance(persons, list):
             persons = [persons]
 
@@ -83,7 +85,7 @@ class Nag(object):
         return True
 
     def nag_template(self):
-        return self.name() + '_nag.html'
+        return self.name() + "_nag.html"
 
     def nag_preamble(self):
         return None
@@ -127,13 +129,13 @@ class Nag(object):
         if self.all_owners is None:
             self.all_owners = utils.get_triage_owners()
         params = copy.deepcopy(self.query_params)
-        if 'include_fields' in params:
-            del params['include_fields']
+        if "include_fields" in params:
+            del params["include_fields"]
 
         comps = self.all_owners[owner]
         comps = set(comps)
 
-        params['component'] = sorted(comps)
+        params["component"] = sorted(comps)
         url = utils.get_bz_search_url(params)
 
         return url
@@ -152,8 +154,8 @@ class Nag(object):
         if not self.send_nag_mail:
             return
 
-        env = Environment(loader=FileSystemLoader('templates'))
-        common = env.get_template('common.html')
+        env = Environment(loader=FileSystemLoader("templates"))
+        common = env.get_template("common.html")
         login_info = utils.get_login_info()
         From = Nag.get_from()
         Default_Cc = self.get_cc()
@@ -161,15 +163,15 @@ class Nag(object):
 
         for m in mails:
             Cc = Default_Cc.copy()
-            if m['manager']:
-                Cc.add(m['manager'])
-            body = common.render(message=m['body'], query_url=None)
-            receivers = set(m['to']) | set(Cc)
-            status = 'Success'
+            if m["manager"]:
+                Cc.add(m["manager"])
+            body = common.render(message=m["body"], query_url=None)
+            receivers = set(m["to"]) | set(Cc)
+            status = "Success"
             try:
                 mail.send(
                     From,
-                    sorted(m['to']),
+                    sorted(m["to"]),
                     title,
                     body,
                     Cc=sorted(Cc),
@@ -178,10 +180,10 @@ class Nag(object):
                     dryrun=dryrun,
                 )
             except:  # NOQA
-                logger.exception('Tool {}'.format(self.name()))
-                status = 'Failure'
+                logger.exception("Tool {}".format(self.name()))
+                status = "Failure"
 
-            db.Email.add(self.name(), receivers, 'individual', status)
+            db.Email.add(self.name(), receivers, "individual", status)
 
     def prepare_mails(self):
         if not self.data:
@@ -192,7 +194,7 @@ class Nag(object):
             return []
 
         extra = self.get_extra_for_nag_template()
-        env = Environment(loader=FileSystemLoader('templates'))
+        env = Environment(loader=FileSystemLoader("templates"))
         template = env.get_template(template)
         mails = []
         for manager, info in self.data.items():
@@ -206,9 +208,9 @@ class Nag(object):
                 data += [
                     bug_data
                     for bug_data in info[person]
-                    if bug_data['id'] not in added_bug_ids
+                    if bug_data["id"] not in added_bug_ids
                 ]
-                added_bug_ids.update(bug_data['id'] for bug_data in info[person])
+                added_bug_ids.update(bug_data["id"] for bug_data in info[person])
 
             if len(To) == 1 and To[0] in self.triage_owners:
                 query_url = self.triage_owners[To[0]]
@@ -223,11 +225,11 @@ class Nag(object):
                 data=self.organize_nag(data),
                 nag=True,
                 query_url_nag=query_url,
-                table_attrs=self.get_config('table_attrs'),
+                table_attrs=self.get_config("table_attrs"),
                 nag_preamble=self.nag_preamble(),
             )
 
-            m = {'manager': manager, 'to': set(info.keys()), 'body': body}
+            m = {"manager": manager, "to": set(info.keys()), "body": body}
             mails.append(m)
 
         return mails
