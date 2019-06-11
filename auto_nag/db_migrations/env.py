@@ -7,10 +7,12 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from auto_nag.db import Base, db_url
-
 sys.path.append(os.getcwd())
 
+try:
+    from auto_nag.db import Base, db_url
+except ModuleNotFoundError:
+    raise
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
