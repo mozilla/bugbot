@@ -100,7 +100,13 @@ class Regression(BugbugScript):
     def get_autofix_change(self):
         cc = self.get_config("cc")
         return {
-            bug_id: {"keywords": {"add": ["regression"]}, "cc": {"add": cc}}
+            bug_id: {
+                "keywords": {"add": ["regression"]},
+                "cc": {"add": cc},
+                "comment": {
+                    "body": "[Bugbug](https://github.com/mozilla/bugbug/) thinks this bug is a regression, but please revert this change in case of error."
+                },
+            }
             for bug_id in self.autofix_regression
         }
 
