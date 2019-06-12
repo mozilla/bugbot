@@ -93,22 +93,26 @@ class Regression(BugbugScript):
             # Only autofix results for which we are sure enough.
             if prob[1] >= self.get_config("confidence_threshold"):
                 result[bug_id]["autofixed"] = True
-                self.autofix_regression.append(bug_id)
+                self.autofix_regression.append((bug_id, prob[1]))
 
         return result
 
     def get_autofix_change(self):
         cc = self.get_config("cc")
-        return {
-            bug_id: {
+
+        autofix_change = {}
+        for bug_id, confidence in self.autofix_regression:
+            autofix_change[bug_id] = {
                 "keywords": {"add": ["regression"]},
                 "cc": {"add": cc},
-                "comment": {
-                    "body": "[Bugbug](https://github.com/mozilla/bugbug/) thinks this bug is a regression, but please revert this change in case of error."
-                },
             }
-            for bug_id in self.autofix_regression
-        }
+
+            if confidence != 1.0:
+                autofix_change[bug_id]["comment"] = {
+                    "body": "[Bugbug](https://github.com/mozilla/bugbug/) thinks this bug is a regression, but please revert this change in case of error."
+                }
+
+        return autofix_change
 
 
 if __name__ == "__main__":
