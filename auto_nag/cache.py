@@ -41,7 +41,7 @@ class Cache(object):
                             date
                         )
                         if delta.days < self.max_days:
-                            self.data[int(bugid)] = date
+                            self.data[str(bugid)] = date
         return self.data
 
     def add(self, bugids):
@@ -51,7 +51,7 @@ class Cache(object):
         data = self.get_data()
         today = lmdutils.get_today()
         for bugid in bugids:
-            data[int(bugid)] = today
+            data[str(bugid)] = today
 
         with open(self.get_path(), "w") as Out:
             json.dump(data, Out)
@@ -59,4 +59,4 @@ class Cache(object):
         self.added = True
 
     def __contains__(self, key):
-        return not self.dryrun and int(key) in self.get_data()
+        return not self.dryrun and str(key) in self.get_data()
