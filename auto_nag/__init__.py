@@ -5,9 +5,17 @@
 import logging
 import sys
 
-from . import config, utils
+from . import config
 
 config.load()
+
+# We can remove this hack and load utils in the same line as config when we fix
+# the libmozdata bug that doesn't allow to reset the configuration.
+try:
+    from . import utils
+except ModuleNotFoundError:
+    raise
+
 
 VERSION = (0, 0, 1)
 __version__ = ".".join(map(str, VERSION))
