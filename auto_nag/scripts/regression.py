@@ -61,10 +61,10 @@ class Regression(BugbugScript):
         def should_remove(bug):
             for h in bug["history"]:
                 for change in h["changes"]:
-                    if (
-                        change["field_name"] == "keywords"
-                        and change["removed"] == "regression"
-                    ):
+                    # N.B.: The removed field can be a comma-separated list.
+                    if change["field_name"] == "keywords" and "regression" in [
+                        key.strip() for key in change["removed"].split(",")
+                    ]:
                         return True
 
             return False
