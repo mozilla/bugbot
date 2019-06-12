@@ -141,9 +141,6 @@
         "confidence_threshold": 0.9,
         "cc":
         [
-            "sledru@mozilla.com",
-            "mcastelluccio@mozilla.com",
-            "cdenizet@mozilla.com"
         ]
     },
     "auto_nag":
@@ -453,9 +450,6 @@
         ],
         "cc":
         [
-            "sledru@mozilla.com",
-            "mcastelluccio@mozilla.com",
-            "cdenizet@mozilla.com"
         ]
     },
     "code_freeze_week":
@@ -491,9 +485,6 @@
         "confidence_threshold": 0.9,
         "cc":
         [
-            "sledru@mozilla.com",
-            "mcastelluccio@mozilla.com",
-            "cdenizet@mozilla.com"
         ]
     },
     "tracking":
