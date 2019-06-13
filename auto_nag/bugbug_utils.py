@@ -16,6 +16,10 @@ from libmozdata.bugzilla import Bugzilla
 from auto_nag import logger
 from auto_nag.bzcleaner import BzCleaner
 
+BUGBUG_HTTP_SERVER = os.environ.get(
+    "BUGBUG_HTTP_SERVER", "https://bugbug.herokuapp.com/"
+)
+
 
 class BugbugScript(BzCleaner):
     def __init__(self):
@@ -128,15 +132,17 @@ class BugbugScript(BzCleaner):
 
         # Analyze bugs (make a copy as bugbug could change some properties of the objects).
         if len(bug_ids) > 0:
-            server = "http://localhost:8000"
-            url = f"{server}/component/predict/batch"
+            url = f"{BUGBUG_HTTP_SERVER}/component/predict/batch"
 
             for i in range(100):
-                response = requests.post(url, headers={"X-Api-Key": "Test"}, json={"bugs": bug_ids})
+                response = requests.post(
+                    url, headers={"X-Api-Key": "Test"}, json={"bugs": bug_ids}
+                )
                 if response.status_code == 200:
                     break
                 elif response.status_code == 202:
                     import time
+
                     time.sleep(1)
                 else:
                     response.raise_for_status()
@@ -146,9 +152,6 @@ class BugbugScript(BzCleaner):
             # Inject back the bug in the response
             for bug in bugs:
                 json_response[str(bug["id"])]["bug"] = bug
-
-            # raise Exception(bug_ids, probs, response.json())
-            # 1/0
         else:
             json_response = {}
 
