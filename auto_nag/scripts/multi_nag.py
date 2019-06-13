@@ -28,7 +28,7 @@ class TrackingMultiNag(MultiNaggers):
         return "Get bugs which require a special attention to help release management"
 
     def title(self):
-        return "{} -- Daily Release Tracking Alert".format(
+        return "{} -- Release Tracking Alert".format(
             self.date.strftime("%A %b %d")
         )
 
