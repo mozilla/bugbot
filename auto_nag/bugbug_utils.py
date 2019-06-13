@@ -104,3 +104,52 @@ class BugbugScript(BzCleaner):
             probs = []
 
         return bugs, probs
+
+    def get_bugs_from_backend(self, date="today", bug_ids=[]):
+        # Retrieve bugs to analyze.
+        old_CHUNK_SIZE = Bugzilla.BUGZILLA_CHUNK_SIZE
+        try:
+            Bugzilla.BUGZILLA_CHUNK_SIZE = 7000
+            bug_ids = super().get_bugs(date=date, bug_ids=bug_ids)
+        finally:
+            Bugzilla.BUGZILLA_CHUNK_SIZE = old_CHUNK_SIZE
+
+        # Some consumer of this API needs the actual bugs so download them
+        bugs = bugzilla.get(bug_ids)
+        bugs = list(bugs.values())
+
+        # Add bugs that we are classifying now to the cache.
+        # Normally it's called in bzcleaner::get_mails (with the results of get_bugs)
+        # but since some bugs (we don't want to analyze again) are removed thanks
+        # to their history, we must add_to_cache here.
+        self.to_cache = {bug["id"] for bug in bugs}
+
+        bugs = self.remove_using_history(bugs)
+
+        # Analyze bugs (make a copy as bugbug could change some properties of the objects).
+        if len(bug_ids) > 0:
+            server = "http://localhost:8000"
+            url = f"{server}/component/predict/batch"
+
+            for i in range(100):
+                response = requests.post(url, headers={"X-Api-Key": "Test"}, json={"bugs": bug_ids})
+                if response.status_code == 200:
+                    break
+                elif response.status_code == 202:
+                    import time
+                    time.sleep(1)
+                else:
+                    response.raise_for_status()
+
+            json_response = response.json()
+
+            # Inject back the bug in the response
+            for bug in bugs:
+                json_response[str(bug["id"])]["bug"] = bug
+
+            # raise Exception(bug_ids, probs, response.json())
+            # 1/0
+        else:
+            json_response = {}
+
+        return json_response

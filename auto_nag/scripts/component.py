@@ -71,17 +71,19 @@ class Component(BugbugScript):
 
     def get_bugs(self, date="today", bug_ids=[]):
         # Retrieve bugs to analyze.
-        bugs, probs = super().get_bugs(date=date, bug_ids=bug_ids)
+        bugs = super().get_bugs_from_backend(date=date, bug_ids=bug_ids)
         if len(bugs) == 0:
             return {}
 
-        # Get the encoded component.
-        indexes = probs.argmax(axis=-1)
-        # Apply inverse transformation to get the component name from the encoded value.
-        suggestions = self.model.clf._le.inverse_transform(indexes)
-
         results = {}
-        for bug, prob, index, suggestion in zip(bugs, probs, indexes, suggestions):
+
+        for bug_id in sorted(bugs.keys()):
+            bug_data = bugs[bug_id]
+            bug = bug_data["bug"]
+            prob = bug_data["probs"]
+            index = bug_data["indexes"]
+            suggestion = bug_data["suggestions"]
+
             # Skip product-only suggestions that are not useful.
             if "::" not in suggestion and bug["product"] == suggestion:
                 continue
