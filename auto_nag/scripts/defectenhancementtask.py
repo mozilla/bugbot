@@ -78,20 +78,26 @@ class DefectEnhancementTask(BugbugScript):
 
     def get_bugs(self, date="today", bug_ids=[]):
         # Retrieve bugs to analyze.
-        bugs, probs = super().get_bugs(date=date, bug_ids=bug_ids)
+        bugs = super().get_bugs_from_backend(
+            "defectenhancementtask", date=date, bug_ids=bug_ids
+        )
         if len(bugs) == 0:
             return {}
 
         # Apply inverse transformation to get the type name from the encoded labels.
+        # TODO: Find a clean way to not need this
         labels = self.model.clf._le.inverse_transform([0, 1, 2])
         labels_map = {label: index for label, index in zip(labels, [0, 1, 2])}
 
-        # Get the encoded type.
-        indexes = probs.argmax(axis=-1)
-
         results = {}
-        for bug, prob, index in zip(bugs, probs, indexes):
-            suggestion = labels[index]
+
+        for bug_id in sorted(bugs.keys()):
+            bug_data = bugs[bug_id]
+            bug = bug_data["bug"]
+            prob = bug_data["probs"]
+            index = bug_data["indexes"]
+            suggestion = bug_data["suggestions"]
+
             assert suggestion in {
                 "defect",
                 "enhancement",

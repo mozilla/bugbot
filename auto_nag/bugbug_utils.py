@@ -110,7 +110,7 @@ class BugbugScript(BzCleaner):
 
         return bugs, probs
 
-    def get_bugs_from_backend(self, date="today", bug_ids=[]):
+    def get_bugs_from_backend(self, model, date="today", bug_ids=[]):
         # Retrieve bugs to analyze.
         old_CHUNK_SIZE = Bugzilla.BUGZILLA_CHUNK_SIZE
         try:
@@ -131,9 +131,12 @@ class BugbugScript(BzCleaner):
 
         bugs = self.remove_using_history(bugs)
 
+        # Recreate bug ids as some of the bugs might have been filtered out
+        bug_ids = [bug["id"] for bug in bugs]
+
         # Analyze bugs (make a copy as bugbug could change some properties of the objects).
         if len(bug_ids) > 0:
-            url = f"{BUGBUG_HTTP_SERVER}/component/predict/batch"
+            url = f"{BUGBUG_HTTP_SERVER}/{model}/predict/batch"
 
             for i in range(100):
                 response = requests.post(
