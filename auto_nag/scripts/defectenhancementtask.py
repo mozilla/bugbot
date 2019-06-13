@@ -134,9 +134,7 @@ class DefectEnhancementTask(BugbugScript):
                 "type": suggestion,
                 "cc": {"add": cc},
                 "comment": {
-                    "body": "[Bugbug](https://github.com/mozilla/bugbug/) thinks this bug is a [{}](https://mozilla.github.io/bug-handling/bug-types), but please change it back in case of error.".format(
-                        suggestion
-                    )
+                    "body": f"[Bugbug](https://github.com/mozilla/bugbug/) thinks this bug is a [{suggestion}](https://mozilla.github.io/bug-handling/bug-types), but please change it back in case of error."
                 },
             }
             for bug_id, suggestion in self.autofix_type.items()
