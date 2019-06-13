@@ -80,9 +80,9 @@ class Component(BugbugScript):
         for bug_id in sorted(bugs.keys()):
             bug_data = bugs[bug_id]
             bug = bug_data["bug"]
-            prob = bug_data["probs"]
-            index = bug_data["indexes"]
-            suggestion = bug_data["suggestions"]
+            prob = bug_data["prob"]
+            index = bug_data["index"]
+            suggestion = bug_data["suggestion"]
 
             # Skip product-only suggestions that are not useful.
             if "::" not in suggestion and bug["product"] == suggestion:

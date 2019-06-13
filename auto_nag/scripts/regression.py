@@ -82,7 +82,7 @@ class Regression(BugbugScript):
         for bug_id in sorted(bugs.keys()):
             bug_data = bugs[bug_id]
             bug = bug_data["bug"]
-            prob = bug_data["probs"]
+            prob = bug_data["prob"]
 
             if prob[1] < 0.5:
                 continue
