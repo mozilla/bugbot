@@ -6,6 +6,7 @@ import copy
 import lzma
 import os
 import shutil
+import time
 from urllib.error import HTTPError
 from urllib.request import urlretrieve
 
@@ -141,8 +142,7 @@ class BugbugScript(BzCleaner):
                 if response.status_code == 200:
                     break
                 elif response.status_code == 202:
-                    import time
-
+                    # All the results are not ready yet, try again in 1 second
                     time.sleep(1)
                 else:
                     response.raise_for_status()
