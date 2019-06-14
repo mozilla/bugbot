@@ -78,9 +78,7 @@ class DefectEnhancementTask(BugbugScript):
 
     def get_bugs(self, date="today", bug_ids=[]):
         # Retrieve bugs to analyze.
-        bugs = super().get_bugs_from_backend(
-            "defectenhancementtask", date=date, bug_ids=bug_ids
-        )
+        bugs = super().get_bugs("defectenhancementtask", date=date, bug_ids=bug_ids)
         if len(bugs) == 0:
             return {}
 
