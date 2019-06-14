@@ -83,14 +83,15 @@ class Component(BugbugScript):
             prob = bug_data["prob"]
             index = bug_data["index"]
             suggestion = bug_data["suggestion"]
+            conflated_components_mapping = bug_data["extra_data"][
+                "conflated_components_mapping"
+            ]
 
             # Skip product-only suggestions that are not useful.
             if "::" not in suggestion and bug["product"] == suggestion:
                 continue
 
-            suggestion = self.model.CONFLATED_COMPONENTS_MAPPING.get(
-                suggestion, suggestion
-            )
+            suggestion = conflated_components_mapping.get(suggestion, suggestion)
 
             if "::" not in suggestion:
                 logger.error(
