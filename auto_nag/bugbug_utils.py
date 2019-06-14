@@ -3,18 +3,13 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import copy
-import lzma
 import os
-import shutil
 import time
-from urllib.error import HTTPError
-from urllib.request import urlretrieve
 
 import requests
 from bugbug import bugzilla
 from libmozdata.bugzilla import Bugzilla
 
-from auto_nag import logger
 from auto_nag.bzcleaner import BzCleaner
 
 BUGBUG_HTTP_SERVER = os.environ.get(
@@ -25,40 +20,7 @@ BUGBUG_HTTP_SERVER = os.environ.get(
 class BugbugScript(BzCleaner):
     def __init__(self):
         super().__init__()
-        self.model = self.model_class.load(self.retrieve_model())
         self.to_cache = set()
-
-    def retrieve_model(self):
-        os.makedirs("models", exist_ok=True)
-
-        file_name = f"{self.name()}model"
-        file_path = os.path.join("models", file_name)
-
-        model_url = f"https://index.taskcluster.net/v1/task/project.relman.bugbug.train_{self.name()}.latest/artifacts/public/{file_name}.xz"
-        r = requests.head(model_url, allow_redirects=True)
-        new_etag = r.headers["ETag"]
-
-        try:
-            with open(f"{file_path}.etag", "r") as f:
-                old_etag = f.read()
-        except IOError:
-            old_etag = None
-
-        if old_etag != new_etag:
-            try:
-                urlretrieve(model_url, f"{file_path}.xz")
-            except HTTPError:
-                logger.exception("Tool {}".format(self.name()))
-                return file_path
-
-            with lzma.open(f"{file_path}.xz", "rb") as input_f:
-                with open(file_path, "wb") as output_f:
-                    shutil.copyfileobj(input_f, output_f)
-
-            with open(f"{file_path}.etag", "w") as f:
-                f.write(new_etag)
-
-        return file_path
 
     def get_data(self):
         return list()
