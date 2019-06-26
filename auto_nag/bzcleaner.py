@@ -219,6 +219,7 @@ class BzCleaner(object):
             self.auto_needinfo[ni_mail] = {
                 "nickname": data["nickname"],
                 "bugids": [str(bugid)],
+                "cc": data.get("cc", False),
             }
 
     def get_receivers(self):
@@ -326,10 +327,12 @@ class BzCleaner(object):
         max_years = self.get_max_years()
         if max_years > 0:
             n = utils.get_last_field_num(params)
-            today = lmdutils.get_date_ymd("today")
-            few_years_ago = today - relativedelta(years=max_years)
             params.update(
-                {"f" + n: "creation_ts", "o" + n: "greaterthan", "v" + n: few_years_ago}
+                {
+                    "f" + n: "creation_ts",
+                    "o" + n: "greaterthan",
+                    "v" + n: f"-{max_years}y",
+                }
             )
 
         if self.has_default_products():
@@ -435,6 +438,9 @@ class BzCleaner(object):
                         }
                     ],
                 }
+
+                if info["cc"]:
+                    data["cc"] = {"add": ni_mail}
 
                 res[bugid] = data
 

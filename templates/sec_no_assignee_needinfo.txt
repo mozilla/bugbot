@@ -1,0 +1,2 @@
+There is no assignee and the bug is opened for more than {{ extra['ndays'] }} {{ plural('day', extra['ndays']) }}.
+:{{ nickname }}, could you find someone to work on it?

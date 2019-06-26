@@ -608,5 +608,17 @@
             "mcastelluccio@mozilla.com",
             "cdenizet@mozilla.com"
         ]
+    },
+    "sec_no_assignee":
+    {
+        "sec-types":
+        [
+            "sec-moderate",
+            "sec-high",
+            "sec-critical"
+        ],
+        "max-years": 2,
+        "ndays": 3,
+        "max-needinfo": 3
     }
 }
