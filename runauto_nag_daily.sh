@@ -120,4 +120,7 @@ python -m auto_nag.scripts.stepstoreproduce
 # Evaluate riskiness of recently landed patches
 python -m auto_nag.scripts.regressor
 
+# Ni triage owners on sec bugs to find an assignee
+python -m auto_nag.scripts.sec_no_assignee
+
 deactivate

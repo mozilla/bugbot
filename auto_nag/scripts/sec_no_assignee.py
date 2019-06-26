@@ -16,9 +16,7 @@ class SecNoAssignee(BzCleaner):
             self.nag_count[r.bugid] = self.nag_count.get(r.bugid, 0) + 1
 
     def description(self):
-        return "Security bugs, no assignee and older than {} days".format(
-            self.ndays
-        )
+        return "Security bugs, no assignee and older than {} days".format(self.ndays)
 
     def get_extra_for_template(self):
         return {"ndays": self.ndays}
