@@ -520,6 +520,17 @@
             "release-mgmt@mozilla.com"
         ]
     },
+    "task_enhancement_regression":
+    {
+        "threshold": 3,
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "ehumphries@mozilla.com",
+            "sylvestre@mozilla.com",
+            "mcastelluccio@mozilla.com"
+        ]
+    },
     "regression_without_regressed_by":
     {
         "days_lookup": 30,
