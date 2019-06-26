@@ -44,6 +44,10 @@ class ToTriage(BzCleaner, Nag):
         return self.columns()
 
     def handle_bug(self, bug, data):
+        # check if the product::component is in the list
+        if not utils.check_product_component(self.components, bug):
+            return None
+
         bugid = str(bug["id"])
         data[bugid] = {"type": bug["type"]}
         return bug

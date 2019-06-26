@@ -563,7 +563,8 @@
         },
         "teams":
         [
-            "DOM:Workers & Storage"
+            "DOM:Workers & Storage",
+            "Core::General"
         ],
         "persons":
         [
