@@ -8,11 +8,14 @@ from auto_nag.bzcleaner import BzCleaner
 class TaskEnhancementRegression(BzCleaner):
     def __init__(self):
         super(TaskEnhancementRegression, self).__init__()
-        self.threshold = self.get_config("threshold", 3)
+        self.threshold = self.get_config("threshold")
+        self.ndays = self.get_config("days_lookup")
         self.regressors = {}
 
     def description(self):
-        return "Task or enhancement which caused regression"
+        return (
+            f"Task or enhancement which caused more than {self.threshold} regressions"
+        )
 
     def get_extra_for_template(self):
         return {"threshold": self.threshold}
@@ -38,6 +41,9 @@ class TaskEnhancementRegression(BzCleaner):
             "v1": "task,enhancement",
             "f2": "regresses",
             "o2": "isnotempty",
+            "f3": "creation_ts",
+            "o3": "greaterthaneq",
+            "v3": "-{self.ndays}d",
         }
 
         return params

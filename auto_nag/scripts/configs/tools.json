@@ -523,6 +523,7 @@
     "task_enhancement_regression":
     {
         "threshold": 3,
+        "days_lookup": 14,
         "receivers":
         [
             "calixte@mozilla.com",
