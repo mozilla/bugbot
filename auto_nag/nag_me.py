@@ -21,9 +21,10 @@ class Nag(object):
         self.white_list = []
         self.black_list = []
         self.escalation = Escalation(self.people)
-        self.triage_owners = {}
+        self.triage_owners_components = {}
         self.all_owners = None
         self.query_params = {}
+        self.round_robin = None
 
     @staticmethod
     def get_from():
@@ -117,25 +118,29 @@ class Nag(object):
         )
 
     def add_triage_owner(self, owners, real_owner):
+        if self.round_robin is None:
+            return
+
         if not isinstance(owners, list):
             owners = [owners]
         for owner in owners:
-            if owner not in self.triage_owners:
-                self.triage_owners[owner] = self.get_query_url_for_triage_owner(
-                    real_owner
+            person = self.people.get_moz_mail(owner)
+            if person not in self.triage_owners_components:
+                self.triage_owners_components[person] = set(
+                    self.round_robin.get_components_for_triager(owner)
                 )
+            else:
+                self.triage_owners_components[
+                    person
+                ] |= self.round_robin.get_components_for_triager(owner)
 
-    def get_query_url_for_triage_owner(self, owner):
-        if self.all_owners is None:
-            self.all_owners = utils.get_triage_owners()
+    def get_query_url_for_components(self, components):
         params = copy.deepcopy(self.query_params)
-        if "include_fields" in params:
-            del params["include_fields"]
+        for f in ["include_fields", "product", "component", "bug_id"]:
+            if f in params:
+                del params[f]
 
-        comps = self.all_owners[owner]
-        comps = set(comps)
-
-        params["component"] = sorted(comps)
+        utils.add_prod_comp_to_query(params, components)
         url = utils.get_bz_search_url(params)
 
         return url
@@ -204,6 +209,7 @@ class Nag(object):
 
             data = []
             To = sorted(info.keys())
+            components = set()
             for person in To:
                 data += [
                     bug_data
@@ -211,9 +217,11 @@ class Nag(object):
                     if bug_data["id"] not in added_bug_ids
                 ]
                 added_bug_ids.update(bug_data["id"] for bug_data in info[person])
+                if person in self.triage_owners_components:
+                    components |= self.triage_owners_components[person]
 
-            if len(To) == 1 and To[0] in self.triage_owners:
-                query_url = self.triage_owners[To[0]]
+            if components:
+                query_url = self.get_query_url_for_components(sorted(components))
             else:
                 query_url = None
 
@@ -229,7 +237,7 @@ class Nag(object):
                 nag_preamble=self.nag_preamble(),
             )
 
-            m = {"manager": manager, "to": set(info.keys()), "body": body}
+            m = {"manager": manager, "to": set(To), "body": body}
             mails.append(m)
 
         return mails

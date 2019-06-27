@@ -17,6 +17,7 @@ from auto_nag.round_robin_calendar import Calendar
 class RoundRobin(object):
     def __init__(self, rr=None, people=None, teams=None):
         self.people = People() if people is None else people
+        self.components_by_triager = {}
         self.all_calendars = []
         self.feed(teams, rr=rr)
         self.nicks = {}
@@ -64,6 +65,18 @@ class RoundRobin(object):
     def get_components(self):
         return list(self.data.keys())
 
+    def get_components_for_triager(self, triager):
+        return self.components_by_triager[triager]
+
+    def add_component_for_triager(self, component, triagers):
+        if not isinstance(triagers, list):
+            triagers = [triagers]
+        for triager in triagers:
+            if triager in self.components_by_triager:
+                self.components_by_triager[triager].add(component)
+            else:
+                self.components_by_triager[triager] = {component}
+
     def get_fallback(self, bug):
         pc = bug["product"] + "::" + bug["component"]
         if pc not in self.data:
@@ -95,6 +108,8 @@ class RoundRobin(object):
             if mail is None:
                 logger.error("No triage owner for {}".format(pc))
 
+            self.add_component_for_triager(pc, mail)
+
             if has_nick:
                 return mail, nick if only_one else [(mail, nick)]
             return mail if only_one else [mail]
@@ -108,6 +123,8 @@ class RoundRobin(object):
         bzmails = []
         for _, p in persons:
             bzmails.append(fb if p is None else p)
+
+        self.add_component_for_triager(pc, bzmails)
 
         if only_one:
             bzmail = bzmails[randint(0, len(bzmails) - 1)]
