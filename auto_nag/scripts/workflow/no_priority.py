@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from dateutil.relativedelta import relativedelta
 from libmozdata import utils as lmdutils
 
 from auto_nag import utils
@@ -105,8 +104,8 @@ class NoPriority(BzCleaner, Nag):
             "v1": "--",
         }
         self.date = lmdutils.get_date_ymd(date)
-        first = self.date - relativedelta(days=self.lookup_first * 7)
-        second = self.date - relativedelta(days=self.lookup_second * 7)
+        first = f"-{self.lookup_first * 7}d"
+        second = f"-{self.lookup_second * 7}d"
         if self.typ == "first":
             # TODO: change this when https://bugzilla.mozilla.org/1543984 will be fixed
             # Here we have to get bugs where product/component have been set (bug has been triaged)
@@ -160,12 +159,10 @@ class NoPriority(BzCleaner, Nag):
                     "v16": second,
                     "n17": 1,
                     "f17": "product",
-                    "o17": "changedafter",
-                    "v17": "1970-01-01",
+                    "o17": "everchanged",
                     "n18": 1,
                     "f18": "component",
-                    "o18": "changedafter",
-                    "v18": "1970-01-01",
+                    "o18": "everchanged",
                     "f19": "CP",
                     "f20": "CP",
                 }
@@ -202,12 +199,10 @@ class NoPriority(BzCleaner, Nag):
                     "v12": second,
                     "n13": 1,
                     "f13": "product",
-                    "o13": "changedafter",
-                    "v13": "1970-01-01",
+                    "o13": "everchanged",
                     "n14": 1,
                     "f14": "component",
-                    "o14": "changedafter",
-                    "v14": "1970-01-01",
+                    "o14": "everchanged",
                     "f15": "CP",
                     "f16": "CP",
                 }

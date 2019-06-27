@@ -252,6 +252,29 @@ def get_last_field_num(params):
     return str(x)
 
 
+def add_prod_comp_to_query(params, prod_comp):
+    n = int(get_last_field_num(params))
+    params[f"j{n}"] = "OR"
+    params[f"f{n}"] = "OP"
+    n += 1
+    for pc in prod_comp:
+        prod, comp = pc.split("::")
+        params[f"j{n}"] = "AND"
+        params[f"f{n}"] = "OP"
+        n += 1
+        params[f"f{n}"] = "product"
+        params[f"o{n}"] = "equals"
+        params[f"v{n}"] = prod
+        n += 1
+        params[f"f{n}"] = "component"
+        params[f"o{n}"] = "equals"
+        params[f"v{n}"] = comp
+        n += 1
+        params[f"f{n}"] = "CP"
+        n += 1
+    params[f"f{n}"] = "CP"
+
+
 def get_bz_search_url(params):
     return "https://bugzilla.mozilla.org/buglist.cgi?" + urlencode(params, doseq=True)
 
@@ -287,10 +310,11 @@ def get_triage_owners():
             owner = comp["triage_owner"]
             if owner and not is_no_assignee(owner):
                 comp_name = comp["name"]
+                pc = f"{prod}::{comp_name}"
                 if owner not in _TRIAGE_OWNERS:
-                    _TRIAGE_OWNERS[owner] = [comp_name]
+                    _TRIAGE_OWNERS[owner] = [pc]
                 else:
-                    _TRIAGE_OWNERS[owner].append(comp_name)
+                    _TRIAGE_OWNERS[owner].append(pc)
     return _TRIAGE_OWNERS
 
 

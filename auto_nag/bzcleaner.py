@@ -326,10 +326,12 @@ class BzCleaner(object):
         max_years = self.get_max_years()
         if max_years > 0:
             n = utils.get_last_field_num(params)
-            today = lmdutils.get_date_ymd("today")
-            few_years_ago = today - relativedelta(years=max_years)
             params.update(
-                {"f" + n: "creation_ts", "o" + n: "greaterthan", "v" + n: few_years_ago}
+                {
+                    f"f{n}": "creation_ts",
+                    f"o{n}": "greaterthan",
+                    f"v{n}": f"-{max_years}y",
+                }
             )
 
         if self.has_default_products():
