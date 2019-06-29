@@ -69,7 +69,7 @@ class ProdCompChangedWithPriority(BzCleaner):
 
     def set_autofix(self, bugs):
         doc = self.get_documentation()
-        body = "The {} has been changed since the priority was decided, so we're resetting it.\n{}"
+        body = "The {} has been changed since the backlog priority was decided, so we're resetting it.\n{}"
         for bugid, info in bugs.items():
             typ = info["change_type"]
             self.autofix_priority[bugid] = {
