@@ -43,7 +43,7 @@ class BugbugScript(BzCleaner):
     def terminate(self):
         self.add_to_cache(self.to_cache)
 
-    def get_bugs(self, model, date="today", bug_ids=[]):
+    def get_bugs(self, model, date="today", bug_ids=[], retry_count=100, retry_sleep=1):
         # Retrieve bugs to analyze.
         old_CHUNK_SIZE = Bugzilla.BUGZILLA_CHUNK_SIZE
         try:
@@ -75,7 +75,7 @@ class BugbugScript(BzCleaner):
         if len(bug_ids) > 0:
             url = f"{BUGBUG_HTTP_SERVER}/{model}/predict/batch"
 
-            for i in range(100):
+            for i in range(retry_count):
                 response = requests.post(
                     url, headers={"X-Api-Key": "Test"}, json={"bugs": bug_ids}
                 )
@@ -83,9 +83,13 @@ class BugbugScript(BzCleaner):
                     break
                 elif response.status_code == 202:
                     # All the results are not ready yet, try again in 1 second
-                    time.sleep(1)
+                    time.sleep(retry_sleep)
                 else:
                     response.raise_for_status()
+            else:
+                total_sleep = retry_count * retry_sleep
+                msg = f"Couldn't get {len(bug_ids)} bug classification in {total_sleep} seconds, aborting"
+                raise Exception(msg)
 
             json_response = response.json()
 
