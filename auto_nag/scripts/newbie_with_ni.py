@@ -12,7 +12,7 @@ from auto_nag.people import People
 class NewbieWithNI(BzCleaner):
     def __init__(self):
         super(NewbieWithNI, self).__init__()
-        self.people = People()
+        self.people = People.get_instance()
         self.ndays = utils.get_config(self.name(), "number_of_days", 14)
         self.ncomments = utils.get_config(self.name(), "number_of_comments", 2)
         self.autofix_reporters = {}

@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from auto_nag.erroneous_bzmail import check_erroneous_bzmail
 from auto_nag.multinaggers import MultiNaggers
 
 from .no_priority import NoPriority
@@ -16,7 +17,7 @@ class WorkflowMultiNag(MultiNaggers):
     def __init__(self):
         super(WorkflowMultiNag, self).__init__(
             NoPriority("first"),
-            NoPriority("second"),
+            # NoPriority("second"),
             # P1NoActivity(),
             # P1NoAssignee(),
             # P2NoActivity(),
@@ -31,4 +32,6 @@ class WorkflowMultiNag(MultiNaggers):
 
 if __name__ == "__main__":
     # P2MergeDay().run()
-    WorkflowMultiNag().run()
+    wmn = WorkflowMultiNag()
+    wmn.run()
+    check_erroneous_bzmail(dryrun=wmn.is_dryrun)

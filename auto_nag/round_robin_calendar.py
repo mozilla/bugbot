@@ -31,7 +31,7 @@ class Calendar(object):
     def __init__(self, cal, fallback, team_name, people=None):
         super(Calendar, self).__init__()
         self.cal = cal
-        self.people = People() if people is None else people
+        self.people = People.get_instance() if people is None else people
         self.fallback = fallback
         self.fb_bzmail = self.people.get_bzmail_from_name(self.fallback)
         self.fb_mozmail = self.people.get_moz_mail(self.fb_bzmail)

@@ -15,7 +15,7 @@ class AssigneeNoLogin(BzCleaner):
         self.nmonths = utils.get_config(self.name(), "number_of_months", 12)
         self.autofix_assignee = {}
         self.default_assignees = utils.get_default_assignees()
-        self.people = people.People()
+        self.people = people.People.get_instance()
 
     def description(self):
         return "Open and assigned bugs where the assignee's last login was more than {} months ago".format(

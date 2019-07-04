@@ -28,7 +28,7 @@ class CodeFreezeWeek(BzCleaner):
         if not self.init_versions():
             return
 
-        self.people = People()
+        self.people = People.get_instance()
         self.nightly = self.versions["central"]
         self.beta = self.versions["beta"]
         self.release = self.versions["release"]
