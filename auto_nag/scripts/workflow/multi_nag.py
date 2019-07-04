@@ -17,7 +17,7 @@ class WorkflowMultiNag(MultiNaggers):
     def __init__(self):
         super(WorkflowMultiNag, self).__init__(
             NoPriority("first"),
-            # NoPriority("second"),
+            NoPriority("second"),
             # P1NoActivity(),
             # P1NoAssignee(),
             # P2NoActivity(),
