@@ -57,7 +57,7 @@ class TrackedBadSeverity(BzCleaner):
     def get_autofix_change(self):
         return {
             "comment": {
-                "body": f"This bug is tracked but with a small severity so change it to major.\n{self.get_documentation()}"
+                "body": f"This bug is tracked by a release manager but with a small severity so change it to major.\n{self.get_documentation()}"
             },
             "severity": "major",
         }
