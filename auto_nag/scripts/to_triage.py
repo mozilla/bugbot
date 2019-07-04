@@ -15,9 +15,7 @@ class ToTriage(BzCleaner, Nag):
     def __init__(self):
         super(ToTriage, self).__init__()
         self.escalation = Escalation(self.people, data=self.get_config("escalation"))
-        self.round_robin = RoundRobin(
-            people=self.people, teams=self.get_config("teams", [])
-        )
+        self.round_robin = RoundRobin.get_instance(teams=self.get_config("teams", []))
         self.components = self.round_robin.get_components()
         for person in self.get_config("persons", []):
             self.components += utils.get_triage_owners()[person]

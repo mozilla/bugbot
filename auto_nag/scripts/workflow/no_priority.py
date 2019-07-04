@@ -23,7 +23,7 @@ class NoPriority(BzCleaner, Nag):
             data=utils.get_config(self.name(), "escalation-{}".format(typ)),
             skiplist=utils.get_config("workflow", "supervisor_skiplist", []),
         )
-        self.round_robin = RoundRobin(people=self.people)
+        self.round_robin = RoundRobin.get_instance()
         self.components_skiplist = utils.get_config("workflow", "components_skiplist")
 
     def description(self):

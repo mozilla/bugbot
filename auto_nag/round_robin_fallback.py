@@ -22,11 +22,10 @@ def send_mail(nag, dryrun=False):
 
 
 def check_people(date, dryrun=False):
-    rr = RoundRobin()
+    rr = RoundRobin.get_instance()
     # nag is a dict: persons -> list of persons
     #                team -> team name
     nag = rr.get_who_to_nag(date)
-    print(nag)
     send_mail(nag, dryrun=dryrun)
 
 
