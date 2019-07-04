@@ -87,7 +87,7 @@ class Regression(BugbugScript):
             if prob[1] < 0.5:
                 continue
 
-            bug_id = str(bug["id"])
+            bug_id = str(bug_id)
             result[bug_id] = {
                 "id": bug_id,
                 "summary": self.get_summary(bug),

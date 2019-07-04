@@ -105,8 +105,8 @@ class DefectEnhancementTask(BugbugScript):
             enhancement_prob = prob[labels_map["enhancement"]]
             task_prob = prob[labels_map["task"]]
 
-            results[bug["id"]] = {
-                "id": bug["id"],
+            results[bug_id] = {
+                "id": bug_id,
                 "summary": self.get_summary(bug),
                 "type": bug["type"],
                 "bugbug_type": suggestion,
@@ -122,7 +122,7 @@ class DefectEnhancementTask(BugbugScript):
                 and (enhancement_prob + task_prob)
                 >= self.get_config("confidence_threshold")
             ):
-                results[bug["id"]]["autofixed"] = True
+                results[bug_id]["autofixed"] = True
                 self.autofix_type[bug["id"]] = suggestion
 
         return results

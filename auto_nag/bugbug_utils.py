@@ -53,6 +53,11 @@ class BugbugScript(BzCleaner):
             Bugzilla.BUGZILLA_CHUNK_SIZE = old_CHUNK_SIZE
 
         # Some consumer of this API needs the actual bugs so download them
+        # List of scripts using the bug data:
+        # - component
+        # - defectenhancementtask.py
+        # - regression.py
+        # - stepstoreproduce.py
         bugs = bugzilla.get(bug_ids)
         bugs = list(bugs.values())
 
@@ -67,7 +72,6 @@ class BugbugScript(BzCleaner):
         # Recreate bug ids as some of the bugs might have been filtered out
         bug_ids = [bug["id"] for bug in bugs]
 
-        # Analyze bugs (make a copy as bugbug could change some properties of the objects).
         if len(bug_ids) > 0:
             url = f"{BUGBUG_HTTP_SERVER}/{model}/predict/batch"
 
