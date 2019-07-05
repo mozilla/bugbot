@@ -16,6 +16,40 @@ BUGBUG_HTTP_SERVER = os.environ.get(
 )
 
 
+def get_bug_ids_classification(
+    model, bug_ids, bugs=None, retry_count=100, retry_sleep=1
+):
+    if len(bug_ids) > 0:
+        url = f"{BUGBUG_HTTP_SERVER}/{model}/predict/batch"
+
+        for i in range(retry_count):
+            response = requests.post(
+                url, headers={"X-Api-Key": "Test"}, json={"bugs": bug_ids}
+            )
+            if response.status_code == 200:
+                break
+            elif response.status_code == 202:
+                # All the results are not ready yet, try again in 1 second
+                time.sleep(retry_sleep)
+            else:
+                response.raise_for_status()
+        else:
+            total_sleep = retry_count * retry_sleep
+            msg = f"Couldn't get {len(bug_ids)} bug classification in {total_sleep} seconds, aborting"
+            raise Exception(msg)
+
+        json_response = response.json()
+
+        # Inject back the bug in the response
+        if bugs:  # Deprecated
+            for bug in bugs:
+                json_response[str(bug["id"])]["bug"] = bug
+    else:
+        json_response = {}
+
+    return json_response
+
+
 class BugbugScript(BzCleaner):
     def __init__(self):
         super().__init__()
@@ -72,31 +106,6 @@ class BugbugScript(BzCleaner):
         # Recreate bug ids as some of the bugs might have been filtered out
         bug_ids = [bug["id"] for bug in bugs]
 
-        if len(bug_ids) > 0:
-            url = f"{BUGBUG_HTTP_SERVER}/{model}/predict/batch"
-
-            for i in range(retry_count):
-                response = requests.post(
-                    url, headers={"X-Api-Key": "Test"}, json={"bugs": bug_ids}
-                )
-                if response.status_code == 200:
-                    break
-                elif response.status_code == 202:
-                    # All the results are not ready yet, try again in 1 second
-                    time.sleep(retry_sleep)
-                else:
-                    response.raise_for_status()
-            else:
-                total_sleep = retry_count * retry_sleep
-                msg = f"Couldn't get {len(bug_ids)} bug classification in {total_sleep} seconds, aborting"
-                raise Exception(msg)
-
-            json_response = response.json()
-
-            # Inject back the bug in the response
-            for bug in bugs:
-                json_response[str(bug["id"])]["bug"] = bug
-        else:
-            json_response = {}
-
-        return json_response
+        return get_bug_ids_classification(
+            model, bug_ids, bugs, retry_count, retry_sleep
+        )

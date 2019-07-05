@@ -3,18 +3,21 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from bugbug.models.component import ComponentModel
+from libmozdata.bugzilla import Bugzilla
 
 from auto_nag import logger
-from auto_nag.bugbug_utils import BugbugScript
+from auto_nag.bugbug_utils import get_bug_ids_classification
+from auto_nag.bzcleaner import BzCleaner
 from auto_nag.utils import nice_round
 
 
-class Component(BugbugScript):
+class Component(BzCleaner):
     def __init__(self):
         self.model_class = ComponentModel
         super().__init__()
         self.autofix_component = {}
         self.frequency = "daily"
+        self.to_cache = set()
 
     def add_custom_arguments(self, parser):
         parser.add_argument(
@@ -36,10 +39,18 @@ class Component(BugbugScript):
     def sort_columns(self):
         return lambda p: (-p[3], -int(p[0]))
 
+    def bughandler(self, bug, data):
+        if bug["id"] in self.cache:
+            return
+
+        # The bugbug http service will returns bug ids as str
+        data[str(bug["id"])] = bug
+
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
 
         return {
+            "include_fields": ["id", "groups", "summary", "product", "component"],
             # Ignore bugs for which somebody has ever modified the product or the component.
             "n1": 1,
             "f1": "product",
@@ -69,17 +80,36 @@ class Component(BugbugScript):
             "f9": "CP",
         }
 
+    def failure_callback(self, bugid):
+        self.to_cache.remove(int(bugid))
+
+    def terminate(self):
+        self.add_to_cache(self.to_cache)
+
     def get_bugs(self, date="today", bug_ids=[]):
-        # Retrieve bugs to analyze.
-        bugs = super().get_bugs("component", date=date, bug_ids=bug_ids)
-        if len(bugs) == 0:
+        # Retrieve bugs ids to analyze with only the needed fields, see
+        # get_bz_params for the the list of fields
+        old_CHUNK_SIZE = Bugzilla.BUGZILLA_CHUNK_SIZE
+        try:
+            Bugzilla.BUGZILLA_CHUNK_SIZE = 7000
+            raw_bugs = super().get_bugs(date=date, bug_ids=bug_ids)
+        finally:
+            Bugzilla.BUGZILLA_CHUNK_SIZE = old_CHUNK_SIZE
+
+        if len(raw_bugs) == 0:
             return {}
+
+        # Extract the bug ids
+        bug_ids = list(raw_bugs.keys())
+
+        # Classify those bugs
+        bugs = get_bug_ids_classification("component", bug_ids)
 
         results = {}
 
         for bug_id in sorted(bugs.keys()):
             bug_data = bugs[bug_id]
-            bug = bug_data["bug"]
+            bug = raw_bugs[bug_id]
             prob = bug_data["prob"]
             index = bug_data["index"]
             suggestion = bug_data["suggestion"]
