@@ -82,7 +82,7 @@ class Component(BugbugScript):
             bug = bug_data["bug"]
             prob = bug_data["prob"]
             index = bug_data["index"]
-            suggestion = bug_data["suggestion"]
+            suggestion = bug_data["class"]
             conflated_components_mapping = bug_data["extra_data"][
                 "conflated_components_mapping"
             ]

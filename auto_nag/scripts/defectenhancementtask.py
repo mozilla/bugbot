@@ -90,7 +90,7 @@ class DefectEnhancementTask(BugbugScript):
             bug = bug_data["bug"]
             prob = bug_data["prob"]
             index = bug_data["index"]
-            suggestion = bug_data["suggestion"]
+            suggestion = bug_data["class"]
             labels_map = bug_data["extra_data"]["labels_map"]
 
             assert suggestion in {
