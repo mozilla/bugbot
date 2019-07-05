@@ -2,14 +2,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import lzma
 import os
-import shutil
 from urllib.error import HTTPError
 from urllib.request import urlretrieve
 
 import hglib
 import requests
+import zstandard
 from bugbug import db, repository
 from bugbug.models.regressor import RegressorModel
 
@@ -70,7 +69,7 @@ class Regressor(BugbugScript):
         file_name = f"{self.name()}model"
         file_path = os.path.join("models", file_name)
 
-        model_url = f"https://index.taskcluster.net/v1/task/project.relman.bugbug.train_{self.name()}.latest/artifacts/public/{file_name}.xz"
+        model_url = f"https://index.taskcluster.net/v1/task/project.relman.bugbug.train_{self.name()}.latest/artifacts/public/{file_name}.zst"
         r = requests.head(model_url, allow_redirects=True)
         new_etag = r.headers["ETag"]
 
@@ -82,14 +81,15 @@ class Regressor(BugbugScript):
 
         if old_etag != new_etag:
             try:
-                urlretrieve(model_url, f"{file_path}.xz")
+                urlretrieve(model_url, f"{file_path}.zst")
             except HTTPError:
                 logger.exception("Tool {}".format(self.name()))
                 return file_path
 
-            with lzma.open(f"{file_path}.xz", "rb") as input_f:
+            dctx = zstandard.ZstdDecompressor()
+            with open(f"{file_path}.zst", "rb") as input_f:
                 with open(file_path, "wb") as output_f:
-                    shutil.copyfileobj(input_f, output_f)
+                    dctx.copy_stream(input_f, output_f)
 
             with open(f"{file_path}.etag", "w") as f:
                 f.write(new_etag)
