@@ -3,8 +3,12 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import os
+from urllib.error import HTTPError
+from urllib.request import urlretrieve
 
 import hglib
+import requests
+import zstandard
 from bugbug import db, repository
 from bugbug.models.regressor import RegressorModel
 
@@ -57,6 +61,40 @@ class Regressor(BugbugScript):
             db.download(repository.COMMITS_DB, force=True, support_files_too=True)
 
         super().__init__()
+        self.model = self.model_class.load(self.retrieve_model())
+
+    def retrieve_model(self):
+        os.makedirs("models", exist_ok=True)
+
+        file_name = f"{self.name()}model"
+        file_path = os.path.join("models", file_name)
+
+        model_url = f"https://index.taskcluster.net/v1/task/project.relman.bugbug.train_{self.name()}.latest/artifacts/public/{file_name}.zst"
+        r = requests.head(model_url, allow_redirects=True)
+        new_etag = r.headers["ETag"]
+
+        try:
+            with open(f"{file_path}.etag", "r") as f:
+                old_etag = f.read()
+        except IOError:
+            old_etag = None
+
+        if old_etag != new_etag:
+            try:
+                urlretrieve(model_url, f"{file_path}.zst")
+            except HTTPError:
+                logger.exception("Tool {}".format(self.name()))
+                return file_path
+
+            dctx = zstandard.ZstdDecompressor()
+            with open(f"{file_path}.zst", "rb") as input_f:
+                with open(file_path, "wb") as output_f:
+                    dctx.copy_stream(input_f, output_f)
+
+            with open(f"{file_path}.etag", "w") as f:
+                f.write(new_etag)
+
+        return file_path
 
     def description(self):
         return "[Using ML] Recently landed risky patches"

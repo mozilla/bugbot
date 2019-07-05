@@ -57,15 +57,18 @@ class StepsToReproduce(BugbugScript):
 
     def get_bugs(self, date="today", bug_ids=[]):
         # Retrieve bugs to analyze.
-        bugs, probs = super().get_bugs(date=date, bug_ids=bug_ids)
+        bugs = super().get_bugs("stepstoreproduce", date=date, bug_ids=bug_ids)
         if len(bugs) == 0:
             return {}
 
-        indexes = probs.argmax(axis=-1)
-
         result = {}
-        for bug, prob, index in zip(bugs, probs, indexes):
-            bug_id = str(bug["id"])
+
+        for bug_id in sorted(bugs.keys()):
+            bug_data = bugs[bug_id]
+            bug = bug_data["bug"]
+            prob = bug_data["prob"]
+            index = bug_data["index"]
+
             result[bug_id] = {
                 "id": bug_id,
                 "summary": self.get_summary(bug),

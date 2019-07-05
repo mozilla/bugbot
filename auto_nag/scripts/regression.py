@@ -73,16 +73,21 @@ class Regression(BugbugScript):
 
     def get_bugs(self, date="today", bug_ids=[]):
         # Retrieve bugs to analyze.
-        bugs, probs = super().get_bugs(date=date, bug_ids=bug_ids)
+        bugs = super().get_bugs("regression", date=date, bug_ids=bug_ids)
         if len(bugs) == 0:
             return {}
 
         result = {}
-        for bug, prob in zip(bugs, probs):
+
+        for bug_id in sorted(bugs.keys()):
+            bug_data = bugs[bug_id]
+            bug = bug_data["bug"]
+            prob = bug_data["prob"]
+
             if prob[1] < 0.5:
                 continue
 
-            bug_id = str(bug["id"])
+            bug_id = str(bug_id)
             result[bug_id] = {
                 "id": bug_id,
                 "summary": self.get_summary(bug),

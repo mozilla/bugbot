@@ -42,7 +42,8 @@ class DefectEnhancementTask(BugbugScript):
                 prio = 2
 
             # Then, we sort by confidence and ID.
-            return (prio, -p[4], -p[0])
+            # p[0] is the id and is a string
+            return (prio, -p[4], -int(p[0]))
 
         return _sort_columns
 
@@ -78,20 +79,20 @@ class DefectEnhancementTask(BugbugScript):
 
     def get_bugs(self, date="today", bug_ids=[]):
         # Retrieve bugs to analyze.
-        bugs, probs = super().get_bugs(date=date, bug_ids=bug_ids)
+        bugs = super().get_bugs("defectenhancementtask", date=date, bug_ids=bug_ids)
         if len(bugs) == 0:
             return {}
 
-        # Apply inverse transformation to get the type name from the encoded labels.
-        labels = self.model.clf._le.inverse_transform([0, 1, 2])
-        labels_map = {label: index for label, index in zip(labels, [0, 1, 2])}
-
-        # Get the encoded type.
-        indexes = probs.argmax(axis=-1)
-
         results = {}
-        for bug, prob, index in zip(bugs, probs, indexes):
-            suggestion = labels[index]
+
+        for bug_id in sorted(bugs.keys()):
+            bug_data = bugs[bug_id]
+            bug = bug_data["bug"]
+            prob = bug_data["prob"]
+            index = bug_data["index"]
+            suggestion = bug_data["suggestion"]
+            labels_map = bug_data["extra_data"]["labels_map"]
+
             assert suggestion in {
                 "defect",
                 "enhancement",
@@ -105,8 +106,8 @@ class DefectEnhancementTask(BugbugScript):
             enhancement_prob = prob[labels_map["enhancement"]]
             task_prob = prob[labels_map["task"]]
 
-            results[bug["id"]] = {
-                "id": bug["id"],
+            results[bug_id] = {
+                "id": bug_id,
                 "summary": self.get_summary(bug),
                 "type": bug["type"],
                 "bugbug_type": suggestion,
@@ -122,7 +123,7 @@ class DefectEnhancementTask(BugbugScript):
                 and (enhancement_prob + task_prob)
                 >= self.get_config("confidence_threshold")
             ):
-                results[bug["id"]]["autofixed"] = True
+                results[bug_id]["autofixed"] = True
                 self.autofix_type[bug["id"]] = suggestion
 
         return results

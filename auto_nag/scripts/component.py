@@ -71,24 +71,27 @@ class Component(BugbugScript):
 
     def get_bugs(self, date="today", bug_ids=[]):
         # Retrieve bugs to analyze.
-        bugs, probs = super().get_bugs(date=date, bug_ids=bug_ids)
+        bugs = super().get_bugs("component", date=date, bug_ids=bug_ids)
         if len(bugs) == 0:
             return {}
 
-        # Get the encoded component.
-        indexes = probs.argmax(axis=-1)
-        # Apply inverse transformation to get the component name from the encoded value.
-        suggestions = self.model.clf._le.inverse_transform(indexes)
-
         results = {}
-        for bug, prob, index, suggestion in zip(bugs, probs, indexes, suggestions):
+
+        for bug_id in sorted(bugs.keys()):
+            bug_data = bugs[bug_id]
+            bug = bug_data["bug"]
+            prob = bug_data["prob"]
+            index = bug_data["index"]
+            suggestion = bug_data["suggestion"]
+            conflated_components_mapping = bug_data["extra_data"][
+                "conflated_components_mapping"
+            ]
+
             # Skip product-only suggestions that are not useful.
             if "::" not in suggestion and bug["product"] == suggestion:
                 continue
 
-            suggestion = self.model.CONFLATED_COMPONENTS_MAPPING.get(
-                suggestion, suggestion
-            )
+            suggestion = conflated_components_mapping.get(suggestion, suggestion)
 
             if "::" not in suggestion:
                 logger.error(
