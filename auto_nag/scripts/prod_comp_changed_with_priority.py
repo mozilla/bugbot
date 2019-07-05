@@ -19,6 +19,7 @@ class ProdCompChangedWithPriority(BzCleaner):
     def __init__(self):
         super(ProdCompChangedWithPriority, self).__init__()
         self.autofix_priority = {}
+        self.skiplist = set(self.get_config("skiplist"))
 
     def description(self):
         return "Bugs with a priority set before product::component changed"
@@ -45,11 +46,13 @@ class ProdCompChangedWithPriority(BzCleaner):
                                 prod = True
                             else:
                                 comp = True
+
             if (
                 priority_date is None
                 or prod_comp_date is None
                 or priority_date >= prod_comp_date
                 or priority_who == prod_comp_who
+                or prod_comp_who in self.skiplist
             ):
                 del data[bugid]
             else:
@@ -66,7 +69,7 @@ class ProdCompChangedWithPriority(BzCleaner):
 
     def set_autofix(self, bugs):
         doc = self.get_documentation()
-        body = "The {} has been changed since the priority was decided, so we're resetting it.\n{}"
+        body = "The {} has been changed since the backlog priority was decided, so we're resetting it.\n{}"
         for bugid, info in bugs.items():
             typ = info["change_type"]
             self.autofix_priority[bugid] = {
@@ -84,11 +87,9 @@ class ProdCompChangedWithPriority(BzCleaner):
             "j2": "OR",
             "f2": "OP",
             "f3": "product",
-            "o3": "changedafter",
-            "v3": "1970-01-01",
+            "o3": "everchanged",
             "f4": "component",
-            "o4": "changedafter",
-            "v4": "1970-01-01",
+            "o4": "everchanged",
             "f5": "CP",
             "f6": "creation_ts",
             "o6": "greaterthan",

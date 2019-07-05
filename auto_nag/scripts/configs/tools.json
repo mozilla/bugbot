@@ -482,7 +482,7 @@
             "intermittent-bug-filer@mozilla.bugs",
             "wptsync@mozilla.bugs"
         ],
-        "confidence_threshold": 0.9,
+        "confidence_threshold": 0.8,
         "cc":
         [
         ]
@@ -538,6 +538,11 @@
     "prod_comp_changed_with_priority":
     {
         "days_lookup": 30,
+        "skiplist":
+        [
+            "nobody@mozilla.org",
+            "bug-husbandry-bot@mozilla.bugs"
+        ],
         "receivers":
         [
             "calixte@mozilla.com",
@@ -563,7 +568,8 @@
         },
         "teams":
         [
-            "DOM:Workers & Storage"
+            "DOM:Workers & Storage",
+            "Core::General"
         ],
         "persons":
         [

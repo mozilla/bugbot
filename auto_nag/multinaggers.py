@@ -20,6 +20,7 @@ class MultiNaggers(object):
             assert isinstance(arg, Nag), "{} is not a Nag".format(type(arg))
             assert isinstance(arg, BzCleaner), "{} is not a BZCleaner".format(type(arg))
         self.naggers = list(args)
+        self.is_dryrun = True
 
     def description(self):
         return ""
@@ -51,13 +52,14 @@ class MultiNaggers(object):
 
     def run(self):
         args = self.get_args_parser().parse_args()
+        self.is_dryrun = args.dryrun
         self.date = lmdutils.get_date_ymd(args.date)
         for nagger in self.naggers:
             nagger.send_nag_mail = False
             nagger.run()
-        self.gather(args.dryrun)
+        self.gather()
 
-    def gather(self, dryrun):
+    def gather(self):
         env = Environment(loader=FileSystemLoader("templates"))
         common = env.get_template("common.html")
         login_info = utils.get_login_info()
@@ -87,6 +89,6 @@ class MultiNaggers(object):
                 Cc=list(sorted(Cc)),
                 html=True,
                 login=login_info,
-                dryrun=dryrun,
+                dryrun=self.is_dryrun,
             )
             time.sleep(1)
