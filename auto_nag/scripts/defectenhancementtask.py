@@ -42,7 +42,8 @@ class DefectEnhancementTask(BugbugScript):
                 prio = 2
 
             # Then, we sort by confidence and ID.
-            return (prio, -p[4], -p[0])
+            # p[0] is the id and is a string
+            return (prio, -p[4], -int(p[0]))
 
         return _sort_columns
 
