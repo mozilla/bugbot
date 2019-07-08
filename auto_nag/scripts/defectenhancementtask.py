@@ -87,6 +87,12 @@ class DefectEnhancementTask(BugbugScript):
 
         for bug_id in sorted(bugs.keys()):
             bug_data = bugs[bug_id]
+
+            if not bug_data.get("available", True):
+                # The bug was not available, it was either removed or is a
+                # security bug
+                continue
+
             bug = bug_data["bug"]
             prob = bug_data["prob"]
             index = bug_data["index"]
