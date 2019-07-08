@@ -33,7 +33,8 @@
         [
             "calixte@mozilla.com",
             "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com"
+            "mcastelluccio@mozilla.com",
+            "bfeld@mozilla.com"
         ],
         "bugzilla_max_retries": 3,
         "bot_bz_mail": ["release-mgmt-account-bot@mozilla.tld"],
