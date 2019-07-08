@@ -81,6 +81,15 @@ class Regression(BugbugScript):
 
         for bug_id in sorted(bugs.keys()):
             bug_data = bugs[bug_id]
+
+            if not bug_data.get("available", True):
+                # The bug was not available, it was either removed or is a
+                # security bug
+                continue
+
+            if not {"bug", "prob"}.issubset(bug_data.keys()):
+                raise Exception(f"Invalid bug response {bug_id}: {bug_data!r}")
+
             bug = bug_data["bug"]
             prob = bug_data["prob"]
 
