@@ -93,6 +93,11 @@ class DefectEnhancementTask(BugbugScript):
                 # security bug
                 continue
 
+            if not {"bug", "prob", "index", "class", "extra_data"}.issubset(
+                bug_data.keys()
+            ):
+                raise Exception(f"Invalid bug response {bug_id}: {bug_data!r}")
+
             bug = bug_data["bug"]
             prob = bug_data["prob"]
             index = bug_data["index"]

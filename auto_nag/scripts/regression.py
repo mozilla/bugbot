@@ -87,6 +87,9 @@ class Regression(BugbugScript):
                 # security bug
                 continue
 
+            if not {"bug", "prob"}.issubset(bug_data.keys()):
+                raise Exception(f"Invalid bug response {bug_id}: {bug_data!r}")
+
             bug = bug_data["bug"]
             prob = bug_data["prob"]
 
