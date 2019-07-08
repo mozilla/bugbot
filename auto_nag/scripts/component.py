@@ -87,8 +87,7 @@ class Component(BzCleaner):
         self.add_to_cache(self.to_cache)
 
     def get_bugs(self, date="today", bug_ids=[]):
-        # Retrieve bugs ids to analyze with only the needed fields, see
-        # get_bz_params for the the list of fields
+        # Retrieve the bugs with the fields defined in get_bz_params
         old_CHUNK_SIZE = Bugzilla.BUGZILLA_CHUNK_SIZE
         try:
             Bugzilla.BUGZILLA_CHUNK_SIZE = 7000
