@@ -1,3 +1,9 @@
-tox==3.13.2
-coveralls==1.8.1
-pre-commit==1.17.0
+tox==3.13.2 \
+    --hash=sha256:dab0b0160dd187b654fc33d690ee1d7bf328bd5b8dc6ef3bb3cc468969c659ba \
+    --hash=sha256:ee35ffce74933a6c6ac10c9a0182e41763140a5a5070e21b114feca56eaccdcd
+coveralls==1.8.1 \
+    --hash=sha256:d3d49234bffd41e91b241a69f0ebb9f64d7f0515711a76134d53d4647e7eb509 \
+    --hash=sha256:dafabcff87425fa2ab3122dee21229afbb4d6692cfdacc6bb895f7dfa8b2c849
+pre-commit==1.17.0 \
+    --hash=sha256:92e406d556190503630fd801958379861c94884693a032ba66629d0351fdccd4 \
+    --hash=sha256:cccc39051bc2457b0c0f7152a411f8e05e3ba2fe1a5613e4ee0833c1c1985ce3
