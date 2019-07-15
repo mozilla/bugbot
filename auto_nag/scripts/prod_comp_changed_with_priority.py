@@ -38,7 +38,10 @@ class ProdCompChangedWithPriority(BzCleaner):
                     if change["field_name"] == "priority":
                         priority_date = dateutil.parser.parse(h["when"])
                         priority_who = h["who"]
-                    elif change["field_name"] in {"product", "component"}:
+                    elif (
+                        change["field_name"] in {"product", "component"}
+                        and h["who"] not in self.skiplist
+                    ):
                         prod_comp_date = dateutil.parser.parse(h["when"])
                         prod_comp_who = h["who"]
                         if priority_date is not None and priority_date < prod_comp_date:
@@ -52,7 +55,6 @@ class ProdCompChangedWithPriority(BzCleaner):
                 or prod_comp_date is None
                 or priority_date >= prod_comp_date
                 or priority_who == prod_comp_who
-                or prod_comp_who in self.skiplist
             ):
                 del data[bugid]
             else:
