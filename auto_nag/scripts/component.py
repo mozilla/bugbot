@@ -17,7 +17,6 @@ class Component(BzCleaner):
         super().__init__()
         self.autofix_component = {}
         self.frequency = "daily"
-        self.to_cache = set()
 
     def add_custom_arguments(self, parser):
         parser.add_argument(
@@ -79,12 +78,6 @@ class Component(BzCleaner):
             "v8": "Untriaged",
             "f9": "CP",
         }
-
-    def failure_callback(self, bugid):
-        self.to_cache.remove(int(bugid))
-
-    def terminate(self):
-        self.add_to_cache(self.to_cache)
 
     def get_bugs(self, date="today", bug_ids=[]):
         # Retrieve the bugs with the fields defined in get_bz_params
