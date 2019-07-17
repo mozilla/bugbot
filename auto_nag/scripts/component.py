@@ -38,6 +38,9 @@ class Component(BzCleaner):
         return lambda p: (-p[3], -int(p[0]))
 
     def bughandler(self, bug, data):
+        """We need to override bughandler from BZHandler because of this bug
+        https://github.com/mozilla/relman-auto-nag/issues/773
+        """
         if bug["id"] in self.cache:
             return
 
