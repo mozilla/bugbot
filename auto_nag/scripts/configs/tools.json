@@ -27,13 +27,15 @@
         [
             "calixte@mozilla.com",
             "ehumphries@mozilla.com",
-            "sylvestre@mozilla.com"
+            "sylvestre@mozilla.com",
+            "rkothari@mozilla.com"
         ],
         "on-errors":
         [
             "calixte@mozilla.com",
             "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com"
+            "mcastelluccio@mozilla.com",
+            "bfeld@mozilla.com"
         ],
         "bugzilla_max_retries": 3,
         "bot_bz_mail": ["release-mgmt-account-bot@mozilla.tld"],
@@ -124,7 +126,8 @@
             "calixte@mozilla.com",
             "ehumphries@mozilla.com",
             "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com"
+            "mcastelluccio@mozilla.com",
+            "rkothari@mozilla.com"
         ],
         "days_lookup": 3,
         "resolution_skiplist":
@@ -301,7 +304,6 @@
             "Firefox Build System::General",
             "Core::JavaScript Engine",
             "Core::Document Navigation",
-            "Firefox for Android::General",
             "Core::DOM: Core & HTML",
             "Core::XPCOM",
             "DevTools::Accessibility Tools",
@@ -329,6 +331,7 @@
             "Firefox::Shell Integration",
             "Core::X-remote",
             "NSS::Build",
+            "Firefox for Android::General",
             "Firefox for Android::Web Apps"
         ],
         "supervisor_skiplist":
@@ -446,7 +449,8 @@
             "calixte@mozilla.com",
             "ehumphries@mozilla.com",
             "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com"
+            "mcastelluccio@mozilla.com",
+            "rkothari@mozilla.com"
         ],
         "cc":
         [
@@ -474,7 +478,8 @@
             "calixte@mozilla.com",
             "ehumphries@mozilla.com",
             "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com"
+            "mcastelluccio@mozilla.com",
+            "rkothari@mozilla.com"
         ],
         "days_lookup": 3,
         "reporter_skiplist":
@@ -482,7 +487,7 @@
             "intermittent-bug-filer@mozilla.bugs",
             "wptsync@mozilla.bugs"
         ],
-        "confidence_threshold": 0.8,
+        "confidence_threshold": 0.9,
         "cc":
         [
         ]
@@ -532,7 +537,8 @@
             "calixte@mozilla.com",
             "ehumphries@mozilla.com",
             "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com"
+            "mcastelluccio@mozilla.com",
+            "rkothari@mozilla.com"
         ]
     },
     "prod_comp_changed_with_priority":
@@ -548,7 +554,8 @@
             "calixte@mozilla.com",
             "ehumphries@mozilla.com",
             "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com"
+            "mcastelluccio@mozilla.com",
+            "rkothari@mozilla.com"
         ]
     },
     "to_triage":
@@ -583,7 +590,8 @@
         [
             "calixte@mozilla.com",
             "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com"
+            "mcastelluccio@mozilla.com",
+            "rkothari@mozilla.com"
         ],
         "days_lookup": 3,
         "reporter_skiplist":
@@ -606,7 +614,8 @@
         [
             "calixte@mozilla.com",
             "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com"
+            "mcastelluccio@mozilla.com",
+            "rkothari@mozilla.com"
         ],
         "cc":
         [

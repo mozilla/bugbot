@@ -108,10 +108,21 @@ class Component(BzCleaner):
 
         for bug_id in sorted(bugs.keys()):
             bug_data = bugs[bug_id]
-            bug = raw_bugs[bug_id]
+
+            if not bug_data.get("available", True):
+                # The bug was not available, it was either removed or is a
+                # security bug
+                continue
+
+            if not {"bug", "prob", "index", "class", "extra_data"}.issubset(
+                bug_data.keys()
+            ):
+                raise Exception(f"Invalid bug response {bug_id}: {bug_data!r}")
+
+            bug = bug_data["bug"]
             prob = bug_data["prob"]
             index = bug_data["index"]
-            suggestion = bug_data["suggestion"]
+            suggestion = bug_data["class"]
             conflated_components_mapping = bug_data["extra_data"][
                 "conflated_components_mapping"
             ]

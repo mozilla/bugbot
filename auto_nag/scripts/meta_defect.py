@@ -16,6 +16,12 @@ class MetaDefect(BzCleaner):
             self.nmonths
         )
 
+    def has_last_comment_time(self):
+        return True
+
+    def columns(self):
+        return ["id", "summary", "last_comment"]
+
     def get_bz_params(self, date):
         params = {
             "resolution": "---",
