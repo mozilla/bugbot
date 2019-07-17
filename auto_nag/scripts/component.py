@@ -3,7 +3,6 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from bugbug.models.component import ComponentModel
-from libmozdata.bugzilla import Bugzilla
 
 from auto_nag import logger
 from auto_nag.bugbug_utils import get_bug_ids_classification
@@ -81,12 +80,7 @@ class Component(BzCleaner):
 
     def get_bugs(self, date="today", bug_ids=[]):
         # Retrieve the bugs with the fields defined in get_bz_params
-        old_CHUNK_SIZE = Bugzilla.BUGZILLA_CHUNK_SIZE
-        try:
-            Bugzilla.BUGZILLA_CHUNK_SIZE = 7000
-            raw_bugs = super().get_bugs(date=date, bug_ids=bug_ids)
-        finally:
-            Bugzilla.BUGZILLA_CHUNK_SIZE = old_CHUNK_SIZE
+        raw_bugs = super().get_bugs(date=date, bug_ids=bug_ids, chunk_size=7000)
 
         if len(raw_bugs) == 0:
             return {}
