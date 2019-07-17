@@ -114,12 +114,10 @@ class Component(BzCleaner):
                 # security bug
                 continue
 
-            if not {"bug", "prob", "index", "class", "extra_data"}.issubset(
-                bug_data.keys()
-            ):
+            if not {"prob", "index", "class", "extra_data"}.issubset(bug_data.keys()):
                 raise Exception(f"Invalid bug response {bug_id}: {bug_data!r}")
 
-            bug = bug_data["bug"]
+            bug = raw_bugs[bug_id]
             prob = bug_data["prob"]
             index = bug_data["index"]
             suggestion = bug_data["class"]
