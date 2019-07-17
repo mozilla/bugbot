@@ -22,7 +22,7 @@ def get_bug_ids_classification(
     if len(bug_ids) > 0:
         url = f"{BUGBUG_HTTP_SERVER}/{model}/predict/batch"
 
-        for i in range(retry_count):
+        for _ in range(retry_count):
             response = requests.post(
                 url, headers={"X-Api-Key": "Test"}, json={"bugs": bug_ids}
             )
