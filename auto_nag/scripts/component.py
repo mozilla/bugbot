@@ -5,11 +5,12 @@
 from bugbug.models.component import ComponentModel
 
 from auto_nag import logger
-from auto_nag.bugbug_utils import BugbugScript
+from auto_nag.bugbug_utils import get_bug_ids_classification
+from auto_nag.bzcleaner import BzCleaner
 from auto_nag.utils import nice_round
 
 
-class Component(BugbugScript):
+class Component(BzCleaner):
     def __init__(self):
         self.model_class = ComponentModel
         super().__init__()
@@ -36,10 +37,21 @@ class Component(BugbugScript):
     def sort_columns(self):
         return lambda p: (-p[3], -int(p[0]))
 
+    def bughandler(self, bug, data):
+        """We need to override bughandler from BZHandler because of this bug
+        https://github.com/mozilla/relman-auto-nag/issues/773
+        """
+        if bug["id"] in self.cache:
+            return
+
+        # The bugbug http service will returns bug ids as str
+        data[str(bug["id"])] = bug
+
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
 
         return {
+            "include_fields": ["id", "groups", "summary", "product", "component"],
             # Ignore bugs for which somebody has ever modified the product or the component.
             "n1": 1,
             "f1": "product",
@@ -70,10 +82,17 @@ class Component(BugbugScript):
         }
 
     def get_bugs(self, date="today", bug_ids=[]):
-        # Retrieve bugs to analyze.
-        bugs = super().get_bugs("component", date=date, bug_ids=bug_ids)
-        if len(bugs) == 0:
+        # Retrieve the bugs with the fields defined in get_bz_params
+        raw_bugs = super().get_bugs(date=date, bug_ids=bug_ids, chunk_size=7000)
+
+        if len(raw_bugs) == 0:
             return {}
+
+        # Extract the bug ids
+        bug_ids = list(raw_bugs.keys())
+
+        # Classify those bugs
+        bugs = get_bug_ids_classification("component", bug_ids)
 
         results = {}
 
@@ -85,12 +104,10 @@ class Component(BugbugScript):
                 # security bug
                 continue
 
-            if not {"bug", "prob", "index", "class", "extra_data"}.issubset(
-                bug_data.keys()
-            ):
+            if not {"prob", "index", "class", "extra_data"}.issubset(bug_data.keys()):
                 raise Exception(f"Invalid bug response {bug_id}: {bug_data!r}")
 
-            bug = bug_data["bug"]
+            bug = raw_bugs[bug_id]
             prob = bug_data["prob"]
             index = bug_data["index"]
             suggestion = bug_data["class"]
