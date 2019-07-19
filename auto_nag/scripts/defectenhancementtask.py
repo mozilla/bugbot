@@ -63,19 +63,10 @@ class DefectEnhancementTask(BugbugScript):
             "f2": "reporter",
             "o2": "nowords",
             "v2": reporter_skiplist,
+            "f3": "bug_type",
+            "o3": "everchanged",
+            "n3": "1",
         }
-
-    # Remove bugs for which the type was already changed.
-    def remove_using_history(self, bugs):
-        def should_remove(bug):
-            for h in bug["history"]:
-                for change in h["changes"]:
-                    if change["field_name"] == "type":
-                        return True
-
-            return False
-
-        return [bug for bug in bugs if not should_remove(bug)]
 
     def get_bugs(self, date="today", bug_ids=[]):
         # Retrieve bugs to analyze.
