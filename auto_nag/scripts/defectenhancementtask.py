@@ -4,11 +4,12 @@
 
 from bugbug.models.defect_enhancement_task import DefectEnhancementTaskModel
 
-from auto_nag.bugbug_utils import BugbugScript
+from auto_nag.bugbug_utils import get_bug_ids_classification
+from auto_nag.bzcleaner import BzCleaner
 from auto_nag.utils import nice_round
 
 
-class DefectEnhancementTask(BugbugScript):
+class DefectEnhancementTask(BzCleaner):
     def __init__(self):
         self.model_class = DefectEnhancementTaskModel
         super().__init__()
@@ -47,6 +48,16 @@ class DefectEnhancementTask(BugbugScript):
 
         return _sort_columns
 
+    def bughandler(self, bug, data):
+        """We need to override bughandler from BZHandler because of this bug
+        https://github.com/mozilla/relman-auto-nag/issues/773
+        """
+        if bug["id"] in self.cache:
+            return
+
+        # The bugbug http service will returns bug ids as str
+        data[str(bug["id"])] = bug
+
     def get_bz_params(self, date):
         start_date, _ = self.get_dates(date)
 
@@ -54,6 +65,7 @@ class DefectEnhancementTask(BugbugScript):
         reporter_skiplist = ",".join(reporter_skiplist)
 
         return {
+            "include_fields": ["id", "type"],
             # Ignore closed bugs.
             "bug_status": "__open__",
             # Check only recently opened bugs.
@@ -69,10 +81,17 @@ class DefectEnhancementTask(BugbugScript):
         }
 
     def get_bugs(self, date="today", bug_ids=[]):
-        # Retrieve bugs to analyze.
-        bugs = super().get_bugs("defectenhancementtask", date=date, bug_ids=bug_ids)
-        if len(bugs) == 0:
+        # Retrieve the bugs with the fields defined in get_bz_params
+        raw_bugs = super().get_bugs(date=date, bug_ids=bug_ids, chunk_size=7000)
+
+        if len(raw_bugs) == 0:
             return {}
+
+        # Extract the bug ids
+        bug_ids = list(raw_bugs.keys())
+
+        # Classify those bugs
+        bugs = get_bug_ids_classification("defectenhancementtask", bug_ids)
 
         results = {}
 
@@ -84,12 +103,10 @@ class DefectEnhancementTask(BugbugScript):
                 # security bug
                 continue
 
-            if not {"bug", "prob", "index", "class", "extra_data"}.issubset(
-                bug_data.keys()
-            ):
+            if not {"prob", "index", "class", "extra_data"}.issubset(bug_data.keys()):
                 raise Exception(f"Invalid bug response {bug_id}: {bug_data!r}")
 
-            bug = bug_data["bug"]
+            bug = raw_bugs[bug_id]
             prob = bug_data["prob"]
             index = bug_data["index"]
             suggestion = bug_data["class"]
