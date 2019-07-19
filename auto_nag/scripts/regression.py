@@ -56,21 +56,6 @@ class Regression(BugbugScript):
 
         return params
 
-    # Remove bugs for which the regression keyword was set and removed in the past.
-    def remove_using_history(self, bugs):
-        def should_remove(bug):
-            for h in bug["history"]:
-                for change in h["changes"]:
-                    # N.B.: The removed field can be a comma-separated list.
-                    if change["field_name"] == "keywords" and "regression" in [
-                        key.strip() for key in change["removed"].split(",")
-                    ]:
-                        return True
-
-            return False
-
-        return [bug for bug in bugs if not should_remove(bug)]
-
     def get_bugs(self, date="today", bug_ids=[]):
         # Retrieve bugs to analyze.
         bugs = super().get_bugs("regression", date=date, bug_ids=bug_ids)
