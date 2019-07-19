@@ -4,11 +4,12 @@
 
 from bugbug.models.regression import RegressionModel
 
-from auto_nag.bugbug_utils import BugbugScript
+from auto_nag.bugbug_utils import get_bug_ids_classification
+from auto_nag.bzcleaner import BzCleaner
 from auto_nag.utils import nice_round
 
 
-class Regression(BugbugScript):
+class Regression(BzCleaner):
     def __init__(self):
         self.model_class = RegressionModel
         super().__init__()
@@ -23,6 +24,16 @@ class Regression(BugbugScript):
     def sort_columns(self):
         return lambda p: (-p[2], -int(p[0]))
 
+    def bughandler(self, bug, data):
+        """We need to override bughandler from BZHandler because of this bug
+        https://github.com/mozilla/relman-auto-nag/issues/773
+        """
+        if bug["id"] in self.cache:
+            return
+
+        # The bugbug http service will returns bug ids as str
+        data[str(bug["id"])] = bug
+
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
 
@@ -33,6 +44,7 @@ class Regression(BugbugScript):
         reporter_skiplist = ",".join(reporter_skiplist)
 
         params = {
+            "include_fields": ["id", "groups", "summary"],
             "bug_type": "defect",
             "f1": "keywords",
             "o1": "nowords",
@@ -57,12 +69,19 @@ class Regression(BugbugScript):
         return params
 
     def get_bugs(self, date="today", bug_ids=[]):
-        # Retrieve bugs to analyze.
-        bugs = super().get_bugs("regression", date=date, bug_ids=bug_ids)
-        if len(bugs) == 0:
+        # Retrieve the bugs with the fields defined in get_bz_params
+        raw_bugs = super().get_bugs(date=date, bug_ids=bug_ids, chunk_size=7000)
+
+        if len(raw_bugs) == 0:
             return {}
 
-        result = {}
+        # Extract the bug ids
+        bug_ids = list(raw_bugs.keys())
+
+        # Classify those bugs
+        bugs = get_bug_ids_classification("regression", bug_ids)
+
+        results = {}
 
         for bug_id in sorted(bugs.keys()):
             bug_data = bugs[bug_id]
@@ -72,17 +91,17 @@ class Regression(BugbugScript):
                 # security bug
                 continue
 
-            if not {"bug", "prob"}.issubset(bug_data.keys()):
+            if not {"prob"}.issubset(bug_data.keys()):
                 raise Exception(f"Invalid bug response {bug_id}: {bug_data!r}")
 
-            bug = bug_data["bug"]
+            bug = raw_bugs[bug_id]
             prob = bug_data["prob"]
 
             if prob[1] < 0.5:
                 continue
 
             bug_id = str(bug_id)
-            result[bug_id] = {
+            results[bug_id] = {
                 "id": bug_id,
                 "summary": self.get_summary(bug),
                 "confidence": nice_round(prob[1]),
@@ -91,10 +110,10 @@ class Regression(BugbugScript):
 
             # Only autofix results for which we are sure enough.
             if prob[1] >= self.get_config("confidence_threshold"):
-                result[bug_id]["autofixed"] = True
+                results[bug_id]["autofixed"] = True
                 self.autofix_regression.append((bug_id, prob[1]))
 
-        return result
+        return results
 
     def get_autofix_change(self):
         cc = self.get_config("cc")
