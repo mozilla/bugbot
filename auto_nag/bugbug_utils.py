@@ -16,9 +16,7 @@ BUGBUG_HTTP_SERVER = os.environ.get(
 )
 
 
-def get_bug_ids_classification(
-    model, bug_ids, bugs=None, retry_count=100, retry_sleep=1
-):
+def get_bug_ids_classification(model, bug_ids, retry_count=100, retry_sleep=1):
     if len(bug_ids) > 0:
         url = f"{BUGBUG_HTTP_SERVER}/{model}/predict/batch"
 
@@ -39,11 +37,6 @@ def get_bug_ids_classification(
             raise Exception(msg)
 
         json_response = response.json()
-
-        # Inject back the bug in the response
-        if bugs:  # Deprecated
-            for bug in bugs:
-                json_response[str(bug["id"])]["bug"] = bug
     else:
         json_response = {}
 
@@ -85,6 +78,4 @@ class BugbugScript(BzCleaner):
         bugs = bugzilla.get(bug_ids)
         bugs = list(bugs.values())
 
-        return get_bug_ids_classification(
-            model, bug_ids, bugs, retry_count, retry_sleep
-        )
+        return get_bug_ids_classification(model, bug_ids, retry_count, retry_sleep)
