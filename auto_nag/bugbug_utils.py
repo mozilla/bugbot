@@ -38,7 +38,7 @@ def get_bug_ids_classification(
             msg = f"Couldn't get {len(bug_ids)} bug classification in {total_sleep} seconds, aborting"
             raise Exception(msg)
 
-        json_response = response.json()
+        json_response = response.json()["bugs"]
 
         # Inject back the bug in the response
         if bugs:  # Deprecated
