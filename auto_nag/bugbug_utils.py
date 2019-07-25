@@ -36,7 +36,7 @@ def get_bug_ids_classification(model, bug_ids, retry_count=100, retry_sleep=1):
             msg = f"Couldn't get {len(bug_ids)} bug classification in {total_sleep} seconds, aborting"
             raise Exception(msg)
 
-        json_response = response.json()
+        json_response = response.json()["bugs"]
     else:
         json_response = {}
 
