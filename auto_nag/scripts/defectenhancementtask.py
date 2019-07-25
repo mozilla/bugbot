@@ -48,15 +48,10 @@ class DefectEnhancementTask(BzCleaner):
 
         return _sort_columns
 
-    def bughandler(self, bug, data):
-        """We need to override bughandler from BZHandler because of this bug
-        https://github.com/mozilla/relman-auto-nag/issues/773
-        """
-        if bug["id"] in self.cache:
-            return
-
-        # The bugbug http service will returns bug ids as str
-        data[str(bug["id"])] = bug
+    def handle_bug(self, bug, data):
+        # Summary and id are injected by BzCleaner.bughandler
+        data[str(bug["id"])] = {"type": bug["type"]}
+        return data
 
     def get_bz_params(self, date):
         start_date, _ = self.get_dates(date)
@@ -127,7 +122,7 @@ class DefectEnhancementTask(BzCleaner):
 
             results[bug_id] = {
                 "id": bug_id,
-                "summary": self.get_summary(bug),
+                "summary": bug["summary"],
                 "type": bug["type"],
                 "bugbug_type": suggestion,
                 "confidence": nice_round(prob[index]),

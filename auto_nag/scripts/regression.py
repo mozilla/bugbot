@@ -24,16 +24,6 @@ class Regression(BzCleaner):
     def sort_columns(self):
         return lambda p: (-p[2], -int(p[0]))
 
-    def bughandler(self, bug, data):
-        """We need to override bughandler from BZHandler because of this bug
-        https://github.com/mozilla/relman-auto-nag/issues/773
-        """
-        if bug["id"] in self.cache:
-            return
-
-        # The bugbug http service will returns bug ids as str
-        data[str(bug["id"])] = bug
-
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
 
@@ -103,7 +93,7 @@ class Regression(BzCleaner):
             bug_id = str(bug_id)
             results[bug_id] = {
                 "id": bug_id,
-                "summary": self.get_summary(bug),
+                "summary": bug["summary"],
                 "confidence": nice_round(prob[1]),
                 "autofixed": False,
             }
