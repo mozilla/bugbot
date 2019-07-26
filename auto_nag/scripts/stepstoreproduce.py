@@ -4,11 +4,12 @@
 
 from bugbug.models.stepstoreproduce import StepsToReproduceModel
 
-from auto_nag.bugbug_utils import BugbugScript
+from auto_nag.bugbug_utils import get_bug_ids_classification
+from auto_nag.bzcleaner import BzCleaner
 from auto_nag.utils import nice_round
 
 
-class StepsToReproduce(BugbugScript):
+class StepsToReproduce(BzCleaner):
     def __init__(self):
         self.model_class = StepsToReproduceModel
         super().__init__()
@@ -29,6 +30,7 @@ class StepsToReproduce(BugbugScript):
         reporter_skiplist = ",".join(reporter_skiplist)
 
         params = {
+            "include_fields": ["id", "groups", "summary"],
             "bug_type": "defect",
             "f1": "longdesc",
             "o1": "changedafter",
@@ -56,12 +58,19 @@ class StepsToReproduce(BugbugScript):
         return params
 
     def get_bugs(self, date="today", bug_ids=[]):
-        # Retrieve bugs to analyze.
-        bugs = super().get_bugs("stepstoreproduce", date=date, bug_ids=bug_ids)
-        if len(bugs) == 0:
+        # Retrieve the bugs with the fields defined in get_bz_params
+        raw_bugs = super().get_bugs(date=date, bug_ids=bug_ids, chunk_size=7000)
+
+        if len(raw_bugs) == 0:
             return {}
 
-        result = {}
+        # Extract the bug ids
+        bug_ids = list(raw_bugs.keys())
+
+        # Classify those bugs
+        bugs = get_bug_ids_classification("stepstoreproduce", bug_ids)
+
+        results = {}
 
         for bug_id in sorted(bugs.keys()):
             bug_data = bugs[bug_id]
@@ -71,22 +80,22 @@ class StepsToReproduce(BugbugScript):
                 # security bug
                 continue
 
-            if not {"bug", "prob", "index"}.issubset(bug_data.keys()):
+            if not {"prob", "index"}.issubset(bug_data.keys()):
                 raise Exception(f"Invalid bug response {bug_id}: {bug_data!r}")
 
-            bug = bug_data["bug"]
+            bug = raw_bugs[bug_id]
             prob = bug_data["prob"]
             index = bug_data["index"]
 
-            result[bug_id] = {
+            results[bug_id] = {
                 "id": bug_id,
-                "summary": self.get_summary(bug),
+                "summary": bug["summary"],
                 "has_str": "yes" if prob[1] > 0.5 else "no",
                 "confidence": nice_round(prob[index]),
                 "autofixed": False,
             }
 
-        return result
+        return results
 
     def get_autofix_change(self):
         return {}
