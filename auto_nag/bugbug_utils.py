@@ -33,7 +33,7 @@ def get_bug_ids_classification(
         url = f"{BUGBUG_HTTP_SERVER}/{model}/predict/batch"
 
         # Copy the bug ids to avoid mutating it
-        bug_ids = set(bug_ids)
+        bug_ids = set(map(int, bug_ids))
 
         json_response = {}
 
@@ -52,7 +52,8 @@ def get_bug_ids_classification(
 
                     # The bug is ready, add it to the json_response and pop it
                     # up from the current batch
-                    bug_ids.remove(bug_id)
+                    # The http service returns strings for backward compatibility reasons
+                    bug_ids.remove(int(bug_id))
                     json_response[bug_id] = bug_data
 
             if len(bug_ids) == 0:
