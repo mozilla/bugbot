@@ -13,11 +13,11 @@ from bugbug import db, repository
 from bugbug.models.regressor import RegressorModel
 
 from auto_nag import logger
-from auto_nag.bugbug_utils import BugbugScript
+from auto_nag.bzcleaner import BzCleaner
 from auto_nag.utils import get_login_info, nice_round
 
 
-class Regressor(BugbugScript):
+class Regressor(BzCleaner):
     def __init__(self):
         self.model_class = RegressorModel
 
