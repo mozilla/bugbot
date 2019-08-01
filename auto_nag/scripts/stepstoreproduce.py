@@ -2,8 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from bugbug.models.stepstoreproduce import StepsToReproduceModel
-
 from auto_nag.bugbug_utils import get_bug_ids_classification
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.utils import nice_round
@@ -11,7 +9,6 @@ from auto_nag.utils import nice_round
 
 class StepsToReproduce(BzCleaner):
     def __init__(self):
-        self.model_class = StepsToReproduceModel
         super().__init__()
 
     def description(self):

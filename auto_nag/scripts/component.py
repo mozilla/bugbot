@@ -2,8 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from bugbug.models.component import ComponentModel
-
 from auto_nag import logger
 from auto_nag.bugbug_utils import get_bug_ids_classification
 from auto_nag.bzcleaner import BzCleaner
@@ -12,7 +10,6 @@ from auto_nag.utils import nice_round
 
 class Component(BzCleaner):
     def __init__(self):
-        self.model_class = ComponentModel
         super().__init__()
         self.autofix_component = {}
         self.frequency = "daily"

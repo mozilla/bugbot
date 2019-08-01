@@ -2,8 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from bugbug.models.regression import RegressionModel
-
 from auto_nag.bugbug_utils import get_bug_ids_classification
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.utils import nice_round
@@ -11,7 +9,6 @@ from auto_nag.utils import nice_round
 
 class Regression(BzCleaner):
     def __init__(self):
-        self.model_class = RegressionModel
         super().__init__()
         self.autofix_regression = []
 
