@@ -164,9 +164,14 @@ class Component(BzCleaner):
         return results
 
     def get_autofix_change(self):
-        cc = {"cc": {"add": self.get_config("cc")}}
+        common = {
+            "cc": {"add": self.get_config("cc")},
+            "comment": {
+                "body": "[Bugbug](https://github.com/mozilla/bugbug/) thinks this bug should belong to this component, but please revert this change in case of error."
+            },
+        }
         return {
-            bug_id: (data.update(cc) or data)
+            bug_id: (data.update(common) or data)
             for bug_id, data in self.autofix_component.items()
         }
 
