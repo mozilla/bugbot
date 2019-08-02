@@ -129,11 +129,12 @@ class DefectEnhancementTask(BzCleaner):
 
             # Only autofix results for which we are sure enough.
             # And only autofix defect -> task/enhancement for now, unless we're 100% sure.
-            if prob[index] == 1.0 or (
+            """if prob[index] == 1.0 or (
                 bug["type"] == "defect"
                 and (enhancement_prob + task_prob)
                 >= self.get_config("confidence_threshold")
-            ):
+            ):"""
+            if prob[index] == 1.0:
                 results[bug_id]["autofixed"] = True
                 self.autofix_type[bug["id"]] = suggestion
 
