@@ -26,74 +26,74 @@
     },
     "animation":
     {
-        "calendar": "https://gecko.layout.team/triage/animation.json"
+        "calendar": "https://triage.layout.team/animation.json"
     },
     "style-system":
     {
-        "calendar": "https://gecko.layout.team/triage/style-system.json"
+        "calendar": "https://triage.layout.team/style-system.json"
     },
     "layout-general":
     {
-        "calendar": "https://gecko.layout.team/triage/layout-general.json"
+        "calendar": "https://triage.layout.team/layout-general.json"
     },
     "layout-block-inline":
     {
-        "calendar": "https://gecko.layout.team/triage/layout-block-inline.json"
+        "calendar": "https://triage.layout.team/layout-block-inline.json"
     },
     "layout-columns":
     {
-        "calendar": "https://gecko.layout.team/triage/layout-columns.json"
+        "calendar": "https://triage.layout.team/layout-columns.json"
     },
     "layout-flex":
     {
-        "calendar": "https://gecko.layout.team/triage/layout-flex.json"
+        "calendar": "https://triage.layout.team/layout-flex.json"
     },
     "layout-floats":
     {
-        "calendar": "https://gecko.layout.team/triage/layout-floats.json"
+        "calendar": "https://triage.layout.team/layout-floats.json"
     },
     "layout-form-controls":
     {
-        "calendar": "https://gecko.layout.team/triage/layout-form-controls.json"
+        "calendar": "https://triage.layout.team/layout-form-controls.json"
     },
     "layout-generated":
     {
-        "calendar": "https://gecko.layout.team/triage/layout-generated.json"
+        "calendar": "https://triage.layout.team/layout-generated.json"
     },
     "layout-grid":
     {
-        "calendar": "https://gecko.layout.team/triage/layout-grid.json"
+        "calendar": "https://triage.layout.team/layout-grid.json"
     },
     "layout-replaced":
     {
-        "calendar": "https://gecko.layout.team/triage/layout-replaced.json"
+        "calendar": "https://triage.layout.team/layout-replaced.json"
     },
     "layout-positioned":
     {
-        "calendar": "https://gecko.layout.team/triage/layout-positioned.json"
+        "calendar": "https://triage.layout.team/layout-positioned.json"
     },
     "layout-ruby":
     {
-        "calendar": "https://gecko.layout.team/triage/layout-ruby.json"
+        "calendar": "https://triage.layout.team/layout-ruby.json"
     },
     "layout-overflow":
     {
-        "calendar": "https://gecko.layout.team/triage/layout-overflow.json"
+        "calendar": "https://triage.layout.team/layout-overflow.json"
     },
     "layout-tables":
     {
-        "calendar": "https://gecko.layout.team/triage/layout-tables.json"
+        "calendar": "https://triage.layout.team/layout-tables.json"
     },
     "layout-text":
     {
-        "calendar": "https://gecko.layout.team/triage/layout-text.json"
+        "calendar": "https://triage.layout.team/layout-text.json"
     },
     "printing":
     {
-        "calendar": "https://gecko.layout.team/triage/printing.json"
+        "calendar": "https://triage.layout.team/printing.json"
     },
     "svg":
     {
-        "calendar": "https://gecko.layout.team/triage/svg.json"
+        "calendar": "https://triage.layout.team/svg.json"
     }
 }
