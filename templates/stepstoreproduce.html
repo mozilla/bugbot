@@ -1,12 +1,12 @@
-<p>The following {{ plural('bug is', data, pword='bugs are') }} might have a wrong type:
+<p>The following {{ plural('bug', data, pword='bugs') }} {{ plural('doesn\'t', data, pword='don\'t') }} have the Has STR field set:
   <table {{ table_attrs }}>
     <thead>
       <tr>
-        <th>Bug</th><th>Summary</th><th>Type</th><th>BugBug Type</th><th>Confidence (%)</th>
+        <th>Bug</th><th>Summary</th><th>Has STR</th><th>Confidence (%)</th>
       </tr>
     </thead>
     <tbody>
-      {% for i, (bugid, summary, type, bugbug_type, confidence, confidences, autofixed) in enumerate(data) -%}
+      {% for i, (bugid, summary, has_str, confidence, autofixed) in enumerate(data) -%}
       <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
         <td>
           <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
@@ -15,13 +15,10 @@
           {{ summary | e }}
         </td>
         <td>
-          {{ type }}
-        </td>
-        <td>
-          {{ bugbug_type }}
+          {{ has_str }}
         </td>
         <td {% if autofixed %}bgcolor="#00FF00"{% endif -%}>
-          {{ confidences }}
+          {{ confidence }}
         </td>
       </tr>
       {% endfor -%}

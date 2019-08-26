@@ -10,19 +10,19 @@ class TopcrashBadSeverity(BzCleaner):
         super(TopcrashBadSeverity, self).__init__()
 
     def description(self):
-        return 'Bugs with topcrash keyword but incorrect severity'
+        return "Bugs with topcrash keyword but incorrect severity"
 
     def ignore_date(self):
         return True
 
     def get_bz_params(self, date):
         return {
-            'resolution': ['---'],
-            'bug_severity': ['major', 'normal', 'minor', 'trivial', 'enhancement'],
-            'keywords': 'topcrash',
-            'keywords_type': 'allwords',
+            "resolution": ["---"],
+            "bug_severity": ["major", "normal", "minor", "trivial", "enhancement"],
+            "keywords": "topcrash",
+            "keywords_type": "allwords",
         }
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     TopcrashBadSeverity().run()

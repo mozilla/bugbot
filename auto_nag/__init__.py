@@ -4,20 +4,29 @@
 
 import logging
 import sys
-from . import config  # NOQA
-from . import utils
+
+from . import config
+
+config.load()
+
+# We can remove this hack and load utils in the same line as config when we fix
+# the libmozdata bug that doesn't allow to reset the configuration.
+try:
+    from . import utils
+except ModuleNotFoundError:
+    raise
 
 
 VERSION = (0, 0, 1)
-__version__ = '.'.join(map(str, VERSION))
+__version__ = ".".join(map(str, VERSION))
 
 
-path = utils.get_config('common', 'log')
+path = utils.get_config("common", "log")
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 handler = logging.StreamHandler(sys.stdout)
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 

@@ -10,25 +10,25 @@ class DupeMe(BzCleaner):
         super(DupeMe, self).__init__()
 
     def description(self):
-        return 'Closed bugs with dupeme keyword'
+        return "Closed bugs with dupeme keyword"
 
     def get_bz_params(self, date):
-        days_lookup = self.get_config('days_lookup', default=180)
+        days_lookup = self.get_config("days_lookup", default=180)
         params = {
-            'bug_status': ['RESOLVED', 'VERIFIED', 'CLOSED'],
-            'f1': 'keywords',
-            'o1': 'casesubstring',
-            'v1': 'dupeme',
-            'f2': 'days_elapsed',
-            'o2': 'lessthan',
-            'v2': days_lookup,
+            "bug_status": ["RESOLVED", "VERIFIED", "CLOSED"],
+            "f1": "keywords",
+            "o1": "casesubstring",
+            "v1": "dupeme",
+            "f2": "days_elapsed",
+            "o2": "lessthan",
+            "v2": days_lookup,
         }
 
         return params
 
     def get_autofix_change(self):
-        return {'keywords': {'remove': ['dupeme']}}
+        return {"keywords": {"remove": ["dupeme"]}}
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     DupeMe().run()

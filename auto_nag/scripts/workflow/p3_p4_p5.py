@@ -4,20 +4,21 @@
 
 from dateutil.relativedelta import relativedelta
 from libmozdata import utils as lmdutils
-from auto_nag.bzcleaner import BzCleaner
+
 from auto_nag import utils
+from auto_nag.bzcleaner import BzCleaner
 
 
 class P3P4P5(BzCleaner):
     def __init__(self):
         super(P3P4P5, self).__init__()
-        self.nmonths = utils.get_config(self.name(), 'months_lookup', 6)
+        self.nmonths = utils.get_config(self.name(), "months_lookup", 6)
 
     def description(self):
-        return 'P3, P4 or P5 bugs without activity for {} months'.format(self.nmonths)
+        return "P3, P4 or P5 bugs without activity for {} months".format(self.nmonths)
 
     def get_extra_for_template(self):
-        return {'nmonths': self.nmonths}
+        return {"nmonths": self.nmonths}
 
     def ignore_meta(self):
         return True
@@ -26,7 +27,7 @@ class P3P4P5(BzCleaner):
         return True
 
     def columns(self):
-        return ['component', 'id', 'summary']
+        return ["component", "id", "summary"]
 
     def handle_bug(self, bug, data):
         # check if the product::component is in the list
@@ -38,31 +39,31 @@ class P3P4P5(BzCleaner):
         date = lmdutils.get_date_ymd(date)
         start_date = date - relativedelta(months=self.nmonths)
         days = (date - start_date).days
-        self.components = utils.get_config('workflow', 'components')
+        self.components = utils.get_config("workflow", "components")
         params = {
-            'component': utils.get_components(self.components),
-            'bug_type': 'defect',
-            'resolution': '---',
-            'f1': 'priority',
-            'o1': 'anywordssubstr',
-            'v1': ','.join(['P3', 'P4', 'P5']),
-            'f2': 'days_elapsed',
-            'o2': 'greaterthaneq',
-            'v2': days,
+            "component": utils.get_components(self.components),
+            "bug_type": "defect",
+            "resolution": "---",
+            "f1": "priority",
+            "o1": "anywordssubstr",
+            "v1": ",".join(["P3", "P4", "P5"]),
+            "f2": "days_elapsed",
+            "o2": "greaterthaneq",
+            "v2": days,
         }
         return params
 
     def get_autofix_change(self):
         return {
-            'comment': {
-                'body': 'Resolve the bug as INACTIVE since there is no activity for {} months.\nSee [What Do You Triage](https://mozilla.github.io/bug-handling/triage-bugzilla#what-do-you-triage) for more information.'.format(
+            "comment": {
+                "body": "Resolve the bug as INACTIVE since there is no activity for {} months.\nSee [What Do You Triage](https://mozilla.github.io/bug-handling/triage-bugzilla#what-do-you-triage) for more information.".format(
                     self.nmonths
                 )
             },
-            'status': 'RESOLVED',
-            'resolution': 'INACTIVE',
+            "status": "RESOLVED",
+            "resolution": "INACTIVE",
         }
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     P3P4P5().run()

@@ -1,0 +1,27 @@
+<p>The following {{ plural('commit is', data, pword='commits are') }} risky / not risky:
+  <table {{ table_attrs }}>
+    <thead>
+      <tr>
+        <th>Commit</th><th>Description</th><th>Risky?</th><th>Confidence</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for i, (node, desc, result, confidence) in enumerate(data) -%}
+      <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
+        <td>
+          <a href="https://hg.mozilla.org/mozilla-central/rev/{{ node }}">{{ node }}</a>
+        </td>
+        <td>
+          {{ desc | e }}
+        </td>
+        <td>
+          {{ result }}
+        </td>
+        <td>
+          {{ confidence }}
+        </td>
+      </tr>
+      {% endfor -%}
+    </tbody>
+  </table>
+</p>

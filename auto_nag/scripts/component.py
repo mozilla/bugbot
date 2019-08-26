@@ -3,157 +3,184 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag import logger
-from auto_nag.bugbug_utils import BugbugScript
-from bugbug.models.component import ComponentModel
+from auto_nag.bugbug_utils import get_bug_ids_classification
+from auto_nag.bzcleaner import BzCleaner
+from auto_nag.utils import nice_round
 
 
-class Component(BugbugScript):
+class Component(BzCleaner):
     def __init__(self):
-        self.model_class = ComponentModel
         super().__init__()
         self.autofix_component = {}
-        self.frequency = 'daily'
+        self.frequency = "daily"
 
     def add_custom_arguments(self, parser):
         parser.add_argument(
-            '--frequency',
-            help='Daily (noisy) or Hourly',
-            choices=['daily', 'hourly'],
-            default='daily',
+            "--frequency",
+            help="Daily (noisy) or Hourly",
+            choices=["daily", "hourly"],
+            default="daily",
         )
 
     def parse_custom_arguments(self, args):
         self.frequency = args.frequency
 
     def description(self):
-        return (
-            f'[Using ML] Assign a component to untriaged bugs ({self.frequency})'  # noqa
-        )
+        return f"[Using ML] Assign a component to untriaged bugs ({self.frequency})"
 
     def columns(self):
-        return ['id', 'summary', 'component', 'confidence', 'autofixed']
+        return ["id", "summary", "component", "confidence", "autofixed"]
 
     def sort_columns(self):
         return lambda p: (-p[3], -int(p[0]))
+
+    def has_product_component(self):
+        # Inject product and components when calling BzCleaner.get_bugs
+        return True
 
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
 
         return {
+            "include_fields": ["id", "groups", "summary", "product", "component"],
             # Ignore bugs for which somebody has ever modified the product or the component.
-            'n1': 1,
-            'f1': 'product',
-            'o1': 'changedafter',
-            'v1': '1970-01-01',
-            'n2': 1,
-            'f2': 'component',
-            'o2': 'changedafter',
-            'v2': '1970-01-01',
+            "n1": 1,
+            "f1": "product",
+            "o1": "changedafter",
+            "v1": "1970-01-01",
+            "n2": 1,
+            "f2": "component",
+            "o2": "changedafter",
+            "v2": "1970-01-01",
             # Ignore closed bugs.
-            'bug_status': '__open__',
+            "bug_status": "__open__",
             # Get recent General bugs, and all Untriaged bugs.
-            'j3': 'OR',
-            'f3': 'OP',
-            'j4': 'AND',  # noqa
-            'f4': 'OP',  # noqa
-            'f5': 'component',
-            'o5': 'equals',
-            'v5': 'General',  # noqa
-            'f6': 'creation_ts',
-            'o6': 'greaterthan',
-            'v6': start_date,  # noqa
-            'f7': 'CP',  # noqa
-            'f8': 'component',
-            'o8': 'equals',
-            'v8': 'Untriaged',  # noqa
-            'f9': 'CP',
+            "j3": "OR",
+            "f3": "OP",
+            "j4": "AND",
+            "f4": "OP",
+            "f5": "component",
+            "o5": "equals",
+            "v5": "General",
+            "f6": "creation_ts",
+            "o6": "greaterthan",
+            "v6": start_date,
+            "f7": "CP",
+            "f8": "component",
+            "o8": "equals",
+            "v8": "Untriaged",
+            "f9": "CP",
         }
 
-    def get_bugs(self, date='today', bug_ids=[]):
-        # Retrieve bugs to analyze.
-        bugs, probs = super().get_bugs(date=date, bug_ids=bug_ids)
-        if len(bugs) == 0:
+    def get_bugs(self, date="today", bug_ids=[]):
+        # Retrieve the bugs with the fields defined in get_bz_params
+        raw_bugs = super().get_bugs(date=date, bug_ids=bug_ids, chunk_size=7000)
+
+        if len(raw_bugs) == 0:
             return {}
 
-        # Get the encoded component.
-        indexes = probs.argmax(axis=-1)
-        # Apply inverse transformation to get the component name from the encoded value.
-        suggestions = self.model.clf._le.inverse_transform(indexes)
+        # Extract the bug ids
+        bug_ids = list(raw_bugs.keys())
+
+        # Classify those bugs
+        bugs = get_bug_ids_classification("component", bug_ids)
 
         results = {}
-        for bug, prob, index, suggestion in zip(bugs, probs, indexes, suggestions):
+
+        for bug_id in sorted(bugs.keys()):
+            bug_data = bugs[bug_id]
+
+            if not bug_data.get("available", True):
+                # The bug was not available, it was either removed or is a
+                # security bug
+                continue
+
+            if not {"prob", "index", "class", "extra_data"}.issubset(bug_data.keys()):
+                raise Exception(f"Invalid bug response {bug_id}: {bug_data!r}")
+
+            bug = raw_bugs[bug_id]
+            prob = bug_data["prob"]
+            index = bug_data["index"]
+            suggestion = bug_data["class"]
+            conflated_components_mapping = bug_data["extra_data"][
+                "conflated_components_mapping"
+            ]
+
             # Skip product-only suggestions that are not useful.
-            if '::' not in suggestion and bug['product'] == suggestion:
+            if "::" not in suggestion and bug["product"] == suggestion:
                 continue
 
-            suggestion = self.model.CONFLATED_COMPONENTS_MAPPING.get(
-                suggestion, suggestion
-            )
+            suggestion = conflated_components_mapping.get(suggestion, suggestion)
 
-            if '::' not in suggestion:
+            if "::" not in suggestion:
                 logger.error(
-                    f'There is something wrong with this component suggestion! {suggestion}'
-                )  # noqa
+                    f"There is something wrong with this component suggestion! {suggestion}"
+                )
                 continue
 
-            i = suggestion.index('::')
+            i = suggestion.index("::")
             suggested_product = suggestion[:i]
-            suggested_component = suggestion[i + 2 :]  # NOQA
+            suggested_component = suggestion[i + 2 :]
 
             # When moving bugs out of the 'General' component, we don't want to change the product (unless it is Firefox).
-            if bug['component'] == 'General' and bug['product'] not in {
+            if bug["component"] == "General" and bug["product"] not in {
                 suggested_product,
-                'Firefox',
+                "Firefox",
             }:
                 continue
 
-            bug_id = str(bug['id'])
+            bug_id = str(bug["id"])
 
             result = {
-                'id': bug_id,
-                'summary': self.get_summary(bug),
-                'component': suggestion,
-                'confidence': int(round(100 * prob[index])),
-                'autofixed': False,
+                "id": bug_id,
+                "summary": bug["summary"],
+                "component": suggestion,
+                "confidence": nice_round(prob[index]),
+                "autofixed": False,
             }
 
             # In daily mode, we send an email with all results.
-            if self.frequency == 'daily':
+            if self.frequency == "daily":
                 results[bug_id] = result
 
             confidence_threshold_conf = (
-                'confidence_threshold'
-                if bug['component'] != 'General'
-                else 'general_confidence_threshold'
+                "confidence_threshold"
+                if bug["component"] != "General"
+                else "general_confidence_threshold"
             )
 
             if prob[index] >= self.get_config(confidence_threshold_conf):
                 self.autofix_component[bug_id] = {
-                    'product': suggested_product,
-                    'component': suggested_component,
+                    "product": suggested_product,
+                    "component": suggested_component,
                 }
 
-                result['autofixed'] = True
+                result["autofixed"] = True
 
                 # In hourly mode, we send an email with only the bugs we acted upon.
-                if self.frequency == 'hourly':
+                if self.frequency == "hourly":
                     results[bug_id] = result
 
         return results
 
     def get_autofix_change(self):
-        cc = {'cc': {'add': self.get_config('cc')}}
+        common = {
+            "cc": {"add": self.get_config("cc")},
+            "comment": {
+                "body": "[Bugbug](https://github.com/mozilla/bugbug/) thinks this bug should belong to this component, but please revert this change in case of error."
+            },
+        }
         return {
-            bug_id: (data.update(cc) or data)
+            bug_id: (data.update(common) or data)
             for bug_id, data in self.autofix_component.items()
         }
 
     def get_db_extra(self):
         return {
-            bugid: '{}::{}'.format(v['product'], v['component'])
+            bugid: "{}::{}".format(v["product"], v["component"])
             for bugid, v in self.get_autofix_change().items()
         }
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     Component().run()

@@ -114,4 +114,7 @@ python -m auto_nag.scripts.defectenhancementtask
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
 
+# Try to detect potential missing Has STR using bugbug
+python -m auto_nag.scripts.stepstoreproduce
+
 deactivate

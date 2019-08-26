@@ -3,17 +3,18 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import functools
+import re
+
 from Levenshtein import jaro_winkler
 from libmozdata import hgmozilla
 from libmozdata.bugzilla import Bugzilla, BugzillaUser
 from libmozdata.connection import Query
-import re
-from auto_nag.bzcleaner import BzCleaner
+
 from auto_nag import utils
+from auto_nag.bzcleaner import BzCleaner
 
-
-HG_MAIL = re.compile(r'^([^<]*)<([^>]+)>$')
-ALNUM = re.compile(r'[\W_]+', re.UNICODE)
+HG_MAIL = re.compile(r"^([^<]*)<([^>]+)>$")
+ALNUM = re.compile(r"[\W_]+", re.UNICODE)
 
 
 class NoAssignee(BzCleaner):
@@ -23,39 +24,39 @@ class NoAssignee(BzCleaner):
         self.autofix_assignee = {}
 
     def description(self):
-        return 'Bugs with no assignees and a patch which landed in m-c'
+        return "Bugs with no assignees and a patch which landed in m-c"
 
     def columns(self):
-        return ['id', 'summary', 'email']
+        return ["id", "summary", "email"]
 
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
-        reporters = self.get_config('reporter_exception', default=[])
-        reporters = ','.join(reporters)
-        regexp = r'http[s]?://hg\.mozilla\.org/(releases/)?mozilla-[^/]+/rev/[0-9a-f]+'
-        bot = utils.get_config('common', 'bot_bz_mail')[0]
+        reporters = self.get_config("reporter_exception", default=[])
+        reporters = ",".join(reporters)
+        regexp = r"http[s]?://hg\.mozilla\.org/(releases/)?mozilla-[^/]+/rev/[0-9a-f]+"
+        bot = utils.get_config("common", "bot_bz_mail")[0]
         params = {
-            'resolution': 'FIXED',
-            'bug_status': ['RESOLVED', 'VERIFIED'],
-            'keywords': 'meta',
-            'keywords_type': 'nowords',
-            'f1': 'longdesc',
-            'o1': 'regexp',
-            'v1': regexp,
-            'f2': 'resolution',
-            'o2': 'changedafter',
-            'v2': start_date,
-            'f3': 'resolution',
-            'o3': 'changedbefore',
-            'v3': end_date,
-            'n4': 1,
-            'f4': 'assigned_to',
-            'o4': 'changedby',
-            'v4': bot,
+            "resolution": "FIXED",
+            "bug_status": ["RESOLVED", "VERIFIED"],
+            "keywords": "meta",
+            "keywords_type": "nowords",
+            "f1": "longdesc",
+            "o1": "regexp",
+            "v1": regexp,
+            "f2": "resolution",
+            "o2": "changedafter",
+            "v2": start_date,
+            "f3": "resolution",
+            "o3": "changedbefore",
+            "v3": end_date,
+            "n4": 1,
+            "f4": "assigned_to",
+            "o4": "changedby",
+            "v4": bot,
         }
 
         if reporters:
-            params.update({'f5': 'reporter', 'o5': 'nowordssubstr', 'v5': reporters})
+            params.update({"f5": "reporter", "o5": "nowordssubstr", "v5": reporters})
 
         utils.get_empty_assignees(params)
 
@@ -64,13 +65,13 @@ class NoAssignee(BzCleaner):
     def is_patch(self, attachment):
         """Check if the attachment is a patch or not.
         """
-        if attachment['is_obsolete'] == 1:
+        if attachment["is_obsolete"] == 1:
             return False
-        if attachment['is_patch'] == 1:
+        if attachment["is_patch"] == 1:
             return True
-        if attachment['content_type'] in [
-            'text/x-phabricator-request',
-            'text/x-review-board-request',
+        if attachment["content_type"] in [
+            "text/x-phabricator-request",
+            "text/x-review-board-request",
         ]:
             return True
 
@@ -78,35 +79,35 @@ class NoAssignee(BzCleaner):
 
     def get_revisions(self, bugs):
         """Get the revisions from the hg.m.o urls in the bug comments"""
-        nightly_pats = Bugzilla.get_landing_patterns(channels=['nightly'])
+        nightly_pats = Bugzilla.get_landing_patterns(channels=["nightly"])
 
         def comment_handler(bug, bugid, data):
-            commenters = data[bugid]['commenters']
-            for comment in bug['comments']:
-                commenter = comment['author']
+            commenters = data[bugid]["commenters"]
+            for comment in bug["comments"]:
+                commenter = comment["author"]
                 if commenter in commenters:
                     commenters[commenter] += 1
                 else:
                     commenters[commenter] = 1
 
-            r = Bugzilla.get_landing_comments(bug['comments'], [], nightly_pats)
-            data[bugid]['revisions'] = [i['revision'] for i in r]
+            r = Bugzilla.get_landing_comments(bug["comments"], [], nightly_pats)
+            data[bugid]["revisions"] = [i["revision"] for i in r]
 
         def attachment_handler(attachments, bugid, data):
             for attachment in attachments:
                 if self.is_patch(attachment):
-                    data[bugid]['creators'].add(attachment['creator'])
+                    data[bugid]["creators"].add(attachment["creator"])
 
         bugids = list(bugs.keys())
         revisions = {
-            bugid: {'revisions': [], 'creators': set(), 'commenters': {}}
+            bugid: {"revisions": [], "creators": set(), "commenters": {}}
             for bugid in bugids
         }
         Bugzilla(
             bugids=bugids,
             commenthandler=comment_handler,
             commentdata=revisions,
-            comment_include_fields=['text', 'author'],
+            comment_include_fields=["text", "author"],
             attachmenthandler=attachment_handler,
             attachmentdata=revisions,
         ).get_data().wait()
@@ -118,12 +119,12 @@ class NoAssignee(BzCleaner):
         """
 
         def handler(user, data):
-            data[user['name']] = user['real_name']
+            data[user["name"]] = user["real_name"]
 
         users = set()
         for info in bzdata.values():
-            users |= info['creators']
-            users |= set(info['commenters'].keys())
+            users |= info["creators"]
+            users |= set(info["commenters"].keys())
 
         data = {}
 
@@ -137,10 +138,10 @@ class NoAssignee(BzCleaner):
     def clean_name(self, name):
         """Get the different parts of the name with letters only
         """
-        res = ''
+        res = ""
         for c in name:
-            res += c if c.isalpha() else ' '
-        res = res.split(' ')
+            res += c if c.isalpha() else " "
+        res = res.split(" ")
         res = filter(None, res)
         res = map(lambda s: s.lower(), res)
         res = set(res)
@@ -151,7 +152,7 @@ class NoAssignee(BzCleaner):
         return set()
 
     def clean_mail(self, mail):
-        return ALNUM.sub('', mail)
+        return ALNUM.sub("", mail)
 
     def mk_possible_mails(self, names):
         # Foo Bar will probably choose fbar@ or barf@ or foob@...
@@ -239,8 +240,8 @@ class NoAssignee(BzCleaner):
         for bugid, info in bzdata.items():
             if bugid not in self.hgdata:
                 continue
-            creators = info['creators']
-            commenters = info['commenters']
+            creators = info["creators"]
+            commenters = info["commenters"]
             patchers = self.hgdata[bugid]
             self.hgdata[bugid] = self.find_assignee(
                 creators, patchers, commenters, user_info
@@ -251,8 +252,8 @@ class NoAssignee(BzCleaner):
         the bug id in the description"""
 
         def handler_rev(bugid, json, data):
-            if bugid in json['desc'] and not utils.is_backout(json):
-                user = json['user']
+            if bugid in json["desc"] and not utils.is_backout(json):
+                user = json["user"]
                 if bugid not in data:
                     data[bugid] = set()
                 m = HG_MAIL.match(user)
@@ -261,12 +262,12 @@ class NoAssignee(BzCleaner):
                     hgmail = m.group(2).strip()
                     data[bugid].add((hgname, hgmail))
 
-        url = hgmozilla.Revision.get_url('nightly')
+        url = hgmozilla.Revision.get_url("nightly")
         queries = []
         for bugid, info in bzdata.items():
             hdler = functools.partial(handler_rev, bugid)
-            for rev in info['revisions']:
-                queries.append(Query(url, {'node': rev}, hdler, self.hgdata))
+            for rev in info["revisions"]:
+                queries.append(Query(url, {"node": rev}, hdler, self.hgdata))
 
         if queries:
             hgmozilla.Revision(queries=queries).wait()
@@ -280,10 +281,10 @@ class NoAssignee(BzCleaner):
 
     def get_db_extra(self):
         return {
-            bugid: v['assigned_to'] for bugid, v in self.get_autofix_change().items()
+            bugid: v["assigned_to"] for bugid, v in self.get_autofix_change().items()
         }
 
-    def get_bugs(self, date='today', bug_ids=[]):
+    def get_bugs(self, date="today", bug_ids=[]):
         bugs = super(NoAssignee, self).get_bugs(date=date, bug_ids=bug_ids)
         bzdata = self.get_revisions(bugs)
         user_info = self.get_user_info(bzdata)
@@ -293,14 +294,14 @@ class NoAssignee(BzCleaner):
         for bugid, email in _bugs.items():
             if email:
                 res[bugid] = {
-                    'id': bugid,
-                    'email': email,
-                    'summary': bugs[bugid]['summary'],
+                    "id": bugid,
+                    "email": email,
+                    "summary": bugs[bugid]["summary"],
                 }
-                self.autofix_assignee[bugid] = {'assigned_to': email}
+                self.autofix_assignee[bugid] = {"assigned_to": email}
 
         return res
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     NoAssignee().run()

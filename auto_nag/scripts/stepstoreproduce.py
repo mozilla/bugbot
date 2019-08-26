@@ -7,25 +7,21 @@ from auto_nag.bzcleaner import BzCleaner
 from auto_nag.utils import nice_round
 
 
-class Regression(BzCleaner):
+class StepsToReproduce(BzCleaner):
     def __init__(self):
         super().__init__()
-        self.autofix_regression = []
 
     def description(self):
-        return "[Using ML] Bugs with missing regression keyword"
+        return "[Using ML] Bugs with missing steps to reproduce"
 
     def columns(self):
-        return ["id", "summary", "confidence", "autofixed"]
+        return ["id", "summary", "has_str", "confidence", "autofixed"]
 
     def sort_columns(self):
-        return lambda p: (-p[2], -int(p[0]))
+        return lambda p: (-p[3], -int(p[0]))
 
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
-
-        resolution_skiplist = self.get_config("resolution_skiplist", default=[])
-        resolution_skiplist = " ".join(resolution_skiplist)
 
         reporter_skiplist = self.get_config("reporter_skiplist", default=[])
         reporter_skiplist = ",".join(reporter_skiplist)
@@ -33,24 +29,27 @@ class Regression(BzCleaner):
         params = {
             "include_fields": ["id", "groups", "summary"],
             "bug_type": "defect",
-            "f1": "keywords",
-            "o1": "nowords",
-            "v1": "regression,feature,meta",
+            "f1": "longdesc",
+            "o1": "changedafter",
+            "v1": start_date,
             "f2": "longdesc",
-            "o2": "anywordssubstr",
-            "v2": "regress caus",
-            "f3": "resolution",
+            "o2": "changedbefore",
+            "v2": end_date,
+            "f3": "reporter",
             "o3": "nowords",
-            "v3": resolution_skiplist,
-            "f4": "longdesc",
-            "o4": "changedafter",
-            "v4": start_date,
-            "f5": "longdesc",
-            "o5": "changedbefore",
-            "v5": end_date,
-            "f6": "reporter",
+            "v3": reporter_skiplist,
+            "f4": "cf_has_str",
+            "o4": "equals",
+            "v4": "---",
+            "n5": 1,
+            "f5": "cf_has_str",
+            "o5": "changedafter",
+            "v5": "1970-01-01",
+            "f6": "keywords",
             "o6": "nowords",
-            "v6": reporter_skiplist,
+            "v6": "intermittent-failure",
+            # Ignore closed bugs.
+            "bug_status": "__open__",
         }
 
         return params
@@ -66,7 +65,7 @@ class Regression(BzCleaner):
         bug_ids = list(raw_bugs.keys())
 
         # Classify those bugs
-        bugs = get_bug_ids_classification("regression", bug_ids)
+        bugs = get_bug_ids_classification("stepstoreproduce", bug_ids)
 
         results = {}
 
@@ -78,47 +77,26 @@ class Regression(BzCleaner):
                 # security bug
                 continue
 
-            if not {"prob"}.issubset(bug_data.keys()):
+            if not {"prob", "index"}.issubset(bug_data.keys()):
                 raise Exception(f"Invalid bug response {bug_id}: {bug_data!r}")
 
             bug = raw_bugs[bug_id]
             prob = bug_data["prob"]
+            index = bug_data["index"]
 
-            if prob[1] < 0.5:
-                continue
-
-            bug_id = str(bug_id)
             results[bug_id] = {
                 "id": bug_id,
                 "summary": bug["summary"],
-                "confidence": nice_round(prob[1]),
+                "has_str": "yes" if prob[1] > 0.5 else "no",
+                "confidence": nice_round(prob[index]),
                 "autofixed": False,
             }
-
-            # Only autofix results for which we are sure enough.
-            if prob[1] >= self.get_config("confidence_threshold"):
-                results[bug_id]["autofixed"] = True
-                self.autofix_regression.append((bug_id, prob[1]))
 
         return results
 
     def get_autofix_change(self):
-        cc = self.get_config("cc")
-
-        autofix_change = {}
-        for bug_id, confidence in self.autofix_regression:
-            autofix_change[bug_id] = {
-                "keywords": {"add": ["regression"]},
-                "cc": {"add": cc},
-            }
-
-            if confidence != 1.0:
-                autofix_change[bug_id]["comment"] = {
-                    "body": "[Bugbug](https://github.com/mozilla/bugbug/) thinks this bug is a regression, but please revert this change in case of error."
-                }
-
-        return autofix_change
+        return {}
 
 
 if __name__ == "__main__":
-    Regression().run()
+    StepsToReproduce().run()

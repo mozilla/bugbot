@@ -2,17 +2,18 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from dateutil.relativedelta import relativedelta
 import json
-from libmozdata import utils as lmdutils
 import unittest
+
+from dateutil.relativedelta import relativedelta
+from libmozdata import utils as lmdutils
 
 from auto_nag.cache import Cache
 
 
 class TestCache(unittest.TestCase):
     def test_cache(self):
-        cache = Cache('test_cache', 7)
+        cache = Cache("test_cache", 7)
         cache.set_dry_run(False)
 
         bugids = [123, 456, 789]
@@ -23,20 +24,20 @@ class TestCache(unittest.TestCase):
             assert str(bugid) in cache
 
         assert 101112 not in cache
-        assert '101112' not in cache
+        assert "101112" not in cache
 
-        with open(cache.get_path(), 'r') as In:
+        with open(cache.get_path(), "r") as In:
             data = json.load(In)
 
-        for bugid in ['123', '456']:
+        for bugid in ["123", "456"]:
             date = data[bugid]
             date = lmdutils.get_date_ymd(date) - relativedelta(days=8)
             data[bugid] = lmdutils.get_date_str(date)
 
-        with open(cache.get_path(), 'w') as Out:
+        with open(cache.get_path(), "w") as Out:
             json.dump(data, Out)
 
-        cache = Cache('test_cache', 7)
+        cache = Cache("test_cache", 7)
         cache.set_dry_run(False)
 
         assert 123 not in cache

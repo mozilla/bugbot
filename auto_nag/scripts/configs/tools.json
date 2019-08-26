@@ -6,14 +6,14 @@
         {
             "necko": "necko_round_robin.json",
             "Core::General": "core_general_round_robin.json",
-            "DOM:Workers & Storage": "dom_workers_storage_round_robin.json"
+            "DOM:Workers & Storage": "dom_workers_storage_round_robin.json",
+            "Core::Layout": "layout_round_robin.json"
         }
     },
     "no_assignee":
     {
         "days_lookup": 45,
         "reporter_exception":
-        // the bugs where the reporter is in this list are not retrieved
         [
             "wptsync@mozilla.bugs"
         ]
@@ -27,14 +27,17 @@
         [
             "calixte@mozilla.com",
             "ehumphries@mozilla.com",
-            "sylvestre@mozilla.com"
+            "sylvestre@mozilla.com",
+            "rkothari@mozilla.com"
         ],
         "on-errors":
         [
             "calixte@mozilla.com",
             "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com"
+            "mcastelluccio@mozilla.com",
+            "bfeld@mozilla.com"
         ],
+        "bugzilla_max_retries": 3,
         "bot_bz_mail": ["release-mgmt-account-bot@mozilla.tld"],
         "table_attrs": "style=\"border:1px solid black;border-collapse:collapse;\" border=\"1\"",
         "days_lookup": 7,
@@ -123,7 +126,8 @@
             "calixte@mozilla.com",
             "ehumphries@mozilla.com",
             "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com"
+            "mcastelluccio@mozilla.com",
+            "rkothari@mozilla.com"
         ],
         "days_lookup": 3,
         "resolution_skiplist":
@@ -140,9 +144,6 @@
         "confidence_threshold": 0.9,
         "cc":
         [
-            "sledru@mozilla.com",
-            "mcastelluccio@mozilla.com",
-            "cdenizet@mozilla.com"
         ]
     },
     "auto_nag":
@@ -303,7 +304,6 @@
             "Firefox Build System::General",
             "Core::JavaScript Engine",
             "Core::Document Navigation",
-            "Firefox for Android::General",
             "Core::DOM: Core & HTML",
             "Core::XPCOM",
             "DevTools::Accessibility Tools",
@@ -312,45 +312,26 @@
             "Firefox Build System::Bootstrap Configuration",
             "Toolkit::Video/Audio Controls",
             "Core::Privacy: Anti-Tracking",
-            "Core::Layout",
             "Firefox::Extension Compatibility",
-            "Core::CSS Parsing and Computation",
             "Core::DOM: Device Interfaces",
-            "Core::Layout: Form Controls",
             "Core::Javascript: WebAssembly",
-            "Core::Layout: Scrolling and Overflow",
             "Firefox Build System::Lint and Formatting",
-            "Core::Printing: Output",
-            "Core::SVG",
             "Firefox Build System::Task Configuration",
-            "Core::Print Preview",
             "Firefox Build System::Try",
-            "Core::DOM: CSS Object Model",
-            "Core::Layout: Grid",
             "Firefox Build System::Toolchains",
             "Core::DOM: Bindings (WebIDL)",
             "Core::JavaScript Engine: JIT",
-            "Core::Layout: Block and Inline",
-            "Core::Layout: Generated Content, Lists, and Counters",
-            "Core::Layout: Images, Video, and HTML Frames",
-            "Core::Layout: Text and Fonts",
             "Core::String",
             "Firefox Build System::Generated Documentation",
-            "Core::CSS Transitions and Animations",
-            "Core::Layout: Columns",
-            "Core::Layout: Flexbox",
-            "Core::Layout: Positioned",
-            "Core::Layout: Ruby",
-            "Core::Layout: Tables",
             "Core::MathML",
             "Core::MFBT",
             "Firefox Build System::General: Unsupported Platforms",
-            "Core::Printing: Setup",
             "WebExtensions::Developer Outreach",
             "NSS::Tools",
             "Firefox::Shell Integration",
             "Core::X-remote",
             "NSS::Build",
+            "Firefox for Android::General",
             "Firefox for Android::Web Apps"
         ],
         "supervisor_skiplist":
@@ -468,13 +449,12 @@
             "calixte@mozilla.com",
             "ehumphries@mozilla.com",
             "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com"
+            "mcastelluccio@mozilla.com",
+            "rkothari@mozilla.com",
+            "bfeld@mozilla.com"
         ],
         "cc":
         [
-            "sledru@mozilla.com",
-            "mcastelluccio@mozilla.com",
-            "cdenizet@mozilla.com"
         ]
     },
     "code_freeze_week":
@@ -499,7 +479,8 @@
             "calixte@mozilla.com",
             "ehumphries@mozilla.com",
             "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com"
+            "mcastelluccio@mozilla.com",
+            "rkothari@mozilla.com"
         ],
         "days_lookup": 3,
         "reporter_skiplist":
@@ -507,12 +488,9 @@
             "intermittent-bug-filer@mozilla.bugs",
             "wptsync@mozilla.bugs"
         ],
-        "confidence_threshold": 0.95,
+        "confidence_threshold": 0.9,
         "cc":
         [
-            "sledru@mozilla.com",
-            "mcastelluccio@mozilla.com",
-            "cdenizet@mozilla.com"
         ]
     },
     "tracking":
@@ -560,18 +538,25 @@
             "calixte@mozilla.com",
             "ehumphries@mozilla.com",
             "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com"
+            "mcastelluccio@mozilla.com",
+            "rkothari@mozilla.com"
         ]
     },
     "prod_comp_changed_with_priority":
     {
         "days_lookup": 30,
+        "skiplist":
+        [
+            "nobody@mozilla.org",
+            "bug-husbandry-bot@mozilla.bugs"
+        ],
         "receivers":
         [
             "calixte@mozilla.com",
             "ehumphries@mozilla.com",
             "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com"
+            "mcastelluccio@mozilla.com",
+            "rkothari@mozilla.com"
         ]
     },
     "to_triage":
@@ -584,14 +569,60 @@
             {
                 "[0;+∞[":
                 {
-                    "supervisor": "n+1",
+                    "supervisor": "fallback",
                     "days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
                 }
             }
         },
         "teams":
         [
-            "DOM:Workers & Storage"
+            "DOM:Workers & Storage",
+            "Core::General"
+        ],
+        "persons":
+        [
+            "jdescottes@mozilla.com"
+        ]
+    },
+    "stepstoreproduce":
+    {
+        "max_days_in_cache": 7,
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "sylvestre@mozilla.com",
+            "mcastelluccio@mozilla.com",
+            "rkothari@mozilla.com"
+        ],
+        "days_lookup": 3,
+        "reporter_skiplist":
+        [
+            "intermittent-bug-filer@mozilla.bugs",
+            "wptsync@mozilla.bugs"
+        ],
+        "confidence_threshold": 0.9,
+        "cc":
+        [
+            "sledru@mozilla.com",
+            "mcastelluccio@mozilla.com",
+            "cdenizet@mozilla.com"
+        ]
+    },
+    "regressor":
+    {
+        "max_days_in_cache": 7,
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "sylvestre@mozilla.com",
+            "mcastelluccio@mozilla.com",
+            "rkothari@mozilla.com"
+        ],
+        "cc":
+        [
+            "sledru@mozilla.com",
+            "mcastelluccio@mozilla.com",
+            "cdenizet@mozilla.com"
         ]
     }
 }
