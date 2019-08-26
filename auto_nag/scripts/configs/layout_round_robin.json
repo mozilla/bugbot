@@ -3,10 +3,14 @@
     "components":
     {
 <<<<<<< HEAD
+<<<<<<< HEAD
         "Core::CSS Transitions and Animations": "animation",
 =======
         "Core::CSS Animations and Transitions": "animation",
 >>>>>>> Add round robin config for layout team
+=======
+        "Core::CSS Transitions and Animations": "animation",
+>>>>>>> Update layout triage calendar URLs
         "Core::CSS Parsing and Computation": "style-system",
         "Core::DOM: CSS Object Model": "style-system",
         "Core::Layout": "layout-general",
@@ -32,6 +36,9 @@
     {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> Update layout triage calendar URLs
         "calendar": "https://triage.layout.team/animation.json"
     },
     "style-system":
@@ -101,6 +108,7 @@
     "svg":
     {
         "calendar": "https://triage.layout.team/svg.json"
+<<<<<<< HEAD
     }
 }
 =======
@@ -176,6 +184,8 @@
     "svg":
     {
         "calendar": "https://triage.layout.team/svg.json"
+=======
+>>>>>>> Update layout triage calendar URLs
     }
 }
 <<<<<<< HEAD
