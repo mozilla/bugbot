@@ -2,11 +2,7 @@
     "fallback": "Sean Voisen",
     "components":
     {
-<<<<<<< HEAD
-        "Core::CSS Animations and Transitions": "animation",
-=======
         "Core::CSS Transitions and Animations": "animation",
->>>>>>> upstream/master
         "Core::CSS Parsing and Computation": "style-system",
         "Core::DOM: CSS Object Model": "style-system",
         "Core::Layout": "layout-general",
@@ -30,7 +26,6 @@
     },
     "animation":
     {
-<<<<<<< HEAD
         "calendar": "https://triage.layout.team/animation.json"
     },
     "style-system":
@@ -100,76 +95,5 @@
     "svg":
     {
         "calendar": "https://triage.layout.team/svg.json"
-=======
-        "calendar": "https://gecko.layout.team/triage/animation.json"
-    },
-    "style-system":
-    {
-        "calendar": "https://gecko.layout.team/triage/style-system.json"
-    },
-    "layout-general":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-general.json"
-    },
-    "layout-block-inline":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-block-inline.json"
-    },
-    "layout-columns":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-columns.json"
-    },
-    "layout-flex":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-flex.json"
-    },
-    "layout-floats":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-floats.json"
-    },
-    "layout-form-controls":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-form-controls.json"
-    },
-    "layout-generated":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-generated.json"
-    },
-    "layout-grid":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-grid.json"
-    },
-    "layout-replaced":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-replaced.json"
-    },
-    "layout-positioned":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-positioned.json"
-    },
-    "layout-ruby":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-ruby.json"
-    },
-    "layout-overflow":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-overflow.json"
-    },
-    "layout-tables":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-tables.json"
-    },
-    "layout-text":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-text.json"
-    },
-    "printing":
-    {
-        "calendar": "https://gecko.layout.team/triage/printing.json"
-    },
-    "svg":
-    {
-        "calendar": "https://gecko.layout.team/triage/svg.json"
->>>>>>> upstream/master
     }
 }
