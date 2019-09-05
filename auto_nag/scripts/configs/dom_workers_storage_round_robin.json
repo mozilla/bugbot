@@ -7,7 +7,8 @@
         "Core::DOM: Quota Manager": "default",
         "Core::DOM: IndexedDB": "default",
         "Core::DOM: Web Storage": "default",
-        "Core::DOM: Push Notifications": "default"
+        "Core::DOM: Push Notifications": "default",
+        "Core::DOM: File": "default"
     },
     "default":
     {
