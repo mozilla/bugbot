@@ -14,52 +14,51 @@ class Intermittents(BzCleaner):
 
     def get_bz_params(self, date):
         params = {
-            "email1":	["intermittent-bug-filer@mozilla.bugs"],
-            "emailreporter1":	["1"],
-            "emailtype1":	["exact"],
-            "f1":	["longdescs.count"],
-            "f2":	["blocked"],
-            "f3":	["flagtypes.name"],
-            "f4":	["OP"],
-            "f5":	["bug_status"],
-            "f6":	["bug_status"],
-            "f7":	["CP"],
-            "f8":	["bug_severity"],
-            "f9":	["component"],
-            "keywords":	["leave-open"],
-            "keywords_type":	["nowords"],
-            "n1":	["1"],
-            "n4":	["1"],
-            "o1":	["changedafter"],
-            "o2":	["isempty"],
-            "o3":	["notequals"],
-            "o5":	["changedto"],
-            "o6":	["changedafter"],
-            "o8":	["notequals"],
-            "o9":	["nowordssubstr"],
-            "priority":	["P5"],
-            "resolution":	["---"],
-            "status_whiteboard":	["(leave open|leave-open|leaveopen|test disabled|test-disabled|testdisabled)"],
-            "status_whiteboard_type":	["notregexp"],
-            "v1":	["-3w"],
-            "v3":	["needinfo?"],
-            "v5":	["REOPENED"],
-            "v6":	["-7d"],
-            "v8":	["critical"],
-            "v9":	["new tab page, messaging system"],
+            "email1": "intermittent-bug-filer@mozilla.bugs",
+            "emailreporter1": "1",
+            "emailtype1": "exact",
+            "n1": "1",
+            "f1": "longdescs.count",
+            "o1": "changedafter",
+            "v1": "-3w",
+            "f2": "blocked",
+            "o2": "isempty",
+            "f3": "flagtypes.name",
+            "o3": "notequals",
+            "v3": "needinfo?",
+            "f4": "OP",
+            "n4": "1",
+            "f5": "bug_status",
+            "o5": "changedto",
+            "v5": "REOPENED",
+            "f6": "bug_status",
+            "o6": "changedafter",
+            "v6": "-7d",
+            "f7": "CP",
+            "f8": "bug_severity",
+            "o8": "notequals",
+            "v8": "critical",
+            "f9": "component",
+            "o9": "nowordssubstr",
+            "v9": "new tab page, messaging system",
+            "keywords_type": "nowords",
+            "keywords": "leave-open",
+            "priority": "P5",
+            "resolution": "---",
+            "status_whiteboard_type": "notregexp",
+            "status_whiteboard": "(leave open|leave-open|leaveopen|test disabled|test-disabled|testdisabled)",
         }
 
         return params
 
     def get_autofix_change(self):
         return {
-            "status": {"add": ["RESOLVED"]},
-            "resolution": {"add": ["INCOMPLETE"]},
+            "status": {"add": "RESOLVED"},
+            "resolution": {"add": "INCOMPLETE"},
             "comment": {
                 "body": f"https://wiki.mozilla.org/Bug_Triage#Intermittent_Test_Failure_Cleanup\n{self.get_documentation()}"
             },
         }
-
 
 
 if __name__ == "__main__":
