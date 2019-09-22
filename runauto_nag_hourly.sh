@@ -26,10 +26,6 @@ python -m auto_nag.scripts.leave_open
 # pretty common
 python -m auto_nag.scripts.no_crashes
 
-# Unconfirmed bugs with an assignee (with autofix)
-# Pretty common
-python -m auto_nag.scripts.assignee_but_unconfirmed
-
 # List bug with the meta keyword but not [meta] in the title
 # Pretty common
 python -m auto_nag.scripts.meta_summary_missing

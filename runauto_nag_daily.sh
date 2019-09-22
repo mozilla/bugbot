@@ -49,10 +49,6 @@ python -m auto_nag.scripts.one_two_word_summary
 # Pretty common
 python -m auto_nag.scripts.reporter_with_ni
 
-# Unconfirmed bugs with an assignee (with autofix)
-# Pretty common
-python -m auto_nag.scripts.assignee_but_unconfirmed
-
 # Notify bugs in untriaged with an important severity
 python -m auto_nag.scripts.untriage_important_sev
 
