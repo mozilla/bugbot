@@ -53,8 +53,8 @@ class Intermittents(BzCleaner):
 
     def get_autofix_change(self):
         return {
-            "status": {"add": "RESOLVED"},
-            "resolution": {"add": "INCOMPLETE"},
+            "status": "RESOLVED",
+            "resolution": "INCOMPLETE",
             "comment": {
                 "body": f"https://wiki.mozilla.org/Bug_Triage#Intermittent_Test_Failure_Cleanup\n{self.get_documentation()}"
             },
