@@ -148,7 +148,15 @@ class NotLanded(BzCleaner):
         if attachment["is_patch"] == 0 or attachment["is_obsolete"] == 1:
             return None
 
-        data = base64.b64decode(attachment["data"]).decode("utf-8")
+        data = base64.b64decode(attachment["data"])
+        try:
+            data = data.decode("utf-8")
+        except UnicodeDecodeError:
+            try:
+                data = data.decode("iso-8859-1")
+            except UnicodeDecodeError:
+                return None
+
         if data.startswith("https://github.com"):
             return None
 
