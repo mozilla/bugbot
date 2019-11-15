@@ -1,17 +1,18 @@
 {
-    "fallback": "Andrew Overholt",
-    "components":
-    {
-        "Core::DOM: Service Workers": "default",
-        "Core::DOM: Workers": "default",
-        "Core::DOM: Quota Manager": "default",
-        "Core::DOM: IndexedDB": "default",
-        "Core::DOM: Web Storage": "default",
-        "Core::DOM: Push Notifications": "default",
-        "Core::DOM: File": "default"
-    },
-    "default":
-    {
-        "calendar": "private://DOM:Workers&Storage"
-    }
+  "fallback": "Jens Stutte",
+  "components": {
+    "Core::DOM: File": "default",
+    "Core::DOM: Push Notifications": "default",
+    "Core::DOM: Service Workers": "default",
+    "Core::DOM: Workers": "default",
+    "Core::DOM: Web Payments": "default",
+    "Core::Storage: Cache API": "default",
+    "Core::Storage: IndexedDB": "default",
+    "Core::Storage: localStorage & sessionStorage": "default",
+    "Core::Storage: Quota Manager": "default",
+    "Core::Storage: StorageManager": "default"
+  },
+  "default": {
+    "calendar": "private://DOM:Workers&Storage"
+  }
 }
