@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from libmozdata.bugzilla import Bugzilla
+
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.people import People
@@ -40,8 +42,39 @@ class LeaveOpenNoActivity(BzCleaner):
 
         return None
 
+    def handle_bug(self, bug, data):
+        bugid = str(bug["id"])
+        data[bugid] = {"id": bugid, "depends_on": bug["depends_on"]}
+        return bug
+
+    def filter_deps(self, bugs):
+        def handler(bug, data):
+            if bug["resolution"] == "":
+                data.add(bug["id"])
+
+        bugids = set()
+        for info in bugs.values():
+            bugids.update(info["depends_on"])
+        bugids = list(bugids)
+        open_bugs = set()
+
+        Bugzilla(
+            bugids=bugids,
+            include_fields=["id", "resolution"],
+            bughandler=handler,
+            bugdata=open_bugs,
+        ).get_data().wait()
+
+        to_fix = {}
+        for bugid, info in bugs.items():
+            deps = set(info["depends_on"])
+            if not (deps & open_bugs):
+                to_fix[bugid] = info
+
+        return to_fix
+
     def get_bz_params(self, date):
-        fields = ["assigned_to", "triage_owner"]
+        fields = ["assigned_to", "triage_owner", "depends_on"]
         params = {
             "include_fields": fields,
             "resolution": "---",
@@ -60,6 +93,12 @@ class LeaveOpenNoActivity(BzCleaner):
         }
 
         return params
+
+    def get_bugs(self, date="today", bug_ids=[]):
+        bugs = super(LeaveOpenNoActivity, self).get_bugs(date=date, bug_ids=bug_ids)
+        bugs = self.filter_deps(bugs)
+
+        return bugs
 
 
 if __name__ == "__main__":
