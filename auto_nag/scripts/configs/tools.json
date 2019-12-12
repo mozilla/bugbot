@@ -307,7 +307,6 @@
             "Core::XPCOM",
             "DevTools::Accessibility Tools",
             "Core::Performance",
-            "Toolkit::Crash Reporting",
             "Firefox Build System::Bootstrap Configuration",
             "Toolkit::Video/Audio Controls",
             "Core::Privacy: Anti-Tracking",
