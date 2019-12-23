@@ -164,7 +164,6 @@
         "number_of_weeks": 12,
         "reporter_exception":
         [
-            "intermittent-bug-filer@mozilla.bugs"
         ],
         "keyword_exception":
         [
