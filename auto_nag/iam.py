@@ -68,21 +68,25 @@ def get_email_info(email):
 
 def get_all_info(output_dir=""):
     headers = {"Authorization": f"Bearer {get_access_token()}"}
-    resp = requests.get("https://person.api.sso.mozilla.com/v2/users", headers=headers)
+    resp = requests.get(
+        "https://person.api.sso.mozilla.com/v2/users/id/all/by_attribute_contains?staff_information.staff=True&active=True&fullProfiles=True",
+        headers=headers,
+    )
     data = resp.json()
     clean_data(data)
 
-    while data["nextPage"] is not None:
-        print(data["nextPage"]["id"])
-        nextPage = json.dumps(data["nextPage"])
+    next_page = data["nextPage"]
+
+    while next_page is not None:
+        print(f"{next_page}")
         resp = requests.get(
-            f"https://person.api.sso.mozilla.com/v2/users?nextPage={nextPage}",
+            f"https://person.api.sso.mozilla.com/v2/users/id/all/by_attribute_contains?staff_information.staff=True&active=True&fullProfiles=True&nextPage={next_page}",
             headers=headers,
         )
         d = resp.json()
         clean_data(d)
-        data["Items"] += d["Items"]
-        data["nextPage"] = d["nextPage"]
+        data["users"] += d["users"]
+        next_page = d["nextPage"]
 
     del data["nextPage"]
 
@@ -107,7 +111,8 @@ def get_phonebook_dump(output_dir=""):
     all_dns = {}
 
     new_data = {}
-    for person in data["Items"]:
+    for person in data["users"]:
+        person = person["profile"]
         if not person["access_information"]["hris"]["values"]:
             continue
         mail = person["access_information"]["hris"]["values"]["primary_work_email"]
