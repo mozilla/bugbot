@@ -7,7 +7,6 @@ from pprint import pprint
 
 class SurveySecurityBugs(BzCleaner):
     LIST_OF_PEOPLE_TO_REACH_OUT = [
-        "amarchesini@mozilla.com",  # baku (seceng, necko, dom, ..)
         "continuation@gmail.com",  # mccr8
         "jdemooij@mozilla.com",  # jandem (js/jit)
         "nical.bugzilla@gmail.com",  # nical (gfx)
@@ -24,7 +23,7 @@ class SurveySecurityBugs(BzCleaner):
     def get_bz_params(self, date):
         params = {
             # maybe we need more fields to do our changes (?)
-            "include_fields": ["assigned_to"],
+            "include_fields": ["assigned_to", "whiteboard"],
             # find fixed bugs
             "bug_status": "RESOLVED,VERIFIED",
             "resolution": "FIXED",
@@ -61,8 +60,10 @@ class SurveySecurityBugs(BzCleaner):
         assignee = bug["assigned_to"]
         bugid = str(bug["id"])
 
+        new_whiteboard = bug["whiteboard"] + "[sec-survey]"
         self.changes_per_bug[bugid] = {
             "comment": {"body": self.comment_tpl_for_bugid(bugid)},
+            "whiteboard": new_whiteboard,
             "flags": [
                 {
                 "name": "needinfo",

@@ -8,7 +8,7 @@
       </thead>
 
       <tbody>
-        {% for i, bugid in enumerate(data) -%}
+        {% for i, (bugid, _) in enumerate(data) -%}
         <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
           <td>
             <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
