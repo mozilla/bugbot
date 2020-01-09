@@ -86,7 +86,7 @@ class SurveySecurityBugs(BzCleaner):
         return "As part of a security bug pattern analysis, we are requesting your help with a high level analysis" + \
                "of this bug. It is our hope to develop static analysis (or potentially runtime/dynamic analysis)" + \
                "in the future to identify classes of bugs.\n\n" + \
-               "Please visit [this google form](%) to reply.""".format(URL)
+               "Please visit [this google form]({}) to reply.""".format(URL)
 
 
 if __name__ == "__main__":
