@@ -3,7 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.bzcleaner import BzCleaner
-
+from pprint import pprint
 
 class SurveySecurityBugs(BzCleaner):
     LIST_OF_PEOPLE_TO_REACH_OUT = [
@@ -24,7 +24,7 @@ class SurveySecurityBugs(BzCleaner):
     def get_bz_params(self, date):
         params = {
             # maybe we need more fields to do our changes (?)
-            "include_fields": "id,assigned_to",
+            "include_fields": ["assigned_to"],
             # find fixed bugs
             "bug_status": "RESOLVED,VERIFIED",
             "resolution": "FIXED",
@@ -52,10 +52,28 @@ class SurveySecurityBugs(BzCleaner):
             # assigned to any of those we have agreed to help out
             "f4": "assigned_to",
             "o4": "anywords",
-            "v4": ",".join(LIST_OF_PEOPLE_TO_REACH_OUT),
+            "v4": ",".join(SurveySecurityBugs.LIST_OF_PEOPLE_TO_REACH_OUT),
         }
 
         return params
+
+    def handle_bug(self, bug, data):
+        assignee = bug["assigned_to"]
+        bugid = str(bug["id"])
+
+        self.changes_per_bug[bugid] = {
+            "comment": {"body": self.comment_tpl_for_bugid(bugid)},
+            "flags": [
+                {
+                "name": "needinfo",
+                    "requestee": assignee,
+                    "status": "?",
+                    "new": "true",
+                }
+            ],
+        }
+
+        return bug
 
     def get_autofix_change(self):
         return self.changes_per_bug
@@ -69,28 +87,6 @@ class SurveySecurityBugs(BzCleaner):
                "of this bug. It is our hope to develop static analysis (or potentially runtime/dynamic analysis)" + \
                "in the future to identify classes of bugs.\n\n" + \
                "Please visit [this google form](%) to reply.""".format(URL)
-
-    def get_bugs(self, date="today", bug_ids=[], chunk_size=None):
-        bugs = super(SurveySecurityBugs, self).get_bugs(date=date, bug_ids=bug_ids)
-        # bzdata = self.get_revisions(bugs)
-        # user_info = self.get_user_info(bzdata)
-        # _bugs = self.filter_from_hg(bzdata, user_info)
-        res = {}
-        for bugid, data in bugs.items():
-            d = bugs[bugid]
-            assignee = d["assigned_to"]
-            res[bugid] = {
-                "comment": {"body": self.comment_tpl_for_bugid(bugid)},
-                "flags": [
-                    {
-                        "name": "needinfo",
-                        "requestee": assignee,
-                        "status": "?",
-                        "new": "true",
-                    }
-                ],
-            }
-        return res
 
 
 if __name__ == "__main__":
