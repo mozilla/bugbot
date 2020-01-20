@@ -3,7 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.bzcleaner import BzCleaner
-from pprint import pprint
+
 
 class SurveySecurityBugs(BzCleaner):
     LIST_OF_PEOPLE_TO_REACH_OUT = [
@@ -66,7 +66,7 @@ class SurveySecurityBugs(BzCleaner):
             "whiteboard": new_whiteboard,
             "flags": [
                 {
-                "name": "needinfo",
+                    "name": "needinfo",
                     "requestee": assignee,
                     "status": "?",
                     "new": "true",
@@ -80,14 +80,20 @@ class SurveySecurityBugs(BzCleaner):
         return self.changes_per_bug
 
     def comment_tpl_for_bugid(self, bugid):
-        URL = "https://docs.google.com/forms/d/e/1FAIpQLSe9uRXuoMK6tRglbNL5fpXbun_oEb6_xC2zpuE_CKA_GUjrvA/viewform" \
-              "?usp=pp_url&entry.2124261401=" + \
-              "https%3A%2F%2Fbugzilla.mozilla.org%2Fshow_bug.cgi%3Fid%3D" + bugid
+        URL = (
+            "https://docs.google.com/forms/d/e/1FAIpQLSe9uRXuoMK6tRglbNL5fpXbun_oEb6_xC2zpuE_CKA_GUjrvA/viewform"
+            "?usp=pp_url&entry.2124261401="
+            + "https%3A%2F%2Fbugzilla.mozilla.org%2Fshow_bug.cgi%3Fid%3D"
+            + bugid
+        )
 
-        return "As part of a security bug pattern analysis, we are requesting your help with a high level analysis" + \
-               "of this bug. It is our hope to develop static analysis (or potentially runtime/dynamic analysis)" + \
-               "in the future to identify classes of bugs.\n\n" + \
-               "Please visit [this google form]({}) to reply.""".format(URL)
+        return (
+            "As part of a security bug pattern analysis, we are requesting your help with a high level analysis"
+            + "of this bug. It is our hope to develop static analysis (or potentially runtime/dynamic analysis)"
+            + "in the future to identify classes of bugs.\n\n"
+            + "Please visit [this google form]({}) to reply."
+            "".format(URL)
+        )
 
 
 if __name__ == "__main__":
