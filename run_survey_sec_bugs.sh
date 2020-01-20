@@ -14,10 +14,10 @@ pip install -r requirements.txt
 python -m auto_nag.log --clean
 
 # Close inactive intermittent bugs
-python -m auto_nag.scripts.survey_sec_bugs -d # XXX change me, this is only a dry run aaaaa TODO FIXME
+python -m auto_nag.scripts.survey_sec_bugs
 
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
-#python -m auto_nag.log --send
+python -m auto_nag.log --send
 
 deactivate
