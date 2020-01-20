@@ -40,7 +40,7 @@ class SurveySecurityBugs(BzCleaner):
             "f1": "keywords",
             "o1": "anywords",
             "v1": "sec-critical,sec-high",
-            # whiteboard doesnt have [sec-survey] (to avoid us asking twice)
+            # whiteboard does not have [sec-survey] (to avoid us asking twice)
             "f2": "status_whiteboard",
             "o2": "notsubstring",
             "v2": "[sec-survey]",
