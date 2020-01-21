@@ -6,13 +6,6 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class SurveySecurityBugs(BzCleaner):
-    LIST_OF_PEOPLE_TO_REACH_OUT = [
-        "continuation@gmail.com",  # mccr8
-        "jdemooij@mozilla.com",  # jandem (js/jit)
-        "nical.bugzilla@gmail.com",  # nical (gfx)
-        "emilio@crisal.io",  # emilio (css/style/layout)
-    ]
-
     def __init__(self):
         super(SurveySecurityBugs, self).__init__()
         self.changes_per_bug = {}
@@ -51,7 +44,7 @@ class SurveySecurityBugs(BzCleaner):
             # assigned to any of those we have agreed to help out
             "f4": "assigned_to",
             "o4": "anywords",
-            "v4": ",".join(SurveySecurityBugs.LIST_OF_PEOPLE_TO_REACH_OUT),
+            "v4": ",".join(self.get_config("to_reach_out", default=[])),
         }
 
         return params
@@ -80,20 +73,9 @@ class SurveySecurityBugs(BzCleaner):
         return self.changes_per_bug
 
     def comment_tpl_for_bugid(self, bugid):
-        URL = (
-            "https://docs.google.com/forms/d/e/1FAIpQLSe9uRXuoMK6tRglbNL5fpXbun_oEb6_xC2zpuE_CKA_GUjrvA/viewform"
-            "?usp=pp_url&entry.2124261401="
-            + "https%3A%2F%2Fbugzilla.mozilla.org%2Fshow_bug.cgi%3Fid%3D"
-            + bugid
-        )
+        URL = f"https://docs.google.com/forms/d/e/1FAIpQLSe9uRXuoMK6tRglbNL5fpXbun_oEb6_xC2zpuE_CKA_GUjrvA/viewform?usp=pp_url&entry.2124261401=https%3A%2F%2Fbugzilla.mozilla.org%2Fshow_bug.cgi%3Fid%3D{bugid}"
 
-        return (
-            "As part of a security bug pattern analysis, we are requesting your help with a high level analysis"
-            + "of this bug. It is our hope to develop static analysis (or potentially runtime/dynamic analysis)"
-            + "in the future to identify classes of bugs.\n\n"
-            + "Please visit [this google form]({}) to reply."
-            "".format(URL)
-        )
+        return f"As part of a security bug pattern analysis, we are requesting your help with a high level analysis of this bug. It is our hope to develop static analysis (or potentially runtime/dynamic analysis) in the future to identify classes of bugs.\n\nPlease visit [this google form]({URL}) to reply."
 
 
 if __name__ == "__main__":
