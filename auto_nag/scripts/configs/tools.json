@@ -625,6 +625,13 @@
             "jdemooij@mozilla.com",
             "nical.bugzilla@gmail.com",
             "emilio@crisal.io"
+        ],
+        "receivers":
+        [
+            "cdenizet@mozilla.com",
+            "sledru@mozilla.com",
+            "fbraun@mozilla.com",
+            "tritter@mozilla.com"
         ]
     }
 }
