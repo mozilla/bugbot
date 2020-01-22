@@ -1,0 +1,20 @@
+
+<p>Here are security bugs closed in the last month where we asked for feedback about creating static analysis:
+    <table {{ table_attrs }}>
+      <thead>
+        <tr>
+            <th>Bug</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for i, (bugid, _) in enumerate(data) -%}
+        <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
+          <td>
+            <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+          </td>
+        </tr>
+        {% endfor -%}
+      </tbody>
+    </table>
+  </p>
