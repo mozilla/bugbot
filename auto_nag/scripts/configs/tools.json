@@ -28,8 +28,7 @@
         [
             "calixte@mozilla.com",
             "ehumphries@mozilla.com",
-            "sylvestre@mozilla.com",
-            "rkothari@mozilla.com"
+            "sylvestre@mozilla.com"
         ],
         "on-errors":
         [
@@ -70,9 +69,7 @@
             "rm":
             [
                 "calixte@mozilla.com",
-                "release-mgmt@mozilla.com",
-                "tgrabowski@mozilla.com",
-                "yor@mozilla.com"
+                "release-mgmt@mozilla.com"
             ]
         }
     },
@@ -126,8 +123,7 @@
             "calixte@mozilla.com",
             "ehumphries@mozilla.com",
             "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com",
-            "rkothari@mozilla.com"
+            "mcastelluccio@mozilla.com"
         ],
         "days_lookup": 3,
         "resolution_skiplist":
@@ -153,9 +149,7 @@
         ],
         "cc":
         [
-            "release-mgmt@mozilla.com",
-            "tgrabowski@mozilla.com",
-            "yor@mozilla.com"
+            "release-mgmt@mozilla.com"
         ],
         "from": "release-mgmt@mozilla.com"
     },
@@ -443,8 +437,7 @@
             "calixte@mozilla.com",
             "ehumphries@mozilla.com",
             "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com",
-            "rkothari@mozilla.com"
+            "mcastelluccio@mozilla.com"
         ],
         "cc":
         [
@@ -455,9 +448,7 @@
         "receivers":
         [
             "calixte@mozilla.com",
-            "release-mgmt@mozilla.com",
-            "tgrabowski@mozilla.com",
-            "yor@mozilla.com"
+            "release-mgmt@mozilla.com"
         ],
         "assignee_skiplist":
         [
@@ -472,8 +463,7 @@
             "calixte@mozilla.com",
             "ehumphries@mozilla.com",
             "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com",
-            "rkothari@mozilla.com"
+            "mcastelluccio@mozilla.com"
         ],
         "days_lookup": 3,
         "reporter_skiplist":
@@ -531,8 +521,7 @@
             "calixte@mozilla.com",
             "ehumphries@mozilla.com",
             "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com",
-            "rkothari@mozilla.com"
+            "mcastelluccio@mozilla.com"
         ]
     },
     "prod_comp_changed_with_priority":
@@ -548,8 +537,7 @@
             "calixte@mozilla.com",
             "ehumphries@mozilla.com",
             "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com",
-            "rkothari@mozilla.com"
+            "mcastelluccio@mozilla.com"
         ]
     },
     "to_triage":
@@ -584,8 +572,7 @@
         [
             "calixte@mozilla.com",
             "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com",
-            "rkothari@mozilla.com"
+            "mcastelluccio@mozilla.com"
         ],
         "days_lookup": 3,
         "reporter_skiplist":
@@ -608,8 +595,7 @@
         [
             "calixte@mozilla.com",
             "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com",
-            "rkothari@mozilla.com"
+            "mcastelluccio@mozilla.com"
         ],
         "cc":
         [
