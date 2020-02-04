@@ -1,0 +1,12 @@
+{
+  "fallback": "Paul Adenot",
+  "components": {
+    "Core::Audio/Video: cubeb": "default",
+    "Core::Audio/Video: MediaStreamGraph": "default",
+    "Core::Audio/Video: Recording": "default",
+    "Core::Web Audio": "default"
+  },
+  "default": {
+    "calendar": "private://Media:audio"
+  }
+}
