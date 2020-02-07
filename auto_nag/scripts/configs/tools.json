@@ -565,6 +565,19 @@
             "jdescottes@mozilla.com"
         ]
     },
+    "spambug":
+    {
+        "max_days_in_cache": 7,
+        "receivers":
+        [
+            "ehumphries@mozilla.com",
+            "mcastelluccio@mozilla.com",
+            "sylvestre@mozilla.com"
+        ],
+        "days_lookup": 3,
+        "confidence_threshold": 0.9,
+        "cc":[]
+    },
     "stepstoreproduce":
     {
         "max_days_in_cache": 7,
