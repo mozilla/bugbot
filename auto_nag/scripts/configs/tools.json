@@ -633,5 +633,8 @@
             "fbraun@mozilla.com",
             "tritter@mozilla.com"
         ]
+    },
+    "close_intermittents": {
+        "sec": false
     }
 }
