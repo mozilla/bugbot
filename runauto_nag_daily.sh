@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 export PYTHONPATH=.
 
@@ -114,3 +113,7 @@ python -m auto_nag.log --send
 python -m auto_nag.scripts.stepstoreproduce
 
 deactivate
+
+if [ "$errored" = true ] ; then
+    exit -1
+fi
