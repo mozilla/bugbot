@@ -149,7 +149,9 @@ class RoundRobin(object):
         persons = cal.get_persons(date)
         fb = cal.get_fallback_bzmail()
         if not persons or all(p is None for _, p in persons):
-            return fb, self.get_nick(fb, pc, cal)
+            # the fallback is the triage owner
+            self.add_component_for_triager(pc, [fb])
+            return (fb, self.get_nick(fb, pc, cal)) if has_nick else fb
 
         bzmails = []
         for _, p in persons:
