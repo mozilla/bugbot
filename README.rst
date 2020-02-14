@@ -144,6 +144,8 @@ Then the administrators will need to create a configuration file::
             "calendar": "private://<Name of calendar>"
         }
     }
+    
+The person requesting the round robin schedule should provide the URL of the calendar's `.ici` file.
 
 Running on a server
 -------------------
