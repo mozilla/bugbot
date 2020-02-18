@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 export PYTHONPATH=.
 
@@ -117,3 +116,7 @@ python -m auto_nag.scripts.stepstoreproduce
 python -m auto_nag.scripts.spambug
 
 deactivate
+
+if [ "$errored" = true ] ; then
+    exit -1
+fi
