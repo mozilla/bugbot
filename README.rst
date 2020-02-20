@@ -145,7 +145,7 @@ Then the administrators will need to create a configuration file::
         }
     }
     
-The person requesting the round robin schedule should provide the URL of the calendar's `.ici` file.
+The person requesting the round robin schedule should provide the URL of the calendar's `.ics` file.
 
 Running on a server
 -------------------
