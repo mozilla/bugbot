@@ -119,6 +119,33 @@ The script does the following:
 * Outputs the message to console and waits for use input to either send/edit/cancel (save for manual notification)
 * At the end it provides a list of all bugs that were not emailed about and provides the url for bugzilla of that buglist
 
+Setting up 'Round Robin' triage rotations
+-----------------------------------------
+
+One use case for this tool is managing triage of multiple components across a team of multiple people. 
+
+To set up a new Round Robin rotation, a manager or team lead should create a Google Calendar with the rotation of triagers. 
+
+Then the administrators will need to create a configuration file::
+
+.. code-block:: bash
+
+    # in scripts/configs/<name of rotation>_round_robin.json
+    {
+        "fallback": "<Name of manager or lead>",
+        "components":
+        {
+            "Product::Component": "default",
+            "Product::Component": "default",
+            …
+        },
+        "default":
+        {
+            "calendar": "private://<Name of calendar>"
+        }
+    }
+    
+The person requesting the round robin schedule should provide the URL of the calendar's `.ics` file.
 
 Running on a server
 -------------------
