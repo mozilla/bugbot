@@ -559,7 +559,8 @@
         "teams":
         [
             "DOM:Workers & Storage",
-            "Core::General"
+            "Core::General",
+            "Media:audio"
         ],
         "persons":
         [
