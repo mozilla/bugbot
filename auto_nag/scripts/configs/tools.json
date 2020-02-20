@@ -9,7 +9,8 @@
             "DOM:Workers & Storage": "dom_workers_storage_round_robin.json",
             "Core::Layout": "layout_round_robin.json",
             "DOM:Navigation & Windows and Location": "dom_navigation_round_robin.json",
-            "Media:audio": "media_audio_round_robin.json"
+            "Media:audio": "media_audio_round_robin.json",
+            "Install-Update Triage Calendar": "desktop_installer_round_robin.json"
         }
     },
     "no_assignee":
