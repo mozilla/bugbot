@@ -122,9 +122,9 @@ The script does the following:
 Setting up 'Round Robin' triage rotations
 -----------------------------------------
 
-One use case for this tool is managing triage of multiple components across a team of multiple people. 
+One use case for this tool is managing triage of multiple components across a team of multiple people.
 
-To set up a new Round Robin rotation, a manager or team lead should create a Google Calendar with the rotation of triagers. 
+To set up a new Round Robin rotation, a manager or team lead should create a Google Calendar with the rotation of triagers.
 
 Then the administrators will need to create a configuration file::
 
@@ -144,7 +144,7 @@ Then the administrators will need to create a configuration file::
             "calendar": "private://<Name of calendar>"
         }
     }
-    
+
 The person requesting the round robin schedule should provide the URL of the calendar's `.ics` file.
 
 Running on a server
