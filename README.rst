@@ -41,15 +41,15 @@ To run it into production, you will need the full list of employees + managers.
 Automated Nagging Script
 ------------------------
 
-Before running::
+Before running:
 
 1. The LDAP + SMTP infos are used to send emails
 2. Need to generate an API key from bugzilla admin ( https://bugzilla.mozilla.org/userprefs.cgi?tab=apikey )
 3. Should generate an API key from Phabricator ( https://phabricator.services.mozilla.com/settings/user )
 4. The IAM secrets are used to generate a dump of phonebook, so they're mandatory but you still need to have such a dump
-5. The private entry contains URLs for private calendar in ICS format
+5. The private entry contains URLs for private calendar in ICS format:
 
-.. code-block:: bash
+.. code-block:: json
 
     # in scripts/configs/config.json
     {
@@ -71,7 +71,7 @@ Before running::
 Do a dryrun::
     python -m auto_nag.scripts.stalled -d
 
-There is a ton of scripts in auto_nag/scrips/ so you should be able to find some good examples.
+There is a ton of scripts in auto_nag/scripts/ so you should be able to find some good examples.
 
 Setting up 'Round Robin' triage rotations
 -----------------------------------------
@@ -80,9 +80,9 @@ One use case for this tool is managing triage of multiple components across a te
 
 To set up a new Round Robin rotation, a manager or team lead should create a Google Calendar with the rotation of triagers. 
 
-Then the administrators will need to create a configuration file::
+Then the administrators will need to create a configuration file:
 
-.. code-block:: bash
+.. code-block:: json
 
     # in scripts/configs/<name of rotation>_round_robin.json
     {
@@ -99,7 +99,13 @@ Then the administrators will need to create a configuration file::
         }
     }
     
-The person requesting the round robin schedule should provide the URL of the calendar's `.ics` file.
+The person requesting the round robin schedule must provide the URL of the calendar's `.ics` file.
+
+In the calendar, the title of the events must be the full name of triage owner as it appears in Phonebook.
+
+And then you just have to add an entry in `auto_nag/scripts/config/tools.json <https://github.com/mozilla/relman-auto-nag/blob/master/auto_nag/scripts/configs/tools.json#L2>`_ in the round-robin section.
+
+Once everything is set-up you can make a PR similar too https://github.com/mozilla/relman-auto-nag/pull/858/files
 
 Running on a server
 -------------------
