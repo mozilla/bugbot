@@ -6,7 +6,6 @@ import base64
 import re
 
 import requests
-from dateutil.relativedelta import relativedelta
 from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import Bugzilla, BugzillaUser
 
@@ -142,49 +141,10 @@ class NotLanded(BzCleaner):
 
         return False
 
-    def check_splinter(self, attachment):
-        """Check if the patch in Splinter has been r+
-        """
-        if attachment["is_patch"] == 0 or attachment["is_obsolete"] == 1:
-            return None
-
-        data = base64.b64decode(attachment["data"])
-        try:
-            data = data.decode("utf-8")
-        except UnicodeDecodeError:
-            try:
-                data = data.decode("iso-8859-1")
-            except UnicodeDecodeError:
-                return None
-
-        if data.startswith("https://github.com"):
-            return None
-
-        flags = attachment["flags"]
-        # no flags == no review
-        if not flags:
-            return False
-
-        # no flag called review == no review
-        if all(flag["name"] != "review" for flag in flags):
-            return False
-
-        # check the attachment flags
-        for flag in flags:
-            if flag["name"] == "review" and flag["status"] != "+":
-                return False
-
-        return True
-
     def handle_attachment(self, attachment, res):
         ct = attachment["content_type"]
         c = None
-        if ct == "text/plain":
-            if "splinter" not in res or res["splinter"]:
-                c = self.check_splinter(attachment)
-                if c is not None:
-                    res["splinter"] = c
-        elif ct == "text/x-phabricator-request":
+        if ct == "text/x-phabricator-request":
             if "phab" not in res or res["phab"]:
                 c = self.check_phab(attachment)
                 if c is not None:
@@ -208,21 +168,56 @@ class NotLanded(BzCleaner):
     def get_patch_data(self, bugs):
         """Get patch information in bugs
         """
-        nightly_pats = Bugzilla.get_landing_patterns(channels=["nightly"])
 
-        def comment_handler(bug, bugid, data):
-            r = Bugzilla.get_landing_comments(bug["comments"], [], nightly_pats)
-            landed = bool(r)
-            if not landed:
-                for comment in bug["comments"]:
-                    comment = comment["text"].lower()
-                    if "backed out" in comment or "backout" in comment:
-                        landed = True
-                        break
+        def attachment_id_handler(attachments, bugid, data):
+            for a in attachments:
+                if (
+                    a["content_type"] == "text/x-phabricator-request"
+                    and a["is_obsolete"] == 0
+                ):
+                    data.append(a["id"])
 
-            data[bugid]["landed"] = landed
+        def attachment_handler(attachments, data):
+            for attachment in attachments:
+                bugid = str(attachment["bug_id"])
+                if bugid in data:
+                    data[bugid].append(attachment)
+                else:
+                    data[bugid] = [attachment]
 
-        def attachment_handler(attachments, bugid, data):
+        bugids = list(bugs.keys())
+        data = {
+            bugid: {"landed": False, "patch": None, "author": None, "count": 0}
+            for bugid in bugids
+        }
+
+        # Get the ids of the attachments of interest
+        # to avoid to download images, videos, ...
+        attachment_ids = []
+        Bugzilla(
+            bugids=bugids,
+            attachmenthandler=attachment_id_handler,
+            attachmentdata=attachment_ids,
+            attachment_include_fields=["is_obsolete", "content_type", "id"],
+        ).get_data().wait()
+
+        # Once we've the ids we can get the data
+        attachments_by_bug = {}
+        Bugzilla(
+            attachmentids=attachment_ids,
+            attachmenthandler=attachment_handler,
+            attachmentdata=attachments_by_bug,
+            attachment_include_fields=[
+                "bug_id",
+                "data",
+                "is_obsolete",
+                "content_type",
+                "id",
+                "creator",
+            ],
+        ).get_data().wait()
+
+        for bugid, attachments in attachments_by_bug.items():
             res = {}
             for attachment in attachments:
                 self.handle_attachment(attachment, res)
@@ -232,45 +227,11 @@ class NotLanded(BzCleaner):
                     data[bugid]["patch"] = "phab"
                     data[bugid]["author"] = res["author"]
                     data[bugid]["count"] = res["count"]
-            elif "splinter" in res and res["splinter"]:
-                data[bugid]["patch"] = "splinter"
-                data[bugid]["author"] = res["author"]
-                data[bugid]["count"] = res["count"]
-
-        bugids = list(bugs.keys())
-        data = {
-            bugid: {"landed": False, "patch": None, "author": None, "count": 0}
-            for bugid in bugids
-        }
-        Bugzilla(
-            bugids=bugids,
-            attachmenthandler=attachment_handler,
-            attachmentdata=data,
-            attachment_include_fields=[
-                "bug_id",
-                "creator",
-                "data",
-                "is_obsolete",
-                "is_patch",
-                "content_type",
-                "flags",
-            ],
-        ).get_data().wait()
-
-        data = {bugid: v for bugid, v in data.items() if v["patch"] is not None}
-        splinter_bugs = [bugid for bugid, v in data.items() if v["patch"] == "splinter"]
-
-        Bugzilla(
-            bugids=splinter_bugs,
-            commenthandler=comment_handler,
-            commentdata=data,
-            comment_include_fields=["text"],
-        ).get_data().wait()
 
         data = {
             bugid: {"authors": v["author"], "patch_count": v["count"]}
             for bugid, v in data.items()
-            if v["patch"] == "phab" or not v["landed"]
+            if v["patch"] == "phab"
         }
 
         return data
@@ -296,7 +257,6 @@ class NotLanded(BzCleaner):
 
     def get_bz_params(self, date):
         self.date = lmdutils.get_date_ymd(date)
-        start_date = self.date - relativedelta(years=self.nyears)
         fields = ["flags", "depends_on"]
         params = {
             "include_fields": fields,
@@ -306,10 +266,10 @@ class NotLanded(BzCleaner):
             "f2": "attachments.isobsolete",
             "f3": "attachments.mimetype",
             "o3": "anywordssubstr",
-            "v3": "text/x-phabricator-request,text/plain",
+            "v3": "text/x-phabricator-request",
             "f4": "creation_ts",
             "o4": "greaterthan",
-            "v4": start_date,
+            "v4": f"-{self.nyears}y",
             "f5": "days_elapsed",
             "o5": "greaterthaneq",
             "v5": self.nweeks * 7,
