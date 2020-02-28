@@ -168,6 +168,13 @@ class NotLanded(BzCleaner):
     def get_patch_data(self, bugs):
         """Get patch information in bugs
         """
+        nightly_pat = Bugzilla.get_landing_patterns(channels=["nightly"])[0][0]
+
+        def comment_handler(bug, bugid, data):
+            # if the last comment contains a backout: don't nag
+            last = bug["comments"][-1]["text"].lower()
+            if nightly_pat.match(last) and ("backed out" in last or "backout" in last):
+                data[bugid]["backout"] = True
 
         def attachment_id_handler(attachments, bugid, data):
             for a in attachments:
@@ -187,8 +194,7 @@ class NotLanded(BzCleaner):
 
         bugids = list(bugs.keys())
         data = {
-            bugid: {"landed": False, "patch": None, "author": None, "count": 0}
-            for bugid in bugids
+            bugid: {"backout": False, "author": None, "count": 0} for bugid in bugids
         }
 
         # Get the ids of the attachments of interest
@@ -224,15 +230,22 @@ class NotLanded(BzCleaner):
 
             if "phab" in res:
                 if res["phab"]:
-                    data[bugid]["patch"] = "phab"
                     data[bugid]["author"] = res["author"]
                     data[bugid]["count"] = res["count"]
 
-        data = {
-            bugid: {"authors": v["author"], "patch_count": v["count"]}
-            for bugid, v in data.items()
-            if v["patch"] == "phab"
-        }
+        data = {bugid: v for bugid, v in data.items() if v["author"]}
+
+        if not data:
+            return data
+
+        Bugzilla(
+            bugids=list(data.keys()),
+            commenthandler=comment_handler,
+            commentdata=data,
+            comment_include_fields=["text"],
+        ).get_data().wait()
+
+        data = {bugid: v for bugid, v in data.items() if not v["backout"]}
 
         return data
 
@@ -289,7 +302,7 @@ class NotLanded(BzCleaner):
         nicknames = {}
         for bugid, data in bugs_patch.items():
             res[bugid] = d = bugs[bugid]
-            self.extra_ni[bugid] = data["patch_count"]
+            self.extra_ni[bugid] = data["count"]
             assignee = d["assigned_to"]
             nickname = d["nickname"]
             if not assignee:
