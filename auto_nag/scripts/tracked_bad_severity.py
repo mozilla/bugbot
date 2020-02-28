@@ -2,19 +2,15 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 
 
 class TrackedBadSeverity(BzCleaner):
     def __init__(self):
         super(TrackedBadSeverity, self).__init__()
+        # need to check that versions aren't messy
         if not self.init_versions():
             return
-
-        self.status_release = utils.get_flag(
-            self.versions["release"], "status", "release"
-        )
 
     def description(self):
         return "Bug tracked in a release but with a small severity"
@@ -30,26 +26,26 @@ class TrackedBadSeverity(BzCleaner):
             "f1": "OP",
             "j1": "OR",
             "f2": "OP",
-            "f3": utils.get_flag(self.versions["release"], "tracking", "release"),
+            "f3": "cf_tracking_firefox_release",
             "o3": "equals",
             "v3": "blocking",
-            "f4": self.status_release,
+            "f4": "cf_status_firefox_release",
             "o4": "anyexact",
             "v4": value,
             "f5": "CP",
             "f6": "OP",
-            "f7": utils.get_flag(self.versions["beta"], "tracking", "beta"),
+            "f7": "cf_tracking_firefox_beta",
             "o7": "equals",
             "v7": "blocking",
-            "f8": utils.get_flag(self.versions["beta"], "status", "beta"),
+            "f8": "cf_status_firefox_beta",
             "o8": "anyexact",
             "v8": value,
             "f9": "CP",
             "f10": "OP",
-            "f11": utils.get_flag(self.versions["central"], "tracking", "central"),
+            "f11": "cf_tracking_firefox_nightly",
             "o11": "equals",
             "v11": "blocking",
-            "f12": utils.get_flag(self.versions["central"], "status", "central"),
+            "f12": "cf_status_firefox_nightly",
             "o12": "anyexact",
             "v12": value,
             "f13": "CP",
@@ -59,7 +55,12 @@ class TrackedBadSeverity(BzCleaner):
         return params
 
     def get_autofix_change(self):
-        return {"severity": "major"}
+        return {
+            "comment": {
+                "body": f"This bug is tracked by a release manager but with a small severity so change it to major.\n{self.get_documentation()}"
+            },
+            "severity": "major",
+        }
 
 
 if __name__ == "__main__":
