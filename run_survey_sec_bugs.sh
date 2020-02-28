@@ -14,7 +14,7 @@ pip install -r requirements.txt
 python -m auto_nag.log --clean
 
 # Close inactive intermittent bugs
-python -m auto_nag.scripts.close_intermittents
+python -m auto_nag.scripts.survey_sec_bugs
 
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND

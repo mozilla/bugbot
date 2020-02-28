@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 export PYTHONPATH=.
 
@@ -113,4 +112,11 @@ python -m auto_nag.log --send
 # Try to detect potential missing Has STR using bugbug
 python -m auto_nag.scripts.stepstoreproduce
 
+# Detect spam bugs using bugbug
+python -m auto_nag.scripts.spambug
+
 deactivate
+
+if [ "$errored" = true ] ; then
+    exit -1
+fi

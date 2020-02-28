@@ -1,0 +1,13 @@
+{
+    "fallback": "Rachel Tublitz",
+    "components":
+    {
+        "Firefox::Installer": "default",
+        "Toolkit::Application Update": "default",
+        "Firefox::Shell Integration": "default"
+    },
+    "default":
+    {
+        "calendar": "private://Install-Update Triage Calendar"
+    }
+}

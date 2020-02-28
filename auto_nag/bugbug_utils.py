@@ -23,7 +23,7 @@ def classification_http_request(url, bug_ids):
 
     response.raise_for_status()
 
-    return response
+    return response.json()
 
 
 def get_bug_ids_classification(
@@ -43,10 +43,9 @@ def get_bug_ids_classification(
             for chunk in list(chunks(bug_ids, batch_size)):
                 # The send the current chunk
                 response = classification_http_request(url, chunk)
-                response.raise_for_status()
 
                 # Check which bug ids are ready
-                for bug_id, bug_data in response.json()["bugs"].items():
+                for bug_id, bug_data in response["bugs"].items():
                     if not bug_data.get("ready", True):
                         continue
 

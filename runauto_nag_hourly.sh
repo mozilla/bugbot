@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 export PYTHONPATH=.
 
@@ -89,3 +88,7 @@ python -m auto_nag.scripts.prod_comp_changed_with_priority
 python -m auto_nag.log --send
 
 deactivate
+
+if [ "$errored" = true ] ; then
+    exit -1
+fi
