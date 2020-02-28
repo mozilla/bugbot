@@ -98,7 +98,7 @@ Then the administrators will need to create a configuration file:
             "calendar": "private://<Name of calendar>"
         }
     }
-    
+   
 The person requesting the round robin schedule must provide the URL of the calendar's `.ics` file.
 
 In the calendar, the title of the events must be the full name of triage owner as it appears in Phonebook.
