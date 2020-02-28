@@ -14,7 +14,7 @@ from auto_nag.people import People
 class Nag(object):
     def __init__(self):
         super(Nag, self).__init__()
-        self.people = People()
+        self.people = People.get_instance()
         self.send_nag_mail = True
         self.data = {}
         self.nag_date = None

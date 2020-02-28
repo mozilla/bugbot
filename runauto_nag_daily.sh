@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 export PYTHONPATH=.
 
@@ -48,10 +47,6 @@ python -m auto_nag.scripts.one_two_word_summary
 # Bugs where the reporter has a needinfo
 # Pretty common
 python -m auto_nag.scripts.reporter_with_ni
-
-# Unconfirmed bugs with an assignee (with autofix)
-# Pretty common
-python -m auto_nag.scripts.assignee_but_unconfirmed
 
 # Notify bugs in untriaged with an important severity
 python -m auto_nag.scripts.untriage_important_sev
@@ -117,7 +112,11 @@ python -m auto_nag.log --send
 # Try to detect potential missing Has STR using bugbug
 python -m auto_nag.scripts.stepstoreproduce
 
-# Evaluate riskiness of recently landed patches
-python -m auto_nag.scripts.regressor
+# Detect spam bugs using bugbug
+python -m auto_nag.scripts.spambug
 
 deactivate
+
+if [ "$errored" = true ] ; then
+    exit -1
+fi

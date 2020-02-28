@@ -343,7 +343,7 @@ class BzCleaner(object):
 
         self.has_flags = "flags" in params.get("include_fields", [])
 
-    def get_bugs(self, date="today", bug_ids=[]):
+    def get_bugs(self, date="today", bug_ids=[], chunk_size=None):
         """Get the bugs"""
         bugs = self.get_data()
         params = self.get_bz_params(date)
@@ -353,12 +353,19 @@ class BzCleaner(object):
         if isinstance(self, Nag):
             self.query_params = params
 
-        Bugzilla(
-            params,
-            bughandler=self.bughandler,
-            bugdata=bugs,
-            timeout=self.get_config("bz_query_timeout"),
-        ).get_data().wait()
+        old_CHUNK_SIZE = Bugzilla.BUGZILLA_CHUNK_SIZE
+        try:
+            if chunk_size:
+                Bugzilla.BUGZILLA_CHUNK_SIZE = chunk_size
+
+            Bugzilla(
+                params,
+                bughandler=self.bughandler,
+                bugdata=bugs,
+                timeout=self.get_config("bz_query_timeout"),
+            ).get_data().wait()
+        finally:
+            Bugzilla.BUGZILLA_CHUNK_SIZE = old_CHUNK_SIZE
 
         self.get_comments(bugs)
 

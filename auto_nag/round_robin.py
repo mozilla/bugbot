@@ -15,13 +15,29 @@ from auto_nag.round_robin_calendar import Calendar
 
 
 class RoundRobin(object):
+
+    _instances = {}
+
     def __init__(self, rr=None, people=None, teams=None):
-        self.people = People() if people is None else people
+        self.people = People.get_instance() if people is None else people
         self.components_by_triager = {}
         self.all_calendars = []
         self.feed(teams, rr=rr)
         self.nicks = {}
+        self.erroneous_bzmail = {}
         utils.init_random()
+
+    @staticmethod
+    def get_instance(teams=None):
+        if teams is None:
+            if None not in RoundRobin._instances:
+                RoundRobin._instances[None] = RoundRobin()
+            return RoundRobin._instances[None]
+
+        teams = tuple(teams)
+        if teams not in RoundRobin._instances:
+            RoundRobin._instances[teams] = RoundRobin(teams=teams)
+        return RoundRobin._instances[teams]
 
     def get_calendar(self, team, data):
         fallback = data["fallback"]
@@ -87,13 +103,28 @@ class RoundRobin(object):
 
         return self.people.get_moz_mail(mail)
 
-    def get_nick(self, bzmail):
+    def get_erroneous_bzmail(self):
+        return self.erroneous_bzmail
+
+    def add_erroneous_bzmail(self, bzmail, prod_comp, cal):
+        logger.error(f"No nick for {bzmail} for {prod_comp}")
+        fb = cal.get_fallback_mozmail()
+        if fb not in self.erroneous_bzmail:
+            self.erroneous_bzmail[fb] = {bzmail}
+        else:
+            self.erroneous_bzmail[fb].add(bzmail)
+
+    def get_nick(self, bzmail, prod_comp, cal):
         if bzmail not in self.nicks:
 
             def handler(user):
                 self.nicks[bzmail] = user["nick"]
 
             BugzillaUser(user_names=[bzmail], user_handler=handler).wait()
+
+        if bzmail not in self.nicks:
+            self.add_erroneous_bzmail(bzmail, prod_comp, cal)
+            return None
 
         return self.nicks[bzmail]
 
@@ -118,7 +149,9 @@ class RoundRobin(object):
         persons = cal.get_persons(date)
         fb = cal.get_fallback_bzmail()
         if not persons or all(p is None for _, p in persons):
-            return fb, self.get_nick(fb)
+            # the fallback is the triage owner
+            self.add_component_for_triager(pc, [fb])
+            return (fb, self.get_nick(fb, pc, cal)) if has_nick else fb
 
         bzmails = []
         for _, p in persons:
@@ -129,12 +162,12 @@ class RoundRobin(object):
         if only_one:
             bzmail = bzmails[randint(0, len(bzmails) - 1)]
             if has_nick:
-                nick = self.get_nick(bzmail)
+                nick = self.get_nick(bzmail, pc, cal)
                 return bzmail, nick
             return bzmail
 
         if has_nick:
-            return [(bzmail, self.get_nick(bzmail)) for bzmail in bzmails]
+            return [(bzmail, self.get_nick(bzmail, pc, cal)) for bzmail in bzmails]
         return bzmails
 
     def get_who_to_nag(self, date):

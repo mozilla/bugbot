@@ -416,6 +416,6 @@ class History(object):
         bugids = self.get_bugs()
         bugs = self.get_bug_info(bugids)
         bugs = self.cleanup(bugs)
-        hist = self.guess_tool(bugs)
+        history = self.guess_tool(bugs)
 
-        return hist
+        return history

@@ -29,6 +29,9 @@ IM_NICK = re.compile(r"([\w\.@]+)")
 
 
 class People:
+
+    _instance = None
+
     def __init__(self, p=None):
         if p is None:
             with open("./auto_nag/scripts/configs/people.json", "r") as In:
@@ -48,6 +51,12 @@ class People:
         self.names = {}
         self._amend()
         self.matrix = None
+
+    @staticmethod
+    def get_instance():
+        if People._instance is None:
+            People._instance = People()
+        return People._instance
 
     def _get_name_parts(self, name):
         """Get names from name"""

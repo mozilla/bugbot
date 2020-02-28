@@ -10,7 +10,7 @@ from auto_nag.people import People
 class MetaNoDepsNoActivity(BzCleaner):
     def __init__(self):
         super(MetaNoDepsNoActivity, self).__init__()
-        self.people = People()
+        self.people = People.get_instance()
         self.nmonths = utils.get_config(self.name(), "months_lookup")
         self.max_ni = utils.get_config(self.name(), "max_ni")
         self.skiplist = set(utils.get_config(self.name(), "skiplist", []))

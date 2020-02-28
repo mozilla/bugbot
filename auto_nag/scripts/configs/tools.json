@@ -7,7 +7,10 @@
             "necko": "necko_round_robin.json",
             "Core::General": "core_general_round_robin.json",
             "DOM:Workers & Storage": "dom_workers_storage_round_robin.json",
-            "Core::Layout": "layout_round_robin.json"
+            "Core::Layout": "layout_round_robin.json",
+            "DOM:Navigation & Windows and Location": "dom_navigation_round_robin.json",
+            "Media:audio": "media_audio_round_robin.json",
+            "Install-Update Triage Calendar": "desktop_installer_round_robin.json"
         }
     },
     "no_assignee":
@@ -68,9 +71,7 @@
             "rm":
             [
                 "calixte@mozilla.com",
-                "release-mgmt@mozilla.com",
-                "tgrabowski@mozilla.com",
-                "yor@mozilla.com"
+                "release-mgmt@mozilla.com"
             ]
         }
     },
@@ -150,9 +151,7 @@
         ],
         "cc":
         [
-            "release-mgmt@mozilla.com",
-            "tgrabowski@mozilla.com",
-            "yor@mozilla.com"
+            "release-mgmt@mozilla.com"
         ],
         "from": "release-mgmt@mozilla.com"
     },
@@ -301,25 +300,18 @@
             "Firefox Build System::General",
             "Core::JavaScript Engine",
             "Core::Document Navigation",
-            "Firefox for Android::General",
             "Core::DOM: Core & HTML",
             "Core::XPCOM",
             "DevTools::Accessibility Tools",
             "Core::Performance",
-            "Toolkit::Crash Reporting",
             "Firefox Build System::Bootstrap Configuration",
-            "Toolkit::Video/Audio Controls",
             "Core::Privacy: Anti-Tracking",
             "Firefox::Extension Compatibility",
             "Core::DOM: Device Interfaces",
-            "Core::Javascript: WebAssembly",
-            "Firefox Build System::Lint and Formatting",
             "Firefox Build System::Task Configuration",
             "Firefox Build System::Try",
             "Firefox Build System::Toolchains",
             "Core::DOM: Bindings (WebIDL)",
-            "Core::JavaScript Engine: JIT",
-            "Core::String",
             "Firefox Build System::Generated Documentation",
             "Core::MathML",
             "Core::MFBT",
@@ -329,6 +321,7 @@
             "Firefox::Shell Integration",
             "Core::X-remote",
             "NSS::Build",
+            "Firefox for Android::General",
             "Firefox for Android::Web Apps"
         ],
         "supervisor_skiplist":
@@ -457,9 +450,7 @@
         "receivers":
         [
             "calixte@mozilla.com",
-            "release-mgmt@mozilla.com",
-            "tgrabowski@mozilla.com",
-            "yor@mozilla.com"
+            "release-mgmt@mozilla.com"
         ],
         "assignee_skiplist":
         [
@@ -569,12 +560,26 @@
         "teams":
         [
             "DOM:Workers & Storage",
-            "Core::General"
+            "Core::General",
+            "Media:audio"
         ],
         "persons":
         [
             "jdescottes@mozilla.com"
         ]
+    },
+    "spambug":
+    {
+        "max_days_in_cache": 7,
+        "receivers":
+        [
+            "ehumphries@mozilla.com",
+            "mcastelluccio@mozilla.com",
+            "sylvestre@mozilla.com"
+        ],
+        "days_lookup": 3,
+        "confidence_threshold": 0.9,
+        "cc":[]
     },
     "stepstoreproduce":
     {
@@ -614,5 +619,24 @@
             "mcastelluccio@mozilla.com",
             "cdenizet@mozilla.com"
         ]
+    },
+    "survey_sec_bugs": {
+        "to_reach_out":
+        [
+            "continuation@gmail.com",
+            "jdemooij@mozilla.com",
+            "nical.bugzilla@gmail.com",
+            "emilio@crisal.io"
+        ],
+        "receivers":
+        [
+            "cdenizet@mozilla.com",
+            "sledru@mozilla.com",
+            "fbraun@mozilla.com",
+            "tritter@mozilla.com"
+        ]
+    },
+    "close_intermittents": {
+        "sec": false
     }
 }

@@ -2,57 +2,50 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from auto_nag import people
 from auto_nag.bugbug_utils import get_bug_ids_classification
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.utils import nice_round
 
 
-class StepsToReproduce(BzCleaner):
+class SpamBug(BzCleaner):
     def __init__(self):
         super().__init__()
+        self.people = people.People.get_instance()
 
     def description(self):
-        return "[Using ML] Bugs with missing steps to reproduce"
+        return "[Using ML] Detect spam bugs"
 
     def columns(self):
-        return ["id", "summary", "has_str", "confidence", "autofixed"]
+        return ["id", "summary", "confidence", "autofixed"]
 
     def sort_columns(self):
-        return lambda p: (-p[3], -int(p[0]))
+        return lambda p: (-p[2], -int(p[0]))
+
+    def handle_bug(self, bug, data):
+        reporter = bug["creator"]
+        if self.people.is_mozilla(reporter):
+            return None
+
+        return bug
 
     def get_bz_params(self, date):
-        start_date, end_date = self.get_dates(date)
+        start_date, _ = self.get_dates(date)
 
-        reporter_skiplist = self.get_config("reporter_skiplist", default=[])
-        reporter_skiplist = ",".join(reporter_skiplist)
-
-        params = {
-            "include_fields": ["id", "groups", "summary"],
-            "bug_type": "defect",
-            "f1": "longdesc",
-            "o1": "changedafter",
-            "v1": start_date,
-            "f2": "longdesc",
-            "o2": "changedbefore",
-            "v2": end_date,
-            "f3": "reporter",
-            "o3": "nowords",
-            "v3": reporter_skiplist,
-            "f4": "cf_has_str",
-            "o4": "equals",
-            "v4": "---",
-            "n5": 1,
-            "f5": "cf_has_str",
-            "o5": "changedafter",
-            "v5": "1970-01-01",
-            "f6": "keywords",
-            "o6": "nowords",
-            "v6": "intermittent-failure",
+        return {
+            "include_fields": ["id", "groups", "summary", "creator"],
             # Ignore closed bugs.
             "bug_status": "__open__",
+            "f1": "reporter",
+            "v1": "@mozilla",
+            "o1": "notsubstring",
+            "f2": "reporter",
+            "v2": "@softvision",
+            "o2": "notsubstring",
+            "f3": "creation_ts",
+            "o3": "greaterthan",
+            "v3": start_date,
         }
-
-        return params
 
     def get_bugs(self, date="today", bug_ids=[]):
         # Retrieve the bugs with the fields defined in get_bz_params
@@ -65,7 +58,7 @@ class StepsToReproduce(BzCleaner):
         bug_ids = list(raw_bugs.keys())
 
         # Classify those bugs
-        bugs = get_bug_ids_classification("stepstoreproduce", bug_ids)
+        bugs = get_bug_ids_classification("spambug", bug_ids)
 
         results = {}
 
@@ -84,13 +77,13 @@ class StepsToReproduce(BzCleaner):
             prob = bug_data["prob"]
             index = bug_data["index"]
 
-            results[bug_id] = {
-                "id": bug_id,
-                "summary": bug["summary"],
-                "has_str": "yes" if prob[1] > 0.5 else "no",
-                "confidence": nice_round(prob[index]),
-                "autofixed": False,
-            }
+            if prob[1] > self.get_config("confidence_threshold"):
+                results[bug_id] = {
+                    "id": bug_id,
+                    "summary": bug["summary"],
+                    "confidence": nice_round(prob[index]),
+                    "autofixed": False,
+                }
 
         return results
 
@@ -99,4 +92,4 @@ class StepsToReproduce(BzCleaner):
 
 
 if __name__ == "__main__":
-    StepsToReproduce().run()
+    SpamBug().run()

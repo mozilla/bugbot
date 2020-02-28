@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 export PYTHONPATH=.
 
@@ -25,10 +24,6 @@ python -m auto_nag.scripts.leave_open
 # Closes crash bug without any crashes for the last 12 weeks
 # pretty common
 python -m auto_nag.scripts.no_crashes
-
-# Unconfirmed bugs with an assignee (with autofix)
-# Pretty common
-python -m auto_nag.scripts.assignee_but_unconfirmed
 
 # List bug with the meta keyword but not [meta] in the title
 # Pretty common
@@ -93,3 +88,7 @@ python -m auto_nag.scripts.prod_comp_changed_with_priority
 python -m auto_nag.log --send
 
 deactivate
+
+if [ "$errored" = true ] ; then
+    exit -1
+fi

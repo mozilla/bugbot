@@ -2,16 +2,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from bugbug.models.component import ComponentModel
-
 from auto_nag import logger
-from auto_nag.bugbug_utils import BugbugScript
+from auto_nag.bugbug_utils import get_bug_ids_classification
+from auto_nag.bzcleaner import BzCleaner
 from auto_nag.utils import nice_round
 
 
-class Component(BugbugScript):
+class Component(BzCleaner):
     def __init__(self):
-        self.model_class = ComponentModel
         super().__init__()
         self.autofix_component = {}
         self.frequency = "daily"
@@ -36,10 +34,15 @@ class Component(BugbugScript):
     def sort_columns(self):
         return lambda p: (-p[3], -int(p[0]))
 
+    def has_product_component(self):
+        # Inject product and components when calling BzCleaner.get_bugs
+        return True
+
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
 
         return {
+            "include_fields": ["id", "groups", "summary", "product", "component"],
             # Ignore bugs for which somebody has ever modified the product or the component.
             "n1": 1,
             "f1": "product",
@@ -70,25 +73,44 @@ class Component(BugbugScript):
         }
 
     def get_bugs(self, date="today", bug_ids=[]):
-        # Retrieve bugs to analyze.
-        bugs, probs = super().get_bugs(date=date, bug_ids=bug_ids)
-        if len(bugs) == 0:
+        # Retrieve the bugs with the fields defined in get_bz_params
+        raw_bugs = super().get_bugs(date=date, bug_ids=bug_ids, chunk_size=7000)
+
+        if len(raw_bugs) == 0:
             return {}
 
-        # Get the encoded component.
-        indexes = probs.argmax(axis=-1)
-        # Apply inverse transformation to get the component name from the encoded value.
-        suggestions = self.model.clf._le.inverse_transform(indexes)
+        # Extract the bug ids
+        bug_ids = list(raw_bugs.keys())
+
+        # Classify those bugs
+        bugs = get_bug_ids_classification("component", bug_ids)
 
         results = {}
-        for bug, prob, index, suggestion in zip(bugs, probs, indexes, suggestions):
+
+        for bug_id in sorted(bugs.keys()):
+            bug_data = bugs[bug_id]
+
+            if not bug_data.get("available", True):
+                # The bug was not available, it was either removed or is a
+                # security bug
+                continue
+
+            if not {"prob", "index", "class", "extra_data"}.issubset(bug_data.keys()):
+                raise Exception(f"Invalid bug response {bug_id}: {bug_data!r}")
+
+            bug = raw_bugs[bug_id]
+            prob = bug_data["prob"]
+            index = bug_data["index"]
+            suggestion = bug_data["class"]
+            conflated_components_mapping = bug_data["extra_data"][
+                "conflated_components_mapping"
+            ]
+
             # Skip product-only suggestions that are not useful.
             if "::" not in suggestion and bug["product"] == suggestion:
                 continue
 
-            suggestion = self.model.CONFLATED_COMPONENTS_MAPPING.get(
-                suggestion, suggestion
-            )
+            suggestion = conflated_components_mapping.get(suggestion, suggestion)
 
             if "::" not in suggestion:
                 logger.error(
@@ -111,7 +133,7 @@ class Component(BugbugScript):
 
             result = {
                 "id": bug_id,
-                "summary": self.get_summary(bug),
+                "summary": bug["summary"],
                 "component": suggestion,
                 "confidence": nice_round(prob[index]),
                 "autofixed": False,
@@ -142,9 +164,14 @@ class Component(BugbugScript):
         return results
 
     def get_autofix_change(self):
-        cc = {"cc": {"add": self.get_config("cc")}}
+        common = {
+            "cc": {"add": self.get_config("cc")},
+            "comment": {
+                "body": "[Bugbug](https://github.com/mozilla/bugbug/) thinks this bug should belong to this component, but please revert this change in case of error."
+            },
+        }
         return {
-            bug_id: (data.update(cc) or data)
+            bug_id: (data.update(common) or data)
             for bug_id, data in self.autofix_component.items()
         }
 

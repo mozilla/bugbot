@@ -28,7 +28,7 @@ class CodeFreezeWeek(BzCleaner):
         if not self.init_versions():
             return
 
-        self.people = People()
+        self.people = People.get_instance()
         self.nightly = self.versions["central"]
         self.beta = self.versions["beta"]
         self.release = self.versions["release"]
@@ -158,7 +158,7 @@ class CodeFreezeWeek(BzCleaner):
                 # Calc changes additions & deletions
                 counts = [
                     (old is None and new is not None, new is None and old is not None)
-                    for old, new, _ in diff.changes
+                    for old, new, _, _ in diff.changes
                 ]
                 counts = list(zip(*counts))  # inverse zip
                 info["addlines"] += sum(counts[0])

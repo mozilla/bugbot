@@ -2,15 +2,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from bugbug.models.regression import RegressionModel
-
-from auto_nag.bugbug_utils import BugbugScript
+from auto_nag.bugbug_utils import get_bug_ids_classification
+from auto_nag.bzcleaner import BzCleaner
 from auto_nag.utils import nice_round
 
 
-class Regression(BugbugScript):
+class Regression(BzCleaner):
     def __init__(self):
-        self.model_class = RegressionModel
         super().__init__()
         self.autofix_regression = []
 
@@ -33,6 +31,7 @@ class Regression(BugbugScript):
         reporter_skiplist = ",".join(reporter_skiplist)
 
         params = {
+            "include_fields": ["id", "groups", "summary"],
             "bug_type": "defect",
             "f1": "keywords",
             "o1": "nowords",
@@ -56,46 +55,52 @@ class Regression(BugbugScript):
 
         return params
 
-    # Remove bugs for which the regression keyword was set and removed in the past.
-    def remove_using_history(self, bugs):
-        def should_remove(bug):
-            for h in bug["history"]:
-                for change in h["changes"]:
-                    # N.B.: The removed field can be a comma-separated list.
-                    if change["field_name"] == "keywords" and "regression" in [
-                        key.strip() for key in change["removed"].split(",")
-                    ]:
-                        return True
-
-            return False
-
-        return [bug for bug in bugs if not should_remove(bug)]
-
     def get_bugs(self, date="today", bug_ids=[]):
-        # Retrieve bugs to analyze.
-        bugs, probs = super().get_bugs(date=date, bug_ids=bug_ids)
-        if len(bugs) == 0:
+        # Retrieve the bugs with the fields defined in get_bz_params
+        raw_bugs = super().get_bugs(date=date, bug_ids=bug_ids, chunk_size=7000)
+
+        if len(raw_bugs) == 0:
             return {}
 
-        result = {}
-        for bug, prob in zip(bugs, probs):
+        # Extract the bug ids
+        bug_ids = list(raw_bugs.keys())
+
+        # Classify those bugs
+        bugs = get_bug_ids_classification("regression", bug_ids)
+
+        results = {}
+
+        for bug_id in sorted(bugs.keys()):
+            bug_data = bugs[bug_id]
+
+            if not bug_data.get("available", True):
+                # The bug was not available, it was either removed or is a
+                # security bug
+                continue
+
+            if not {"prob"}.issubset(bug_data.keys()):
+                raise Exception(f"Invalid bug response {bug_id}: {bug_data!r}")
+
+            bug = raw_bugs[bug_id]
+            prob = bug_data["prob"]
+
             if prob[1] < 0.5:
                 continue
 
-            bug_id = str(bug["id"])
-            result[bug_id] = {
+            bug_id = str(bug_id)
+            results[bug_id] = {
                 "id": bug_id,
-                "summary": self.get_summary(bug),
+                "summary": bug["summary"],
                 "confidence": nice_round(prob[1]),
                 "autofixed": False,
             }
 
             # Only autofix results for which we are sure enough.
             if prob[1] >= self.get_config("confidence_threshold"):
-                result[bug_id]["autofixed"] = True
+                results[bug_id]["autofixed"] = True
                 self.autofix_regression.append((bug_id, prob[1]))
 
-        return result
+        return results
 
     def get_autofix_change(self):
         cc = self.get_config("cc")

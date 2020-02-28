@@ -66,7 +66,7 @@ class TestRoundRobin(unittest.TestCase):
         }
 
     @staticmethod
-    def _get_nick(x, bzmail):
+    def _get_nick(x, bzmail, pc, cal):
         return bzmail.split("@")[0]
 
     def test_get(self):

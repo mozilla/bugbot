@@ -299,18 +299,19 @@ def get_triage_owners():
     url = "https://bugzilla.mozilla.org/rest/product"
     params = {
         "type": "accessible",
-        "include_fields": ["components.name", "components.triage_owner"],
+        "include_fields": ["name", "components.name", "components.triage_owner"],
         "names": prods,
     }
     r = requests.get(url, params=params)
     products = r.json()["products"]
     _TRIAGE_OWNERS = {}
     for prod in products:
+        prod_name = prod["name"]
         for comp in prod["components"]:
             owner = comp["triage_owner"]
             if owner and not is_no_assignee(owner):
                 comp_name = comp["name"]
-                pc = f"{prod}::{comp_name}"
+                pc = f"{prod_name}::{comp_name}"
                 if owner not in _TRIAGE_OWNERS:
                     _TRIAGE_OWNERS[owner] = [pc]
                 else:
