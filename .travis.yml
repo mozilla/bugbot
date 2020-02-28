@@ -9,7 +9,7 @@ install:
     - travis_retry pip install -r requirements-test.txt
 
 script:
-    - pre-commit run --all-files
+    - pre-commit run --all-files --show-diff-on-failure
     - tox -e $TOX_ENV
 
 after_success:

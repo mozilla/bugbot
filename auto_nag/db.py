@@ -29,9 +29,9 @@ session = DBSession()
 
 
 def init():
-    hist = History().get()
+    history = History().get()
     logger.info("Put history in db: start...")
-    BugChange.import_from_dict(hist)
+    BugChange.import_from_dict(history)
     logger.info("Put history in db: end.")
 
 
