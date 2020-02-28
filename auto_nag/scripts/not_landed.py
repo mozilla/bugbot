@@ -171,10 +171,13 @@ class NotLanded(BzCleaner):
         nightly_pat = Bugzilla.get_landing_patterns(channels=["nightly"])[0][0]
 
         def comment_handler(bug, bugid, data):
-            # if the last comment contains a backout: don't nag
-            last = bug["comments"][-1]["text"].lower()
-            if nightly_pat.match(last) and ("backed out" in last or "backout" in last):
-                data[bugid]["backout"] = True
+            # if a comment contains a backout: don't nag
+            for comment in bug["comments"]:
+                comment = comment["text"].lower()
+                if nightly_pat.match(comment) and (
+                    "backed out" in comment or "backout" in comment
+                ):
+                    data[bugid]["backout"] = True
 
         def attachment_id_handler(attachments, bugid, data):
             for a in attachments:
