@@ -27,7 +27,7 @@ def classification_http_request(url, bug_ids):
 
 
 def get_bug_ids_classification(
-    model, bug_ids, retry_count=100, retry_sleep=1, batch_size=1000
+    model, bug_ids, retry_count=21, retry_sleep=7, batch_size=1000
 ):
     if len(bug_ids) > 0:
         url = f"{BUGBUG_HTTP_SERVER}/{model}/predict/batch"
