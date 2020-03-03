@@ -1,4 +1,6 @@
 The patch landed in nightly and beta is affected.
-:{{ nickname }}, is that bug important enough to require an uplift?
+:{{ nickname }}, is this bug important enough to require an uplift?
 If not please set `status_beta` to `wontfix`.
+{% if extra[bugid]["regression"] -%}If yes, don't forget to request an uplift for the patches in the {{ plural('regression', extra[bugid]["regression"]) }} caused by this fix.{% endif %}
+
 {{ documentation }}

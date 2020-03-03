@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import dateutil.parser
 from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import Bugzilla
 
@@ -21,12 +20,16 @@ class UpliftBeta(BzCleaner):
             self.versions["central"], "status", "central"
         )
         self.status_beta = utils.get_flag(self.beta, "status", "beta")
+        self.extra_ni = {}
 
     def description(self):
-        return "Bugs fixed in nightly but still affect other supported channels"
+        return "Bugs fixed in nightly but still affecting beta"
 
     def has_assignee(self):
         return True
+
+    def get_extra_for_needinfo_template(self):
+        return self.extra_ni
 
     def columns(self):
         return ["id", "summary", "assignee"]
@@ -50,35 +53,6 @@ class UpliftBeta(BzCleaner):
         }
         return bug
 
-    def filter_bugs(self, bugs):
-        # Get the bugs where status_central has been set few days ago
-
-        if not bugs:
-            return bugs
-
-        to_wait = self.get_config("days_to_wait")
-
-        def history_handler(bug, data):
-            bugid = str(bug["id"])
-            last_fixed_date = None
-            for h in bug["history"]:
-                for change in h["changes"]:
-                    if change["field_name"] == self.status_central and change[
-                        "added"
-                    ] in {"fixed", "verified"}:
-                        last_fixed_date = dateutil.parser.parse(h["when"])
-
-            if last_fixed_date and (self.date - last_fixed_date).days >= to_wait:
-                data.add(bugid)
-
-        bugids = list(bugs.keys())
-        data = set()
-        Bugzilla(
-            bugids=bugids, historyhandler=history_handler, historydata=data
-        ).get_data().wait()
-
-        return {bugid: info for bugid, info in bugs.items() if bugid in data}
-
     def filter_by_regr(self, bugs):
         # Filter the bugs which don't have any regression or where the regressions are all closed
         def bug_handler(bug, data):
@@ -97,15 +71,14 @@ class UpliftBeta(BzCleaner):
             bugdata=fixed_bugs,
         ).get_data().wait()
 
-        new_bugs = {}
+        bugs_without_regr = {}
         for bugid, info in bugs.items():
             regs = set(info["regression"])
             regs = regs - fixed_bugs
             if not regs:
-                del info["regression"]
-                new_bugs[bugid] = info
+                bugs_without_regr[bugid] = info
 
-        return new_bugs
+        return bugs_without_regr
 
     def get_bz_params(self, date):
         self.date = lmdutils.get_date_ymd(date)
@@ -121,19 +94,29 @@ class UpliftBeta(BzCleaner):
             "f2": self.status_beta,
             "o2": "anyexact",
             "v2": "affected",
-            "f3": "flagtypes.name",
-            "o3": "notsubstring",
-            "v3": "approval-mozilla-beta",
-            "f4": "flagtypes.name",
-            "o4": "notsubstring",
-            "v4": "needinfo",
+            # Changed before 2 days ago and not changed after 2 days ago
+            # So we get bugs where the last status_central change (fixed or verified)
+            # was 2 days ago
+            "f3": self.status_central,
+            "o3": "changedbefore",
+            "v3": f"-{to_wait}d",
+            "n4": 1,
+            "f4": self.status_central,
+            "o4": "changedafter",
+            "v4": f"-{to_wait}d",
+            #
             "f5": "flagtypes.name",
-            "o5": "changedbefore",
-            "v5": f"-{to_wait}d",
-            "n6": 1,
-            "f6": "longdesc",
-            "o6": "casesubstring",
-            "v6": ", is that bug important enough to require an uplift?",
+            "o5": "notsubstring",
+            "v5": "approval-mozilla-beta",
+            "f6": "flagtypes.name",
+            "o6": "notsubstring",
+            "v6": "needinfo",
+            # Don't nag several times
+            "n7": 1,
+            "f7": "longdesc",
+            "o7": "casesubstring",
+            # this a part of the comment we've in templates/uplift_beta_needinfo.txt
+            "v7": ", is this bug important enough to require an uplift?",
         }
 
         return params
@@ -141,10 +124,10 @@ class UpliftBeta(BzCleaner):
     def get_bugs(self, date="today", bug_ids=[]):
         bugs = super(UpliftBeta, self).get_bugs(date=date, bug_ids=bug_ids)
         bugs = self.filter_by_regr(bugs)
-        bugs = self.filter_bugs(bugs)
 
         for bugid, data in bugs.items():
             if data["mail"] and data["nickname"]:
+                self.extra_ni[bugid] = {"regression": len(data["regressions"])}
                 self.add_auto_ni(
                     bugid, {"mail": data["mail"], "nickname": data["nickname"]}
                 )
