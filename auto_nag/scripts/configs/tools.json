@@ -12,7 +12,7 @@
             "Media:audio": "media_audio_round_robin.json",
             "Install-Update Triage Calendar": "desktop_installer_round_robin.json",
             "FxPerfTest": "fxperftest_round_robin.json",
-	    "Gfx": "gfx_round_robin.json"
+            "Gfx": "gfx_round_robin.json"
         }
     },
     "no_assignee":
