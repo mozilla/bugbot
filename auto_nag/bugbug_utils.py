@@ -19,7 +19,9 @@ def chunks(it, size):
 
 
 def classification_http_request(url, bug_ids):
-    response = requests.post(url, headers={"X-Api-Key": "Test"}, json={"bugs": bug_ids})
+    response = requests.post(
+        url, headers={"X-Api-Key": "autonag"}, json={"bugs": bug_ids}
+    )
 
     response.raise_for_status()
 
