@@ -13,5 +13,5 @@ icalevents==0.1.24
 icalendar==4.0.4
 sqlalchemy==1.3.13
 filelock==3.0.12
-alembic==1.4.0
+alembic==1.4.1
 numpy==1.18.1
