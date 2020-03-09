@@ -638,5 +638,8 @@
     },
     "close_intermittents": {
         "sec": false
+    },
+    "uplift_beta": {
+        "days_to_wait": 2
     }
 }
