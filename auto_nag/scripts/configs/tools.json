@@ -430,7 +430,7 @@
     },
     "component":
     {
-        "confidence_threshold": 0.6,
+        "confidence_threshold": 0.55,
         "general_confidence_threshold": 0.8,
         "days_lookup": 365,
         "max_days_in_cache": 7,
