@@ -101,7 +101,7 @@ Then the administrators will need to create a configuration file:
 
 The person requesting the round robin schedule must provide the URL of the calendar's `.ics` file.
 
-In the calendar, the title of the events must be the full name of triage owner as it appears in Phonebook.
+In the calendar, the summary of the events must be the full name (eventually prefixed with text between square brackets) of triage owner as it appears in Phonebook, e.g. `[Gfx Triage] Foo Bar` or just `Foo Bar`.
 
 And then you just have to add an entry in `auto_nag/scripts/config/tools.json <https://github.com/mozilla/relman-auto-nag/blob/master/auto_nag/scripts/configs/tools.json#L2>`_ in the round-robin section.
 
