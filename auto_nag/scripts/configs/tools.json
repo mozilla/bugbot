@@ -641,6 +641,13 @@
         "sec": false
     },
     "uplift_beta": {
-        "days_to_wait": 2
+        "days_to_wait": 2,
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "sylvestre@mozilla.com",
+            "mcastelluccio@mozilla.com",
+            "jcristau@mozilla.com"
+        ]
     }
 }

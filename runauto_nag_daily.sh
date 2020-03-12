@@ -28,6 +28,10 @@ python -m auto_nag.scripts.to_triage
 # Daily
 python -m auto_nag.round_robin_fallback
 
+# Needinfo assignee when a patch could be uplifted to beta
+# Daily
+python -m auto_nag.scripts.uplift_beta
+
 # What is fixed in nightly but affecting beta or release
 # Daily
 python -m auto_nag.scripts.missed_uplifts
