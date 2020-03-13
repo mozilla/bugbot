@@ -117,6 +117,10 @@ class UpliftBeta(BzCleaner):
             "o7": "casesubstring",
             # this a part of the comment we've in templates/uplift_beta_needinfo.txt
             "v7": ", is this bug important enough to require an uplift?",
+            # Check if have at least one attachment which is a Phabricator request
+            "f8": "attachments.mimetype",
+            "o8": "anywordssubstr",
+            "v8": "text/x-phabricator-request",
         }
 
         return params
