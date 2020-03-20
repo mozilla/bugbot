@@ -579,7 +579,7 @@
             "sylvestre@mozilla.com"
         ],
         "days_lookup": 3,
-        "confidence_threshold": 0.9,
+        "confidence_threshold": 0.8,
         "cc":[]
     },
     "stepstoreproduce":
