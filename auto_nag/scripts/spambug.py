@@ -75,15 +75,13 @@ class SpamBug(BzCleaner):
 
             bug = raw_bugs[bug_id]
             prob = bug_data["prob"]
-            index = bug_data["index"]
 
-            if prob[1] > self.get_config("confidence_threshold"):
-                results[bug_id] = {
-                    "id": bug_id,
-                    "summary": bug["summary"],
-                    "confidence": nice_round(prob[index]),
-                    "autofixed": False,
-                }
+            results[bug_id] = {
+                "id": bug_id,
+                "summary": bug["summary"],
+                "confidence": nice_round(prob[1]),
+                "autofixed": prob[1] > self.get_config("confidence_threshold"),
+            }
 
         return results
 
