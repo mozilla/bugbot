@@ -73,7 +73,7 @@ class UpliftBeta(BzCleaner):
 
         bugs_without_regr = {}
         for bugid, info in bugs.items():
-            regs = set(info["regression"])
+            regs = set(info["regressions"])
             regs = regs - fixed_bugs
             if not regs:
                 bugs_without_regr[bugid] = info
