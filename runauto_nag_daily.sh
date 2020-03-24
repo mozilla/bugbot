@@ -109,12 +109,12 @@ python -m auto_nag.scripts.component --frequency daily
 # Try to detect potential wrong bug types using bugbug
 python -m auto_nag.scripts.defectenhancementtask
 
+# Try to detect potential missing Has STR using bugbug
+python -m auto_nag.scripts.stepstoreproduce
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
-
-# Try to detect potential missing Has STR using bugbug
-python -m auto_nag.scripts.stepstoreproduce
 
 deactivate
 
