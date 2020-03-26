@@ -309,7 +309,7 @@ class NotLanded(BzCleaner):
             assignee = d["assigned_to"]
             nickname = d["nickname"]
             if not assignee:
-                assignee = max(data["authors"], key=data["authors"].get)
+                assignee = max(data["author"], key=data["author"].get)
                 nicknames[bugid] = assignee
             else:
                 self.add_auto_ni(bugid, {"mail": assignee, "nickname": nickname})
