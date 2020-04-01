@@ -48,7 +48,7 @@ class MismatchPrioTrackBeta(BzCleaner):
     def get_autofix_change(self):
         return {
             "comment": {
-                "body": "Changing the priority to p1 as the bug is tracked by a release manager for the current beta.\nSee [What Do You Triage](https://mozilla.github.io/bug-handling/triage-bugzilla#what-do-you-triage) for more information"
+                "body": "Changing the priority to p1 as the bug is tracked by a release manager for the current beta.\nSee [What Do You Triage](https://firefox-source-docs.mozilla.org/bug-mgmt/guides/priority.html) for more information"
             },
             "priority": "p1",
         }
