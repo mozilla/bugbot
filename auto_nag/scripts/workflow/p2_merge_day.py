@@ -54,7 +54,7 @@ class P2MergeDay(BzCleaner):
     def get_autofix_change(self):
         return {
             "comment": {
-                "body": "Set the priority to P1 since today is the merge day.\nSee [What Do You Triage](https://mozilla.github.io/bug-handling/triage-bugzilla#what-do-you-triage) for more information."
+                "body": "Set the priority to P1 since today is the merge day.\nSee [What Do You Triage](https://firefox-source-docs.mozilla.org/bug-mgmt/guides/priority.html) for more information."
             },
             "priority": "P1",
         }
