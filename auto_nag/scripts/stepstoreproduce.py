@@ -23,9 +23,6 @@ class StepsToReproduce(BzCleaner):
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
 
-        reporter_skiplist = self.get_config("reporter_skiplist", default=[])
-        reporter_skiplist = ",".join(reporter_skiplist)
-
         params = {
             "include_fields": ["id", "groups", "summary"],
             "bug_type": "defect",
@@ -36,8 +33,8 @@ class StepsToReproduce(BzCleaner):
             "o2": "changedbefore",
             "v2": end_date,
             "f3": "reporter",
-            "o3": "nowords",
-            "v3": reporter_skiplist,
+            "o3": "notsubstring",
+            "v3": "%group.editbugs%",
             "f4": "cf_has_str",
             "o4": "equals",
             "v4": "---",

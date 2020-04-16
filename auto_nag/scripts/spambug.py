@@ -37,14 +37,11 @@ class SpamBug(BzCleaner):
             # Ignore closed bugs.
             "bug_status": "__open__",
             "f1": "reporter",
-            "v1": "@mozilla",
+            "v1": "%group.editbugs%",
             "o1": "notsubstring",
-            "f2": "reporter",
-            "v2": "@softvision",
-            "o2": "notsubstring",
-            "f3": "creation_ts",
-            "o3": "greaterthan",
-            "v3": start_date,
+            "f2": "creation_ts",
+            "o2": "greaterthan",
+            "v2": start_date,
         }
 
     def get_bugs(self, date="today", bug_ids=[]):

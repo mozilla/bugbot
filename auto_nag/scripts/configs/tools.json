@@ -592,11 +592,6 @@
             "mcastelluccio@mozilla.com"
         ],
         "days_lookup": 3,
-        "reporter_skiplist":
-        [
-            "intermittent-bug-filer@mozilla.bugs",
-            "wptsync@mozilla.bugs"
-        ],
         "confidence_threshold": 0.9,
         "cc":
         [
