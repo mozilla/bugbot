@@ -112,6 +112,9 @@ python -m auto_nag.scripts.defectenhancementtask
 # Try to detect potential missing Has STR using bugbug
 python -m auto_nag.scripts.stepstoreproduce
 
+# Update status flags for regressions based on their regressor
+python -m auto_nag.scripts.regression_set_status_flags -d
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
