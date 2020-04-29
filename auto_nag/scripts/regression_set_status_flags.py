@@ -58,19 +58,25 @@ class RegressionSetStatusFlags(BzCleaner):
         bug["regressed_by"] = bug["regressed_by"][0]
         data[str(bugid)] = bug
 
-    def get_flags_from_regressing_bugs(self, bugs):
+    def get_flags_from_regressing_bugs(self, bugids):
         def bug_handler(bug, data):
             data[bug["id"]] = bug
 
-        bugids = {info["regressed_by"] for info in bugs.values()}
-        if not bugids:
-            return {}
         data = {}
-        filtered_bugs = {}
         Bugzilla(
             bugids=list(bugids), bughandler=bug_handler, bugdata=data
         ).get_data().wait()
 
+        return data
+
+    def get_status_changes(self, bugs):
+        bugids = {info["regressed_by"] for info in bugs.values()}
+        if not bugids:
+            return {}
+
+        data = self.get_flags_from_regressing_bugs(bugids)
+
+        filtered_bugs = {}
         for bugid, info in bugs.items():
             regressor = info["regressed_by"]
             assert regressor in data
@@ -112,7 +118,7 @@ class RegressionSetStatusFlags(BzCleaner):
 
     def get_bugs(self, *args, **kwargs):
         bugs = super().get_bugs(*args, **kwargs)
-        bugs = self.get_flags_from_regressing_bugs(bugs)
+        bugs = self.get_status_changes(bugs)
         return bugs
 
     def get_autofix_change(self):
