@@ -104,6 +104,12 @@ class RegressionSetStatusFlags(BzCleaner):
                     info[channel] = "affected"
                 filtered_bugs[bugid] = info
 
+        for bugid in filtered_bugs:
+            self.status_changes[bugid]["comment"] = {
+                "body": "Updating status flags based on regressing bug %d" % (
+                    bugs[bugid]["regressed_by"]
+                )
+            }
         return filtered_bugs
 
     def get_bugs(self, *args, **kwargs):
