@@ -92,23 +92,21 @@ class RegressionSetStatusFlags(BzCleaner):
             self.status_changes[bugid] = {}
             for channel in ("release", "beta", "central"):
                 v = int(self.versions[channel])
-                info[channel] = info["cf_status_firefox%d" % v]
-                if info["cf_status_firefox%d" % v] != "---":
+                info[channel] = info[f"cf_status_firefox{v}"]
+                if info[f"cf_status_firefox{v}"] != "---":
                     # XXX maybe check for consistency?
                     continue
                 if v < regressed_version:
-                    self.status_changes[bugid]["cf_status_firefox%d" % v] = "unaffected"
+                    self.status_changes[bugid][f"cf_status_firefox{v}"] = "unaffected"
                     info[channel] = "unaffected"
                 else:
-                    self.status_changes[bugid]["cf_status_firefox%d" % v] = "affected"
+                    self.status_changes[bugid][f"cf_status_firefox{v}"] = "affected"
                     info[channel] = "affected"
                 filtered_bugs[bugid] = info
 
         for bugid in filtered_bugs:
             self.status_changes[bugid]["comment"] = {
-                "body": "Updating status flags based on regressing bug %d" % (
-                    bugs[bugid]["regressed_by"]
-                )
+                "body": f'{self.description()} {bugs[bugid]["regressed_by"]}'
             }
         return filtered_bugs
 
