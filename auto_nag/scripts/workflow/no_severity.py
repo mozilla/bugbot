@@ -11,9 +11,9 @@ from auto_nag.nag_me import Nag
 from auto_nag.round_robin import RoundRobin
 
 
-class NoPriority(BzCleaner, Nag):
+class NoSeverity(BzCleaner, Nag):
     def __init__(self, typ):
-        super(NoPriority, self).__init__()
+        super(NoSeverity, self).__init__()
         assert typ in {"first", "second"}
         self.typ = typ
         self.lookup_first = utils.get_config(self.name(), "first-step", 2)
@@ -27,17 +27,16 @@ class NoPriority(BzCleaner, Nag):
         self.components_skiplist = utils.get_config("workflow", "components_skiplist")
 
     def description(self):
-        return "Bugs without a priority set"
+        return "Bugs without a severity or statuses set"
 
     def nag_template(self):
         return self.template()
 
     def nag_preamble(self):
         return """<p>
-  <b>You're getting this email because some bugs for which you're the triage owner or the triage owner deputy have no priority set.</b>
+  <b>You're getting this email because some bugs for which you're the triage owner or the triage owner deputy have no severity set or they have not set the release status of.</b>
   <ul>
-    <li><a href="https://mozilla.github.io/bug-handling/triage-bugzilla#why-triage">Why triage?</a></li>
-    <li><a href="https://mozilla.github.io/bug-handling/triage-bugzilla#what-do-you-triage">What do you triage?</a></li>
+    <li><a href="https://firefox-source-docs.mozilla.org/bug-mgmt/index.html">Bug handling documentation</a></li>
   </ul>
 </p>"""
 
@@ -96,12 +95,39 @@ class NoPriority(BzCleaner, Nag):
     def get_bz_params(self, date):
         fields = ["triage_owner", "flags"]
         params = {
-            "bug_type": "defect",
             "include_fields": fields,
-            "resolution": "---",
-            "f1": "priority",
+            "email1": "intermittent-bug-filer@mozilla.bugs",
+            "email2": "wptsync@mozilla.bugs",
+            "emailreporter1": 1,
+            "emailreporter2": 1,
+            "emailtype1": "notequals",
+            "emailtype2": "notequals",
+            "f1": "component",
+            "f2": "OP",
+            "f3": "cf_status_firefox_nightly",
+            "f4": "cf_status_firefox_beta",
+            "f5": "cf_status_firefox_release",
+            "f6": "cf_status_firefox_esr",
+            "f7": "bug_type",
+            "f8": "CP",
+            "f9": "bug_severity",
+            "j_top": "OR",
+            "limit": "0",
             "o1": "equals",
-            "v1": "--",
+            "o3": "equals",
+            "o4": "equals",
+            "o5": "equals",
+            "o6": "equals",
+            "o7": "equals",
+            "o9": "equals",
+            "resolution": "---",
+            "v1": "untriaged",
+            "v3": "---",
+            "v4": "---",
+            "v5": "---",
+            "v6": "---",
+            "v7": "defect",
+            "v9": "--"
         }
         self.date = lmdutils.get_date_ymd(date)
         first = f"-{self.lookup_first * 7}d"
@@ -212,5 +238,5 @@ class NoPriority(BzCleaner, Nag):
 
 
 if __name__ == "__main__":
-    NoPriority("first").run()
-    NoPriority("second").run()
+    NoSeverity("first").run()
+    NoSeverity("second").run()

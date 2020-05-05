@@ -192,8 +192,8 @@ class History(object):
                         in c
                     ):
                         tool = "mismatch_priority_tracking_release"
-                    elif c.startswith("The priority flag is not set for this bug.\n:"):
-                        tool = "no_priority"
+                    elif c.startswith("The severity flag is not set for this bug.\n:"):
+                        tool = "no_severity"
                     elif c.startswith(
                         "The priority flag is not set for this bug and there is no activity for"
                     ):
