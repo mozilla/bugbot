@@ -14,7 +14,7 @@
 {% for i, (bug, summary, regressor, central, beta, release) in enumerate(data) %}
 <tr>
 <td><a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bug }}">{{ bug }}</a></td>
-<td>{{ summary }}</td>
+<td>{{ summary | e }}</td>
 <td><a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ regressor }}">{{ regressor }}</a></td>
 <td>{{ central }}</td>
 <td>{{ beta }}</td>
