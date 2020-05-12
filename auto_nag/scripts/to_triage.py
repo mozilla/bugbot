@@ -88,7 +88,7 @@ class ToTriage(BzCleaner, Nag):
             "v2": "needinfo?",
             "f3": "bug_severity",
             "o3": "anyexact",
-            "v3": "--, n/a"
+            "v3": "--, n/a, normal"
         }
 
         return params
