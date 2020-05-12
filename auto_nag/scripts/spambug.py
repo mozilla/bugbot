@@ -17,7 +17,7 @@ class SpamBug(BzCleaner):
         return "[Using ML] Detect spam bugs"
 
     def columns(self):
-        return ["id", "summary", "confidence", "autofixed"]
+        return ["id", "summary", "confidence"]
 
     def sort_columns(self):
         return lambda p: (-p[2], -int(p[0]))
@@ -73,11 +73,13 @@ class SpamBug(BzCleaner):
             bug = raw_bugs[bug_id]
             prob = bug_data["prob"]
 
+            if prob[1] < self.get_config("confidence_threshold"):
+                continue
+
             results[bug_id] = {
                 "id": bug_id,
                 "summary": bug["summary"],
                 "confidence": nice_round(prob[1]),
-                "autofixed": prob[1] > self.get_config("confidence_threshold"),
             }
 
         return results
