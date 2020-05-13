@@ -163,6 +163,10 @@ class JSONCalendar(Calendar):
 
 
 class ICSCalendar(Calendar):
+
+    # The summary can be "[Gfx Triage] Foo Bar" or just "Foo Bar"
+    SUM_PAT = re.compile(r"\s*(?:\[[^\]]*\])?\s*(.*)")
+
     def __init__(self, cal, fallback, team_name, people=None):
         super(ICSCalendar, self).__init__(cal, fallback, team_name, people=people)
         self.set_tz()
@@ -176,6 +180,13 @@ class ICSCalendar(Calendar):
         else:
             self.cal_tz = UTC
 
+    def get_person(self, p):
+        g = ICSCalendar.SUM_PAT.match(p)
+        if g:
+            p = g.group(1)
+            p = p.strip()
+        return p
+
     def get_persons(self, date):
         date = lmdutils.get_date_ymd(date)
         date += relativedelta(seconds=1)
@@ -184,8 +195,9 @@ class ICSCalendar(Calendar):
             return self.cache[date]
 
         res = parse_events(self.cal, start=date, end=date)
+        persons = [self.get_person(p.summary) for p in res]
         self.cache[date] = res = [
-            (p.summary, self.people.get_bzmail_from_name(p.summary)) for p in res
+            (person, self.people.get_bzmail_from_name(person)) for person in persons
         ]
 
         return res

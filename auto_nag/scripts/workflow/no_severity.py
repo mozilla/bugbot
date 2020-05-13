@@ -36,7 +36,9 @@ class NoSeverity(BzCleaner, Nag):
         return """<p>
   <b>You're getting this email because some bugs for which you're the triage owner or the triage owner deputy have no severity set or they have not set the release status of.</b>
   <ul>
-    <li><a href="https://firefox-source-docs.mozilla.org/bug-mgmt/index.html">Bug handling documentation</a></li>
+    <li><a href="https://firefox-source-docs.mozilla.org/bug-mgmt/policies/triage-bugzilla.html#why-triage">Why triage?</a></li>
+    <li><a href="https://firefox-source-docs.mozilla.org/bug-mgmt/policies/triage-bugzilla.html#what-do-you-triage">What do you triage?</a></li>
+    <li><a href="https://firefox-source-docs.mozilla.org/bug-mgmt/guides/priority.html">Priority definitions</a></li>
   </ul>
 </p>"""
 

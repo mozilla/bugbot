@@ -1,0 +1,26 @@
+<p>The following regressions had their status flags updated:
+<table {{ table_attrs }}>
+<thead>
+<tr>
+<th>Bug</th>
+<th>Summary</th>
+<th>Regressed by</th>
+<th>Status in central</th>
+<th>Status in beta</th>
+<th>Status in release</th>
+</tr>
+</thead>
+<tbody>
+{% for i, (bug, summary, regressor, central, beta, release) in enumerate(data) %}
+<tr>
+<td><a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bug }}">{{ bug }}</a></td>
+<td>{{ summary | e }}</td>
+<td><a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ regressor }}">{{ regressor }}</a></td>
+<td>{{ central }}</td>
+<td>{{ beta }}</td>
+<td>{{ release }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</p>

@@ -1,0 +1,10 @@
+{
+  "fallback": "Andrew Overholt",
+  "components": {
+    "Core::DOM: Navigation": "default",
+    "Core::DOM: Window and Location": "default"
+  },
+  "default": {
+    "calendar": "private://DOM:Navigation & Windows and Location"
+  }
+}

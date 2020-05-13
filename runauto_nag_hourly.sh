@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 export PYTHONPATH=.
 
@@ -25,10 +24,6 @@ python -m auto_nag.scripts.leave_open
 # Closes crash bug without any crashes for the last 12 weeks
 # pretty common
 python -m auto_nag.scripts.no_crashes
-
-# Unconfirmed bugs with an assignee (with autofix)
-# Pretty common
-python -m auto_nag.scripts.assignee_but_unconfirmed
 
 # List bug with the meta keyword but not [meta] in the title
 # Pretty common
@@ -88,8 +83,15 @@ python -m auto_nag.scripts.component --frequency hourly
 # Reset the priority if the product::component changed after the priority has been set
 python -m auto_nag.scripts.prod_comp_changed_with_priority
 
+# Detect spam bugs using bugbug
+python -m auto_nag.scripts.spambug
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
 
 deactivate
+
+if [ "$errored" = true ] ; then
+    exit -1
+fi

@@ -12,14 +12,11 @@ The list of checkers is documented on the Mozilla wiki:
 https://wiki.mozilla.org/Release_Management/autonag
 
 
-This package currently uses `remoteobjects <https://github.com/saymedia/remoteobjects>`_ models, Mozilla's `Bugzilla REST API <https://wiki.mozilla.org/Bugzilla:REST_API>`_, and optionally the Mozilla LDAP `phonebook <https://github.com/mozilla/mobile-phonebook>`_ (to access bug assignees' managers & Mozilla email addresses).
+This package currently uses Mozilla's `Bugzilla REST API <https://wiki.mozilla.org/Bugzilla:REST_API>`_, and optionally the Mozilla IAM `phonebook <https://github.com/mozilla-iam/cis/blob/master/docs/PersonAPI.md>`_ (to access bug assignees' managers & Mozilla email addresses).
 
 
 Installation
 ------------
-
-Currently, this package depends on a pre-release version of remoteobjects, so
-we'll have to do this the long way.
 
 #. Check out the code::
 
@@ -27,98 +24,88 @@ we'll have to do this the long way.
 
 #. (optional) Create your virtualenv using virtualenvwrapper::
 
-    virtualenv --no-site-packages venv
+    virtualenv -p python3 venv
+    source venv/bin/activate
 
 #. Install pip::
 
     easy_install pip
 
-#. Install the dependencies for bztools::
-
-    pip install -r requirements.txt
-
 #. Install the dependencies for Python 3 too::
 
     pip3 install -r requirements.txt
 
-#. Run setup.py so the scripts are installed to your bin directory::
-
-    python setup.py install
-
-Note to developers: if you make any changes to the bugzilla/ files (agents, models, utils) during
-work on other scripts, you will want to re-install the scripts as instructed above in order to pick
-up changes
 
 To run it into production, you will need the full list of employees + managers.
 
-Usage
-----------
+Automated Nagging Script
+------------------------
 
-Example::
+Before running:
 
-    from auto_nag.bugzilla.agents import BMOAgent
+1. The LDAP + SMTP infos are used to send emails
+2. Need to generate an API key from bugzilla admin ( https://bugzilla.mozilla.org/userprefs.cgi?tab=apikey )
+3. Should generate an API key from Phabricator ( https://phabricator.services.mozilla.com/settings/user )
+4. The IAM secrets are used to generate a dump of phonebook, so they're mandatory but you still need to have such a dump
+5. The private entry contains URLs for private calendar in ICS format:
 
-    # We can use "None" for both instead to not authenticate
-    api_key = 'xxx'
-
-    # Load our agent for BMO
-    bmo = BMOAgent(api_key)
-
-    # Set whatever REST API options we want
-    options = {
-        'changed_after':    ['2010-12-24'],
-        'changed_before':   ['2010-12-26'],
-        'changed_field':    ['status'],
-        'changed_field_to': ['RESOLVED'],
-        'product':          ['Core,Firefox'],
-        'resolution':       ['FIXED'],
-        'include_fields':   ['_default,attachments'],
-    }
-
-    # Get the bugs from the api
-    buglist = bmo.get_bug_list(options)
-
-    print "Found %s bugs" % (len(buglist))
-
-    for bug in buglist:
-        print bug
-
-Query Creator, Automated Nagging Script
----------------------------------------
-
-Before running::
-
-1. You'll need to create a writeable 'queries' directory at the top level of the checkout where the script is run from.
-2. Need a local config for phonebook auth with your LDAP info
-3. Need to generate an API key from bugzilla admin ( https://bugzilla.mozilla.org/userprefs.cgi?tab=apikey )
-
-.. code-block:: bash
+.. code-block:: json
 
     # in scripts/configs/config.json
     {
-      "ldap_username": "you@mozilla.com",
+      "ldap_username": "xxx@xxxx.xxx",
       "ldap_password": "xxxxxxxxxxxxxx",
-      "bz_api_key": "xxxxxxxxxxxxxx"
+      "smtp_server": "smtp.xxx.xxx",
+      "smtp_port": 314,
+      "smtp_ssl": true,
+      "bz_api_key": "xxxxxxxxxxxxxx",
+      "phab_api_key": "xxxxxxxxxxxxxx",
+      "iam_client_secret": "xxxxxxxxxxxxxx",
+      "iam_client_id": "xxxxxxxxxxxxxx",
+      "private":
+      {
+        "Core::General": "https://..."
+      }
     }
 
 Do a dryrun::
-    python auto_nag/scripts/query_creator.py -d
+    python -m auto_nag.scripts.stalled -d
 
-The script does the following:
-* you will need a local config for smtp auth with your LDAP info::
-    # in scripts/configs/config.json
+There is a ton of scripts in auto_nag/scripts/ so you should be able to find some good examples.
+
+Setting up 'Round Robin' triage rotations
+-----------------------------------------
+
+One use case for this tool is managing triage of multiple components across a team of multiple people.
+
+To set up a new Round Robin rotation, a manager or team lead should create a Google Calendar with the rotation of triagers.
+
+Then the administrators will need to create a configuration file:
+
+.. code-block:: json
+
+    # in scripts/configs/<name of rotation>_round_robin.json
     {
-        "ldap_username": "you@mozilla.com",
-        "ldap_password": "xxxxxxxxxxxxxx",
-        "bz_api_key": "xxxxxxxxxxxxxx"
+        "fallback": "<Name of manager or lead>",
+        "components":
+        {
+            "Product::Component": "default",
+            "Product::Component": "default",
+            …
+        },
+        "default":
+        {
+            "calendar": "private://<Name of calendar>"
+        }
     }
-* Creates queries based on the day of the week the script is run
-* Polls the bugzilla API with each query supplied and builds a dictionary of bugs found per query
-* For each bug, finds the assignee and if possible the assignee's manager - then adds the bug to the manager's bug bucket for later email notification
-* Goes through the manager dictionary and constructs an email with the bugs assigned to that manager's team members
-* Outputs the message to console and waits for use input to either send/edit/cancel (save for manual notification)
-* At the end it provides a list of all bugs that were not emailed about and provides the url for bugzilla of that buglist
 
+The person requesting the round robin schedule must provide the URL of the calendar's `.ics` file.
+
+In the calendar, the summary of the events must be the full name (eventually prefixed with text between square brackets) of triage owner as it appears in Phonebook, e.g. `[Gfx Triage] Foo Bar` or just `Foo Bar`.
+
+And then you just have to add an entry in `auto_nag/scripts/config/tools.json <https://github.com/mozilla/relman-auto-nag/blob/master/auto_nag/scripts/configs/tools.json#L2>`_ in the round-robin section.
+
+Once everything is set-up you can make a PR similar too https://github.com/mozilla/relman-auto-nag/pull/858/files
 
 Running on a server
 -------------------
@@ -129,11 +116,3 @@ Cronjob::
 
   00 14 * * 1-5 $HOME/run_autonags_daily.sh &> /tmp/autonag.log
   15 */1 * * * $HOME/runauto_nag_hourly.sh &> /tmp/autonag-hour.log
-
-
-Running the testsuite
----------------------
-
-.. code-block:: bash
-
-    tox -e py27

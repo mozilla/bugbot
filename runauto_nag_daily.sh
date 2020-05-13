@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 export PYTHONPATH=.
 
@@ -17,10 +16,6 @@ python -m auto_nag.log --clean
 # Daily
 python -m auto_nag.next_release
 
-# Code freeze week information for release managers
-# Daily (but really runs during the soft freeze week)
-python -m auto_nag.scripts.code_freeze_week -D yesterday
-
 # Send a todo list to set priority
 # Daily
 python -m auto_nag.scripts.to_triage
@@ -28,6 +23,10 @@ python -m auto_nag.scripts.to_triage
 # Nag triage fallback to update calendar
 # Daily
 python -m auto_nag.round_robin_fallback
+
+# Needinfo assignee when a patch could be uplifted to beta
+# Daily
+python -m auto_nag.scripts.uplift_beta
 
 # What is fixed in nightly but affecting beta or release
 # Daily
@@ -48,10 +47,6 @@ python -m auto_nag.scripts.one_two_word_summary
 # Bugs where the reporter has a needinfo
 # Pretty common
 python -m auto_nag.scripts.reporter_with_ni
-
-# Unconfirmed bugs with an assignee (with autofix)
-# Pretty common
-python -m auto_nag.scripts.assignee_but_unconfirmed
 
 # Notify bugs in untriaged with an important severity
 python -m auto_nag.scripts.untriage_important_sev
@@ -110,11 +105,18 @@ python -m auto_nag.scripts.component --frequency daily
 # Try to detect potential wrong bug types using bugbug
 python -m auto_nag.scripts.defectenhancementtask
 
+# Try to detect potential missing Has STR using bugbug
+python -m auto_nag.scripts.stepstoreproduce
+
+# Update status flags for regressions based on their regressor
+python -m auto_nag.scripts.regression_set_status_flags
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
 
-# Try to detect potential missing Has STR using bugbug
-python -m auto_nag.scripts.stepstoreproduce
-
 deactivate
+
+if [ "$errored" = true ] ; then
+    exit -1
+fi

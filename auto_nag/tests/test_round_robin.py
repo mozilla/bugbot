@@ -188,10 +188,19 @@ class TestRoundRobin(unittest.TestCase):
             )
 
             assert rr.get(self.mk_bug("P1::C1"), "2019-03-08") == (
+                "ab@mozilla.com",
+                "ab",
+            )
+            assert rr.get(self.mk_bug("P2::C2"), "2019-03-08") == (
+                "ab@mozilla.com",
+                "ab",
+            )
+
+            assert rr.get(self.mk_bug("P1::C1"), "2019-03-15") == (
                 "gh@mozilla.com",
                 "gh",
             )
-            assert rr.get(self.mk_bug("P2::C2"), "2019-03-08") == (
+            assert rr.get(self.mk_bug("P2::C2"), "2019-03-15") == (
                 "gh@mozilla.com",
                 "gh",
             )

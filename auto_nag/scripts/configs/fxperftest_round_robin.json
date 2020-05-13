@@ -1,0 +1,12 @@
+{
+  "fallback": "Dave Hunt",
+  "components": {
+    "Testing::Performance": "default",
+    "Testing::AWSY": "default",
+    "Testing::Raptor": "default",
+    "Testing::Talos": "default"
+  },
+  "default": {
+    "calendar": "private://FxPerfTest"
+  }
+}
