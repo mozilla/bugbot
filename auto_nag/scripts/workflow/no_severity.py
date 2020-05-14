@@ -113,7 +113,7 @@ class NoSeverity(BzCleaner, Nag):
             "v22": "needinfo?",
             "f23": "bug_severity",
             "o23": "anyexact",
-            "v23": "--, n/a, normal"
+            "v23": "--, n/a, normal",
         }
         self.date = lmdutils.get_date_ymd(date)
         first = f"-{self.lookup_first * 7}d"
