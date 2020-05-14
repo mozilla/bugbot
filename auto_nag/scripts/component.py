@@ -129,6 +129,15 @@ class Component(BzCleaner):
             }:
                 continue
 
+            # Don't move bugs from Firefox::General to Core::Internationalization.
+            if (
+                bug["product"] == "Firefox"
+                and bug["component"] == "General"
+                and suggested_product == "Core"
+                and suggested_component == "Internationalization"
+            ):
+                continue
+
             bug_id = str(bug["id"])
 
             result = {
