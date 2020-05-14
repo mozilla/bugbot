@@ -330,7 +330,7 @@
             "dcamp@mozilla.com"
         ]
     },
-    "no_priority":
+    "no_severity":
     {
         "max-years": 1,
         "first-step": 2,

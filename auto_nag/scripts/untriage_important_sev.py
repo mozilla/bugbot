@@ -15,7 +15,7 @@ class UntriagedWithImportantSev(BzCleaner):
     def get_bz_params(self, date):
         return {
             "resolution": ["---"],
-            "bug_severity": ["blocker", "critical", "major"],
+            "bug_severity": ["S1", "S2"],
             "component": "Untriaged",
         }
 
