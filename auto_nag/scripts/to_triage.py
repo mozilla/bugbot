@@ -73,13 +73,22 @@ class ToTriage(BzCleaner, Nag):
             "include_fields": fields,
             "product": list(prods),
             "component": list(comps),
+            "email1": "intermittent-bug-filer@mozilla.bugs",
+            "emailreporter1": "1",
+            "emailtype1": "notequals",
+            "email2": "wptsync@mozilla.bugs",
+            "emailreporter2": "1",
+            "emailtype2": "notequals",
             "resolution": "---",
-            "f1": "priority",
+            "f1": "bug_type",
             "o1": "equals",
-            "v1": "--",
+            "v1": "defect",
             "f2": "flagtypes.name",
-            "o2": "notequals",
+            "o2": "notsubstring",
             "v2": "needinfo?",
+            "f3": "bug_severity",
+            "o3": "anyexact",
+            "v3": "--, n/a, normal"
         }
 
         return params

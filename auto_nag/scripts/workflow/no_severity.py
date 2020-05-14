@@ -11,9 +11,9 @@ from auto_nag.nag_me import Nag
 from auto_nag.round_robin import RoundRobin
 
 
-class NoPriority(BzCleaner, Nag):
+class NoSeverity(BzCleaner, Nag):
     def __init__(self, typ):
-        super(NoPriority, self).__init__()
+        super(NoSeverity, self).__init__()
         assert typ in {"first", "second"}
         self.typ = typ
         self.lookup_first = utils.get_config(self.name(), "first-step", 2)
@@ -27,14 +27,14 @@ class NoPriority(BzCleaner, Nag):
         self.components_skiplist = utils.get_config("workflow", "components_skiplist")
 
     def description(self):
-        return "Bugs without a priority set"
+        return "Bugs without a severity or statuses set"
 
     def nag_template(self):
         return self.template()
 
     def nag_preamble(self):
         return """<p>
-  <b>You're getting this email because some bugs for which you're the triage owner or the triage owner deputy have no priority set.</b>
+  <b>You're getting this email because some bugs for which you're the triage owner or the triage owner deputy have no severity set.</b>
   <ul>
     <li><a href="https://firefox-source-docs.mozilla.org/bug-mgmt/policies/triage-bugzilla.html#why-triage">Why triage?</a></li>
     <li><a href="https://firefox-source-docs.mozilla.org/bug-mgmt/policies/triage-bugzilla.html#what-do-you-triage">What do you triage?</a></li>
@@ -97,12 +97,23 @@ class NoPriority(BzCleaner, Nag):
     def get_bz_params(self, date):
         fields = ["triage_owner", "flags"]
         params = {
-            "bug_type": "defect",
             "include_fields": fields,
+            "email1": "intermittent-bug-filer@mozilla.bugs",
+            "emailreporter1": "1",
+            "emailtype1": "notequals",
+            "email2": "wptsync@mozilla.bugs",
+            "emailreporter2": "1",
+            "emailtype2": "notequals",
             "resolution": "---",
-            "f1": "priority",
-            "o1": "equals",
-            "v1": "--",
+            "f21": "bug_type",
+            "o21": "equals",
+            "v21": "defect",
+            "f22": "flagtypes.name",
+            "o22": "notsubstring",
+            "v22": "needinfo?",
+            "f23": "bug_severity",
+            "o23": "anyexact",
+            "v23": "--, n/a, normal"
         }
         self.date = lmdutils.get_date_ymd(date)
         first = f"-{self.lookup_first * 7}d"
@@ -213,5 +224,5 @@ class NoPriority(BzCleaner, Nag):
 
 
 if __name__ == "__main__":
-    NoPriority("first").run()
-    NoPriority("second").run()
+    NoSeverity("first").run()
+    NoSeverity("second").run()

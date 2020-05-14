@@ -5,7 +5,7 @@
 from auto_nag.erroneous_bzmail import check_erroneous_bzmail
 from auto_nag.multinaggers import MultiNaggers
 
-from .no_priority import NoPriority
+from .no_severity import NoSeverity
 
 # from .p1_no_activity import P1NoActivity
 # from .p1_no_assignee import P1NoAssignee
@@ -16,8 +16,8 @@ from .no_priority import NoPriority
 class WorkflowMultiNag(MultiNaggers):
     def __init__(self):
         super(WorkflowMultiNag, self).__init__(
-            NoPriority("first"),
-            NoPriority("second"),
+            NoSeverity("first"),
+            NoSeverity("second"),
             # P1NoActivity(),
             # P1NoAssignee(),
             # P2NoActivity(),
