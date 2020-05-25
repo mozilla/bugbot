@@ -90,6 +90,7 @@ class RegressionSetStatusFlags(BzCleaner):
                 # don't know what to do, ignore
                 continue
             if regression_versions[0].startswith("cf_status_firefox_esr"):
+                # shouldn't happen: esrXX sorts after YY
                 continue
             regressed_version = int(regression_versions[0][len("cf_status_firefox") :])
             if regressed_version < int(self.versions["release"]):
