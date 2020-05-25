@@ -99,16 +99,17 @@ class RegressionSetStatusFlags(BzCleaner):
             self.status_changes[bugid] = {}
             for channel in ("release", "beta", "central"):
                 v = int(self.versions[channel])
-                info[channel] = info[f"cf_status_firefox{v}"]
-                if info[f"cf_status_firefox{v}"] != "---":
+                flag = utils.get_flag(v, "status", channel)
+                info[channel] = info[flag]
+                if info[flag] != "---":
                     # XXX maybe check for consistency?
                     continue
-                if v < regressed_version:
-                    self.status_changes[bugid][f"cf_status_firefox{v}"] = "unaffected"
-                    info[channel] = "unaffected"
-                else:
-                    self.status_changes[bugid][f"cf_status_firefox{v}"] = "affected"
+                if v >= regressed_version:
+                    self.status_changes[bugid][flag] = "affected"
                     info[channel] = "affected"
+                else:
+                    self.status_changes[bugid][flag] = "unaffected"
+                    info[channel] = "unaffected"
                 filtered_bugs[bugid] = info
 
         for bugid in filtered_bugs:
