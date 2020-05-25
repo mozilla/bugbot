@@ -19,6 +19,8 @@ class RegressionSetStatusFlags(BzCleaner):
         self.status_release = utils.get_flag(
             self.versions["release"], "status", "release"
         )
+        self.status_esr = utils.get_flag(self.versions["esr_previous"], "status", "esr")
+        self.status_esr_next = utils.get_flag(self.versions["esr"], "status", "esr")
         self.status_changes = {}
 
     def description(self):
@@ -32,7 +34,10 @@ class RegressionSetStatusFlags(BzCleaner):
             self.status_central,
             self.status_beta,
             self.status_release,
+            self.status_esr,
         ]
+        if self.status_esr_next != self.status_esr:
+            fields.append(self.status_esr_next)
 
         return {
             "include_fields": fields,
@@ -49,6 +54,11 @@ class RegressionSetStatusFlags(BzCleaner):
             "v4": "---",
             "resolution": ["---", "FIXED"],
         }
+
+    def get_extra_for_template(self):
+        if self.status_esr == self.status_esr_next:
+            return [f"esr{self.versions['esr']}"]
+        return [f"esr{self.versions['esr_previous']}", f"esr{self.versions['esr']}"]
 
     def handle_bug(self, bug, data):
         bugid = bug["id"]
@@ -111,6 +121,26 @@ class RegressionSetStatusFlags(BzCleaner):
                     self.status_changes[bugid][flag] = "unaffected"
                     info[channel] = "unaffected"
                 filtered_bugs[bugid] = info
+            esr_versions = set([self.versions["esr"], self.versions["esr_previous"]])
+            for v in esr_versions:
+                info.setdefault("esr", {})
+                flag = utils.get_flag(v, "status", "esr")
+                info["esr"][f"esr{v}"] = info[flag]
+                if info[flag] != "---":
+                    # XXX maybe check for consistency?
+                    continue
+                if data[regressor].get(flag) in ("fixed", "verified"):
+                    # regressor was uplifted, so the regression affects this branch
+                    self.status_changes[bugid][flag] = "affected"
+                    info["esr"][f"esr{v}"] = "affected"
+                elif int(v) >= regressed_version:
+                    # regression from before this branch, also affected
+                    self.status_changes[bugid][flag] = "affected"
+                    info["esr"][f"esr{v}"] = "affected"
+                else:
+                    self.status_changes[bugid][flag] = "unaffected"
+                    info["esr"][f"esr{v}"] = "unaffected"
+                filtered_bugs[bugid] = info
 
         for bugid in filtered_bugs:
             self.status_changes[bugid]["comment"] = {
@@ -127,7 +157,7 @@ class RegressionSetStatusFlags(BzCleaner):
         return self.status_changes
 
     def columns(self):
-        return ("id", "summary", "regressed_by", "central", "beta", "release")
+        return ["id", "summary", "regressed_by", "central", "beta", "release", "esr"]
 
 
 if __name__ == "__main__":

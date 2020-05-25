@@ -14,6 +14,8 @@ def mock_get_checked_versions():
         "beta": 3,
         "nightly": 4,
         "central": 4,
+        "esr": 3,
+        "esr_previous": 2,
     }
 
 
@@ -41,7 +43,7 @@ def mock_get_flags_from_regressing_bugs(self, bugids):
     return {
         111: {
             "id": 111,
-            "cf_status_firefox_esr4": "fixed",
+            "cf_status_firefox_esr3": "fixed",
             "cf_status_firefox3": "fixed",
         },
         222: {"id": 222, "cf_status_firefox1": "fixed",},
@@ -75,6 +77,16 @@ class TestSetStatusFlags(unittest.TestCase):
         self.assertEqual(sorted(bugs), ["1111"])
         self.assertEqual(list(r.status_changes), ["1111"])
         self.assertEqual(
-            sorted(r.status_changes["1111"]), ["cf_status_firefox2", "comment"]
+            sorted(r.status_changes["1111"]),
+            [
+                "cf_status_firefox2",
+                "cf_status_firefox_esr2",
+                "cf_status_firefox_esr3",
+                "comment",
+            ],
         )
         self.assertEqual(r.status_changes["1111"]["cf_status_firefox2"], "unaffected")
+        self.assertEqual(
+            r.status_changes["1111"]["cf_status_firefox_esr2"], "unaffected"
+        )
+        self.assertEqual(r.status_changes["1111"]["cf_status_firefox_esr3"], "affected")
