@@ -19,6 +19,8 @@ class RegressionSetStatusFlags(BzCleaner):
         self.status_release = utils.get_flag(
             self.versions["release"], "status", "release"
         )
+        self.status_esr = utils.get_flag(self.versions["esr_previous"], "status", "esr")
+        self.status_esr_next = utils.get_flag(self.versions["esr"], "status", "esr")
         self.status_changes = {}
 
     def description(self):
@@ -32,7 +34,10 @@ class RegressionSetStatusFlags(BzCleaner):
             self.status_central,
             self.status_beta,
             self.status_release,
+            self.status_esr,
         ]
+        if self.status_esr_next != self.status_esr:
+            fields.append(self.status_esr_next)
 
         return {
             "include_fields": fields,
@@ -50,6 +55,14 @@ class RegressionSetStatusFlags(BzCleaner):
             "resolution": ["---", "FIXED"],
         }
 
+<<<<<<< HEAD
+=======
+    def get_extra_for_template(self):
+        if self.status_esr == self.status_esr_next:
+            return [f"esr{self.versions['esr']}"]
+        return [f"esr{self.versions['esr_previous']}", f"esr{self.versions['esr']}"]
+
+>>>>>>> 841837f2d80d71f17c15cc4ed1900777757d555d
     def handle_bug(self, bug, data):
         bugid = bug["id"]
         if len(bug["regressed_by"]) != 1:
@@ -90,6 +103,10 @@ class RegressionSetStatusFlags(BzCleaner):
                 # don't know what to do, ignore
                 continue
             if regression_versions[0].startswith("cf_status_firefox_esr"):
+<<<<<<< HEAD
+=======
+                # shouldn't happen: esrXX sorts after YY
+>>>>>>> 841837f2d80d71f17c15cc4ed1900777757d555d
                 continue
             regressed_version = int(regression_versions[0][len("cf_status_firefox") :])
             if regressed_version < int(self.versions["release"]):
@@ -98,6 +115,7 @@ class RegressionSetStatusFlags(BzCleaner):
             self.status_changes[bugid] = {}
             for channel in ("release", "beta", "central"):
                 v = int(self.versions[channel])
+<<<<<<< HEAD
                 info[channel] = info[f"cf_status_firefox{v}"]
                 if info[f"cf_status_firefox{v}"] != "---":
                     # XXX maybe check for consistency?
@@ -108,6 +126,39 @@ class RegressionSetStatusFlags(BzCleaner):
                 else:
                     self.status_changes[bugid][f"cf_status_firefox{v}"] = "affected"
                     info[channel] = "affected"
+=======
+                flag = utils.get_flag(v, "status", channel)
+                info[channel] = info[flag]
+                if info[flag] != "---":
+                    # XXX maybe check for consistency?
+                    continue
+                if v >= regressed_version:
+                    self.status_changes[bugid][flag] = "affected"
+                    info[channel] = "affected"
+                else:
+                    self.status_changes[bugid][flag] = "unaffected"
+                    info[channel] = "unaffected"
+                filtered_bugs[bugid] = info
+            esr_versions = set([self.versions["esr"], self.versions["esr_previous"]])
+            for v in esr_versions:
+                info.setdefault("esr", {})
+                flag = utils.get_flag(v, "status", "esr")
+                info["esr"][f"esr{v}"] = info[flag]
+                if info[flag] != "---":
+                    # XXX maybe check for consistency?
+                    continue
+                if data[regressor].get(flag) in ("fixed", "verified"):
+                    # regressor was uplifted, so the regression affects this branch
+                    self.status_changes[bugid][flag] = "affected"
+                    info["esr"][f"esr{v}"] = "affected"
+                elif int(v) >= regressed_version:
+                    # regression from before this branch, also affected
+                    self.status_changes[bugid][flag] = "affected"
+                    info["esr"][f"esr{v}"] = "affected"
+                else:
+                    self.status_changes[bugid][flag] = "unaffected"
+                    info["esr"][f"esr{v}"] = "unaffected"
+>>>>>>> 841837f2d80d71f17c15cc4ed1900777757d555d
                 filtered_bugs[bugid] = info
 
         for bugid in filtered_bugs:
@@ -125,7 +176,11 @@ class RegressionSetStatusFlags(BzCleaner):
         return self.status_changes
 
     def columns(self):
+<<<<<<< HEAD
         return ("id", "summary", "regressed_by", "central", "beta", "release")
+=======
+        return ["id", "summary", "regressed_by", "central", "beta", "release", "esr"]
+>>>>>>> 841837f2d80d71f17c15cc4ed1900777757d555d
 
 
 if __name__ == "__main__":
