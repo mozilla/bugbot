@@ -41,10 +41,6 @@ class SurveySecurityBugs(BzCleaner):
             "f3": "attachments.count",
             "o3": "greaterthan",
             "v3": "0",
-            # assigned to any of those we have agreed to help out
-            "f4": "assigned_to",
-            "o4": "anywords",
-            "v4": ",".join(self.get_config("to_reach_out", default=[])),
         }
 
         return params
