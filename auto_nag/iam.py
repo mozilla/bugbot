@@ -171,26 +171,6 @@ def get_phonebook_dump(output_dir=""):
         person["manager"]["cn"] = manager_cn
         person["manager"]["dn"] = manager_dn
 
-    with open("./auto_nag/scripts/configs/old_people.json", "r") as In:
-        old_data = json.load(In)
-
-    for person in old_data:
-        if person["mail"] not in new_data:
-            continue
-        new_person = new_data[person["mail"]]
-        old_bz_mail = person.get("bugzillaEmail", "")
-        if old_bz_mail and not new_person["bugzillaEmail"]:
-            new_person["bugzillaEmail"] = old_bz_mail
-        if not new_person["bugzillaEmail"]:
-            del new_person["bugzillaEmail"]
-
-        if person.get("emailalias"):
-            alias = person["emailalias"]
-            new_person["emailalias"] = alias
-
-        if new_person["cn"] != person["cn"]:
-            new_person["cn"] = person["cn"]
-
     new_data = list(new_data.values())
 
     with open("./auto_nag/scripts/configs/people.json", "w") as Out:
