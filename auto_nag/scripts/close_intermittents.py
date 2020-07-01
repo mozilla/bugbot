@@ -14,9 +14,8 @@ class Intermittents(BzCleaner):
 
     def get_bz_params(self, date):
         params = {
-            "email1": "intermittent-bug-filer@mozilla.bugs",
-            "emailreporter1": "1",
-            "emailtype1": "exact",
+            "keywords": "intermittent-failure",
+            "keywords_type": "allwords",
             "n1": "1",
             "f1": "longdescs.count",
             "o1": "changedafter",
