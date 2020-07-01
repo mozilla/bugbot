@@ -98,9 +98,8 @@ class NoSeverity(BzCleaner, Nag):
         fields = ["triage_owner", "flags"]
         params = {
             "include_fields": fields,
-            "email1": "intermittent-bug-filer@mozilla.bugs",
-            "emailreporter1": "1",
-            "emailtype1": "notequals",
+            "keywords": "intermittent-failure",
+            "keywords_type": "nowords",
             "email2": "wptsync@mozilla.bugs",
             "emailreporter2": "1",
             "emailtype2": "notequals",
