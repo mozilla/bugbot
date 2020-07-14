@@ -27,7 +27,7 @@ class WorkflowMultiNag(MultiNaggers):
         return "Bugs requiring special attention to help release management"
 
     def title(self):
-        return "{} -- Priority Flag Alert".format(self.date.strftime("%A %b %d"))
+        return "{} -- Severity Flag Alert".format(self.date.strftime("%A %b %d"))
 
 
 if __name__ == "__main__":
