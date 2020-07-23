@@ -42,7 +42,7 @@ class Intermittents(BzCleaner):
             "o9": "nowordssubstr",
             "v9": "new tab page, messaging system",
             "keywords_type": "nowords",
-            "keywords": "leave-open",
+            "keywords": "leave-open, test-verify-fail",
             "priority": "P5",
             "resolution": "---",
             "status_whiteboard_type": "notregexp",
