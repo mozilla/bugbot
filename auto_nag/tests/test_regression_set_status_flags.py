@@ -22,7 +22,7 @@ def mock_get_checked_versions():
 def mock_get_bugs(self, *args, **kwargs):
     return {
         "1111": {
-            "id": 100,
+            "id": 1111,
             "cf_status_firefox_esr2": "---",
             "cf_status_firefox_esr3": "---",
             "cf_status_firefox2": "---",
@@ -37,11 +37,20 @@ def mock_get_bugs(self, *args, **kwargs):
             "cf_status_firefox4": "---",
             "regressed_by": 222,
         },
+        "3333": {
+            "id": 3333,
+            "cf_status_firefox_esr2": "---",
+            "cf_status_firefox_esr3": "---",
+            "cf_status_firefox2": "---",
+            "cf_status_firefox3": "affected",
+            "cf_status_firefox4": "fixed",
+            "regressed_by": 333,
+        },
     }
 
 
 def mock_get_flags_from_regressing_bugs(self, bugids):
-    assert sorted(bugids) == [111, 222]
+    assert sorted(bugids) == [111, 222, 333]
     return {
         111: {
             "id": 111,
@@ -49,6 +58,12 @@ def mock_get_flags_from_regressing_bugs(self, bugids):
             "cf_status_firefox3": "fixed",
         },
         222: {"id": 222, "cf_status_firefox1": "fixed",},
+        333: {
+            "id": 333,
+            "cf_status_firefox_esr3": "fixed",
+            "cf_status_firefox3": "fixed",
+            "groups": ["core-security-release"],
+        },
     }
 
 
@@ -76,8 +91,8 @@ class TestSetStatusFlags(unittest.TestCase):
         r = RegressionSetStatusFlags()
         bugs = r.get_bugs()
         # 2222 is left unchanged because it regressed too long ago
-        self.assertEqual(sorted(bugs), ["1111"])
-        self.assertEqual(list(r.status_changes), ["1111"])
+        self.assertEqual(sorted(bugs), ["1111", "3333"])
+        self.assertEqual(list(r.status_changes), ["1111", "3333"])
         self.assertEqual(
             sorted(r.status_changes["1111"]),
             [
@@ -92,3 +107,5 @@ class TestSetStatusFlags(unittest.TestCase):
             r.status_changes["1111"]["cf_status_firefox_esr2"], "unaffected"
         )
         self.assertEqual(r.status_changes["1111"]["cf_status_firefox_esr3"], "affected")
+        self.assertFalse(r.status_changes["1111"]["comment"]["is_private"])
+        self.assertTrue(r.status_changes["3333"]["comment"]["is_private"])
