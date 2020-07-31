@@ -23,6 +23,8 @@ def mock_get_bugs(self, *args, **kwargs):
     return {
         "1111": {
             "id": 100,
+            "cf_status_firefox_esr2": "---",
+            "cf_status_firefox_esr3": "---",
             "cf_status_firefox2": "---",
             "cf_status_firefox3": "affected",
             "cf_status_firefox4": "fixed",
