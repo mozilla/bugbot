@@ -14,8 +14,6 @@ class Intermittents(BzCleaner):
 
     def get_bz_params(self, date):
         params = {
-            "keywords": "intermittent-failure",
-            "keywords_type": "allwords",
             "n1": "1",
             "f1": "longdescs.count",
             "o1": "changedafter",
@@ -40,8 +38,12 @@ class Intermittents(BzCleaner):
             "f9": "component",
             "o9": "nowordssubstr",
             "v9": "new tab page, messaging system",
-            "keywords_type": "nowords",
-            "keywords": "leave-open, test-verify-fail",
+            "f10": "keywords",
+            "o10": "allwords",
+            "v10": "intermittent-failure",
+            "f11": "keywords",
+            "o11": "nowords",
+            "v11": "leave-open, test-verify-fail",
             "priority": "P5",
             "resolution": "---",
             "status_whiteboard_type": "notregexp",
