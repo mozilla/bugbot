@@ -32,7 +32,6 @@
         "receivers":
         [
             "calixte@mozilla.com",
-            "ehumphries@mozilla.com",
             "sylvestre@mozilla.com"
         ],
         "on-errors":
@@ -126,7 +125,6 @@
         "receivers":
         [
             "calixte@mozilla.com",
-            "ehumphries@mozilla.com",
             "sylvestre@mozilla.com",
             "mcastelluccio@mozilla.com"
         ],
@@ -439,7 +437,6 @@
         "receivers":
         [
             "calixte@mozilla.com",
-            "ehumphries@mozilla.com",
             "sylvestre@mozilla.com",
             "mcastelluccio@mozilla.com"
         ],
@@ -465,7 +462,6 @@
         "receivers":
         [
             "calixte@mozilla.com",
-            "ehumphries@mozilla.com",
             "sylvestre@mozilla.com",
             "mcastelluccio@mozilla.com"
         ],
@@ -523,7 +519,6 @@
         "receivers":
         [
             "calixte@mozilla.com",
-            "ehumphries@mozilla.com",
             "sylvestre@mozilla.com",
             "mcastelluccio@mozilla.com"
         ]
@@ -539,7 +534,6 @@
         "receivers":
         [
             "calixte@mozilla.com",
-            "ehumphries@mozilla.com",
             "sylvestre@mozilla.com",
             "mcastelluccio@mozilla.com"
         ]
@@ -575,7 +569,6 @@
         "max_days_in_cache": 7,
         "receivers":
         [
-            "ehumphries@mozilla.com",
             "mcastelluccio@mozilla.com",
             "sylvestre@mozilla.com"
         ],
