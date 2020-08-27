@@ -55,10 +55,10 @@ class CodeFreezeWeek(BzCleaner):
 
     def must_run(self, date):
         for c in get_calendar():
-            # if freeze is the 2019-03-11, then the tool must run the day after
-            # until 2019-03-2018 (a week after)
+            # run from the soft freeze date until merge day
             freeze = c["soft freeze"]
-            if freeze <= date <= freeze + relativedelta(days=6):
+            merge = c["merge"]
+            if freeze <= date < merge:
                 return True
         return False
 
