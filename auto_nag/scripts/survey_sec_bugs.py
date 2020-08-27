@@ -36,7 +36,7 @@ class SurveySecurityBugs(BzCleaner):
             # whiteboard does not have [sec-survey] (to avoid us asking twice)
             "f2": "status_whiteboard",
             "o2": "notsubstring",
-            "v2": "[sec-survey]",
+            "v2": "[sec-survey",
             # has at least one attachment (i.e., hopefully a patch)
             "f3": "attachments.count",
             "o3": "greaterthan",
