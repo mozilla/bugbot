@@ -94,8 +94,7 @@ class NotLanded(BzCleaner):
         return bugs
 
     def check_phab(self, attachment):
-        """Check if the patch in Phabricator has been r+
-        """
+        """Check if the patch in Phabricator has been r+"""
         if attachment["is_obsolete"] == 1:
             return None
 
@@ -166,8 +165,7 @@ class NotLanded(BzCleaner):
                 res["count"] = 1
 
     def get_patch_data(self, bugs):
-        """Get patch information in bugs
-        """
+        """Get patch information in bugs"""
         nightly_pat = Bugzilla.get_landing_patterns(channels=["nightly"])[0][0]
 
         def comment_handler(bug, bugid, data):

@@ -63,8 +63,7 @@ class NoAssignee(BzCleaner):
         return params
 
     def is_patch(self, attachment):
-        """Check if the attachment is a patch or not.
-        """
+        """Check if the attachment is a patch or not."""
         if attachment["is_obsolete"] == 1:
             return False
         if attachment["is_patch"] == 1:
@@ -115,8 +114,7 @@ class NoAssignee(BzCleaner):
         return revisions
 
     def get_user_info(self, bzdata):
-        """Get the user info from Bugzilla to have his real name.
-        """
+        """Get the user info from Bugzilla to have his real name."""
 
         def handler(user, data):
             data[user["name"]] = user["real_name"]
@@ -136,8 +134,7 @@ class NoAssignee(BzCleaner):
         return data
 
     def clean_name(self, name):
-        """Get the different parts of the name with letters only
-        """
+        """Get the different parts of the name with letters only"""
         res = ""
         for c in name:
             res += c if c.isalpha() else " "
@@ -177,10 +174,10 @@ class NoAssignee(BzCleaner):
 
     def find_assignee(self, bz_patchers, hg_patchers, bz_commenters, bz_info):
         """Find a potential assignee.
-           If an email is common between patchers (people who made patches on bugzilla)
-           and hg patchers then return this email.
-           If "Foo Bar [:foobar]" made a patch and his hg name is "Bar Foo" return the
-           corresponding Bugzilla email.
+        If an email is common between patchers (people who made patches on bugzilla)
+        and hg patchers then return this email.
+        If "Foo Bar [:foobar]" made a patch and his hg name is "Bar Foo" return the
+        corresponding Bugzilla email.
         """
 
         if not bz_patchers:
@@ -235,8 +232,7 @@ class NoAssignee(BzCleaner):
         return None
 
     def set_autofixable(self, bzdata, user_info):
-        """Set the bugs where an easy assignee can be set.
-        """
+        """Set the bugs where an easy assignee can be set."""
         for bugid, info in bzdata.items():
             if bugid not in self.hgdata:
                 continue

@@ -60,8 +60,7 @@ def send_from_template(template_file, To, title, Cc=[], dryrun=False, **kwargs):
 def send(
     From, To, Subject, Body, Cc=[], Bcc=[], html=False, files=[], login={}, dryrun=False
 ):
-    """Send an email
-    """
+    """Send an email"""
 
     if utils.get_config("common", "test", False):
         # just to send a dryrun email
@@ -105,8 +104,7 @@ def send(
 
 
 def sendMail(From, To, msg, login={}, dryrun=False):
-    """Send an email
-    """
+    """Send an email"""
     if dryrun:
         out = "\n****************************\n"
         out += "* DRYRUN: not sending mail *\n"

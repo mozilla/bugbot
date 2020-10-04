@@ -59,7 +59,7 @@ class NoCrashes(BzCleaner):
 
     def chunkify(self, signatures):
         """Make some chunks with signatures,
-           the total length of each chunk must be <= 1536"""
+        the total length of each chunk must be <= 1536"""
         total = sum(len(s) for s in signatures)
         M = 1536
         n = total // M + 1

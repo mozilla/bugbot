@@ -42,8 +42,7 @@ class NewbieWithNI(BzCleaner):
             }
 
     def filter_interesting_bugs(self, bugs):
-        """Get the bugs with number of comments less than self.ncommments
-        """
+        """Get the bugs with number of comments less than self.ncommments"""
 
         def comment_handler(bug, bugid, data):
             if len(bug["comments"]) <= self.ncomments:
