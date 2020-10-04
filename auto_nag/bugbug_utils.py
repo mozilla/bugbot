@@ -4,18 +4,12 @@
 
 import os
 import time
-from itertools import islice
 
 import requests
 
 BUGBUG_HTTP_SERVER = os.environ.get(
     "BUGBUG_HTTP_SERVER", "https://bugbug.herokuapp.com/"
 )
-
-
-def chunks(it, size):
-    it = iter(it)
-    return iter(lambda: tuple(islice(it, size)), ())
 
 
 def classification_http_request(url, bug_ids):
@@ -28,9 +22,7 @@ def classification_http_request(url, bug_ids):
     return response.json()
 
 
-def get_bug_ids_classification(
-    model, bug_ids, retry_count=21, retry_sleep=7, batch_size=1000
-):
+def get_bug_ids_classification(model, bug_ids, retry_count=21, retry_sleep=7):
     if len(bug_ids) > 0:
         url = f"{BUGBUG_HTTP_SERVER}/{model}/predict/batch"
 
@@ -40,22 +32,18 @@ def get_bug_ids_classification(
         json_response = {}
 
         for _ in range(retry_count):
+            response = classification_http_request(url, bug_ids)
 
-            # Do the call in chunks
-            for chunk in list(chunks(bug_ids, batch_size)):
-                # The send the current chunk
-                response = classification_http_request(url, chunk)
+            # Check which bug ids are ready
+            for bug_id, bug_data in response["bugs"].items():
+                if not bug_data.get("ready", True):
+                    continue
 
-                # Check which bug ids are ready
-                for bug_id, bug_data in response["bugs"].items():
-                    if not bug_data.get("ready", True):
-                        continue
-
-                    # The bug is ready, add it to the json_response and pop it
-                    # up from the current batch
-                    # The http service returns strings for backward compatibility reasons
-                    bug_ids.remove(int(bug_id))
-                    json_response[bug_id] = bug_data
+                # The bug is ready, add it to the json_response and pop it
+                # up from the current batch
+                # The http service returns strings for backward compatibility reasons
+                bug_ids.remove(int(bug_id))
+                json_response[bug_id] = bug_data
 
             if len(bug_ids) == 0:
                 break
