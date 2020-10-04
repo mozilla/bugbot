@@ -21,8 +21,10 @@ class Tracking(BzCleaner, Nag):
 
     def description(self):
         if self.untouched:
-            return "Bugs which are tracked in {} and untouched in the last 3 days".format(
-                self.channel
+            return (
+                "Bugs which are tracked in {} and untouched in the last 3 days".format(
+                    self.channel
+                )
             )
 
         return "Bugs which are tracked in {}".format(self.channel)

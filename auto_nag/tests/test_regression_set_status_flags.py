@@ -57,7 +57,10 @@ def mock_get_flags_from_regressing_bugs(self, bugids):
             "cf_status_firefox_esr3": "fixed",
             "cf_status_firefox3": "fixed",
         },
-        222: {"id": 222, "cf_status_firefox1": "fixed",},
+        222: {
+            "id": 222,
+            "cf_status_firefox1": "fixed",
+        },
         333: {
             "id": 333,
             "cf_status_firefox_esr3": "fixed",
