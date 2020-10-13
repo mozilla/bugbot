@@ -34,7 +34,7 @@ def get_bug_ids_classification(model, bug_ids, retry_count=21, retry_sleep=7):
     json_response = {}
 
     for _ in range(retry_count):
-        response = classification_http_request(url, bug_ids)
+        response = classification_http_request(url, list(bug_ids))
 
         # Check which bug ids are ready
         for bug_id, bug_data in response["bugs"].items():
