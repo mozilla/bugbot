@@ -176,6 +176,9 @@ def get_phonebook_dump(output_dir=""):
         person["manager"]["cn"] = manager_cn
         person["manager"]["dn"] = manager_dn
 
+    for mail in to_remove:
+        del new_data[mail]
+
     new_data = list(new_data.values())
 
     with open("./auto_nag/scripts/configs/people.json", "w") as Out:
