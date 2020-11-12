@@ -1,5 +1,5 @@
 {
-    "fallback": "Honza Bambas",
+    "fallback": "Jens Manuel Stutte",
     "components":
     {
         "Core::Networking": "default",

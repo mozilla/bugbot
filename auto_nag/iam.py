@@ -164,12 +164,20 @@ def get_phonebook_dump(output_dir=""):
 
         new_data[mail] = new
 
-    for person in new_data.values():
+    to_remove = []
+    for mail, person in new_data.items():
         manager_mail = person["manager"]["dn"]
+        if manager_mail not in all_cns:
+            # no manager
+            to_remove.append(mail)
+            continue
         manager_cn = all_cns[manager_mail]
         manager_dn = all_dns[manager_mail]
         person["manager"]["cn"] = manager_cn
         person["manager"]["dn"] = manager_dn
+
+    for mail in to_remove:
+        del new_data[mail]
 
     new_data = list(new_data.values())
 
