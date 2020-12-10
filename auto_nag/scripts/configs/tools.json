@@ -570,7 +570,8 @@
         "receivers":
         [
             "mcastelluccio@mozilla.com",
-            "sylvestre@mozilla.com"
+            "sylvestre@mozilla.com",
+            "glob@mozilla.com"
         ],
         "days_lookup": 3,
         "confidence_threshold": 0.9,
