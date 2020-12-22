@@ -1,16 +1,8 @@
 {
-    "fallback": "Sean Voisen",
+    "fallback": "Cameron McCormack",
     "components":
     {
-<<<<<<< HEAD
-<<<<<<< HEAD
         "Core::CSS Transitions and Animations": "animation",
-=======
-        "Core::CSS Animations and Transitions": "animation",
->>>>>>> Add round robin config for layout team
-=======
-        "Core::CSS Transitions and Animations": "animation",
->>>>>>> Update layout triage calendar URLs
         "Core::CSS Parsing and Computation": "style-system",
         "Core::DOM: CSS Object Model": "style-system",
         "Core::Layout": "layout-general",
@@ -34,161 +26,74 @@
     },
     "animation":
     {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> Update layout triage calendar URLs
-        "calendar": "https://triage.layout.team/animation.json"
+        "calendar": "https://mozilla.github.io/layout-triage/animation.json"
     },
     "style-system":
     {
-        "calendar": "https://triage.layout.team/style-system.json"
+        "calendar": "https://mozilla.github.io/layout-triage/style-system.json"
     },
     "layout-general":
     {
-        "calendar": "https://triage.layout.team/layout-general.json"
+        "calendar": "https://mozilla.github.io/layout-triage/layout-general.json"
     },
     "layout-block-inline":
     {
-        "calendar": "https://triage.layout.team/layout-block-inline.json"
+        "calendar": "https://mozilla.github.io/layout-triage/layout-block-inline.json"
     },
     "layout-columns":
     {
-        "calendar": "https://triage.layout.team/layout-columns.json"
+        "calendar": "https://mozilla.github.io/layout-triage/layout-columns.json"
     },
     "layout-flex":
     {
-        "calendar": "https://triage.layout.team/layout-flex.json"
+        "calendar": "https://mozilla.github.io/layout-triage/layout-flex.json"
     },
     "layout-floats":
     {
-        "calendar": "https://triage.layout.team/layout-floats.json"
+        "calendar": "https://mozilla.github.io/layout-triage/layout-floats.json"
     },
     "layout-form-controls":
     {
-        "calendar": "https://triage.layout.team/layout-form-controls.json"
+        "calendar": "https://mozilla.github.io/layout-triage/layout-form-controls.json"
     },
     "layout-generated":
     {
-        "calendar": "https://triage.layout.team/layout-generated.json"
+        "calendar": "https://mozilla.github.io/layout-triage/layout-generated.json"
     },
     "layout-grid":
     {
-        "calendar": "https://triage.layout.team/layout-grid.json"
+        "calendar": "https://mozilla.github.io/layout-triage/layout-grid.json"
     },
     "layout-replaced":
     {
-        "calendar": "https://triage.layout.team/layout-replaced.json"
+        "calendar": "https://mozilla.github.io/layout-triage/layout-replaced.json"
     },
     "layout-positioned":
     {
-        "calendar": "https://triage.layout.team/layout-positioned.json"
+        "calendar": "https://mozilla.github.io/layout-triage/layout-positioned.json"
     },
     "layout-ruby":
     {
-        "calendar": "https://triage.layout.team/layout-ruby.json"
+        "calendar": "https://mozilla.github.io/layout-triage/layout-ruby.json"
     },
     "layout-overflow":
     {
-        "calendar": "https://triage.layout.team/layout-overflow.json"
+        "calendar": "https://mozilla.github.io/layout-triage/layout-overflow.json"
     },
     "layout-tables":
     {
-        "calendar": "https://triage.layout.team/layout-tables.json"
+        "calendar": "https://mozilla.github.io/layout-triage/layout-tables.json"
     },
     "layout-text":
     {
-        "calendar": "https://triage.layout.team/layout-text.json"
+        "calendar": "https://mozilla.github.io/layout-triage/layout-text.json"
     },
     "printing":
     {
-        "calendar": "https://triage.layout.team/printing.json"
+        "calendar": "https://mozilla.github.io/layout-triage/printing.json"
     },
     "svg":
     {
-        "calendar": "https://triage.layout.team/svg.json"
-<<<<<<< HEAD
+        "calendar": "https://mozilla.github.io/layout-triage/svg.json"
     }
 }
-=======
-        "calendar": "https://gecko.layout.team/triage/animation.json"
-=======
-        "calendar": "https://triage.layout.team/animation.json"
->>>>>>> Update layout triage calendar URLs
-    },
-    "style-system":
-    {
-        "calendar": "https://triage.layout.team/style-system.json"
-    },
-    "layout-general":
-    {
-        "calendar": "https://triage.layout.team/layout-general.json"
-    },
-    "layout-block-inline":
-    {
-        "calendar": "https://triage.layout.team/layout-block-inline.json"
-    },
-    "layout-columns":
-    {
-        "calendar": "https://triage.layout.team/layout-columns.json"
-    },
-    "layout-flex":
-    {
-        "calendar": "https://triage.layout.team/layout-flex.json"
-    },
-    "layout-floats":
-    {
-        "calendar": "https://triage.layout.team/layout-floats.json"
-    },
-    "layout-form-controls":
-    {
-        "calendar": "https://triage.layout.team/layout-form-controls.json"
-    },
-    "layout-generated":
-    {
-        "calendar": "https://triage.layout.team/layout-generated.json"
-    },
-    "layout-grid":
-    {
-        "calendar": "https://triage.layout.team/layout-grid.json"
-    },
-    "layout-replaced":
-    {
-        "calendar": "https://triage.layout.team/layout-replaced.json"
-    },
-    "layout-positioned":
-    {
-        "calendar": "https://triage.layout.team/layout-positioned.json"
-    },
-    "layout-ruby":
-    {
-        "calendar": "https://triage.layout.team/layout-ruby.json"
-    },
-    "layout-overflow":
-    {
-        "calendar": "https://triage.layout.team/layout-overflow.json"
-    },
-    "layout-tables":
-    {
-        "calendar": "https://triage.layout.team/layout-tables.json"
-    },
-    "layout-text":
-    {
-        "calendar": "https://triage.layout.team/layout-text.json"
-    },
-    "printing":
-    {
-        "calendar": "https://triage.layout.team/printing.json"
-    },
-    "svg":
-    {
-        "calendar": "https://triage.layout.team/svg.json"
-=======
->>>>>>> Update layout triage calendar URLs
-    }
-}
-<<<<<<< HEAD
->>>>>>> Add round robin config for layout team
-=======
->>>>>>> Update layout triage calendar URLs
