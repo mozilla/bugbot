@@ -34,15 +34,17 @@ tasks:
       payload:
         maxRunTime: 3600
         image: python:3.7
+        env:
+          TOX_ENV: py37
         command:
           - "/bin/bash"
           - "-lcx"
           - "git clone --quiet ${repository} &&
                cd relman-auto-nag &&
                git -c advice.detachedHead=false checkout ${head_rev} &&
-               travis_retry pip install --quiet -r requirements.txt &&
+               pip install --quiet -r requirements-test.txt &&
                pre-commit run --all-files --show-diff-on-failure
-               tox -e $TOX_ENV"
+               tox -e ${TOX_ENV}"
       metadata:
         name: relman-auto-nag tests
         description: relman-auto-nag tests
