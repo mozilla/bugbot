@@ -44,7 +44,7 @@ tasks:
                git -c advice.detachedHead=false checkout ${head_rev} &&
                pip install --quiet -r requirements-test.txt &&
                pre-commit run --all-files --show-diff-on-failure
-               tox -e ${TOX_ENV}"
+               tox -e $TOX_ENV"
       metadata:
         name: relman-auto-nag tests
         description: relman-auto-nag tests
