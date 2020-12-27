@@ -38,11 +38,11 @@ tasks:
           - "/bin/bash"
           - "-lcx"
           - "git clone --quiet ${repository} &&
-               cd coverage-crawler &&
+               cd relman-auto-nag &&
                git -c advice.detachedHead=false checkout ${head_rev} &&
-               pip install --quiet -r requirements.txt &&
+               travis_retry pip install --quiet -r requirements.txt &&
                pre-commit run --all-files --show-diff-on-failure
-               tox -e py37"
+               tox -e $TOX_ENV"
       metadata:
         name: relman-auto-nag tests
         description: relman-auto-nag tests
