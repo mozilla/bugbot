@@ -49,4 +49,5 @@ tasks:
       metadata:
         name: relman-auto-nag tests
         description: relman-auto-nag tests
+        owner: mcastelluccio@mozilla.com
         source: ${repository}/raw/${head_rev}/.taskcluster.yml
