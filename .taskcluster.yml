@@ -36,6 +36,7 @@ tasks:
         image: python:3.7
         env:
           TOX_ENV: py37
+          COVERALLS_REPO_TOKEN: VWnjgqWLHfmgSQMJPFdIRYIG5ontiAGl6
         command:
           - "/bin/bash"
           - "-lcx"
