@@ -51,7 +51,7 @@ python -m auto_nag.scripts.reporter_with_ni
 # Notify bugs in untriaged with an important severity
 python -m auto_nag.scripts.untriage_important_sev
 
-# Needinfo the assignee or the triage owner when a bug has leave-open keyword an no activty
+# Needinfo the assignee or the triage owner when a bug has leave-open keyword an no activity
 # Pretty common
 python -m auto_nag.scripts.leave_open_no_activity
 
