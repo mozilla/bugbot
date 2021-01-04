@@ -1,5 +1,5 @@
-.. image:: https://travis-ci.org/mozilla/relman-auto-nag.svg?branch=master
-    :target: https://travis-ci.org/mozilla/relman-auto-nag
+.. image:: https://community-tc.services.mozilla.com/api/github/v1/repository/mozilla/relman-auto-nag/master/badge.svg
+    :target: https://community-tc.services.mozilla.com/api/github/v1/repository/mozilla/relman-auto-nag/master/latest
 .. image:: https://coveralls.io/repos/github/mozilla/relman-auto-nag/badge.svg
     :target: https://coveralls.io/github/mozilla/relman-auto-nag
 
