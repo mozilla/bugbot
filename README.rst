@@ -103,7 +103,7 @@ The person requesting the round robin schedule must provide the URL of the calen
 
 In the calendar, the summary of the events must be the full name (eventually prefixed with text between square brackets) of triage owner as it appears in Phonebook, e.g. `[Gfx Triage] Foo Bar` or just `Foo Bar`.
 
-And then you just have to add an entry in `auto_nag/scripts/config/tools.json <https://github.com/mozilla/relman-auto-nag/blob/master/auto_nag/scripts/configs/tools.json#L2>`_ in the round-robin section.
+And then you just have to add an entry in `auto_nag/scripts/config/tools.json <https://github.com/mozilla/relman-auto-nag/blob/333ec164ba5c3ceebf3c39cf84196fa35c667b1b/auto_nag/scripts/configs/tools.json#L2>`_ in the round-robin section.
 
 Once everything is set-up you can make a PR similar too https://github.com/mozilla/relman-auto-nag/pull/858/files
 
