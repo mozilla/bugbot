@@ -648,5 +648,13 @@
         [
             "jcristau@mozilla.com"
         ]
+    },
+    "fuzzing_bisection_without_regressed_by":
+    {
+        "receivers":
+        [
+            "mcastelluccio@mozilla.com"
+        ],
+        "max_ni": 1
     }
 }

@@ -1,0 +1,2 @@
+:{{ nickname }}, since this bug contains a bisection range, could you fill (if possible) the regressed_by field?
+{{ documentation }}
