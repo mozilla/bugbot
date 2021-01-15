@@ -96,6 +96,9 @@ python -m auto_nag.scripts.defect_with_please_or_enable
 # Pretty rare
 python -m auto_nag.scripts.regression_without_regressed_by
 
+# Bugs with a fuzzing bisection but without regressed_by
+python -m auto_nag.scripts.fuzzing_bisection_without_regressed_by
+
 # Try to detect potential regressions using bugbug
 python -m auto_nag.scripts.regression
 
