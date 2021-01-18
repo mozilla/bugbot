@@ -103,7 +103,7 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
         bugs = {
             bug["id"]: bug
             for bug in bugs.values()
-            if not utils.is_no_assignee(bug["assigned_to"])
+            if not utils.is_no_assignee(bug["assigned_to_email"])
         }
 
         # Exclude bugs that do not have a range found by BugMon.
