@@ -653,7 +653,8 @@
     {
         "receivers":
         [
-            "mcastelluccio@mozilla.com"
+            "mcastelluccio@mozilla.com",
+            "jkratzer@mozilla.com"
         ],
         "max_ni": 1
     }
