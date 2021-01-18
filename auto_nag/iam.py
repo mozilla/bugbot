@@ -134,15 +134,18 @@ def get_phonebook_dump(output_dir=""):
             bugzillaEmail = person["identities"]["bugzilla_mozilla_org_primary_email"][
                 "value"
             ]
-        if not bugzillaEmail and "HACK#BMOMAIL" in person["usernames"]["values"]:
-            bugzillaEmail = person["usernames"]["values"]["HACK#BMOMAIL"]
+
+        im = None
+        if person["usernames"]["values"] is not None:
+            if not bugzillaEmail and "HACK#BMOMAIL" in person["usernames"]["values"]:
+                bugzillaEmail = person["usernames"]["values"]["HACK#BMOMAIL"]
+
+            del person["usernames"]["values"]["LDAP-posix_id"]
+            del person["usernames"]["values"]["LDAP-posix_uid"]
+            im = list(person["usernames"]["values"].values())
 
         if bugzillaEmail is None:
             bugzillaEmail = ""
-
-        del person["usernames"]["values"]["LDAP-posix_id"]
-        del person["usernames"]["values"]["LDAP-posix_uid"]
-        im = list(person["usernames"]["values"].values())
 
         title = person["staff_information"]["title"]["value"]
         all_cns[mail] = cn
