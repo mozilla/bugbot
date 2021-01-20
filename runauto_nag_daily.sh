@@ -114,6 +114,9 @@ python -m auto_nag.scripts.stepstoreproduce
 # Update status flags for regressions based on their regressor
 python -m auto_nag.scripts.regression_set_status_flags
 
+# Unassign inactive bugs with the good-first-bug keyword
+python -m auto_nag.scripts.good_first_bug_unassign_inactive
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
