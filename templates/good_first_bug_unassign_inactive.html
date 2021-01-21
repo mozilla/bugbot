@@ -1,0 +1,22 @@
+<p>The following good-first-{{ plural('bug has been', data, pword='bugs have been') }} inactive for the last {{ extra['nmonths'] }} {{ plural('month', data) }}:
+<table {{ table_attrs }}>
+  <thead>
+    <tr>
+      <th>Bug</th>
+      <th>Summary</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for i, (bugid, summary) in enumerate(data) -%}
+    <tr {% if i % 2==0 %}bgcolor="#E0E0E0" {% endif -%}>
+      <td>
+        <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+      </td>
+      <td>
+        {{ summary | e }}
+      </td>
+    </tr>
+    {% endfor -%}
+  </tbody>
+</table>
+</p>
