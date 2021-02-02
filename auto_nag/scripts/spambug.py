@@ -8,9 +8,20 @@ from auto_nag.bzcleaner import BzCleaner
 from auto_nag.utils import nice_round
 
 
+COMMENT = """
+[Bugbug](https://github.com/mozilla/bugbug/) thinks this bug is invalid, with a confidence of {}%.
+Please revert this change in case of error.
+
+Be aware this is a production bug database used by the Mozilla community to develop Firefox, and other products.
+Filing test bugs here wastes the time of all our contributors, volunteers, as well as paid employees.
+If you continue to abuse bugzilla.mozilla.org your account will be disabled.
+""".strip()
+
+
 class SpamBug(BzCleaner):
     def __init__(self):
         super().__init__()
+        self.autofix_bugs = {}
         self.people = people.People.get_instance()
 
     def description(self):
@@ -57,8 +68,6 @@ class SpamBug(BzCleaner):
         # Classify those bugs
         bugs = get_bug_ids_classification("spambug", bug_ids)
 
-        results = {}
-
         for bug_id in sorted(bugs.keys()):
             bug_data = bugs[bug_id]
 
@@ -76,16 +85,29 @@ class SpamBug(BzCleaner):
             if prob[1] < self.get_config("confidence_threshold"):
                 continue
 
-            results[bug_id] = {
+            self.autofix_bugs[bug_id] = {
                 "id": bug_id,
                 "summary": bug["summary"],
                 "confidence": nice_round(prob[1]),
             }
 
-        return results
+        return self.autofix_bugs
 
     def get_autofix_change(self):
-        return {}
+        result = {}
+        for bug_id in self.autofix_bugs:
+            result[bug_id] = {
+                "comment": {
+                    "body": COMMENT.format(self.autofix_bugs[bug_id]["confidence"])
+                },
+                "product": "Invalid Bugs",
+                "component": "General",
+                "version": "unspecified",
+                "milestone": "---",
+                "status": "RESOLVED",
+                "resolution": "INVALID",
+            }
+        return result
 
 
 if __name__ == "__main__":
