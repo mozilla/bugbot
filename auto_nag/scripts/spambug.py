@@ -7,7 +7,6 @@ from auto_nag.bugbug_utils import get_bug_ids_classification
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.utils import nice_round
 
-
 COMMENT = """
 [Bugbug](https://github.com/mozilla/bugbug/) thinks this bug is invalid, with a confidence of {}%.
 Please revert this change in case of error.
