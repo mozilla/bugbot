@@ -147,7 +147,7 @@ class DefectEnhancementTask(BzCleaner):
                 "type": suggestion,
                 "cc": {"add": cc},
                 "comment": {
-                    "body": f"[Bugbug](https://github.com/mozilla/bugbug/) thinks this bug is a [{suggestion}](https://firefox-source-docs.mozilla.org/bug-mgmt/guides/bug-types.html), but please change it back in case of error."
+                    "body": f"The [Bugbug](https://github.com/mozilla/bugbug/) bot thinks this bug is a [{suggestion}](https://firefox-source-docs.mozilla.org/bug-mgmt/guides/bug-types.html), but please change it back in case of error."
                 },
             }
             for bug_id, suggestion in self.autofix_type.items()

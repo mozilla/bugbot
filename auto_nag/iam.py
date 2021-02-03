@@ -110,9 +110,20 @@ def get_phonebook_dump(output_dir=""):
     all_cns = {}
     all_dns = {}
 
+    must_have = {
+        "first_name",
+        "last_name",
+        "identities",
+        "access_information",
+        "staff_information",
+    }
     new_data = {}
     for person in data["users"]:
         person = person["profile"]
+
+        if not (must_have < set(person.keys())):
+            continue
+
         if not person["access_information"]["hris"]["values"]:
             continue
         mail = person["access_information"]["hris"]["values"]["primary_work_email"]
@@ -136,13 +147,15 @@ def get_phonebook_dump(output_dir=""):
             ]
 
         im = None
-        if person["usernames"]["values"] is not None:
-            if not bugzillaEmail and "HACK#BMOMAIL" in person["usernames"]["values"]:
-                bugzillaEmail = person["usernames"]["values"]["HACK#BMOMAIL"]
 
-            del person["usernames"]["values"]["LDAP-posix_id"]
-            del person["usernames"]["values"]["LDAP-posix_uid"]
-            im = list(person["usernames"]["values"].values())
+        values = person.get("usernames", {}).get("values", None)
+        if values is not None:
+            if not bugzillaEmail and "HACK#BMOMAIL" in values:
+                bugzillaEmail = values["HACK#BMOMAIL"]
+
+            values.pop("LDAP-posix_id", None)
+            values.pop("LDAP-posix_uid", None)
+            im = list(values.values())
 
         if bugzillaEmail is None:
             bugzillaEmail = ""
