@@ -114,7 +114,7 @@ class Regression(BzCleaner):
 
             if confidence != 1.0:
                 autofix_change[bug_id]["comment"] = {
-                    "body": "[Bugbug](https://github.com/mozilla/bugbug/) thinks this bug is a regression, but please revert this change in case of error."
+                    "body": "The [Bugbug](https://github.com/mozilla/bugbug/) bot thinks this bug is a regression, but please revert this change in case of error."
                 }
 
         return autofix_change

@@ -173,14 +173,19 @@ class Component(BzCleaner):
         return results
 
     def get_autofix_change(self):
-        common = {
-            "cc": {"add": self.get_config("cc")},
-            "comment": {
-                "body": "[Bugbug](https://github.com/mozilla/bugbug/) thinks this bug should belong to this component, but please revert this change in case of error."
-            },
-        }
+        cc = self.get_config("cc")
         return {
-            bug_id: (data.update(common) or data)
+            bug_id: (
+                data.update(
+                    {
+                        "cc": {"add": cc},
+                        "comment": {
+                            "body": f"The [Bugbug](https://github.com/mozilla/bugbug/) bot thinks this bug should belong to the '{data['product']}::{data['component']}' component, and is moving the bug to that component. Please revert this change in case you think the bot is wrong."
+                        },
+                    }
+                )
+                or data
+            )
             for bug_id, data in self.autofix_component.items()
         }
 
