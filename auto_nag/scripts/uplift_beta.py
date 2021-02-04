@@ -121,6 +121,10 @@ class UpliftBeta(BzCleaner):
             "f8": "attachments.mimetype",
             "o8": "anywordssubstr",
             "v8": "text/x-phabricator-request",
+            # skip if whiteboard contains checkin-needed-beta (e.g. test-only uplift)
+            "f9": "status_whiteboard",
+            "o9": "notsubstring",
+            "v9": "[checkin-needed-beta]",
         }
 
         return params
