@@ -3,17 +3,21 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import base64
+import random
 import re
 
-import requests
 from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import Bugzilla, BugzillaUser
+from libmozdata.phabricator import (
+    PhabricatorAPI,
+    PhabricatorBzNotFoundException,
+    PhabricatorRevisionNotFoundException,
+)
 
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 
 PHAB_URL_PAT = re.compile(r"https://phabricator\.services\.mozilla\.com/D([0-9]+)")
-PHAB_API = "https://phabricator.services.mozilla.com/api/differential.revision.search"
 
 
 class NotLanded(BzCleaner):
@@ -21,7 +25,7 @@ class NotLanded(BzCleaner):
         super(NotLanded, self).__init__()
         self.nweeks = utils.get_config(self.name(), "number_of_weeks", 2)
         self.nyears = utils.get_config(self.name(), "number_of_years", 2)
-        self.phab_token = utils.get_login_info()["phab_api_key"]
+        self.phab = PhabricatorAPI(utils.get_login_info()["phab_api_key"])
         self.extra_ni = {}
 
     def description(self):
@@ -93,7 +97,7 @@ class NotLanded(BzCleaner):
 
         return bugs
 
-    def check_phab(self, attachment):
+    def check_phab(self, attachment, reviewers_phid):
         """Check if the patch in Phabricator has been r+"""
         if attachment["is_obsolete"] == 1:
             return None
@@ -102,17 +106,12 @@ class NotLanded(BzCleaner):
 
         # extract the revision
         rev = PHAB_URL_PAT.search(phab_url).group(1)
-        r = requests.post(
-            PHAB_API,
-            data={
-                "api.token": self.phab_token,
-                "queryKey": "all",
-                "constraints[ids][0]": rev,
-                "attachments[reviewers]": 1,
-            },
-        )
-        r.raise_for_status()
-        data = r.json()["result"]["data"][0]
+        try:
+            data = self.phab.load_revision(
+                rev_id=int(rev), queryKey="all", attachments={"reviewers": 1}
+            )
+        except PhabricatorRevisionNotFoundException:
+            return None
 
         # this is a timestamp
         last_modified = data["fields"]["dateModified"]
@@ -122,12 +121,14 @@ class NotLanded(BzCleaner):
             return False
 
         reviewers = data["attachments"]["reviewers"]["reviewers"]
+
         if not reviewers:
             return False
 
         for reviewer in reviewers:
             if reviewer["status"] != "accepted":
                 return False
+            reviewers_phid.add(reviewer["reviewerPHID"])
 
         value = data["fields"]["status"].get("value", "")
         if value == "changes-planned":
@@ -145,7 +146,7 @@ class NotLanded(BzCleaner):
         c = None
         if ct == "text/x-phabricator-request":
             if "phab" not in res or res["phab"]:
-                c = self.check_phab(attachment)
+                c = self.check_phab(attachment, res["reviewers_phid"])
                 if c is not None:
                     res["phab"] = c
 
@@ -225,12 +226,13 @@ class NotLanded(BzCleaner):
         ).get_data().wait()
 
         for bugid, attachments in attachments_by_bug.items():
-            res = {}
+            res = {"reviewers_phid": set()}
             for attachment in attachments:
                 self.handle_attachment(attachment, res)
 
             if "phab" in res:
                 if res["phab"]:
+                    data[bugid]["reviewers_phid"] = res["reviewers_phid"]
                     data[bugid]["author"] = res["author"]
                     data[bugid]["count"] = res["count"]
 
@@ -249,6 +251,29 @@ class NotLanded(BzCleaner):
         data = {bugid: v for bugid, v in data.items() if not v["backout"]}
 
         return data
+
+    def get_bz_userid(self, phids):
+        if not phids:
+            return {}
+
+        try:
+            data = self.phab.load_bz_account(user_phids=list(phids))
+            users = {x["phid"]: x["id"] for x in data}
+        except PhabricatorBzNotFoundException:
+            return {}
+
+        def handler(user, data):
+            data[str(user["id"])] = user["name"]
+
+        data = {}
+        BugzillaUser(
+            user_names=list(users.values()),
+            include_fields=["id", "name"],
+            user_handler=handler,
+            user_data=data,
+        ).wait()
+
+        return {phid: data[id] for phid, id in users.items()}
 
     def get_nicks(self, nicknames):
         def handler(user, data):
@@ -300,21 +325,40 @@ class NotLanded(BzCleaner):
         bugs = self.filter_bugs(bugs)
         bugs_patch = self.get_patch_data(bugs)
         res = {}
+
+        reviewers_phid = set()
         nicknames = {}
+        for bugid, data in bugs_patch.items():
+            reviewers_phid |= data["reviewers_phid"]
+            assignee = bugs[bugid]["assigned_to"]
+            if not assignee:
+                assignee = max(data["author"], key=data["author"].get)
+                nicknames[bugid] = assignee
+
+        bz_reviewers = self.get_bz_userid(reviewers_phid)
+        all_reviewers = set(bz_reviewers.keys())
+        nicknames = self.get_nicks(nicknames)
+
         for bugid, data in bugs_patch.items():
             res[bugid] = d = bugs[bugid]
             self.extra_ni[bugid] = data["count"]
             assignee = d["assigned_to"]
             nickname = d["nickname"]
-            if not assignee:
-                assignee = max(data["author"], key=data["author"].get)
-                nicknames[bugid] = assignee
-            else:
-                self.add_auto_ni(bugid, {"mail": assignee, "nickname": nickname})
 
-        nicknames = self.get_nicks(nicknames)
-        for bugid, (name, nick) in nicknames.items():
-            self.add_auto_ni(bugid, {"mail": name, "nickname": nick})
+            if not assignee:
+                assignee, nickname = nicknames[bugid]
+
+            if not assignee:
+                continue
+
+            self.add_auto_ni(bugid, {"mail": assignee, "nickname": nickname})
+
+            common = all_reviewers & data["reviewers_phid"]
+            if common:
+                reviewer = random.choice(list(common))
+                self.add_auto_ni(
+                    bugid, {"mail": bz_reviewers[reviewer], "nickname": None}
+                )
 
         return res
 

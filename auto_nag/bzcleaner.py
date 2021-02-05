@@ -425,16 +425,8 @@ class BzCleaner(object):
         for ni_mail, info in self.auto_needinfo.items():
             nick = info["nickname"]
             for bugid in info["bugids"]:
-                comment = template.render(
-                    nickname=nick,
-                    extra=self.get_extra_for_needinfo_template(),
-                    plural=utils.plural,
-                    bugid=bugid,
-                    documentation=doc,
-                )
-                comment = comment.strip() + "\n"
                 data = {
-                    "comment": {"body": comment},
+                    "comment": {"body": ""},
                     "flags": [
                         {
                             "name": "needinfo",
@@ -445,7 +437,24 @@ class BzCleaner(object):
                     ],
                 }
 
-                res[bugid] = data
+                comment = None
+                if nick:
+                    comment = template.render(
+                        nickname=nick,
+                        extra=self.get_extra_for_needinfo_template(),
+                        plural=utils.plural,
+                        bugid=bugid,
+                        documentation=doc,
+                    )
+                    comment = comment.strip() + "\n"
+                    data["comment"]["body"] = comment
+
+                if bugid not in res:
+                    res[bugid] = data
+                else:
+                    res[bugid]["flags"] += data["flags"]
+                    if comment:
+                        res[bugid]["comment"]["body"] = comment
 
         return res
 
