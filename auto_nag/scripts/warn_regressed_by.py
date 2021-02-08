@@ -75,7 +75,6 @@ class WarnRegressedBy(BzCleaner):
             fields = ["regressed_by"]
             params = {
                 "include_fields": fields,
-                "bug_type": "defect",
                 "f1": "regressed_by",
                 "o1": "isnotempty",
                 "f2": "creation_ts",
