@@ -4,7 +4,7 @@ repos:
     hooks:
       - id: seed-isort-config
   - repo: https://github.com/timothycrosley/isort
-    rev: 5.4.2
+    rev: 5.7.0
     hooks:
       - id: isort
   - repo: https://github.com/ambv/black
@@ -12,7 +12,7 @@ repos:
     hooks:
       - id: black
   - repo: https://gitlab.com/pycqa/flake8
-    rev: 3.8.3
+    rev: 3.8.4
     hooks:
       - id: flake8
         additional_dependencies:
@@ -23,7 +23,7 @@ repos:
             "flake8-mypy==17.8.0",
           ]
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.2.0
+    rev: v3.4.0
     hooks:
       - id: check-ast
       - id: check-docstring-first
@@ -40,7 +40,7 @@ repos:
       - id: requirements-txt-fixer
       - id: check-vcs-permalinks
   - repo: https://github.com/codespell-project/codespell
-    rev: v1.17.1
+    rev: v2.0.0
     hooks:
       - id: codespell
         entry: codespell -L IAM,iam
@@ -50,7 +50,7 @@ repos:
     hooks:
       - id: taskcluster_yml
   - repo: https://github.com/asottile/yesqa
-    rev: v1.2.1
+    rev: v1.2.2
     hooks:
       - id: yesqa
   - repo: meta
