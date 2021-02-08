@@ -8,8 +8,8 @@ from auto_nag.bzcleaner import BzCleaner
 from auto_nag.utils import nice_round
 
 COMMENT = """
-The [Bugbug](https://github.com/mozilla/bugbug/) bot thinks this bug is invalid, with a confidence of {}%.
-Please revert this change in case of error.
+The [Bugbug](https://github.com/mozilla/bugbug/) bot thinks this bug is invalid.
+If you think the bot is wrong, please reopen the bug and move it back to its prior component.
 
 Be aware this is a production bug database used by the Mozilla community to develop Firefox, and other products.
 Filing test bugs here wastes the time of all our contributors, volunteers, as well as paid employees.
