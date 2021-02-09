@@ -20,6 +20,7 @@ def get_access_token():
             "workgroup",
         ],
         "display": ["staff", "ndaed", "vouched", "authenticated", "public", "none"],
+        "search": ["all"],
     }
     scope = " ".join(
         f"{key}:{value}" for key, values in scope.items() for value in values
