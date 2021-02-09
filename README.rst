@@ -46,7 +46,7 @@ Before running:
 1. The LDAP + SMTP infos are used to send emails
 2. Need to generate an API key from bugzilla admin ( https://bugzilla.mozilla.org/userprefs.cgi?tab=apikey )
 3. Should generate an API key from Phabricator ( https://phabricator.services.mozilla.com/settings/user )
-4. The IAM secrets are used to generate a dump of phonebook, so they're mandatory but you still need to have such a dump
+4. The IAM secrets are used to generate a dump of phonebook, which is required for some scripts ( employees can request by `filing a bug in the SSO: Requests component <https://bugzilla.mozilla.org/enter_bug.cgi?product=Infrastructure%20%26%20Operations&component=SSO%3A%20Requests>`_ )
 5. The private entry contains URLs for private calendar in ICS format:
 
 .. code-block:: json
