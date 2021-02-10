@@ -5,7 +5,7 @@
 from auto_nag import logger
 from auto_nag.bugbug_utils import get_bug_ids_classification
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag.utils import nice_round
+from auto_nag.utils import get_config, nice_round
 
 
 class Component(BzCleaner):
@@ -41,17 +41,19 @@ class Component(BzCleaner):
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
 
+        bot = get_config("common", "bot_bz_mail")[0]
+
         return {
             "include_fields": ["id", "groups", "summary", "product", "component"],
-            # Ignore bugs for which somebody has ever modified the product or the component.
+            # Ignore bugs for which we ever modified the product or the component.
             "n1": 1,
             "f1": "product",
-            "o1": "changedafter",
-            "v1": "1970-01-01",
+            "o1": "changedby",
+            "v1": bot,
             "n2": 1,
             "f2": "component",
-            "o2": "changedafter",
-            "v2": "1970-01-01",
+            "o2": "changedby",
+            "v2": bot,
             # Ignore closed bugs.
             "bug_status": "__open__",
             # Get recent General bugs, and all Untriaged bugs.
