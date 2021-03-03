@@ -571,7 +571,8 @@
         [
             "mcastelluccio@mozilla.com",
             "sylvestre@mozilla.com",
-            "glob@mozilla.com"
+            "glob@mozilla.com",
+            "mhoye@mozilla.com"
         ],
         "days_lookup": 3,
         "confidence_threshold": 0.95,
