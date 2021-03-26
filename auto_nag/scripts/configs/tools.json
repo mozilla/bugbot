@@ -665,5 +665,12 @@
         [
             "sylvestre@mozilla.com"
         ]
+    },
+    "missed_landing_comment":
+    {
+        "receivers":
+        [
+            "jcristau@mozilla.com"
+        ]
     }
 }
