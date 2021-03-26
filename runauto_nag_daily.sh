@@ -117,6 +117,9 @@ python -m auto_nag.scripts.regression_set_status_flags
 # Unassign inactive bugs with the good-first-bug keyword
 python -m auto_nag.scripts.good_first_bug_unassign_inactive
 
+# Look for missing bugzilla comments for recently-landed changesets
+python -m auto_nag.scripts.missed_landing_comment
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
