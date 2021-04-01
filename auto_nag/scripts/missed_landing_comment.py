@@ -29,6 +29,9 @@ class MissedLandingComment(BzCleaner):
         self.bugs = []
         self.repourl = Mercurial.get_repo_url("nightly")
 
+    def description(self):
+        return "Changesets in mozilla-central without a bugzilla comment"
+
     def get_bz_params(self, date):
         start, end = self.get_dates(date)
         log = utils.get_pushlog(start, end)
