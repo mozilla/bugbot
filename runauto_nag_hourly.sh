@@ -76,15 +76,15 @@ python -m auto_nag.scripts.dupeme_whiteboard_keyword
 # Pretty rare
 python -m auto_nag.scripts.closed_dupeme
 
+# Detect spam bugs using bugbug
+python -m auto_nag.scripts.spambug
+
 # Suggest components for untriaged bugs (hourly, list only bugs on which we acted)
 python -m auto_nag.scripts.component --frequency hourly
 
 # MUST ALWAYS BE AFTER COMPONENTS (to reset the priority if mandatory)
 # Reset the priority if the product::component changed after the priority has been set
 python -m auto_nag.scripts.prod_comp_changed_with_priority
-
-# Detect spam bugs using bugbug
-python -m auto_nag.scripts.spambug
 
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
