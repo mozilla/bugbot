@@ -61,11 +61,12 @@
             "Firefox for Android",
             "Firefox for iOS",
             "Firefox Build System",
+            "NSPR",
+            "NSS",
+            "Remote Protocol",
             "Testing",
             "Toolkit",
-            "WebExtensions",
-            "NSS",
-            "NSPR"
+            "WebExtensions"
         ],
         "log": "/tmp/auto_nag_errors.log",
         "receiver_list":
