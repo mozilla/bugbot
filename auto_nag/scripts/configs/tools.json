@@ -671,6 +671,7 @@
     {
         "receivers":
         [
+            "shengst@mozilla.com",
             "jcristau@mozilla.com"
         ]
     }
