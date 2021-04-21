@@ -26,6 +26,9 @@ class SpamBug(BzCleaner):
     def description(self):
         return "[Using ML] Detect spam bugs"
 
+    def has_default_products(self):
+        return False
+
     def columns(self):
         return ["id", "summary", "confidence"]
 
