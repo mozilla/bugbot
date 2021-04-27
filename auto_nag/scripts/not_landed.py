@@ -264,35 +264,17 @@ class NotLanded(BzCleaner):
 
         def handler(user, data):
             data[str(user["id"])] = user["name"]
+            data[user["name"]] = user["nick"]
 
         data = {}
         BugzillaUser(
             user_names=list(users.values()),
-            include_fields=["id", "name"],
+            include_fields=["id", "name", "nick"],
             user_handler=handler,
             user_data=data,
         ).wait()
 
         return {phid: data[id] for phid, id in users.items()}
-
-    def get_nicks(self, nicknames):
-        def handler(user, data):
-            data[user["name"]] = user["nick"]
-
-        users = set(nicknames.values())
-        data = {}
-        if users:
-            BugzillaUser(
-                user_names=list(users),
-                include_fields=["name", "nick"],
-                user_handler=handler,
-                user_data=data,
-            ).wait()
-
-        for bugid, name in nicknames.items():
-            nicknames[bugid] = (name, data[name])
-
-        return nicknames
 
     def get_bz_params(self, date):
         self.date = lmdutils.get_date_ymd(date)
