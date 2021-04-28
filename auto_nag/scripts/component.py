@@ -142,8 +142,6 @@ class Component(BzCleaner):
             ):
                 continue
 
-            bug_id = str(bug["id"])
-
             result = {
                 "id": bug_id,
                 "summary": bug["summary"],
