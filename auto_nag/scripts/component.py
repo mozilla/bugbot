@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from libmozdata.bugzilla import Bugzilla
+
 from auto_nag import logger
 from auto_nag.bugbug_utils import get_bug_ids_classification
 from auto_nag.bzcleaner import BzCleaner
@@ -171,6 +173,38 @@ class Component(BzCleaner):
                 # In hourly mode, we send an email with only the bugs we acted upon.
                 if self.frequency == "hourly":
                     results[bug_id] = result
+
+        # Don't move bugs back into components they were moved out of.
+        # TODO: Use the component suggestion from the service with the second highest confidence instead.
+        def history_handler(bug):
+            bug_id = str(bug["id"])
+
+            previous_product_components = set()
+
+            current_product = raw_bugs[bug_id]["product"]
+            current_component = raw_bugs[bug_id]["component"]
+
+            for history in bug["history"]:
+                for change in history["changes"][::-1]:
+                    if change["field_name"] == "product":
+                        current_product = change["removed"]
+                    elif change["field_name"] == "component":
+                        current_component = change["removed"]
+
+                previous_product_components.add((current_product, current_component))
+
+            suggested_product = self.autofix_component[bug_id]["product"]
+            suggested_component = self.autofix_component[bug_id]["component"]
+
+            if (suggested_product, suggested_component) in previous_product_components:
+                results[bug_id]["autofixed"] = False
+                del self.autofix_component[bug_id]
+
+        bugids = list(self.autofix_component.keys())
+        Bugzilla(
+            bugids=bugids,
+            historyhandler=history_handler,
+        ).get_data().wait()
 
         return results
 
