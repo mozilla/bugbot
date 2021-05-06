@@ -10,9 +10,6 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class RegressionWithoutRegressedBy(BzCleaner):
-    def __init__(self):
-        super(RegressionWithoutRegressedBy, self).__init__()
-
     def description(self):
         return "Regressions without regressed_by and some dependencies"
 

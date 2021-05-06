@@ -11,9 +11,6 @@ MAX_DEPTH = 2
 
 
 class FuzzingBisectionWithoutRegressedBy(BzCleaner):
-    def __init__(self):
-        super(FuzzingBisectionWithoutRegressedBy, self).__init__()
-
     def description(self):
         return "Bugs with a fuzzing bisection and without regressed_by"
 

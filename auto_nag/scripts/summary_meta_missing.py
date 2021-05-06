@@ -6,9 +6,6 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class MetaSummaryMissing(BzCleaner):
-    def __init__(self):
-        super(MetaSummaryMissing, self).__init__()
-
     def description(self):
         return "Bugs without the meta keyword but with [meta] in the title"
 

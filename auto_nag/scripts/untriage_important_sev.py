@@ -6,9 +6,6 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class UntriagedWithImportantSev(BzCleaner):
-    def __init__(self):
-        super(UntriagedWithImportantSev, self).__init__()
-
     def description(self):
         return "Bugs in untriaged with an important severity"
 

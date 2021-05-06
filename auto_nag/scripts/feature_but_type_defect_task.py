@@ -6,9 +6,6 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class RegressionButDefectTask(BzCleaner):
-    def __init__(self):
-        super(RegressionButDefectTask, self).__init__()
-
     def description(self):
         return "Defect or task with the 'feature' keyword"
 
