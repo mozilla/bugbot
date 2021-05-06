@@ -120,6 +120,9 @@ python -m auto_nag.scripts.good_first_bug_unassign_inactive
 # Look for missing bugzilla comments for recently-landed changesets
 python -m auto_nag.scripts.missed_landing_comment
 
+# Look for recently landed changesets referencing leave-open security bugs
+python -m auto_nag.scripts.leave_open_sec
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
