@@ -3,8 +3,8 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import argparse
-import inspect
 import os
+import sys
 import time
 
 import six
@@ -31,24 +31,12 @@ class BzCleaner(object):
         self.versions = None
         logger.info("Run tool {}".format(self.get_tool_path()))
 
-    def _is_a_bzcleaner_init(self, info):
-        if info[3] == "__init__":
-            frame = info[0]
-            args = inspect.getargvalues(frame)
-            if "self" in args.locals:
-                zelf = args.locals["self"]
-                return isinstance(zelf, BzCleaner)
-        return False
-
     def _set_tool_name(self):
-        stack = inspect.stack()
-        init = [s for s in stack if self._is_a_bzcleaner_init(s)]
-        last = init[-1]
-        info = inspect.getframeinfo(last[0])
+        module = sys.modules[self.__class__.__module__]
         base = os.path.dirname(__file__)
         scripts = os.path.join(base, "scripts")
-        self.__tool_path__ = os.path.relpath(info.filename, scripts)
-        name = os.path.basename(info.filename)
+        self.__tool_path__ = os.path.relpath(module.__file__, scripts)
+        name = os.path.basename(module.__file__)
         name = os.path.splitext(name)[0]
         self.__tool_name__ = name
 
