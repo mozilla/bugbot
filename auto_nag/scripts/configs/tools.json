@@ -674,5 +674,13 @@
             "shengst@mozilla.com",
             "jcristau@mozilla.com"
         ]
+    },
+    "leave_open_sec":
+    {
+        "receivers":
+        [
+            "release-mgmt@mozilla.com"
+        ],
+        "days_lookup": 2
     }
 }

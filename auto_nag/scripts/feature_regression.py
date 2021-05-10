@@ -6,9 +6,6 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class FeatureRegression(BzCleaner):
-    def __init__(self):
-        super(FeatureRegression, self).__init__()
-
     def description(self):
         return "Bugs with feature and regression keywords"
 

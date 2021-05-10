@@ -6,9 +6,6 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class Stalled(BzCleaner):
-    def __init__(self):
-        super(Stalled, self).__init__()
-
     def description(self):
         return "Closed bugs with stalled keyword"
 

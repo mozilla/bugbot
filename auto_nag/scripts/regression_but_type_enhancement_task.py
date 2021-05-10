@@ -6,9 +6,6 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class RegressionButEnhancementTask(BzCleaner):
-    def __init__(self):
-        super(RegressionButEnhancementTask, self).__init__()
-
     def description(self):
         return (
             'Enhancement or task with the "regression", "crash" or "assertion" keyword'

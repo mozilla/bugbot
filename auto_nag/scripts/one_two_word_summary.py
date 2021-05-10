@@ -6,9 +6,6 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class OneTwoWordSummary(BzCleaner):
-    def __init__(self):
-        super(OneTwoWordSummary, self).__init__()
-
     def description(self):
         return "Bugs with only one or two words in the summary"
 

@@ -8,9 +8,6 @@ from auto_nag.utils import nice_round
 
 
 class StepsToReproduce(BzCleaner):
-    def __init__(self):
-        super().__init__()
-
     def description(self):
         return "[Using ML] Bugs with missing steps to reproduce"
 

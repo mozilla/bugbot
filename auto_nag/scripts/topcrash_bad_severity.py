@@ -6,9 +6,6 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class TopcrashBadSeverity(BzCleaner):
-    def __init__(self):
-        super(TopcrashBadSeverity, self).__init__()
-
     def description(self):
         return "Bugs with topcrash keyword but incorrect severity"
 

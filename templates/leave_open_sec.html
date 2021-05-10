@@ -1,0 +1,18 @@
+<p>Commits referencing the following security bugs have landed, and the bugs have the leave-open keyword, please double check them:
+  <table {{ table_attrs }}>
+    <thead>
+      <tr>
+        <th>Bug</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for i, bugid in enumerate(data) -%}
+      <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
+        <td>
+          <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+        </td>
+      </tr>
+      {% endfor -%}
+    </tbody>
+  </table>
+<p>

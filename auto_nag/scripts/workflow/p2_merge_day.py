@@ -9,9 +9,6 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class P2MergeDay(BzCleaner):
-    def __init__(self):
-        super(P2MergeDay, self).__init__()
-
     def must_run(self, date):
         cal = rc.get_calendar()
         for c in cal:
