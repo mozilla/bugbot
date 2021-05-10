@@ -23,7 +23,6 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
         data[bugid] = {
-            "is_meta": "meta" in bug["keywords"],
             "assigned_to_email": bug["assigned_to"],
             "assigned_to_nickname": bug["assigned_to_detail"]["nick"],
             "depends_on": bug["depends_on"],
@@ -40,65 +39,24 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
                 },
             )
 
-    def _get_bz_params(self, blocked_ids):
+    def get_bz_params(self, date):
         return {
-            "include_fields": ["assigned_to", "depends_on", "keywords"],
-            "f1": "blocked",
-            "o1": "anyexact",
-            "v1": ",".join(str(bid) for bid in blocked_ids),
+            "include_fields": ["assigned_to", "depends_on"],
+            "f1": "regressed_by",
+            "o1": "isempty",
+            "n2": 1,
             "f2": "regressed_by",
-            "o2": "isempty",
+            "o2": "everchanged",
             "n3": 1,
-            "f3": "regressed_by",
-            "o3": "everchanged",
-            "n4": 1,
-            "f4": "longdesc",
-            "o4": "casesubstring",
-            "v4": "since this bug contains a bisection range, could you fill (if possible) the regressed_by field",
+            "f3": "longdesc",
+            "o3": "casesubstring",
+            "v3": "since this bug contains a bisection range, could you fill (if possible) the regressed_by field",
+            "emaillongdesc1": "1",
+            "emailtype1": "exact",
+            "email1": "bugmon@mozilla.com",
         }
 
-    def get_bz_params(self, date):
-        return self._get_bz_params([316898])
-
-    def get_recursive_blocking(self, bugs, got_bugs, depth=0):
-        meta_bugs = (bug for bug in bugs.values() if bug["is_meta"])
-
-        blocked_ids = list(
-            {
-                bug_id
-                for bug in meta_bugs
-                for bug_id in bug["depends_on"]
-                if bug_id not in got_bugs
-            }
-        )
-        if len(blocked_ids) == 0:
-            return
-
-        got_bugs.update(blocked_ids)
-
-        if depth == MAX_DEPTH:
-            return
-
-        chunks = (
-            blocked_ids[i : (i + Bugzilla.BUGZILLA_CHUNK_SIZE)]
-            for i in range(0, len(blocked_ids), Bugzilla.BUGZILLA_CHUNK_SIZE)
-        )
-
-        for chunk in chunks:
-            params = self._get_bz_params(chunk)
-            self.amend_bzparams(params, None)
-            Bugzilla(
-                params,
-                bughandler=self.bughandler,
-                bugdata=bugs,
-            ).get_data().wait()
-
-        self.get_recursive_blocking(bugs, got_bugs, depth + 1)
-
     def filter_bugs(self, bugs):
-        # Exclude meta bugs.
-        bugs = {bug["id"]: bug for bug in bugs.values() if not bug["is_meta"]}
-
         # Exclude bugs assigned to nobody.
         bugs = {
             bug["id"]: bug
@@ -128,7 +86,6 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
         bugs = super(FuzzingBisectionWithoutRegressedBy, self).get_bugs(
             date=date, bug_ids=bug_ids
         )
-        self.get_recursive_blocking(bugs, set(bugs))
         bugs = self.filter_bugs(bugs)
         self.set_autofix(bugs)
 
