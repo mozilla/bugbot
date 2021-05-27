@@ -138,7 +138,6 @@
         ],
         "reporter_skiplist":
         [
-            "intermittent-bug-filer@mozilla.bugs",
             "wptsync@mozilla.bugs"
         ],
         "confidence_threshold": 1.0,
