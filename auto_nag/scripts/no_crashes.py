@@ -66,6 +66,8 @@ class NoCrashes(BzCleaner):
         res = [[M, []] for _ in range(n)]
         for s in signatures:
             L = len(s)
+            if L > M:
+                continue
             added = False
             for i in res:
                 if L < i[0]:
@@ -75,7 +77,7 @@ class NoCrashes(BzCleaner):
                     break
             if not added:
                 res.append([M - L, [s]])
-        res = [x for _, x in res]
+        res = [x for _, x in res if len(x)]
         return res, max(len(x) for x in res)
 
     def bughandler(self, bug, data):
