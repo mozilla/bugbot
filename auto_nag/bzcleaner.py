@@ -323,7 +323,9 @@ class BzCleaner(object):
             )
 
         if self.has_default_products():
-            params["product"] = self.get_config("products")
+            if "product" not in params:
+                params["product"] = []
+            params["product"] += self.get_config("products")
 
         if not self.has_access_to_sec_bugs():
             n = utils.get_last_field_num(params)

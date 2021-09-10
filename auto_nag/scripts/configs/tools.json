@@ -143,6 +143,12 @@
         "confidence_threshold": 1.0,
         "cc":
         [
+        ],
+        "additional_products": [
+            "Thunderbird",
+            "Calendar",
+            "Chat Core",
+            "MailNews Core"
         ]
     },
     "auto_nag":
