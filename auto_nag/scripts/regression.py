@@ -45,7 +45,6 @@ class Regression(BzCleaner):
             "f4": "reporter",
             "o4": "nowords",
             "v4": reporter_skiplist,
-            "product": self.get_config("additional_products"),
         }
 
         return params
