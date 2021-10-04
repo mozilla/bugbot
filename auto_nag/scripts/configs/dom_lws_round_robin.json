@@ -13,6 +13,6 @@
     "Core::Storage: StorageManager": "default"
   },
   "default": {
-    "calendar": "private://DOM:Workers&Storage"
+    "calendar": "private://DOM:LWS"
   }
 }

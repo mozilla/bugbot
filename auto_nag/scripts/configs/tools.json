@@ -6,7 +6,7 @@
         {
             "necko": "necko_round_robin.json",
             "Core::General": "core_general_round_robin.json",
-            "DOM:Workers & Storage": "dom_workers_storage_round_robin.json",
+            "DOM:LWS": "dom_lws_round_robin.json",
             "Core::Layout": "layout_round_robin.json",
             "DOM:Navigation & Windows and Location": "dom_navigation_round_robin.json",
             "Media:audio": "media_audio_round_robin.json",
@@ -561,7 +561,7 @@
         },
         "teams":
         [
-            "DOM:Workers & Storage",
+            "DOM:LWS",
             "Core::General",
             "Media:audio"
         ],
