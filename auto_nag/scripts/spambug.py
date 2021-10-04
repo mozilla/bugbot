@@ -11,9 +11,9 @@ COMMENT = """
 The [Bugbug](https://github.com/mozilla/bugbug/) bot thinks this bug is invalid.
 If you think the bot is wrong, please reopen the bug and move it back to its prior component.
 
-Be aware this is a production bug database used by the Mozilla community to develop Firefox, and other products.
-Filing test bugs here wastes the time of all our contributors, volunteers, as well as paid employees.
-If you continue to abuse bugzilla.mozilla.org your account will be disabled.
+Please note that this is a production bug database used by the Mozilla community to develop Firefox, Thunderbird and other products.
+Filing test bugs here will waste the time of our contributors, volunteers and employees.
+If you continue to abuse bugzilla.mozilla.org, your account will be disabled.
 """.strip()
 
 
