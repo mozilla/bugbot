@@ -6,7 +6,8 @@
         {
             "necko": "necko_round_robin.json",
             "Core::General": "core_general_round_robin.json",
-            "DOM:Workers & Storage": "dom_workers_storage_round_robin.json",
+            "DOM:LWS": "dom_lws_round_robin.json",
+            "DOM:Core": "dom_core_round_robin.json",
             "Core::Layout": "layout_round_robin.json",
             "DOM:Navigation & Windows and Location": "dom_navigation_round_robin.json",
             "Media:audio": "media_audio_round_robin.json",
@@ -307,7 +308,6 @@
             "Firefox Build System::General",
             "Core::JavaScript Engine",
             "Core::Document Navigation",
-            "Core::DOM: Core & HTML",
             "Core::XPCOM",
             "DevTools::Accessibility Tools",
             "Core::Performance",
@@ -561,13 +561,19 @@
         },
         "teams":
         [
-            "DOM:Workers & Storage",
+            "DOM:LWS",
+            "DOM:Core",
             "Core::General",
             "Media:audio"
         ],
         "persons":
         [
             "jdescottes@mozilla.com"
+        ],
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "mcastelluccio@mozilla.com"
         ]
     },
     "spambug":
