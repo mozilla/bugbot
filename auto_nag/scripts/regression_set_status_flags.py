@@ -55,9 +55,6 @@ class RegressionSetStatusFlags(BzCleaner):
             "f6": "cf_status_firefox_release",
             "o6": "nowords",
             "v6": "fixed,verified",
-            "f7": "cf_status_firefox_beta",
-            "o7": "equals",
-            "v7": "---",
             "resolution": ["---", "FIXED"],
         }
 
