@@ -4,18 +4,24 @@
 
 from libmozdata import utils as lmdutils
 
-from auto_nag import utils
+from auto_nag import logger, utils
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.escalation import Escalation
 from auto_nag.nag_me import Nag
 from auto_nag.round_robin import RoundRobin
+from auto_nag.round_robin_calendar import BadFallback, InvalidCalendar
 
 
 class ToTriage(BzCleaner, Nag):
     def __init__(self):
         super(ToTriage, self).__init__()
         self.escalation = Escalation(self.people, data=self.get_config("escalation"))
-        self.round_robin = RoundRobin.get_instance(teams=self.get_config("teams", []))
+        try:
+            self.round_robin = RoundRobin.get_instance(
+                teams=self.get_config("teams", [])
+            )
+        except (BadFallback, InvalidCalendar) as err:
+            logger.error(err)
         self.components = self.round_robin.get_components()
         for person in self.get_config("persons", []):
             self.components += utils.get_triage_owners()[person]
