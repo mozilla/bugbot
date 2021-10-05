@@ -109,9 +109,6 @@ class RegressionSetStatusFlags(BzCleaner):
                 # shouldn't happen: esrXX sorts after YY
                 continue
             regressed_version = int(regression_versions[0][len("cf_status_firefox") :])
-            if regressed_version < int(self.versions["release"]):
-                # old regression, leave it alone
-                continue
             self.status_changes[bugid] = {}
             for channel in ("release", "beta", "central"):
                 v = int(self.versions[channel])
