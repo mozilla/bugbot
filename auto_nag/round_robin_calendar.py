@@ -104,7 +104,9 @@ class Calendar(object):
 
                 return ICSCalendar(data, fallback, team_name, people=people)
             except ValueError:
-                raise InvalidCalendar("Cannot decode calendar: {}".format(url))
+                raise InvalidCalendar(
+                    f"Cannot decode calendar: {url} for team {team_name}"
+                )
 
     def __str__(self):
         return f"""Round robin calendar:
