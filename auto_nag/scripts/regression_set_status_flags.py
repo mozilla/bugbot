@@ -39,6 +39,9 @@ class RegressionSetStatusFlags(BzCleaner):
         if self.status_esr_next != self.status_esr:
             fields.append(self.status_esr_next)
 
+        # Find all bugs with regressed_by information which were open after start_date or
+        # whose regressed_by field was set after start_date.
+
         return {
             "include_fields": fields,
             "f1": "OP",
