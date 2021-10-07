@@ -9,7 +9,8 @@ from libmozdata.bugzilla import Bugzilla
 
 from auto_nag.bzcleaner import BzCleaner
 
-BUG_PATTERN = re.compile(r"[\t ]*[Bb][Uu][Gg][\t ]*([0-9]+)")
+PDFJS_UPDATES_METABUG = 1626408
+BUG_PATTERN = re.compile(r"[\t ]*Bug[\t ]*([0-9]+)", re.IGNORECASE)
 
 
 class PDFJSUpdate(BzCleaner):
@@ -32,14 +33,13 @@ class PDFJSUpdate(BzCleaner):
             "include_fields": ["id", "blocks"],
             "f1": "blocked",
             "o1": "equals",
-            "v1": 1626408,
+            "v1": PDFJS_UPDATES_METABUG,
             "resolution": "---",
         }
 
     def set_autofix(self, bugs):
         blocked_bugs = collections.defaultdict(set)
 
-        # Exclude bugs that do not have a range found by BugMon.
         def comment_handler(bug, bug_id):
             first_comment = bug["comments"][0]["text"]
             for m in BUG_PATTERN.finditer(first_comment):
