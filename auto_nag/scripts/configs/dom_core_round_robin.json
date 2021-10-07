@@ -16,6 +16,7 @@
         "Core::DOM: Bindings (WebIDL)": "default",
         "Core::DOM: UI Events & Focus Handling": "default",
         "Core::DOM: Forms": "default",
+        "Core::DOM: Window and Location": "default",
         "Toolkit::about:memory": "default"
     },
     "default": {
