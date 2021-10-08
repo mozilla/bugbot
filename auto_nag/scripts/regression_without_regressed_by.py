@@ -25,6 +25,7 @@ class RegressionWithoutRegressedBy(BzCleaner):
             "assignee": assignee,
             "creator": bug["creator_detail"],
             "creation": dateutil.parser.parse(bug["creation_time"]),
+            "has_regression_range": bug["cf_has_regression_range"] == "yes",
         }
         return bug
 
@@ -80,7 +81,11 @@ class RegressionWithoutRegressedBy(BzCleaner):
         for bugid, info in bugs.items():
             info["deps"] -= invalids
 
-        bugs = {bugid: info for bugid, info in bugs.items() if info["deps"]}
+        bugs = {
+            bugid: info
+            for bugid, info in bugs.items()
+            if info["deps"] or info["has_regression_range"]
+        }
 
         return bugs
 
@@ -94,7 +99,7 @@ class RegressionWithoutRegressedBy(BzCleaner):
                     if (
                         change["field_name"] in {"blocks", "depends_on"}
                         and change["added"] in deps
-                    ):
+                    ) or change["field_name"] == "cf_has_regression_range":
                         who = h["who"]
                         stats[who] = stats.get(who, 0) + 1
 
@@ -147,7 +152,14 @@ class RegressionWithoutRegressedBy(BzCleaner):
 
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
-        fields = ["blocks", "depends_on", "assigned_to", "creator", "creation_time"]
+        fields = [
+            "blocks",
+            "depends_on",
+            "assigned_to",
+            "creator",
+            "creation_time",
+            "cf_has_regression_range",
+        ]
         reporter_skiplist = self.get_config("reporter_skiplist", default=[])
         reporter_skiplist = ",".join(reporter_skiplist)
         params = {
@@ -155,39 +167,42 @@ class RegressionWithoutRegressedBy(BzCleaner):
             "bug_status": "__open__",
             "j1": "OR",
             "f1": "OP",
-            "f2": "keywords",
-            "o2": "casesubstring",
-            "v2": "regression",
-            "f3": "cf_has_regression_range",
-            "o3": "equals",
-            "v3": "yes",
-            "f4": "CP",
-            "f5": "regressed_by",
-            "o5": "isempty",
-            "n6": 1,
-            "f6": "regressed_by",
-            "o6": "changedafter",
-            "v6": "1970-01-01",
-            "j7": "OR",
-            "f7": "OP",
-            "f8": "blocked",
-            "o8": "isnotempty",
-            "f9": "dependson",
-            "o9": "isnotempty",
+            "f2": "cf_has_regression_range",
+            "o2": "equals",
+            "v2": "yes",
+            "j3": "AND",
+            "f3": "OP",
+            "f4": "keywords",
+            "o4": "casesubstring",
+            "v4": "regression",
+            "j5": "OR",
+            "f5": "OP",
+            "f6": "blocked",
+            "o6": "isnotempty",
+            "f7": "dependson",
+            "o7": "isnotempty",
+            "f8": "CP",
+            "f9": "CP",
             "f10": "CP",
-            "f11": "creation_ts",
-            "o11": "greaterthan",
-            "v11": start_date,
-            "f12": "keywords",
-            "o12": "nowords",
-            "v12": "regressionwindow-wanted",
-            "f13": "reporter",
-            "o13": "nowords",
-            "v13": reporter_skiplist,
-            "n14": 1,
-            "f14": "longdesc",
-            "o14": "casesubstring",
-            "v14": "since this bug is a regression, could you fill (if possible) the regressed_by field",
+            "f11": "regressed_by",
+            "o11": "isempty",
+            "n12": 1,
+            "f12": "regressed_by",
+            "o12": "changedafter",
+            "v12": "1970-01-01",
+            "f13": "creation_ts",
+            "o13": "greaterthan",
+            "v13": start_date,
+            "f14": "keywords",
+            "o14": "nowords",
+            "v14": "regressionwindow-wanted",
+            "f15": "reporter",
+            "o15": "nowords",
+            "v15": reporter_skiplist,
+            "n16": 1,
+            "f16": "longdesc",
+            "o16": "casesubstring",
+            "v16": "since this bug is a regression, could you fill (if possible) the regressed_by field",
         }
 
         return params
