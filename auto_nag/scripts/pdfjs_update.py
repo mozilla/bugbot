@@ -55,7 +55,7 @@ class PDFJSUpdate(BzCleaner):
             if blocked_bugs[bug_id] <= set(bug["blocks"]):
                 continue
 
-            self.autofix_blocks[bug_id] = set(bug["blocks"]) | set(blocked_bugs[bug_id])
+            self.autofix_blocks[bug_id] = set(blocked_bugs[bug_id]) - set(bug["blocks"])
 
         return bugs
 
