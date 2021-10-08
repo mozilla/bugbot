@@ -70,7 +70,7 @@ class PDFJSUpdate(BzCleaner):
         return {
             bug_id: {
                 "cc": {"add": cc},
-                "blocks": blocks,
+                "blocks": {"add": blocks},
             }
             for bug_id, blocks in self.autofix_blocks.items()
         }
