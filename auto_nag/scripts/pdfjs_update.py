@@ -32,7 +32,7 @@ class PDFJSUpdate(BzCleaner):
         return {
             "include_fields": ["id", "blocks"],
             "f1": "blocked",
-            "o1": "equals",
+            "o1": "anyexact",
             "v1": PDFJS_UPDATES_METABUG,
             "resolution": "---",
         }
