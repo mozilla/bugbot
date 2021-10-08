@@ -123,6 +123,9 @@ python -m auto_nag.scripts.missed_landing_comment
 # Look for recently landed changesets referencing leave-open security bugs
 python -m auto_nag.scripts.leave_open_sec
 
+# Look for recent PDF.js updates that fix some bug
+python -m auto_nag.scripts.pdfjs_update
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
