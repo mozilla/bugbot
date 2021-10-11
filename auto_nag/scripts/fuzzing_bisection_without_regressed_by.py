@@ -7,8 +7,6 @@ from libmozdata.bugzilla import Bugzilla
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 
-MAX_DEPTH = 2
-
 
 class FuzzingBisectionWithoutRegressedBy(BzCleaner):
     def description(self):
