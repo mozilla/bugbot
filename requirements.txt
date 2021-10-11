@@ -8,7 +8,7 @@ Jinja2==3.0.1
 libmozdata>=0.1.69
 numpy==1.21.2
 pep8==1.7.1
-pyflakes==2.3.1
+pyflakes==2.4.0
 python-dateutil>=2.5.2
 python-Levenshtein>=0.12.0
 pytz>=2018.9
