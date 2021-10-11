@@ -126,6 +126,9 @@ python -m auto_nag.scripts.leave_open_sec
 # Look for recent PDF.js updates that fix some bug
 python -m auto_nag.scripts.pdfjs_update
 
+# Look for tracked bugs with a needinfo from a release manager
+python -m auto_nag.scripts.ni_from_manager
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
