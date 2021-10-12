@@ -29,12 +29,15 @@ class PDFJSUpdate(BzCleaner):
         return bug
 
     def get_bz_params(self, date):
+        start_date, _ = self.get_dates(date)
         return {
             "include_fields": ["id", "blocks"],
             "f1": "blocked",
             "o1": "anyexact",
             "v1": PDFJS_UPDATES_METABUG,
-            "resolution": "---",
+            "f2": "creation_ts",
+            "o2": "greaterthan",
+            "v2": start_date,
         }
 
     def set_autofix(self, bugs):
