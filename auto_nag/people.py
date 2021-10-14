@@ -284,10 +284,14 @@ class People:
             return None
 
         manager = person["manager"]
-        if manager:
-            return manager["dn"]
+        if not manager:
+            return None
 
-        return None
+        manager_mail = manager["dn"]
+        if manager_mail == mail:
+            return None
+
+        return manager_mail
 
     def get_nth_manager_mail(self, mail, rank):
         """Get the manager of the person with this mail"""
