@@ -196,7 +196,13 @@
             "aoverholt@mozilla.com"
         ],
         "days_lookup": 183,
-        "number_of_weeks": 1
+        "number_of_weeks": 1,
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "sylvestre@mozilla.com",
+            "mcastelluccio@mozilla.com"
+        ]
     },
     "leave_open_no_activity":
     {
