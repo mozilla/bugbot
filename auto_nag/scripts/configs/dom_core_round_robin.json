@@ -1,6 +1,7 @@
 {
     "fallback": "Hsin-Yi Tsai",
     "components": {
+        "Core::DMD": "default",
         "Core::DOM: Core & HTML": "default",
         "Core::DOM: Editor": "default",
         "Core::DOM: HTML Parser": "default",
