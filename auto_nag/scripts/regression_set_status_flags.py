@@ -19,9 +19,6 @@ class RegressionSetStatusFlags(BzCleaner):
     def description(self):
         return "Set release status flags based on info from the regressing bug"
 
-    def all_include_fields(self):
-        return True
-
     def get_bz_params(self, date):
         # XXX should perhaps look further back than one week, e.g. a month?
         start_date, _ = self.get_dates(date)
@@ -30,6 +27,7 @@ class RegressionSetStatusFlags(BzCleaner):
         # whose regressed_by field was set after start_date.
 
         return {
+            "include_fields": ["regressed_by", "_custom"],
             "f1": "OP",
             "j1": "OR",
             "f2": "creation_ts",
