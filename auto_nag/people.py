@@ -382,6 +382,8 @@ class People:
     def get_moz_name(self, mail):
         """Get the manager of the person with this mail"""
         person = self._get_people_by_bzmail().get(mail, None)
+        if person is None:
+            return None
         return person["cn"]
 
     def get_info(self, mail):
