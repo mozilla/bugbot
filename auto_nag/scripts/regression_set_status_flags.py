@@ -12,13 +12,6 @@ class RegressionSetStatusFlags(BzCleaner):
     def __init__(self):
         super().__init__()
         self.init_versions()
-        self.status_central = utils.get_flag(
-            self.versions["central"], "status", "central"
-        )
-        self.status_beta = utils.get_flag(self.versions["beta"], "status", "beta")
-        self.status_release = utils.get_flag(
-            self.versions["release"], "status", "release"
-        )
         self.status_esr = utils.get_flag(self.versions["esr_previous"], "status", "esr")
         self.status_esr_next = utils.get_flag(self.versions["esr"], "status", "esr")
         self.status_changes = {}
@@ -32,15 +25,6 @@ class RegressionSetStatusFlags(BzCleaner):
     def get_bz_params(self, date):
         # XXX should perhaps look further back than one week, e.g. a month?
         start_date, _ = self.get_dates(date)
-        fields = [
-            "regressed_by",
-            self.status_central,
-            self.status_beta,
-            self.status_release,
-            self.status_esr,
-        ]
-        if self.status_esr_next != self.status_esr:
-            fields.append(self.status_esr_next)
 
         # Find all bugs with regressed_by information which were open after start_date or
         # whose regressed_by field was set after start_date.
