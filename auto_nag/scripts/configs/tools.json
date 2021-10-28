@@ -10,7 +10,7 @@
             "DOM:Core": "dom_core_round_robin.json",
             "Core::Layout": "layout_round_robin.json",
             "Media:audio": "media_audio_round_robin.json",
-            "Install-Update Triage Calendar": "desktop_installer_round_robin.json",
+            "Desktop Integrations": "desktop_installer_round_robin.json",
             "FxPerfTest": "fxperftest_round_robin.json",
             "Gfx": "gfx_round_robin.json",
             "Firefox::Sync": "firefox_sync_round_robin.json"
