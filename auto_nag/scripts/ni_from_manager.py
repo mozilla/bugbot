@@ -24,7 +24,7 @@ class NiFromManager(BzCleaner, Nag):
         )
 
     def description(self):
-        return "Bugs with a ni on a bug tracked by a release manager without activity for the last {} {}".format(
+        return "Bugs with a ni on a bug marked as affecting a released version without activity for the last {} {}".format(
             self.nweeks, utils.plural("week", self.nweeks)
         )
 
