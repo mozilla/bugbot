@@ -88,6 +88,7 @@ def send(
     message["Subject"] = Subject
     message["Cc"] = ", ".join(Cc)
     message["Bcc"] = ", ".join(Bcc)
+    message["X-Mailer"] = "relman-auto-nag"
 
     if subtype == "html":
         Body = replaceUnicode(Body)
