@@ -129,6 +129,9 @@ python -m auto_nag.scripts.pdfjs_update
 # Look for tracked bugs with a needinfo from a release manager
 python -m auto_nag.scripts.ni_from_manager
 
+# Approve tracking request for bugs automatically filed for expiring telemetry probes
+python -m auto_nag.scripts.telemetry_expiry_tracking_autoapproval
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
