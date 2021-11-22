@@ -554,7 +554,9 @@ class BzCleaner(object):
                 preamble=self.preamble(),
             )
             common = env.get_template("common.html")
-            body = common.render(message=message, query_url=self.query_url)
+            body = common.render(
+                message=message, query_url=utils.split_long_url(self.query_url)
+            )
             return self.get_email_subject(date), body
         return None, None
 

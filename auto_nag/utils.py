@@ -45,6 +45,8 @@ COL_PAT = re.compile(":[^:]*")
 BACKOUT_PAT = re.compile("^back(s|(ed))?[ \t]*out", re.I)
 BUG_PAT = re.compile(r"^bug[s]?[ \t]*([0-9]+)", re.I)
 
+MAX_URL_LENGTH = 512
+
 
 def _get_config():
     global _CONFIG
@@ -144,6 +146,22 @@ def plural(sword, data, pword=""):
     if pword:
         return pword
     return sword + "s"
+
+
+def split_long_url(url):
+    if not url:
+        return url
+
+    # the url can be very long and line length are limited in email protocol:
+    # https://datatracker.ietf.org/doc/html/rfc5322#section-2.1.1
+    # So we insert some \n in the url every MAX_URL_LENGTH characters.
+    # The limit of 78 chars is for the rendering and here the url will end up in a
+    # href so we don't care.
+    if len(url) > MAX_URL_LENGTH:
+        url = "\n".join(
+            [url[i : i + MAX_URL_LENGTH] for i in range(0, len(url), MAX_URL_LENGTH)]
+        )
+    return url
 
 
 def search_prev_merge(beta):
