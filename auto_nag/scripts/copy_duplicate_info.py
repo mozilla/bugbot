@@ -70,7 +70,7 @@ class CopyDuplicateInfo(BzCleaner):
         data[bugid] = {
             "id": bugid,
             "summary": self.get_summary(bug),
-            "signature": bug.get("cf_crash_signature", ""),
+            "signature": bug.get("cf_crash_signature", None),
             "dupe": str(bug["dupe_of"]),
             "product": bug["product"],
             "component": bug["component"],
@@ -117,6 +117,10 @@ class CopyDuplicateInfo(BzCleaner):
 
             dup = dups[dupid]
             bs = utils.get_signatures(info["signature"])
+            if dup["signature"] is None:
+                # some bugs don't have a cf_crash_signature field... it's weird
+                # but it's life...
+                continue
             ds = utils.get_signatures(dup["signature"])
             if not bs.issubset(ds):
                 signatures[dupid] = bs - ds
