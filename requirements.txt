@@ -1,6 +1,6 @@
 alembic==1.7.5
 argparse==1.4.0
-filelock==3.3.2
+filelock==3.4.0
 humanize>=0.5.1
 icalendar==4.0.9
 icalevents==0.1.24
