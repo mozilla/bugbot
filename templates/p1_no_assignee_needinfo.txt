@@ -1,2 +1,4 @@
-There is no assignee and no activity for {{ extra['ndays'] }} {{ plural('day', extra['ndays']) }}?
+There are no assignees and no activity for {{ extra['ndays'] }} {{ plural('day', extra['ndays']) }}?
 :{{ nickname }}, should we change the priority to P2?
+
+{{ documentation }}
