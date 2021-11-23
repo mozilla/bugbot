@@ -6,7 +6,7 @@ icalendar==4.0.9
 icalevents==0.1.24
 Jinja2==3.0.3
 libmozdata>=0.1.69
-numpy==1.21.3
+numpy==1.21.4
 pep8==1.7.1
 pyflakes==2.4.0
 python-dateutil>=2.5.2
