@@ -14,6 +14,9 @@ class SurveySecurityBugs(BzCleaner):
         return "Submit survey to assignee of a security bug"
 
     def get_bz_params(self, date):
+        assignee_skiplist = self.get_config("assignee_skiplist", default=[])
+        assignee_skiplist = ",".join(assignee_skiplist)
+
         params = {
             # maybe we need more fields to do our changes (?)
             "include_fields": ["assigned_to", "whiteboard"],
@@ -41,6 +44,11 @@ class SurveySecurityBugs(BzCleaner):
             "f3": "attachments.count",
             "o3": "greaterthan",
             "v3": "0",
+            # does not contain any of the to-be-skipped assignees
+            "f4": "assigned_to",
+            "o4": "nowords",
+            "v4": assignee_skiplist,
+
         }
 
         return params
@@ -48,6 +56,10 @@ class SurveySecurityBugs(BzCleaner):
     def handle_bug(self, bug, data):
         assignee = bug["assigned_to"]
         bugid = str(bug["id"])
+
+        # Do not act on bugs with no assignee.
+        if utils.is_no_assignee(assignee):
+            return bug
 
         new_whiteboard = bug["whiteboard"] + "[sec-survey]"
         self.changes_per_bug[bugid] = {
