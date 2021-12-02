@@ -55,7 +55,7 @@ class NiFromManager(BzCleaner, Nag):
             return None
 
         for flag in self.status_flags:
-            if not (flag in bug):
+            if flag not in bug:
                 logger.warning(f"Bug {bug['id']} doesn't have flag {flag}")
                 return None
 
