@@ -56,7 +56,7 @@ class NiFromManager(BzCleaner, Nag):
 
         for flag in self.status_flags:
             if not (flag in bug):
-                logger.info(f"Bug {bug['id']} hasn't flag {flag}")
+                logger.warning(f"Bug {bug['id']} doesn't have flag {flag}")
                 return None
 
         any_affected = any(bug[flag] == "affected" for flag in self.status_flags)
