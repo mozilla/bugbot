@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from auto_nag import utils
+from auto_nag import logger, utils
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.nag_me import Nag
 
@@ -53,6 +53,11 @@ class NiFromManager(BzCleaner, Nag):
         priority = self.get_priority(bug)
         if not self.filter_bug(priority):
             return None
+
+        for flag in self.status_flags:
+            if not (flag in bug):
+                logger.info(f"Bug {bug['id']} hasn't flag {flag}")
+                return None
 
         any_affected = any(bug[flag] == "affected" for flag in self.status_flags)
 
