@@ -132,6 +132,9 @@ python -m auto_nag.scripts.ni_from_manager
 # Approve tracking request for bugs automatically filed for expiring telemetry probes
 python -m auto_nag.scripts.telemetry_expiry_tracking_autoapproval
 
+# Set "Has Regression Range" to "yes" on bugs where "Regressed By" is set
+python -m auto_nag.scripts.regressed_by_no_has_regression_range
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
