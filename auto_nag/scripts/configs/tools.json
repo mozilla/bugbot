@@ -57,15 +57,18 @@
             "Core",
             "DevTools",
             "External Software Affecting Firefox",
+            "Fenix",
             "Firefox",
-            "Firefox for Android",
             "Firefox for iOS",
             "Firefox Build System",
+            "GeckoView",
+            "JSS",
             "NSPR",
             "NSS",
             "Remote Protocol",
             "Testing",
             "Toolkit",
+            "Web Compatibility",
             "WebExtensions"
         ],
         "log": "/tmp/auto_nag_errors.log",
@@ -332,9 +335,7 @@
             "WebExtensions::Developer Outreach",
             "NSS::Tools",
             "Core::X-remote",
-            "NSS::Build",
-            "Firefox for Android::General",
-            "Firefox for Android::Web Apps"
+            "NSS::Build"
         ],
         "supervisor_skiplist":
         [
