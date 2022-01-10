@@ -133,7 +133,7 @@ python -m auto_nag.scripts.ni_from_manager
 python -m auto_nag.scripts.telemetry_expiry_tracking_autoapproval
 
 # Set "Has Regression Range" to "yes" on bugs where "Regressed By" is set
-python -m auto_nag.scripts.regressed_by_no_has_regression_range
+# python -m auto_nag.scripts.regressed_by_no_has_regression_range
 
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
