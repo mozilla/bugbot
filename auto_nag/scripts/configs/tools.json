@@ -335,7 +335,11 @@
             "WebExtensions::Developer Outreach",
             "NSS::Tools",
             "Core::X-remote",
-            "NSS::Build"
+            "NSS::Build",
+            "Web Compatibility::Desktop",
+            "Web Compatibility::Interventions",
+            "Web Compatibility::Mobile",
+            "Web Compatibility::Tooling & Investigations"
         ],
         "supervisor_skiplist":
         [
