@@ -12,10 +12,8 @@ class Regression(BzCleaner):
     def description(self):
         return "Bugs with missing has_regression_range keyword"
 
-    def ignore_date(self):
-        return True
-
     def get_bz_params(self, date):
+        start_date, end_date = self.get_dates(date)
         return {
             "include_fields": ["id", "groups", "summary"],
             "f1": "cf_has_regression_range",
@@ -23,6 +21,9 @@ class Regression(BzCleaner):
             "v1": "yes",
             "f2": "regressed_by",
             "o2": "isnotempty",
+            "f3": "creation_ts",
+            "o3": "greaterthan",
+            "v3": start_date,
         }
 
     def get_autofix_change(self):
