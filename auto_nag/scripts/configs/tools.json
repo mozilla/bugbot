@@ -339,7 +339,9 @@
             "Web Compatibility::Desktop",
             "Web Compatibility::Interventions",
             "Web Compatibility::Mobile",
-            "Web Compatibility::Tooling & Investigations"
+            "Web Compatibility::Tooling & Investigations",
+            "Fenix::Security: Android",
+            "Fenix::Stability"
         ],
         "supervisor_skiplist":
         [
