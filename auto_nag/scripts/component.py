@@ -71,8 +71,8 @@ class Component(BzCleaner):
             "v6": start_date,
             "f7": "CP",
             "f8": "component",
-            "o8": "equals",
-            "v8": "Untriaged",
+            "o8": "anyexact",
+            "v8": "Untriaged,Foxfooding",
             "f9": "CP",
         }
 
