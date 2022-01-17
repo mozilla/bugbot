@@ -20,10 +20,16 @@ class MetaDefect(BzCleaner):
         return True
 
     def columns(self):
-        return ["id", "summary", "last_comment"]
+        return ["id", "summary", "creation", "last_comment"]
+
+    def handle_bug(self, bug, data):
+        bugid = str(bug["id"])
+        data[bugid] = { "creation": utils.get_human_lag(bug["creation_time"]) }
+        return bug
 
     def get_bz_params(self, date):
         params = {
+            "include_fields": ["creation_time"],
             "resolution": "---",
             "keywords": "meta",
             "keywords_type": "allwords",
