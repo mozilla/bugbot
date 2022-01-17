@@ -20,7 +20,7 @@ class MetaDefect(BzCleaner):
         return True
 
     def columns(self):
-        return ["id", "summary", "last_comment"]
+        return ["id", "summary", "creation", "last_comment"]
 
     def get_bz_params(self, date):
         params = {
