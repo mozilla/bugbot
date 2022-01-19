@@ -6,7 +6,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for i, (bugid, summary, creation, last_comment) in enumerate(data) -%}
+      {% for i, (bugid, summary, creation, last_change) in enumerate(data) -%}
       <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
         <td>
           <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
@@ -18,7 +18,7 @@
           {{ creation }}
         </td>
         <td>
-          {{ last_comment }}
+          {{ last_change }}
         </td>
       </tr>
       {% endfor -%}
