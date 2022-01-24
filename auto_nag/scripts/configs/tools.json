@@ -232,7 +232,12 @@
     "several_dups":
     {
         "weeks_lookup": 3,
-        "number_dups": 3
+        "number_dups": 3,
+        "receivers":
+        [
+            "sledru@mozilla.com",
+            "release-mgmt@mozilla.com"
+        ]
     },
     "closed_dupeme":
     {
