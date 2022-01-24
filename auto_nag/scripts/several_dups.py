@@ -38,6 +38,9 @@ class SeveralDups(BzCleaner):
             "f2": "dupe_count",
             "o2": "greaterthaneq",
             "v2": self.ndups,
+            "f3": "keywords",
+            "o3": "nowords",
+            "v3": ["meta", "intermittent"],
         }
         return params
 
