@@ -81,6 +81,9 @@ python -m auto_nag.scripts.feature_but_type_defect_task
 # Defect with the "meta" keyword
 python -m auto_nag.scripts.meta_defect
 
+# Bugs with several duplicates
+python -m auto_nag.scripts.several_dups
+
 # reporter has a needinfo and no activity for the last X weeks
 # Pretty common
 python -m auto_nag.scripts.newbie_with_ni -d
