@@ -239,6 +239,26 @@
             "release-mgmt@mozilla.com"
         ]
     },
+    "lot_of_votes":
+    {
+        "weeks_lookup": 3,
+        "number_votes": 50,
+        "receivers":
+        [
+            "sledru@mozilla.com",
+            "release-mgmt@mozilla.com"
+        ]
+    },
+    "lot_of_cc":
+    {
+        "weeks_lookup": 3,
+        "number_cc": 50,
+        "receivers":
+        [
+            "sledru@mozilla.com",
+            "release-mgmt@mozilla.com"
+        ]
+    },
     "closed_dupeme":
     {
         "days_lookup": 100

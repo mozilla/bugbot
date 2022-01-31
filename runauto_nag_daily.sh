@@ -84,6 +84,12 @@ python -m auto_nag.scripts.meta_defect
 # Bugs with several duplicates
 python -m auto_nag.scripts.several_dups
 
+# Bugs with a lot of cc
+python -m auto_nag.scripts.lot_of_cc
+
+# Bugs with a lot of votes
+python -m auto_nag.scripts.lot_of_votes
+
 # reporter has a needinfo and no activity for the last X weeks
 # Pretty common
 python -m auto_nag.scripts.newbie_with_ni -d
