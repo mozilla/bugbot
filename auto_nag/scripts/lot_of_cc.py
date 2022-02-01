@@ -13,9 +13,7 @@ class SeveralCc(BzCleaner):
         self.cc = utils.get_config(self.name(), "number_cc")
 
     def description(self):
-        return 'Bugs with several cc for the last {} weeks'.format(
-            self.nweeks
-        )
+        return "Bugs with several cc for the last {} weeks".format(self.nweeks)
 
     def columns(self):
         return ["id", "summary", "creation", "last_change"]

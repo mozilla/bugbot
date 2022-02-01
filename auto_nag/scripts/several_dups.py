@@ -13,9 +13,7 @@ class SeveralDups(BzCleaner):
         self.ndups = utils.get_config(self.name(), "number_dups")
 
     def description(self):
-        return 'Bugs with several dups for the last {} weeks'.format(
-            self.nweeks
-        )
+        return "Bugs with several dups for the last {} weeks".format(self.nweeks)
 
     def columns(self):
         return ["id", "summary", "creation", "last_change"]

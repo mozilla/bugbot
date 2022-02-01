@@ -13,9 +13,7 @@ class SeveralVotes(BzCleaner):
         self.votes = utils.get_config(self.name(), "number_votes")
 
     def description(self):
-        return 'Bugs with several votes for the last {} weeks'.format(
-            self.nweeks
-        )
+        return "Bugs with several votes for the last {} weeks".format(self.nweeks)
 
     def columns(self):
         return ["id", "summary", "creation", "last_change"]
