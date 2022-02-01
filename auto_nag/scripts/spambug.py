@@ -10,10 +10,11 @@ from auto_nag.utils import nice_round
 COMMENT = """
 The [Bugbug](https://github.com/mozilla/bugbug/) bot thinks this bug is invalid.
 If you think the bot is wrong, please reopen the bug and move it back to its prior component.
+If your bug description is written in a non-English language, please use Google Translate or a similar service to translate it.
 
 Please note that this is a production bug database used by the Mozilla community to develop Firefox, Thunderbird and other products.
 Filing test bugs here will waste the time of our contributors, volunteers and employees.
-If you continue to abuse bugzilla.mozilla.org, your account will be disabled.
+Accounts that abuse bugzilla.mozilla.org will be disabled.
 """.strip()
 
 
