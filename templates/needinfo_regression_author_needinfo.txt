@@ -1,0 +1,2 @@
+:{{ nickname }}, since you are the author of the regressor, bug {{ extra[bugid]["regressor_id"] }}, could you take a look?
+{{ documentation }}
