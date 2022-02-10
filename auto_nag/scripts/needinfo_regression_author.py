@@ -24,6 +24,7 @@ class RegressionSetStatusFlags(BzCleaner):
             return
 
         data[str(bug["id"])] = {
+            "creator": bug["creator"],
             "regressor_id": bug["regressed_by"][0],
         }
 
@@ -50,7 +51,7 @@ class RegressionSetStatusFlags(BzCleaner):
         # whose regressed_by field was set after start_date.
 
         params = {
-            "include_fields": ["id", "regressed_by", "assigned_to"],
+            "include_fields": ["id", "creator", "regressed_by", "assigned_to"],
             "f1": "OP",
             "j1": "OR",
             "f2": "creation_ts",
@@ -95,9 +96,34 @@ class RegressionSetStatusFlags(BzCleaner):
             include_fields=["id", "assigned_to"],
         ).get_data().wait()
 
+    def filter_bugs(self, bugs):
+        # Exclude bugs whose creator is the regressor author.
+        bugs = {
+            bug["id"]: bug
+            for bug in bugs.values()
+            if bug["creator"] != bug["regressor_author_email"]
+        }
+
+        # Exclude bugs where a commentor is the regressor author.
+        def comment_handler(bug, bug_id):
+            if any(
+                comment["creator"] == bugs[bug_id]["regressor_author_email"]
+                for comment in bug["comments"]
+            ):
+                del bugs[str(bug_id)]
+
+        Bugzilla(
+            bugids=self.get_list_bugs(bugs),
+            commenthandler=comment_handler,
+            comment_include_fields=["creator"],
+        ).get_data().wait()
+
+        return bugs
+
     def get_bugs(self, *args, **kwargs):
         bugs = super().get_bugs(*args, **kwargs)
         self.retrieve_regressors(bugs)
+        bugs = self.filter_bugs(bugs)
         self.set_autofix(bugs)
         return bugs
 
