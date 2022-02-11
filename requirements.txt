@@ -1,4 +1,4 @@
-alembic==1.7.5
+alembic==1.7.6
 argparse==1.4.0
 filelock==3.4.2
 humanize>=0.5.1
