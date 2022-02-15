@@ -69,6 +69,9 @@ class AssigneeNoLogin(BzCleaner):
             "f1": "assignee_last_login",
             "o1": "lessthan",
             "v1": start_date,
+            "f2": "days_elapsed",
+            "o2": "lessthan",
+            "v2": 90,
         }
 
         utils.get_empty_assignees(params, negation=True)
