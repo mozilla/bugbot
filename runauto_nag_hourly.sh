@@ -89,6 +89,9 @@ python -m auto_nag.scripts.component --frequency hourly
 # Reset the priority if the product::component changed after the priority has been set
 python -m auto_nag.scripts.prod_comp_changed_with_priority
 
+# Update status flags for regressions based on their regressor
+python -m auto_nag.scripts.regression_set_status_flags
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
