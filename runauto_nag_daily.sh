@@ -108,9 +108,6 @@ python -m auto_nag.scripts.regression_without_regressed_by
 # Bugs with a fuzzing bisection but without regressed_by
 python -m auto_nag.scripts.fuzzing_bisection_without_regressed_by
 
-# Try to detect potential regressions using bugbug
-python -m auto_nag.scripts.regression
-
 # Suggest components for untriaged bugs (daily, full list without confidence threshold)
 python -m auto_nag.scripts.component --frequency daily
 
@@ -119,9 +116,6 @@ python -m auto_nag.scripts.defectenhancementtask
 
 # Try to detect potential missing Has STR using bugbug
 python -m auto_nag.scripts.stepstoreproduce
-
-# Update status flags for regressions based on their regressor
-python -m auto_nag.scripts.regression_set_status_flags
 
 # Unassign inactive bugs with the good-first-bug keyword
 python -m auto_nag.scripts.good_first_bug_unassign_inactive
