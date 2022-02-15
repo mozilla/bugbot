@@ -45,6 +45,9 @@ python -m auto_nag.scripts.stalled
 # Pretty rare
 python -m auto_nag.scripts.missing_beta_status
 
+# Try to detect potential regressions using bugbug
+python -m auto_nag.scripts.regression
+
 # Bugs with STR and no regression-range
 # Pretty rare
 python -m auto_nag.scripts.has_str_no_range

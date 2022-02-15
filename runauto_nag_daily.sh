@@ -108,9 +108,6 @@ python -m auto_nag.scripts.regression_without_regressed_by
 # Bugs with a fuzzing bisection but without regressed_by
 python -m auto_nag.scripts.fuzzing_bisection_without_regressed_by
 
-# Try to detect potential regressions using bugbug
-python -m auto_nag.scripts.regression
-
 # Suggest components for untriaged bugs (daily, full list without confidence threshold)
 python -m auto_nag.scripts.component --frequency daily
 
