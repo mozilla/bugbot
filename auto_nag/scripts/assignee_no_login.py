@@ -13,6 +13,9 @@ class AssigneeNoLogin(BzCleaner):
     def __init__(self):
         super(AssigneeNoLogin, self).__init__()
         self.nmonths = utils.get_config(self.name(), "number_of_months", 12)
+        self.last_activity_months = utils.get_config(
+            self.name(), "last_activity_months", 3
+        )
         self.autofix_assignee = {}
         self.default_assignees = utils.get_default_assignees()
         self.people = people.People.get_instance()
@@ -71,7 +74,7 @@ class AssigneeNoLogin(BzCleaner):
             "v1": start_date,
             "f2": "days_elapsed",
             "o2": "lessthan",
-            "v2": 90,
+            "v2": self.last_activity_months * 3,
         }
 
         utils.get_empty_assignees(params, negation=True)
