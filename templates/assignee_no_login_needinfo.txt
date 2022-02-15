@@ -1,2 +1,3 @@
 The bug assignee didn't login in Bugzilla in the last {{ extra['nmonths'] }} {{ plural('month', extra['nmonths']) }}.
 :{{ nickname }}, could you have a look please?
+{{ documentation }}
