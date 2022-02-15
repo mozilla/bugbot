@@ -185,7 +185,8 @@
     },
     "assignee_no_login":
     {
-        "number_of_months": 12
+        "number_of_months": 7,
+        "last_activity_months": 3
     },
     "not_landed":
     {
