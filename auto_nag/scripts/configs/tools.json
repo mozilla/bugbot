@@ -186,7 +186,7 @@
     "assignee_no_login":
     {
         "number_of_months": 7,
-        "last_activity_months": 3,
+        "last_activity_months": 6,
         "receivers":
         [
             "calixte@mozilla.com",
