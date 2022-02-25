@@ -10,7 +10,6 @@ from auto_nag import logger, utils
 
 RANGE_PAT = re.compile(r"\[([0-9]+)[ \t]*;[ \t]*([0-9]*|\+∞)\[", re.UNICODE)
 NPLUS_PAT = re.compile(r"n\+([0-9]+)")
-DAYS = {"Mon": 0, "Tue": 1, "Wed": 2, "Thu": 3, "Fri": 4, "Sat": 5, "Sun": 6}
 
 
 class Range(object):
@@ -105,7 +104,9 @@ class Step(object):
         return self.rang < other.rang
 
     def __str__(self):
-        alldays = [k for k, _ in sorted(DAYS.items(), key=lambda p: p[1])]
+        alldays = [
+            k for k, _ in sorted(utils.get_weekdays().items(), key=lambda p: p[1])
+        ]
         days = [alldays[x] for x in sorted(self.days)]
         return "{} => supervisor: {}, days: {}".format(self.rang, self.supervisor, days)
 
@@ -149,12 +150,13 @@ class Escalation(object):
             if data is None
             else data.get(priority, {})
         )
+        week = utils.get_weekdays()
         for r, sd in data.items():
             res.append(
                 Step(
                     Range.from_string(r),
                     Supervisor(sd["supervisor"], people),
-                    {DAYS[d] for d in sd["days"]},
+                    {week[d] for d in sd["days"]},
                 )
             )
         return sorted(res)

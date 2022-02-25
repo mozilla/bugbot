@@ -244,6 +244,8 @@
             "sledru@mozilla.com",
             "release-mgmt@mozilla.com"
         ]
+        ,
+        "must_run": ["Mon"]
     },
     "lot_of_votes":
     {
@@ -253,7 +255,8 @@
         [
             "sledru@mozilla.com",
             "release-mgmt@mozilla.com"
-        ]
+        ],
+        "must_run": ["Mon"]
     },
     "lot_of_cc":
     {
@@ -263,7 +266,8 @@
         [
             "sledru@mozilla.com",
             "release-mgmt@mozilla.com"
-        ]
+        ],
+        "must_run": ["Mon"]
     },
     "closed_dupeme":
     {
