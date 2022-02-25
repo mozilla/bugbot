@@ -88,7 +88,15 @@ class BzCleaner(object):
 
     def must_run(self, date):
         """Check if the tool must run for this date"""
-        return True
+        days = self.get_config("must_run", None)
+        if not days:
+            return True
+        weekday = date.weekday()
+        week = utils.get_weekdays()
+        for day in days:
+            if week[day] == weekday:
+                return True
+        return False
 
     def has_enough_data(self):
         """Check if the tool has enough data to run"""
