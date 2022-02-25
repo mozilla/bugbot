@@ -543,14 +543,6 @@
     {
         "receivers": "rm"
     },
-    "tracking":
-    {
-        "receivers": "rm"
-    },
-    "tracking_untouched":
-    {
-        "receivers": "rm"
-    },
     "tracked_needinfo":
     {
         "receivers": "rm"
