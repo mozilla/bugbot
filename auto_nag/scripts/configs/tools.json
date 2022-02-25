@@ -186,7 +186,7 @@
     "assignee_no_login":
     {
         "number_of_months": 7,
-        "last_activity_months": 3,
+        "last_activity_months": 6,
         "receivers":
         [
             "calixte@mozilla.com",
@@ -244,6 +244,8 @@
             "sledru@mozilla.com",
             "release-mgmt@mozilla.com"
         ]
+        ,
+        "must_run": ["Mon"]
     },
     "lot_of_votes":
     {
@@ -253,7 +255,8 @@
         [
             "sledru@mozilla.com",
             "release-mgmt@mozilla.com"
-        ]
+        ],
+        "must_run": ["Mon"]
     },
     "lot_of_cc":
     {
@@ -263,7 +266,8 @@
         [
             "sledru@mozilla.com",
             "release-mgmt@mozilla.com"
-        ]
+        ],
+        "must_run": ["Mon"]
     },
     "closed_dupeme":
     {
