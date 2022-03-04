@@ -15,6 +15,9 @@ class RegressionSetStatusFlags(BzCleaner):
         self.status_esr = utils.get_flag(self.versions["esr_previous"], "status", "esr")
         self.status_esr_next = utils.get_flag(self.versions["esr"], "status", "esr")
         self.status_changes = {}
+        self.component_exception = set(
+            utils.get_config(self.name(), "component_exception")
+        )
 
     def description(self):
         return "Set release status flags based on info from the regressing bug"
@@ -27,7 +30,7 @@ class RegressionSetStatusFlags(BzCleaner):
         # whose regressed_by field was set after start_date.
 
         return {
-            "include_fields": ["regressed_by", "_custom"],
+            "include_fields": ["regressed_by", "_custom", "product", "component"],
             "f1": "OP",
             "j1": "OR",
             "f2": "creation_ts",
@@ -51,6 +54,10 @@ class RegressionSetStatusFlags(BzCleaner):
         return [f"esr{self.versions['esr_previous']}", f"esr{self.versions['esr']}"]
 
     def handle_bug(self, bug, data):
+        pc = f"{bug['product']}::{bug['component']}"
+        if pc in self.component_exception:
+            return
+
         bugid = bug["id"]
         if len(bug["regressed_by"]) != 1:
             # either we don't have access to the regressor, or there's more than one, either way leave things alone
