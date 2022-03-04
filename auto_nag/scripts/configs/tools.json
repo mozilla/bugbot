@@ -709,6 +709,10 @@
         "receivers":
         [
             "jcristau@mozilla.com"
+        ],
+        "component_exception":
+        [
+            "Testing::geckodriver"
         ]
     },
     "fuzzing_bisection_without_regressed_by":
