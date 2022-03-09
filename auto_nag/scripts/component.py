@@ -214,7 +214,7 @@ class Component(BzCleaner):
                     {
                         "cc": {"add": cc},
                         "comment": {
-                            "body": f"The [Bugbug](https://github.com/mozilla/bugbug/) bot thinks this bug should belong to the '{data['product']}::{data['component']}' component, and is moving the bug to that component. Please revert this change in case you think the bot is wrong."
+                            "body": f"The [Bugbug](https://github.com/mozilla/bugbug/) bot thinks this bug should belong to the '{data['product']}::{data['component']}' component, and is moving the bug to that component. Please correct in case you think the bot is wrong."
                         },
                     }
                 )
