@@ -7,7 +7,6 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class SeverityInconsistency(BzCleaner):
-
     def description(self):
         return "Bugs with inconsistent severity flags"
 
@@ -22,7 +21,7 @@ class SeverityInconsistency(BzCleaner):
         def is_security_flag(flag):
             return flag.startswith("[access-s")
 
-        flags = bug['whiteboard'].split(", ")
+        flags = bug["whiteboard"].split(", ")
         whiteboard_severity = next(filter(is_security_flag, flags), None)
 
         data[bugid] = {
