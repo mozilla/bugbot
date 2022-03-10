@@ -79,6 +79,10 @@ class SeverityInconsistency(BzCleaner):
             "v12": "S3,S4",
             "f13": "CP",
             "f14": "CP",
+            "n15": 1,
+            "f15": "longdesc",
+            "o15": "casesubstring",
+            "v15": "could you consider increasing the severity?",
         }
 
         return params
