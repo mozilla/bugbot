@@ -191,9 +191,9 @@ class BugChange(Base):
 
     @staticmethod
     def import_from_dict(data):
-        for x in data:
+        for bug in data:
             tool, date, bugid, extra = (
-                x[f] for f in ["tool", "date", "bugid", "extra"]
+                bug[field] for field in ["tool", "date", "bugid", "extra"]
             )
             session.add(BugChange(tool, date, bugid, extra))
         session.commit()
@@ -335,9 +335,9 @@ class Email(Base):
 
     @staticmethod
     def import_from_dict(data):
-        for x in data:
+        for email in data:
             tool, date, user, extra, result = (
-                x[f] for f in ["tool", "date", "user", "extra", "result"]
+                email[field] for field in ["tool", "date", "user", "extra", "result"]
             )
             session.add(Email(tool, date, user, extra, result))
         session.commit()

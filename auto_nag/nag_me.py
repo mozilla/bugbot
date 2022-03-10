@@ -136,9 +136,9 @@ class Nag(object):
 
     def get_query_url_for_components(self, components):
         params = copy.deepcopy(self.query_params)
-        for f in ["include_fields", "product", "component", "bug_id"]:
-            if f in params:
-                del params[f]
+        for field in ["include_fields", "product", "component", "bug_id"]:
+            if field in params:
+                del params[field]
 
         utils.add_prod_comp_to_query(params, components)
         url = utils.get_bz_search_url(params)

@@ -33,10 +33,10 @@ class MetaNoDepsNoActivity(BzCleaner):
         return self.max_ni
 
     def get_mail_to_auto_ni(self, bug):
-        for f in ["assigned_to", "triage_owner"]:
-            person = bug.get(f, "")
+        for field in ["assigned_to", "triage_owner"]:
+            person = bug.get(field, "")
             if person and self.people.is_mozilla(person):
-                return {"mail": person, "nickname": bug[f + "_detail"]["nick"]}
+                return {"mail": person, "nickname": bug[f"{field}_detail"]["nick"]}
 
         return None
 
