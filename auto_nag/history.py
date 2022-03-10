@@ -22,7 +22,7 @@ class History(object):
         def bug_handler(bug, data):
             data.add(bug["id"])
 
-        fields = {
+        fields_map = {
             "changedby": [
                 "keywords",
                 "product",
@@ -50,9 +50,14 @@ class History(object):
 
         queries = []
         bugids = set()
-        for op, fs in fields.items():
-            for f in fs:
-                params = {"include_fields": "id", "f1": f, "o1": op, "v1": History.BOT}
+        for operator, fields in fields_map.items():
+            for field in fields:
+                params = {
+                    "include_fields": "id",
+                    "f1": field,
+                    "o1": operator,
+                    "v1": History.BOT,
+                }
                 queries.append(
                     Bugzilla(params, bughandler=bug_handler, bugdata=bugids, timeout=20)
                 )
