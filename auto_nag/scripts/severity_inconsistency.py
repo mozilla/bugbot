@@ -2,8 +2,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import re
+
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
+
+WHITEBOARD_PAT = re.compile(r"\][,; ]*?\[")
 
 
 class SeverityInconsistency(BzCleaner):
@@ -14,20 +18,17 @@ class SeverityInconsistency(BzCleaner):
         return True
 
     def handle_bug(self, bug, data):
-        self.extra_ni = data
+        flags = WHITEBOARD_PAT.split(bug["whiteboard"][1:-1])
+        whiteboard_severities = [flag for flag in flags if flag.startswith("access-s")]
+        assert len(whiteboard_severities) == 1
+        whiteboard_severity = whiteboard_severities[0]
 
         bugid = str(bug["id"])
-
-        def is_security_flag(flag):
-            return flag.startswith("[access-s")
-
-        flags = bug["whiteboard"].split(", ")
-        whiteboard_severity = next(filter(is_security_flag, flags), None)
-
         data[bugid] = {
             "whiteboard_severity": whiteboard_severity,
             "severity": bug["severity"],
         }
+        self.extra_ni = data
 
         return bug
 
@@ -38,10 +39,10 @@ class SeverityInconsistency(BzCleaner):
         return ["id", "summary", "severity", "whiteboard_severity"]
 
     def get_mail_to_auto_ni(self, bug):
-        for f in ["assigned_to", "triage_owner"]:
-            person = bug.get(f, "")
+        for field in ["assigned_to", "triage_owner"]:
+            person = bug.get(field, "")
             if person and not utils.is_no_assignee(person):
-                return {"mail": person, "nickname": bug[f + "_detail"]["nick"]}
+                return {"mail": person, "nickname": bug[f"{field}_detail"]["nick"]}
 
         return None
 
