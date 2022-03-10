@@ -1,4 +1,4 @@
-The severity field for this bug is set for to {{ extra[bugid]["severity"] }}, however, Whiteboard shows a higher severity with the flag {{ extra[bugid]["whiteboard_severity"] }}.
+The severity field for this bug is set to {{ extra[bugid]["severity"] }}. However, the accessibility severity is higher, {{ extra[bugid]["whiteboard_severity"] }}.
 :{{ nickname }}, could you have a look please?
 
 {{ documentation }}
