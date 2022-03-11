@@ -1,0 +1,4 @@
+The severity field for this bug is set to {{ extra[bugid]["severity"] }}. However, the accessibility severity is higher, {{ extra[bugid]["whiteboard_severity"] }}.
+:{{ nickname }}, could you consider increasing the severity?
+
+{{ documentation }}
