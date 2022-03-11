@@ -251,7 +251,7 @@
     "lot_of_votes":
     {
         "weeks_lookup": 3,
-        "number_votes": 50,
+        "number_votes": 10,
         "receivers":
         [
             "sledru@mozilla.com",
