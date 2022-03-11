@@ -7,7 +7,7 @@ import re
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 
-WHITEBOARD_PAT = re.compile(r"\][,; ]*?\[")
+WHITEBOARD_PAT = re.compile(r"\[access\-s[123]\]")
 
 
 class SeverityInconsistency(BzCleaner):
@@ -18,8 +18,7 @@ class SeverityInconsistency(BzCleaner):
         return True
 
     def handle_bug(self, bug, data):
-        flags = WHITEBOARD_PAT.split(bug["whiteboard"][1:-1])
-        whiteboard_severities = [flag for flag in flags if flag.startswith("access-s")]
+        whiteboard_severities = WHITEBOARD_PAT.findall(bug["whiteboard"])
         assert len(whiteboard_severities) == 1
         whiteboard_severity = whiteboard_severities[0]
 
