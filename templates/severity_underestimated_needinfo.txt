@@ -1,0 +1,4 @@
+The severity field for this bug is relatively low, {{ extra[bugid]["severity"] }}. However, the bug has many {{ extra[bugid]["factors"] }}.
+:{{ nickname }}, could you consider increasing the severity?
+
+{{ documentation }}

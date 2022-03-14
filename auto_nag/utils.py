@@ -152,6 +152,14 @@ def plural(sword, data, pword=""):
     return sword + "s"
 
 
+def english_list(items):
+    assert len(items) > 0
+    if len(items) == 1:
+        return items[0]
+
+    return "{} and {}".format(", ".join(items[:-1]), items[-1])
+
+
 def split_long_url(url):
     if not url:
         return url
