@@ -121,7 +121,7 @@ class UnderestimatedSeverity(BzCleaner):
             "n15": 1,
             "f15": "longdesc",
             "o15": "casesubstring",
-            "v15": "could you consider increasing the severity?",
+            "v15": "could you consider increasing the bug severity?",
         }
 
         return params
