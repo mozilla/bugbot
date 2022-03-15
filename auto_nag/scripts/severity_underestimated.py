@@ -58,23 +58,24 @@ class UnderestimatedSeverity(BzCleaner):
         bugid = str(bug["id"])
         cc_count = len(bug["cc"])
         dups_count = len(bug["duplicates"])
+        votes_count = bug["votes"]
 
         data[bugid] = {
             "creation": utils.get_human_lag(bug["creation_time"]),
             "last_change": utils.get_human_lag(bug["last_change_time"]),
             "severity": bug["severity"],
             "dups_count": dups_count,
-            "votes": bug["votes"],
+            "votes": votes_count,
             "cc_count": cc_count,
         }
 
         factors = []
         if dups_count >= self.ndups:
-            factors.append("duplicates")
-        if bug["votes"] >= self.votes:
-            factors.append("votes")
+            factors.append(f"{dups_count} duplicates")
+        if votes_count >= self.votes:
+            factors.append(f"{votes_count} votes")
         if cc_count >= self.cc:
-            factors.append("CCs")
+            factors.append(f"{cc_count} CCs")
 
         self.extra_ni[bugid] = {
             "severity": bug["severity"],
