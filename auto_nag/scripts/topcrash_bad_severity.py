@@ -15,7 +15,16 @@ class TopcrashBadSeverity(BzCleaner):
     def get_bz_params(self, date):
         return {
             "resolution": ["---"],
-            "bug_severity": ["major", "normal", "minor", "trivial", "enhancement"],
+            "bug_severity": [
+                "S2",
+                "major",
+                "S3",
+                "normal",
+                "S4",
+                "minor",
+                "trivial",
+                "enhancement",
+            ],
             "keywords": "topcrash",
             "keywords_type": "allwords",
         }
