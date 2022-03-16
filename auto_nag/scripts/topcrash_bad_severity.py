@@ -16,8 +16,6 @@ class TopcrashBadSeverity(BzCleaner):
         return {
             "resolution": ["---"],
             "bug_severity": [
-                "S2",
-                "major",
                 "S3",
                 "normal",
                 "S4",
