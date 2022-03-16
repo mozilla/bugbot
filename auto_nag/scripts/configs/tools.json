@@ -1,751 +1,519 @@
 {
-    "round-robin":
-    {
-        "days_to_nag": 7,
-        "teams":
-        {
-            "necko": "necko_round_robin.json",
-            "Core::General": "core_general_round_robin.json",
-            "DOM:LWS": "dom_lws_round_robin.json",
-            "DOM:Core": "dom_core_round_robin.json",
-            "Core::Layout": "layout_round_robin.json",
-            "Media:audio": "media_audio_round_robin.json",
-            "Desktop Integrations": "desktop_installer_round_robin.json",
-            "FxPerfTest": "fxperftest_round_robin.json",
-            "Gfx": "gfx_round_robin.json",
-            "Firefox::Sync": "firefox_sync_round_robin.json"
-        }
-    },
-    "no_assignee":
-    {
-        "days_lookup": 45,
-        "reporter_exception":
-        [
-            "wptsync@mozilla.bugs"
-        ]
-    },
-    "common":
-    {
-        "database": "sqlite:///db/autonag.sqlite",
-        "cache": "cache",
-        "lock": "db/lock",
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "sylvestre@mozilla.com"
-        ],
-        "on-errors":
-        [
-            "calixte@mozilla.com",
-            "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com",
-            "smujahid@mozilla.com"
-        ],
-        "bugzilla_max_retries": 3,
-        "bot_bz_mail": ["release-mgmt-account-bot@mozilla.tld"],
-        "table_attrs": "style=\"border:1px solid black;border-collapse:collapse;\" border=\"1\"",
-        "days_lookup": 7,
-        "bz_query_timeout": 240,
-        "reverse_order": false,
-        "test": false,
-        "test_from_to":
-        {
-            "from": "calixte@mozilla.com",
-            "to": "calixte@mozilla.com"
-        },
-        "products":
-        [
-            "Core",
-            "DevTools",
-            "External Software Affecting Firefox",
-            "Fenix",
-            "Firefox",
-            "Firefox for iOS",
-            "Firefox Build System",
-            "GeckoView",
-            "JSS",
-            "NSPR",
-            "NSS",
-            "Remote Protocol",
-            "Testing",
-            "Toolkit",
-            "Web Compatibility",
-            "WebExtensions"
-        ],
-        "log": "/tmp/auto_nag_errors.log",
-        "receiver_list":
-        {
-            "rm":
-            [
-                "calixte@mozilla.com",
-                "release-mgmt@mozilla.com"
-            ]
-        }
-    },
-    "has_str_no_hasstr":
-    {
-        "products":
-        [
-            "Core",
-            "DevTools",
-            "External Software Affecting Firefox",
-            "Firefox",
-            "Toolkit",
-            "WebExtensions"
-        ]
-    },
-    "missed_uplifts":
-    {
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "release-mgmt@mozilla.com"
-        ]
-    },
-    "has_str_no_range":
-    {
-        "days_lookup": 10,
-        "products":
-        [
-            "Core",
-            "DevTools",
-            "External Software Affecting Firefox",
-            "Firefox",
-            "Toolkit",
-            "WebExtensions"
-        ]
-    },
-    "one_two_word_summary":
-    {
-        "regex_skiplist":
-        [
-            "^[rR]emove",
-            "^[cC]reate",
-            "^[iI]mplement"
-        ]
-    },
-    "regression":
-    {
-        "max_days_in_cache": 7,
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com"
-        ],
-        "days_lookup": 3,
-        "resolution_skiplist":
-        [
-            "DUPLICATE",
-            "INCOMPLETE",
-            "INVALID"
-        ],
-        "reporter_skiplist":
-        [
-            "wptsync@mozilla.bugs"
-        ],
-        "confidence_threshold": 1.0,
-        "cc":
-        [
-        ],
-        "additional_products": [
-            "Thunderbird",
-            "Calendar",
-            "Chat Core",
-            "MailNews Core"
-        ]
-    },
-    "auto_nag":
-    {
-        "no_mail_for_manager":
-        [
-        ],
-        "cc":
-        [
-            "release-mgmt@mozilla.com"
-        ],
-        "from": "release-mgmt@mozilla.com"
-    },
-    "no_crashes":
-    {
-        "number_of_weeks": 12,
-        "reporter_exception":
-        [
-            "intermittent-bug-filer@mozilla.bugs"
-        ],
-        "keyword_exception":
-        [
-            "testcase"
-        ],
-        "sec": false
-    },
-    "newbie_with_ni":
-    {
-        "number_of_days": 14,
-        "number_of_comments": 2
-    },
-    "assignee_no_login":
-    {
-        "number_of_months": 7,
-        "last_activity_months": 12,
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "mcastelluccio@mozilla.com"
-        ]
-    },
-    "not_landed":
-    {
-        "number_of_weeks": 2,
-        "number_of_years": 2
-    },
-    "ni_from_manager":
-    {
-        "white-list":
-        [
-            "aoverholt@mozilla.com"
-        ],
-        "days_lookup": 183,
-        "number_of_weeks": 1,
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com"
-        ]
-    },
-    "leave_open_no_activity":
-    {
-        "skiplist":
-        [
-            "sdeckelmann@mozilla.com"
-        ],
-        "months_lookup": 6,
-        "max_ni": 3
-    },
-    "meta_no_deps_no_activity":
-    {
-        "skiplist":
-        [
-            "sdeckelmann@mozilla.com"
-        ],
-        "months_lookup": 12,
-        "max_ni": 3
-    },
-    "meta_defect":
-    {
-        "months_lookup": 24
-    },
-    "several_dups":
-    {
-        "weeks_lookup": 3,
-        "number_dups": 3,
-        "receivers":
-        [
-            "sledru@mozilla.com",
-            "release-mgmt@mozilla.com"
-        ]
-        ,
-        "must_run": ["Mon"]
-    },
-    "lot_of_votes":
-    {
-        "weeks_lookup": 3,
-        "number_votes": 10,
-        "receivers":
-        [
-            "sledru@mozilla.com",
-            "release-mgmt@mozilla.com"
-        ],
-        "must_run": ["Mon"]
-    },
-    "lot_of_cc":
-    {
-        "weeks_lookup": 3,
-        "number_cc": 50,
-        "receivers":
-        [
-            "sledru@mozilla.com",
-            "release-mgmt@mozilla.com"
-        ],
-        "must_run": ["Mon"]
-    },
-    "closed_dupeme":
-    {
-        "days_lookup": 100
-    },
-    "stalled":
-    {
-        "days_lookup": 100
-    },
-    "copy_duplicate_info":
-    {
-        "days_lookup": 10
-    },
-    "next-release":
-    {
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com",
-            "release-mgmt@mozilla.com"
-        ]
-    },
-    "escalation":
-    {
-        "high":
-        {
-            "[20;+∞[":
-            {
-                "supervisor": "n+1",
-                "days": ["Thu"]
-            },
-            "[15;20[":
-            {
-                "supervisor": "n+2",
-                "days": ["Mon", "Thu"]
-            },
-            "[5;15[":
-            {
-                "supervisor": "director",
-                "days": ["Mon", "Thu"]
-            },
-            "[0;5[":
-            {
-                "supervisor": "director",
-                "days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
-            }
-        },
-        "normal":
-        {
-            "[15;+∞[":
-            {
-                "supervisor": "n+1",
-                "days": ["Thu"]
-            },
-            "[10;15[":
-            {
-                "supervisor": "n+2",
-                "days": ["Mon", "Thu"]
-            },
-            "[3;10[":
-            {
-                "supervisor": "director",
-                "days": ["Mon", "Thu"]
-            },
-            "[0;3[":
-            {
-                "supervisor": "director",
-                "days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
-            }
-        },
-        "default":
-        {
-            "[0;+∞[":
-            {
-                "supervisor": "n+1",
-                "days": ["Mon"]
-            }
-        }
-    },
-    "workflow":
-    {
-        "components_skiplist":
-        [
-            "Core::Widget: Gtk",
-            "Firefox::Untriaged",
-            "Core::JavaScript Engine",
-            "Core::Document Navigation",
-            "Core::XPCOM",
-            "DevTools::Accessibility Tools",
-            "Core::Performance",
-            "Core::Privacy: Anti-Tracking",
-            "Firefox::Extension Compatibility",
-            "Core::DOM: Device Interfaces",
-            "Firefox Build System::Bootstrap Configuration",
-            "Firefox Build System::General",
-            "Firefox Build System::Task Configuration",
-            "Firefox Build System::Try",
-            "Firefox Build System::Toolchains",
-            "Firefox Build System::Generated Documentation",
-            "Firefox Build System::General: Unsupported Platforms",
-            "Core::DOM: Bindings (WebIDL)",
-            "Core::MathML",
-            "Core::MFBT",
-            "WebExtensions::Developer Outreach",
-            "NSS::Tools",
-            "Core::X-remote",
-            "NSS::Build",
-            "Web Compatibility::Desktop",
-            "Web Compatibility::Interventions",
-            "Web Compatibility::Mobile",
-            "Web Compatibility::Tooling & Investigations",
-            "Fenix::Security: Android",
-            "Fenix::Stability"
-        ],
-        "supervisor_skiplist":
-        [
-            "dcamp@mozilla.com"
-        ]
-    },
-    "no_severity":
-    {
-        "max-years": 1,
-        "first-step": 2,
-        "second-step": 4,
-        "escalation-first":
-        {
-            "default":
-            {
-                "[0;+∞[":
-                {
-                    "supervisor": "self",
-                    "days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
-                }
-            }
-        },
-        "escalation-second":
-        {
-            "default":
-            {
-                "[0;+∞[":
-                {
-                    "supervisor": "n+1",
-                    "days": ["Mon", "Thu"]
-                }
-            }
-        }
-    },
-    "p3_p4_p5":
-    {
-        "months_lookup": 6
-    },
-    "p2_no_activity":
-    {
-        "months_lookup": 3,
-        "escalation":
-        {
-            "default":
-            {
-                "[0;+∞[":
-                {
-                    "supervisor": "self",
-                    "days": ["Mon"]
-                }
-            }
-        }
-    },
-    "p1_no_assignee":
-    {
-        "ndays":
-        {
-            "[20;+∞[": 7,
-            "[15;20[": 5,
-            "[5;15[": 3,
-            "[0;5[": 1
-        },
-        "escalation":
-        {
-            "high":
-            {
-                "[0;+∞[":
-                {
-                    "supervisor": "n+1",
-                    "days": ["Mon", "Thu"]
-                }
-            }
-        }
-    },
-    "p1_no_activity":
-    {
-        "ndays":
-        {
-            "[20;+∞[": 7,
-            "[15;20[": 5,
-            "[5;15[": 3,
-            "[0;5[": 1
-        },
-        "escalation":
-        {
-            "high":
-            {
-                "[15;+∞[":
-                {
-                    "supervisor": "triage_owner",
-                    "days": ["Mon"]
-                },
-                "[5;15[":
-                {
-                    "supervisor": "n+1",
-                    "days": ["Mon", "Thu"]
-                },
-                "[0;5[":
-                {
-                    "supervisor": "director",
-                    "days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
-                }
-            }
-        }
-    },
-    "component":
-    {
-        "confidence_threshold": 0.35,
-        "general_confidence_threshold": 0.8,
-        "days_lookup": 365,
-        "max_days_in_cache": 7,
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com"
-        ],
-        "cc":
-        [
-        ]
-    },
-    "code_freeze_week":
-    {
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "release-mgmt@mozilla.com"
-        ],
-        "assignee_skiplist":
-        [
-            "wptsync@mozilla.bugs"
-        ]
-    },
-    "defectenhancementtask":
-    {
-        "max_days_in_cache": 7,
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com"
-        ],
-        "days_lookup": 3,
-        "reporter_skiplist":
-        [
-            "intermittent-bug-filer@mozilla.bugs",
-            "wptsync@mozilla.bugs"
-        ],
-        "confidence_threshold": 0.9,
-        "cc":
-        [
-        ]
-    },
-    "tracking":
-    {
-        "receivers": "rm"
-    },
-    "tracking_untouched":
-    {
-        "receivers": "rm"
-    },
-    "tracked_needinfo":
-    {
-        "receivers": "rm"
-    },
-    "unlanded":
-    {
-        "receivers": "rm"
-    },
-    "warn_regressed_by":
-    {
-        "max_days_in_cache": 7,
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "release-mgmt@mozilla.com"
-        ]
-    },
-    "regression_without_regressed_by":
-    {
-        "days_lookup": 30,
-        "reporter_skiplist":
-        [
-            "intermittent-bug-filer@mozilla.bugs"
-        ],
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com"
-        ]
-    },
-    "regressed_by_no_has_regression_range":
-    {
-        "days_lookup": 30
-    },
-    "prod_comp_changed_with_priority":
-    {
-        "days_lookup": 30,
-        "skiplist":
-        [
-            "nobody@mozilla.org",
-            "bug-husbandry-bot@mozilla.bugs"
-        ],
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com"
-        ]
-    },
-    "to_triage":
-    {
-        "cc": [],
-        "max-years": 1,
-        "escalation":
-        {
-            "default":
-            {
-                "[0;+∞[":
-                {
-                    "supervisor": "fallback",
-                    "days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
-                }
-            }
-        },
-        "teams":
-        [
-            "DOM:LWS",
-            "DOM:Core",
-            "Core::General",
-            "Media:audio"
-        ],
-        "persons":
-        [
-            "jdescottes@mozilla.com"
-        ],
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "mcastelluccio@mozilla.com"
-        ]
-    },
-    "spambug":
-    {
-        "max_days_in_cache": 7,
-        "receivers":
-        [
-            "mcastelluccio@mozilla.com",
-            "sylvestre@mozilla.com",
-            "glob@mozilla.com",
-            "mhoye@mozilla.com"
-        ],
-        "days_lookup": 3,
-        "confidence_threshold": 0.95,
-        "cc":[]
-    },
-    "stepstoreproduce":
-    {
-        "max_days_in_cache": 7,
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com"
-        ],
-        "days_lookup": 3,
-        "confidence_threshold": 0.9,
-        "cc":
-        [
-            "sledru@mozilla.com",
-            "mcastelluccio@mozilla.com",
-            "cdenizet@mozilla.com"
-        ]
-    },
-    "regressor":
-    {
-        "max_days_in_cache": 7,
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com"
-        ],
-        "cc":
-        [
-            "sledru@mozilla.com",
-            "mcastelluccio@mozilla.com",
-            "cdenizet@mozilla.com"
-        ]
-    },
-    "survey_sec_bugs": {
-        "to_reach_out":
-        [
-            "continuation@gmail.com",
-            "jdemooij@mozilla.com",
-            "nical.bugzilla@gmail.com",
-            "emilio@crisal.io",
-            "jwalden@mit.edu",
-            "sphink@gmail.com",
-            "ttung@mozilla.com"
-        ],
-        "receivers":
-        [
-            "cdenizet@mozilla.com",
-            "sledru@mozilla.com",
-            "fbraun@mozilla.com",
-            "tritter@mozilla.com"
-        ]
-    },
-    "close_intermittents": {
-        "sec": false
-    },
-    "uplift_beta": {
-        "days_to_wait": 2,
-        "receivers":
-        [
-            "calixte@mozilla.com",
-            "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com",
-            "jcristau@mozilla.com"
-        ]
-    },
-    "regression_set_status_flags": {
-        "receivers":
-        [
-            "jcristau@mozilla.com"
-        ],
-        "component_exception":
-        [
-            "Testing::geckodriver"
-        ]
-    },
-    "fuzzing_bisection_without_regressed_by":
-    {
-        "receivers":
-        [
-            "mcastelluccio@mozilla.com",
-            "jkratzer@mozilla.com"
-        ],
-        "max_ni": 1
-    },
-    "good_first_bug_unassign_inactive": {
-        "months_lookup": 2,
-        "receivers":
-        [
-            "sylvestre@mozilla.com"
-        ]
-    },
-    "missed_landing_comment":
-    {
-        "receivers":
-        [
-            "shengst@mozilla.com",
-            "jcristau@mozilla.com"
-        ]
-    },
-    "leave_open_sec":
-    {
-        "receivers":
-        [
-            "release-mgmt@mozilla.com"
-        ],
-        "days_lookup": 2
+  "round-robin": {
+    "days_to_nag": 7,
+    "teams": {
+      "necko": "necko_round_robin.json",
+      "Core::General": "core_general_round_robin.json",
+      "DOM:LWS": "dom_lws_round_robin.json",
+      "DOM:Core": "dom_core_round_robin.json",
+      "Core::Layout": "layout_round_robin.json",
+      "Media:audio": "media_audio_round_robin.json",
+      "Desktop Integrations": "desktop_installer_round_robin.json",
+      "FxPerfTest": "fxperftest_round_robin.json",
+      "Gfx": "gfx_round_robin.json",
+      "Firefox::Sync": "firefox_sync_round_robin.json"
     }
+  },
+  "no_assignee": {
+    "days_lookup": 45,
+    "reporter_exception": ["wptsync@mozilla.bugs"]
+  },
+  "common": {
+    "database": "sqlite:///db/autonag.sqlite",
+    "cache": "cache",
+    "lock": "db/lock",
+    "receivers": ["calixte@mozilla.com", "sylvestre@mozilla.com"],
+    "on-errors": [
+      "calixte@mozilla.com",
+      "sylvestre@mozilla.com",
+      "mcastelluccio@mozilla.com",
+      "smujahid@mozilla.com"
+    ],
+    "bugzilla_max_retries": 3,
+    "bot_bz_mail": ["release-mgmt-account-bot@mozilla.tld"],
+    "table_attrs": "style=\"border:1px solid black;border-collapse:collapse;\" border=\"1\"",
+    "days_lookup": 7,
+    "bz_query_timeout": 240,
+    "reverse_order": false,
+    "test": false,
+    "test_from_to": {
+      "from": "calixte@mozilla.com",
+      "to": "calixte@mozilla.com"
+    },
+    "products": [
+      "Core",
+      "DevTools",
+      "External Software Affecting Firefox",
+      "Fenix",
+      "Firefox",
+      "Firefox for iOS",
+      "Firefox Build System",
+      "GeckoView",
+      "JSS",
+      "NSPR",
+      "NSS",
+      "Remote Protocol",
+      "Testing",
+      "Toolkit",
+      "Web Compatibility",
+      "WebExtensions"
+    ],
+    "log": "/tmp/auto_nag_errors.log",
+    "receiver_list": {
+      "rm": ["calixte@mozilla.com", "release-mgmt@mozilla.com"]
+    }
+  },
+  "has_str_no_hasstr": {
+    "products": [
+      "Core",
+      "DevTools",
+      "External Software Affecting Firefox",
+      "Firefox",
+      "Toolkit",
+      "WebExtensions"
+    ]
+  },
+  "missed_uplifts": {
+    "receivers": ["calixte@mozilla.com", "release-mgmt@mozilla.com"]
+  },
+  "has_str_no_range": {
+    "days_lookup": 10,
+    "products": [
+      "Core",
+      "DevTools",
+      "External Software Affecting Firefox",
+      "Firefox",
+      "Toolkit",
+      "WebExtensions"
+    ]
+  },
+  "one_two_word_summary": {
+    "regex_skiplist": ["^[rR]emove", "^[cC]reate", "^[iI]mplement"]
+  },
+  "regression": {
+    "max_days_in_cache": 7,
+    "receivers": [
+      "calixte@mozilla.com",
+      "sylvestre@mozilla.com",
+      "mcastelluccio@mozilla.com"
+    ],
+    "days_lookup": 3,
+    "resolution_skiplist": ["DUPLICATE", "INCOMPLETE", "INVALID"],
+    "reporter_skiplist": ["wptsync@mozilla.bugs"],
+    "confidence_threshold": 1.0,
+    "cc": [],
+    "additional_products": [
+      "Thunderbird",
+      "Calendar",
+      "Chat Core",
+      "MailNews Core"
+    ]
+  },
+  "auto_nag": {
+    "no_mail_for_manager": [],
+    "cc": ["release-mgmt@mozilla.com"],
+    "from": "release-mgmt@mozilla.com"
+  },
+  "no_crashes": {
+    "number_of_weeks": 12,
+    "reporter_exception": ["intermittent-bug-filer@mozilla.bugs"],
+    "keyword_exception": ["testcase"],
+    "sec": false
+  },
+  "newbie_with_ni": {
+    "number_of_days": 14,
+    "number_of_comments": 2
+  },
+  "assignee_no_login": {
+    "number_of_months": 7,
+    "last_activity_months": 12,
+    "receivers": ["calixte@mozilla.com", "mcastelluccio@mozilla.com"]
+  },
+  "not_landed": {
+    "number_of_weeks": 2,
+    "number_of_years": 2
+  },
+  "ni_from_manager": {
+    "white-list": ["aoverholt@mozilla.com"],
+    "days_lookup": 183,
+    "number_of_weeks": 1,
+    "receivers": [
+      "calixte@mozilla.com",
+      "sylvestre@mozilla.com",
+      "mcastelluccio@mozilla.com"
+    ]
+  },
+  "leave_open_no_activity": {
+    "skiplist": ["sdeckelmann@mozilla.com"],
+    "months_lookup": 6,
+    "max_ni": 3
+  },
+  "meta_no_deps_no_activity": {
+    "skiplist": ["sdeckelmann@mozilla.com"],
+    "months_lookup": 12,
+    "max_ni": 3
+  },
+  "meta_defect": {
+    "months_lookup": 24
+  },
+  "several_dups": {
+    "weeks_lookup": 3,
+    "number_dups": 3,
+    "receivers": ["sledru@mozilla.com", "release-mgmt@mozilla.com"],
+    "must_run": ["Mon"]
+  },
+  "lot_of_votes": {
+    "weeks_lookup": 3,
+    "number_votes": 10,
+    "receivers": ["sledru@mozilla.com", "release-mgmt@mozilla.com"],
+    "must_run": ["Mon"]
+  },
+  "lot_of_cc": {
+    "weeks_lookup": 3,
+    "number_cc": 50,
+    "receivers": ["sledru@mozilla.com", "release-mgmt@mozilla.com"],
+    "must_run": ["Mon"]
+  },
+  "closed_dupeme": {
+    "days_lookup": 100
+  },
+  "stalled": {
+    "days_lookup": 100
+  },
+  "copy_duplicate_info": {
+    "days_lookup": 10
+  },
+  "next-release": {
+    "receivers": [
+      "calixte@mozilla.com",
+      "sylvestre@mozilla.com",
+      "mcastelluccio@mozilla.com",
+      "release-mgmt@mozilla.com"
+    ]
+  },
+  "escalation": {
+    "high": {
+      "[20;+∞[": {
+        "supervisor": "n+1",
+        "days": ["Thu"]
+      },
+      "[15;20[": {
+        "supervisor": "n+2",
+        "days": ["Mon", "Thu"]
+      },
+      "[5;15[": {
+        "supervisor": "director",
+        "days": ["Mon", "Thu"]
+      },
+      "[0;5[": {
+        "supervisor": "director",
+        "days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
+      }
+    },
+    "normal": {
+      "[15;+∞[": {
+        "supervisor": "n+1",
+        "days": ["Thu"]
+      },
+      "[10;15[": {
+        "supervisor": "n+2",
+        "days": ["Mon", "Thu"]
+      },
+      "[3;10[": {
+        "supervisor": "director",
+        "days": ["Mon", "Thu"]
+      },
+      "[0;3[": {
+        "supervisor": "director",
+        "days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
+      }
+    },
+    "default": {
+      "[0;+∞[": {
+        "supervisor": "n+1",
+        "days": ["Mon"]
+      }
+    }
+  },
+  "workflow": {
+    "components_skiplist": [
+      "Core::Widget: Gtk",
+      "Firefox::Untriaged",
+      "Core::JavaScript Engine",
+      "Core::Document Navigation",
+      "Core::XPCOM",
+      "DevTools::Accessibility Tools",
+      "Core::Performance",
+      "Core::Privacy: Anti-Tracking",
+      "Firefox::Extension Compatibility",
+      "Core::DOM: Device Interfaces",
+      "Firefox Build System::Bootstrap Configuration",
+      "Firefox Build System::General",
+      "Firefox Build System::Task Configuration",
+      "Firefox Build System::Try",
+      "Firefox Build System::Toolchains",
+      "Firefox Build System::Generated Documentation",
+      "Firefox Build System::General: Unsupported Platforms",
+      "Core::DOM: Bindings (WebIDL)",
+      "Core::MathML",
+      "Core::MFBT",
+      "WebExtensions::Developer Outreach",
+      "NSS::Tools",
+      "Core::X-remote",
+      "NSS::Build",
+      "Web Compatibility::Desktop",
+      "Web Compatibility::Interventions",
+      "Web Compatibility::Mobile",
+      "Web Compatibility::Tooling & Investigations",
+      "Fenix::Security: Android",
+      "Fenix::Stability"
+    ],
+    "supervisor_skiplist": ["dcamp@mozilla.com"]
+  },
+  "no_severity": {
+    "max-years": 1,
+    "first-step": 2,
+    "second-step": 4,
+    "escalation-first": {
+      "default": {
+        "[0;+∞[": {
+          "supervisor": "self",
+          "days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
+        }
+      }
+    },
+    "escalation-second": {
+      "default": {
+        "[0;+∞[": {
+          "supervisor": "n+1",
+          "days": ["Mon", "Thu"]
+        }
+      }
+    }
+  },
+  "p3_p4_p5": {
+    "months_lookup": 6
+  },
+  "p2_no_activity": {
+    "months_lookup": 3,
+    "escalation": {
+      "default": {
+        "[0;+∞[": {
+          "supervisor": "self",
+          "days": ["Mon"]
+        }
+      }
+    }
+  },
+  "p1_no_assignee": {
+    "ndays": {
+      "[20;+∞[": 7,
+      "[15;20[": 5,
+      "[5;15[": 3,
+      "[0;5[": 1
+    },
+    "escalation": {
+      "high": {
+        "[0;+∞[": {
+          "supervisor": "n+1",
+          "days": ["Mon", "Thu"]
+        }
+      }
+    }
+  },
+  "p1_no_activity": {
+    "ndays": {
+      "[20;+∞[": 7,
+      "[15;20[": 5,
+      "[5;15[": 3,
+      "[0;5[": 1
+    },
+    "escalation": {
+      "high": {
+        "[15;+∞[": {
+          "supervisor": "triage_owner",
+          "days": ["Mon"]
+        },
+        "[5;15[": {
+          "supervisor": "n+1",
+          "days": ["Mon", "Thu"]
+        },
+        "[0;5[": {
+          "supervisor": "director",
+          "days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
+        }
+      }
+    }
+  },
+  "component": {
+    "confidence_threshold": 0.35,
+    "general_confidence_threshold": 0.8,
+    "days_lookup": 365,
+    "max_days_in_cache": 7,
+    "receivers": [
+      "calixte@mozilla.com",
+      "sylvestre@mozilla.com",
+      "mcastelluccio@mozilla.com"
+    ],
+    "cc": []
+  },
+  "code_freeze_week": {
+    "receivers": ["calixte@mozilla.com", "release-mgmt@mozilla.com"],
+    "assignee_skiplist": ["wptsync@mozilla.bugs"]
+  },
+  "defectenhancementtask": {
+    "max_days_in_cache": 7,
+    "receivers": [
+      "calixte@mozilla.com",
+      "sylvestre@mozilla.com",
+      "mcastelluccio@mozilla.com"
+    ],
+    "days_lookup": 3,
+    "reporter_skiplist": [
+      "intermittent-bug-filer@mozilla.bugs",
+      "wptsync@mozilla.bugs"
+    ],
+    "confidence_threshold": 0.9,
+    "cc": []
+  },
+  "tracking": {
+    "receivers": "rm"
+  },
+  "tracking_untouched": {
+    "receivers": "rm"
+  },
+  "tracked_needinfo": {
+    "receivers": "rm"
+  },
+  "unlanded": {
+    "receivers": "rm"
+  },
+  "warn_regressed_by": {
+    "max_days_in_cache": 7,
+    "receivers": ["calixte@mozilla.com", "release-mgmt@mozilla.com"]
+  },
+  "regression_without_regressed_by": {
+    "days_lookup": 30,
+    "reporter_skiplist": ["intermittent-bug-filer@mozilla.bugs"],
+    "receivers": [
+      "calixte@mozilla.com",
+      "sylvestre@mozilla.com",
+      "mcastelluccio@mozilla.com"
+    ]
+  },
+  "regressed_by_no_has_regression_range": {
+    "days_lookup": 30
+  },
+  "prod_comp_changed_with_priority": {
+    "days_lookup": 30,
+    "skiplist": ["nobody@mozilla.org", "bug-husbandry-bot@mozilla.bugs"],
+    "receivers": [
+      "calixte@mozilla.com",
+      "sylvestre@mozilla.com",
+      "mcastelluccio@mozilla.com"
+    ]
+  },
+  "to_triage": {
+    "cc": [],
+    "max-years": 1,
+    "escalation": {
+      "default": {
+        "[0;+∞[": {
+          "supervisor": "fallback",
+          "days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
+        }
+      }
+    },
+    "teams": ["DOM:LWS", "DOM:Core", "Core::General", "Media:audio"],
+    "persons": ["jdescottes@mozilla.com"],
+    "receivers": ["calixte@mozilla.com", "mcastelluccio@mozilla.com"]
+  },
+  "spambug": {
+    "max_days_in_cache": 7,
+    "receivers": [
+      "mcastelluccio@mozilla.com",
+      "sylvestre@mozilla.com",
+      "glob@mozilla.com",
+      "mhoye@mozilla.com"
+    ],
+    "days_lookup": 3,
+    "confidence_threshold": 0.95,
+    "cc": []
+  },
+  "stepstoreproduce": {
+    "max_days_in_cache": 7,
+    "receivers": [
+      "calixte@mozilla.com",
+      "sylvestre@mozilla.com",
+      "mcastelluccio@mozilla.com"
+    ],
+    "days_lookup": 3,
+    "confidence_threshold": 0.9,
+    "cc": [
+      "sledru@mozilla.com",
+      "mcastelluccio@mozilla.com",
+      "cdenizet@mozilla.com"
+    ]
+  },
+  "regressor": {
+    "max_days_in_cache": 7,
+    "receivers": [
+      "calixte@mozilla.com",
+      "sylvestre@mozilla.com",
+      "mcastelluccio@mozilla.com"
+    ],
+    "cc": [
+      "sledru@mozilla.com",
+      "mcastelluccio@mozilla.com",
+      "cdenizet@mozilla.com"
+    ]
+  },
+  "survey_sec_bugs": {
+    "to_reach_out": [
+      "continuation@gmail.com",
+      "jdemooij@mozilla.com",
+      "nical.bugzilla@gmail.com",
+      "emilio@crisal.io",
+      "jwalden@mit.edu",
+      "sphink@gmail.com",
+      "ttung@mozilla.com"
+    ],
+    "receivers": [
+      "cdenizet@mozilla.com",
+      "sledru@mozilla.com",
+      "fbraun@mozilla.com",
+      "tritter@mozilla.com"
+    ]
+  },
+  "close_intermittents": {
+    "sec": false
+  },
+  "uplift_beta": {
+    "days_to_wait": 2,
+    "receivers": [
+      "calixte@mozilla.com",
+      "sylvestre@mozilla.com",
+      "mcastelluccio@mozilla.com",
+      "jcristau@mozilla.com"
+    ]
+  },
+  "regression_set_status_flags": {
+    "receivers": ["jcristau@mozilla.com"],
+    "component_exception": ["Testing::geckodriver"]
+  },
+  "fuzzing_bisection_without_regressed_by": {
+    "receivers": ["mcastelluccio@mozilla.com", "jkratzer@mozilla.com"],
+    "max_ni": 1
+  },
+  "good_first_bug_unassign_inactive": {
+    "months_lookup": 2,
+    "receivers": ["sylvestre@mozilla.com"]
+  },
+  "missed_landing_comment": {
+    "receivers": ["shengst@mozilla.com", "jcristau@mozilla.com"]
+  },
+  "leave_open_sec": {
+    "receivers": ["release-mgmt@mozilla.com"],
+    "days_lookup": 2
+  }
 }
