@@ -26,9 +26,9 @@ tasks:
       then: ${event.pull_request.head.repo.html_url}
       else: ${event.repository.html_url}
   in:
-    - taskId: {$eval: as_slugid("tests_task")}
-      created: {$fromNow: ''}
-      deadline: {$fromNow: '1 hour'}
+    - taskId: { $eval: as_slugid("tests_task") }
+      created: { $fromNow: "" }
+      deadline: { $fromNow: "1 hour" }
       provisionerId: proj-relman
       workerType: ci
       payload:
@@ -41,12 +41,12 @@ tasks:
           - "/bin/bash"
           - "-lcx"
           - "git clone --quiet ${repository} &&
-               cd relman-auto-nag &&
-               git -c advice.detachedHead=false checkout ${head_rev} &&
-               pip install --quiet -r requirements-test.txt &&
-               pre-commit run --all-files --show-diff-on-failure &&
-               tox -e $TOX_ENV &&
-               coveralls"
+            cd relman-auto-nag &&
+            git -c advice.detachedHead=false checkout ${head_rev} &&
+            pip install --quiet -r requirements-test.txt &&
+            pre-commit run --all-files --show-diff-on-failure &&
+            tox -e $TOX_ENV &&
+            coveralls"
       metadata:
         name: relman-auto-nag tests
         description: relman-auto-nag tests
