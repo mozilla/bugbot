@@ -99,6 +99,7 @@ class UnderestimatedSeverity(BzCleaner):
         params = {
             "include_fields": fields,
             "resolution": "---",
+            "bug_type": "defect",
             "bug_severity": ["S3", "S4"],
             "f1": "keywords",
             "o1": "nowords",
