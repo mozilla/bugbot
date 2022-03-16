@@ -1,2 +1,3 @@
 The leave-open keyword is there and there is no activity for {{ extra['nmonths'] }} {{ plural('month', extra['nmonths']) }}.
 :{{ nickname }}, maybe it's time to close this bug?
+{{ documentation }}

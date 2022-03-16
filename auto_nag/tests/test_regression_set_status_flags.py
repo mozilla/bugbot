@@ -32,6 +32,8 @@ def mock_get_bugs(self, *args, **kwargs):
         },
         "2222": {
             "id": 2222,
+            "cf_status_firefox_esr2": "---",
+            "cf_status_firefox_esr3": "---",
             "cf_status_firefox2": "---",
             "cf_status_firefox3": "---",
             "cf_status_firefox4": "---",
@@ -93,9 +95,8 @@ class TestSetStatusFlags(unittest.TestCase):
     def test_status_changes(self):
         r = RegressionSetStatusFlags()
         bugs = r.get_bugs()
-        # 2222 is left unchanged because it regressed too long ago
-        self.assertEqual(sorted(bugs), ["1111", "3333"])
-        self.assertEqual(list(r.status_changes), ["1111", "3333"])
+        self.assertEqual(sorted(bugs), ["1111", "2222", "3333"])
+        self.assertEqual(list(r.status_changes), ["1111", "2222", "3333"])
         self.assertEqual(
             sorted(r.status_changes["1111"]),
             [

@@ -1,11 +1,14 @@
 {
   "fallback": "Jens Stutte",
   "components": {
+    "Core::DOM: Content Processes": "default",
     "Core::DOM: File": "default",
+    "Core::DOM: postMessage": "default",
     "Core::DOM: Push Notifications": "default",
     "Core::DOM: Service Workers": "default",
-    "Core::DOM: Workers": "default",
     "Core::DOM: Web Payments": "default",
+    "Core::DOM: Workers": "default",
+    "Core::Spelling checker": "default",
     "Core::Storage: Cache API": "default",
     "Core::Storage: IndexedDB": "default",
     "Core::Storage: localStorage & sessionStorage": "default",
@@ -13,6 +16,6 @@
     "Core::Storage: StorageManager": "default"
   },
   "default": {
-    "calendar": "private://DOM:Workers&Storage"
+    "calendar": "private://DOM:LWS"
   }
 }

@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from auto_nag import utils
+from auto_nag import logger, utils
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.nag_me import Nag
 
@@ -14,9 +14,17 @@ class NiFromManager(BzCleaner, Nag):
         self.vip = self.get_people().get_rm_or_directors()
         self.white_list = utils.get_config(self.name(), "white-list", [])
         self.black_list = utils.get_config(self.name(), "black-list", [])
+        self.init_versions()
+        self.status_flags = (
+            utils.get_flag(self.versions["central"], "status", "central"),
+            utils.get_flag(self.versions["beta"], "status", "beta"),
+            utils.get_flag(self.versions["release"], "status", "release"),
+            utils.get_flag(self.versions["esr_previous"], "status", "esr"),
+            utils.get_flag(self.versions["esr"], "status", "esr"),
+        )
 
     def description(self):
-        return "Bugs with a ni from a director or a release manager without activity for the last {} {}".format(
+        return "Bugs with a ni on a bug marked as affecting a released version without activity for the last {} {}".format(
             self.nweeks, utils.plural("week", self.nweeks)
         )
 
@@ -46,19 +54,29 @@ class NiFromManager(BzCleaner, Nag):
         if not self.filter_bug(priority):
             return None
 
+        for flag in self.status_flags:
+            if flag not in bug:
+                logger.warning(f"Bug {bug['id']} doesn't have flag {flag}")
+                return None
+
+        any_affected = any(bug[flag] == "affected" for flag in self.status_flags)
+
         has_manager = False
         accepted = False
         for flag in bug["flags"]:
             if (
                 flag.get("name", "") == "needinfo"
                 and flag["status"] == "?"
-                and flag["setter"] in self.vip
+                and (flag["setter"] in self.vip or any_affected)
             ):
                 requestee = flag["requestee"]
                 if self.is_under(requestee):
                     accepted = True
                     buginfo["to"] = requestee
-                    buginfo["from"] = self.get_people().get_moz_name(flag["setter"])
+                    moz_name = self.get_people().get_moz_name(flag["setter"])
+                    buginfo["from"] = (
+                        moz_name if moz_name is not None else flag["setter"]
+                    )
                     if self.add(requestee, buginfo):
                         has_manager = True
 
@@ -68,8 +86,7 @@ class NiFromManager(BzCleaner, Nag):
         return bug if accepted else None
 
     def get_bz_params(self, date):
-        start_date, _ = self.get_dates(date)
-        fields = ["flags"]
+        fields = ["flags", "_custom"]
         params = {
             "include_fields": fields,
             "resolution": "---",
@@ -79,13 +96,26 @@ class NiFromManager(BzCleaner, Nag):
             "f2": "flagtypes.name",
             "o2": "casesubstring",
             "v2": "needinfo?",
-            "f3": "setters.login_name",
-            "o3": "anyexact",
-            # there are not so much vip so the query shouldn't be too big
-            "v3": ",".join(self.vip),
-            "f4": "creation_ts",
-            "o4": "greaterthan",
-            "v4": start_date,
+            # Either needinfo from a release manager...
+            "f3": "OP",
+            "j3": "OR",
+            "f4": "setters.login_name",
+            "o4": "anyexact",
+            "v4": ",".join(self.vip),
+            # ...or needinfo from anyone on a bug still tracked by a release manager.
+            "f5": "cf_status_firefox_release",
+            "o5": "equals",
+            "v5": "affected",
+            "f6": "cf_status_firefox_beta",
+            "o6": "equals",
+            "v6": "affected",
+            "f7": "cf_status_firefox_nightly",
+            "o7": "equals",
+            "v7": "affected",
+            "f8": "cf_status_firefox_esr",
+            "o8": "equals",
+            "v8": "affected",
+            "f9": "CP",
         }
 
         return params

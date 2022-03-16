@@ -11,7 +11,7 @@ from libmozdata.bugzilla import BugzillaUser
 
 from auto_nag import logger, utils
 from auto_nag.people import People
-from auto_nag.round_robin_calendar import Calendar
+from auto_nag.round_robin_calendar import BadFallback, Calendar, InvalidCalendar
 
 
 class RoundRobin(object):
@@ -67,16 +67,25 @@ class RoundRobin(object):
         # - components -> dictionary: Product::Component -> strategy name
         # - strategies: dictionary: {calendar: url}
 
+        to_remove = []
+
         # Get all the strategies for each team
         for team, data in rr.items():
-            calendars = self.get_calendar(team, data)
-            self.all_calendars += list(calendars.values())
+            try:
+                calendars = self.get_calendar(team, data)
+                self.all_calendars += list(calendars.values())
 
-            # finally self.data is a dictionary:
-            # - Product::Component -> dictionary {fallback: who to nag when we've nobody
-            #                                     calendar}
-            for pc, strategy in data["components"].items():
-                self.data[pc] = calendars[strategy]
+                # finally self.data is a dictionary:
+                # - Product::Component -> dictionary {fallback: who to nag when we've nobody
+                #                                     calendar}
+                for pc, strategy in data["components"].items():
+                    self.data[pc] = calendars[strategy]
+            except (BadFallback, InvalidCalendar) as err:
+                logger.error(err)
+                to_remove.append(team)
+
+        for team in to_remove:
+            del rr[team]
 
     def get_components(self):
         return list(self.data.keys())

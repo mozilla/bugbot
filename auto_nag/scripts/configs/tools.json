@@ -6,11 +6,11 @@
         {
             "necko": "necko_round_robin.json",
             "Core::General": "core_general_round_robin.json",
-            "DOM:Workers & Storage": "dom_workers_storage_round_robin.json",
+            "DOM:LWS": "dom_lws_round_robin.json",
+            "DOM:Core": "dom_core_round_robin.json",
             "Core::Layout": "layout_round_robin.json",
-            "DOM:Navigation & Windows and Location": "dom_navigation_round_robin.json",
             "Media:audio": "media_audio_round_robin.json",
-            "Install-Update Triage Calendar": "desktop_installer_round_robin.json",
+            "Desktop Integrations": "desktop_installer_round_robin.json",
             "FxPerfTest": "fxperftest_round_robin.json",
             "Gfx": "gfx_round_robin.json",
             "Firefox::Sync": "firefox_sync_round_robin.json"
@@ -38,7 +38,8 @@
         [
             "calixte@mozilla.com",
             "sylvestre@mozilla.com",
-            "mcastelluccio@mozilla.com"
+            "mcastelluccio@mozilla.com",
+            "smujahid@mozilla.com"
         ],
         "bugzilla_max_retries": 3,
         "bot_bz_mail": ["release-mgmt-account-bot@mozilla.tld"],
@@ -57,15 +58,18 @@
             "Core",
             "DevTools",
             "External Software Affecting Firefox",
+            "Fenix",
             "Firefox",
-            "Firefox for Android",
             "Firefox for iOS",
             "Firefox Build System",
+            "GeckoView",
+            "JSS",
             "NSPR",
             "NSS",
             "Remote Protocol",
             "Testing",
             "Toolkit",
+            "Web Compatibility",
             "WebExtensions"
         ],
         "log": "/tmp/auto_nag_errors.log",
@@ -143,6 +147,12 @@
         "confidence_threshold": 1.0,
         "cc":
         [
+        ],
+        "additional_products": [
+            "Thunderbird",
+            "Calendar",
+            "Chat Core",
+            "MailNews Core"
         ]
     },
     "auto_nag":
@@ -176,7 +186,13 @@
     },
     "assignee_no_login":
     {
-        "number_of_months": 12
+        "number_of_months": 7,
+        "last_activity_months": 12,
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "mcastelluccio@mozilla.com"
+        ]
     },
     "not_landed":
     {
@@ -190,7 +206,13 @@
             "aoverholt@mozilla.com"
         ],
         "days_lookup": 183,
-        "number_of_weeks": 1
+        "number_of_weeks": 1,
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "sylvestre@mozilla.com",
+            "mcastelluccio@mozilla.com"
+        ]
     },
     "leave_open_no_activity":
     {
@@ -214,6 +236,40 @@
     {
         "months_lookup": 24
     },
+    "several_dups":
+    {
+        "weeks_lookup": 3,
+        "number_dups": 3,
+        "receivers":
+        [
+            "sledru@mozilla.com",
+            "release-mgmt@mozilla.com"
+        ]
+        ,
+        "must_run": ["Mon"]
+    },
+    "lot_of_votes":
+    {
+        "weeks_lookup": 3,
+        "number_votes": 10,
+        "receivers":
+        [
+            "sledru@mozilla.com",
+            "release-mgmt@mozilla.com"
+        ],
+        "must_run": ["Mon"]
+    },
+    "lot_of_cc":
+    {
+        "weeks_lookup": 3,
+        "number_cc": 50,
+        "receivers":
+        [
+            "sledru@mozilla.com",
+            "release-mgmt@mozilla.com"
+        ],
+        "must_run": ["Mon"]
+    },
     "closed_dupeme":
     {
         "days_lookup": 100
@@ -232,6 +288,7 @@
         [
             "calixte@mozilla.com",
             "sylvestre@mozilla.com",
+            "mcastelluccio@mozilla.com",
             "release-mgmt@mozilla.com"
         ]
     },
@@ -298,31 +355,34 @@
         [
             "Core::Widget: Gtk",
             "Firefox::Untriaged",
-            "Firefox Build System::General",
             "Core::JavaScript Engine",
             "Core::Document Navigation",
-            "Core::DOM: Core & HTML",
             "Core::XPCOM",
             "DevTools::Accessibility Tools",
             "Core::Performance",
-            "Firefox Build System::Bootstrap Configuration",
             "Core::Privacy: Anti-Tracking",
             "Firefox::Extension Compatibility",
             "Core::DOM: Device Interfaces",
+            "Firefox Build System::Bootstrap Configuration",
+            "Firefox Build System::General",
             "Firefox Build System::Task Configuration",
             "Firefox Build System::Try",
             "Firefox Build System::Toolchains",
-            "Core::DOM: Bindings (WebIDL)",
             "Firefox Build System::Generated Documentation",
+            "Firefox Build System::General: Unsupported Platforms",
+            "Core::DOM: Bindings (WebIDL)",
             "Core::MathML",
             "Core::MFBT",
-            "Firefox Build System::General: Unsupported Platforms",
             "WebExtensions::Developer Outreach",
             "NSS::Tools",
             "Core::X-remote",
             "NSS::Build",
-            "Firefox for Android::General",
-            "Firefox for Android::Web Apps"
+            "Web Compatibility::Desktop",
+            "Web Compatibility::Interventions",
+            "Web Compatibility::Mobile",
+            "Web Compatibility::Tooling & Investigations",
+            "Fenix::Security: Android",
+            "Fenix::Stability"
         ],
         "supervisor_skiplist":
         [
@@ -484,14 +544,6 @@
     {
         "receivers": "rm"
     },
-    "tracking":
-    {
-        "receivers": "rm"
-    },
-    "tracking_untouched":
-    {
-        "receivers": "rm"
-    },
     "tracked_needinfo":
     {
         "receivers": "rm"
@@ -522,6 +574,10 @@
             "sylvestre@mozilla.com",
             "mcastelluccio@mozilla.com"
         ]
+    },
+    "regressed_by_no_has_regression_range":
+    {
+        "days_lookup": 30
     },
     "prod_comp_changed_with_priority":
     {
@@ -555,13 +611,19 @@
         },
         "teams":
         [
-            "DOM:Workers & Storage",
+            "DOM:LWS",
+            "DOM:Core",
             "Core::General",
             "Media:audio"
         ],
         "persons":
         [
             "jdescottes@mozilla.com"
+        ],
+        "receivers":
+        [
+            "calixte@mozilla.com",
+            "mcastelluccio@mozilla.com"
         ]
     },
     "spambug":
@@ -648,6 +710,10 @@
         "receivers":
         [
             "jcristau@mozilla.com"
+        ],
+        "component_exception":
+        [
+            "Testing::geckodriver"
         ]
     },
     "fuzzing_bisection_without_regressed_by":

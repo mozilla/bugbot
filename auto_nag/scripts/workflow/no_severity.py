@@ -34,11 +34,11 @@ class NoSeverity(BzCleaner, Nag):
 
     def nag_preamble(self):
         return """<p>
-  <b>You're getting this email because some bugs for which you're the triage owner or the triage owner deputy have no severity set.</b>
   <ul>
     <li><a href="https://firefox-source-docs.mozilla.org/bug-mgmt/policies/triage-bugzilla.html#why-triage">Why triage?</a></li>
     <li><a href="https://firefox-source-docs.mozilla.org/bug-mgmt/policies/triage-bugzilla.html#what-do-you-triage">What do you triage?</a></li>
     <li><a href="https://firefox-source-docs.mozilla.org/bug-mgmt/guides/priority.html">Priority definitions</a></li>
+    <li><a href="https://firefox-source-docs.mozilla.org/bug-mgmt/guides/severity.html">Severty definitions</a></li>
   </ul>
 </p>"""
 

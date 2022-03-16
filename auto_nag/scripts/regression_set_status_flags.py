@@ -12,16 +12,12 @@ class RegressionSetStatusFlags(BzCleaner):
     def __init__(self):
         super().__init__()
         self.init_versions()
-        self.status_central = utils.get_flag(
-            self.versions["central"], "status", "central"
-        )
-        self.status_beta = utils.get_flag(self.versions["beta"], "status", "beta")
-        self.status_release = utils.get_flag(
-            self.versions["release"], "status", "release"
-        )
         self.status_esr = utils.get_flag(self.versions["esr_previous"], "status", "esr")
         self.status_esr_next = utils.get_flag(self.versions["esr"], "status", "esr")
         self.status_changes = {}
+        self.component_exception = set(
+            utils.get_config(self.name(), "component_exception")
+        )
 
     def description(self):
         return "Set release status flags based on info from the regressing bug"
@@ -29,29 +25,26 @@ class RegressionSetStatusFlags(BzCleaner):
     def get_bz_params(self, date):
         # XXX should perhaps look further back than one week, e.g. a month?
         start_date, _ = self.get_dates(date)
-        fields = [
-            "regressed_by",
-            self.status_central,
-            self.status_beta,
-            self.status_release,
-            self.status_esr,
-        ]
-        if self.status_esr_next != self.status_esr:
-            fields.append(self.status_esr_next)
+
+        # Find all bugs with regressed_by information which were open after start_date or
+        # whose regressed_by field was set after start_date.
 
         return {
-            "include_fields": fields,
-            "f1": "creation_ts",
-            "o1": "greaterthan",
-            "v1": start_date,
-            "f2": "regressed_by",
-            "o2": "isnotempty",
-            "f3": "cf_status_firefox_release",
-            "o3": "nowords",
-            "v3": "fixed,verified",
-            "f4": "cf_status_firefox_beta",
-            "o4": "equals",
-            "v4": "---",
+            "include_fields": ["regressed_by", "_custom", "product", "component"],
+            "f1": "OP",
+            "j1": "OR",
+            "f2": "creation_ts",
+            "o2": "greaterthan",
+            "v2": start_date,
+            "f3": "regressed_by",
+            "o3": "changedafter",
+            "v3": start_date,
+            "f4": "CP",
+            "f5": "regressed_by",
+            "o5": "isnotempty",
+            "f6": "cf_status_firefox_release",
+            "o6": "nowords",
+            "v6": "fixed,verified",
             "resolution": ["---", "FIXED"],
         }
 
@@ -61,6 +54,10 @@ class RegressionSetStatusFlags(BzCleaner):
         return [f"esr{self.versions['esr_previous']}", f"esr{self.versions['esr']}"]
 
     def handle_bug(self, bug, data):
+        pc = f"{bug['product']}::{bug['component']}"
+        if pc in self.component_exception:
+            return
+
         bugid = bug["id"]
         if len(bug["regressed_by"]) != 1:
             # either we don't have access to the regressor, or there's more than one, either way leave things alone
@@ -103,9 +100,24 @@ class RegressionSetStatusFlags(BzCleaner):
                 # shouldn't happen: esrXX sorts after YY
                 continue
             regressed_version = int(regression_versions[0][len("cf_status_firefox") :])
-            if regressed_version < int(self.versions["release"]):
-                # old regression, leave it alone
+
+            fixed_versions = sorted(
+                v
+                for v in info
+                if v.startswith("cf_status_firefox")
+                and info[v] in ("fixed", "verified")
+            )
+            if len(fixed_versions) > 0 and fixed_versions[0].startswith(
+                "cf_status_firefox_esr"
+            ):
+                # shouldn't happen: esrXX sorts after YY
                 continue
+            fixed_version = (
+                int(fixed_versions[0][len("cf_status_firefox") :])
+                if len(fixed_versions) > 0
+                else None
+            )
+
             self.status_changes[bugid] = {}
             for channel in ("release", "beta", "central"):
                 v = int(self.versions[channel])
@@ -114,6 +126,9 @@ class RegressionSetStatusFlags(BzCleaner):
                 if info[flag] != "---":
                     # XXX maybe check for consistency?
                     continue
+                if fixed_version is not None and v >= fixed_version:
+                    # Bug was fixed in an earlier version, don't set the flag
+                    continue
                 if v >= regressed_version:
                     self.status_changes[bugid][flag] = "affected"
                     info[channel] = "affected"
@@ -121,6 +136,7 @@ class RegressionSetStatusFlags(BzCleaner):
                     self.status_changes[bugid][flag] = "unaffected"
                     info[channel] = "unaffected"
                 filtered_bugs[bugid] = info
+
             esr_versions = set([self.versions["esr"], self.versions["esr_previous"]])
             for v in esr_versions:
                 info.setdefault("esr", {})
@@ -128,6 +144,9 @@ class RegressionSetStatusFlags(BzCleaner):
                 info["esr"][f"esr{v}"] = info[flag]
                 if info[flag] != "---":
                     # XXX maybe check for consistency?
+                    continue
+                if fixed_version is not None and int(v) >= fixed_version:
+                    # Bug was fixed in an earlier version, don't set the flag
                     continue
                 if data[regressor].get(flag) in ("fixed", "verified"):
                     # regressor was uplifted, so the regression affects this branch
@@ -151,6 +170,7 @@ class RegressionSetStatusFlags(BzCleaner):
                 # regressed_by field is not public in that case)
                 "is_private": bool(data[regressor].get("groups")),
             }
+
         return filtered_bugs
 
     def get_bugs(self, *args, **kwargs):

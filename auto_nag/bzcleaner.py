@@ -88,7 +88,15 @@ class BzCleaner(object):
 
     def must_run(self, date):
         """Check if the tool must run for this date"""
-        return True
+        days = self.get_config("must_run", None)
+        if not days:
+            return True
+        weekday = date.weekday()
+        week = utils.get_weekdays()
+        for day in days:
+            if week[day] == weekday:
+                return True
+        return False
 
     def has_enough_data(self):
         """Check if the tool has enough data to run"""
@@ -323,7 +331,9 @@ class BzCleaner(object):
             )
 
         if self.has_default_products():
-            params["product"] = self.get_config("products")
+            params["product"] = self.get_config("products") + self.get_config(
+                "additional_products", []
+            )
 
         if not self.has_access_to_sec_bugs():
             n = utils.get_last_field_num(params)
@@ -552,7 +562,9 @@ class BzCleaner(object):
                 preamble=self.preamble(),
             )
             common = env.get_template("common.html")
-            body = common.render(message=message, query_url=self.query_url)
+            body = common.render(
+                message=message, query_url=utils.split_long_url(self.query_url)
+            )
             return self.get_email_subject(date), body
         return None, None
 
