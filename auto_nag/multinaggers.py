@@ -32,7 +32,6 @@ class MultiNaggers(object):
         """Get the argumends from the command line"""
         parser = argparse.ArgumentParser(description=self.description())
         parser.add_argument(
-            "-p",
             "--production",
             dest="dryrun",
             action="store_false",

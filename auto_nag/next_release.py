@@ -75,7 +75,6 @@ def check_dates(dryrun=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Check if next release date is ok")
     parser.add_argument(
-        "-p",
         "--production",
         dest="dryrun",
         action="store_false",
