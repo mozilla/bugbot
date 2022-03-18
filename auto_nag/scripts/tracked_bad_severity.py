@@ -22,7 +22,7 @@ class TrackedBadSeverity(BzCleaner):
         # TODO add support for ESR here?
         value = ",".join(["affected", "fixed"])
         params = {
-            "bug_severity": ["normal", "minor", "trivial", "enhancement"],
+            "bug_severity": ["S3", "normal", "S4", "minor", "trivial", "enhancement"],
             "f1": "OP",
             "j1": "OR",
             "f2": "OP",
@@ -57,9 +57,9 @@ class TrackedBadSeverity(BzCleaner):
     def get_autofix_change(self):
         return {
             "comment": {
-                "body": f"This bug is tracked by a release manager but with a small severity so change it to major.\n{self.get_documentation()}"
+                "body": f"This bug is tracked by a release manager but with a low severity so change it to S2.\n{self.get_documentation()}"
             },
-            "severity": "major",
+            "severity": "S2",
         }
 
 

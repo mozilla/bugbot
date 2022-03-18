@@ -304,10 +304,9 @@ class History(object):
                                 }
                             )
                             break
-                        elif (
-                            change.get("field_name") == "severity"
-                            and change.get("added") == "major"
-                        ):
+                        elif change.get("field_name") == "severity" and change.get(
+                            "added"
+                        ) in ["major", "S2"]:
                             res.append(
                                 {
                                     "tool": "tracked_bad_severity",
