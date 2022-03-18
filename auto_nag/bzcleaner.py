@@ -623,11 +623,10 @@ class BzCleaner(object):
         """Get the argumends from the command line"""
         parser = argparse.ArgumentParser(description=self.description())
         parser.add_argument(
-            "-d",
-            "--dryrun",
+            "--production",
             dest="dryrun",
-            action="store_true",
-            help="Just do the query, and print emails to console without emailing anyone",
+            action="store_false",
+            help="If the flag is not passed, just do the query, and print emails to console without emailing anyone",
         )
 
         if not self.ignore_date():
