@@ -75,11 +75,10 @@ def check_dates(dryrun=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Check if next release date is ok")
     parser.add_argument(
-        "-d",
-        "--dryrun",
+        "--production",
         dest="dryrun",
-        action="store_true",
-        help="Just do the query, and print emails to console without emailing anyone",
+        action="store_false",
+        help="If the flag is not passed, just do the query, and print emails to console without emailing anyone",
     )
     args = parser.parse_args()
     try:

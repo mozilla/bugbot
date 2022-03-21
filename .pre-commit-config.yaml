@@ -4,15 +4,15 @@ repos:
     hooks:
       - id: seed-isort-config
   - repo: https://github.com/timothycrosley/isort
-    rev: 5.7.0
+    rev: 5.10.1
     hooks:
       - id: isort
   - repo: https://github.com/ambv/black
-    rev: stable
+    rev: 22.1.0
     hooks:
       - id: black
   - repo: https://gitlab.com/pycqa/flake8
-    rev: 3.8.4
+    rev: 3.9.2
     hooks:
       - id: flake8
         additional_dependencies:
@@ -23,7 +23,7 @@ repos:
             "flake8-mypy==17.8.0",
           ]
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.4.0
+    rev: v4.1.0
     hooks:
       - id: check-ast
       - id: check-docstring-first
@@ -40,17 +40,17 @@ repos:
       - id: requirements-txt-fixer
       - id: check-vcs-permalinks
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.0.0
+    rev: v2.1.0
     hooks:
       - id: codespell
         entry: codespell -L IAM,iam
         exclude: "\\.ics$"
   - repo: https://github.com/marco-c/taskcluster_yml_validator
-    rev: v0.0.7
+    rev: v0.0.9
     hooks:
       - id: taskcluster_yml
   - repo: https://github.com/asottile/yesqa
-    rev: v1.2.2
+    rev: v1.3.0
     hooks:
       - id: yesqa
   - repo: meta

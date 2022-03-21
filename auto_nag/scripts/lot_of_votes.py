@@ -6,15 +6,14 @@ from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 
 
-class MetaDefect(BzCleaner):
+class SeveralVotes(BzCleaner):
     def __init__(self):
-        super(MetaDefect, self).__init__()
-        self.nmonths = utils.get_config(self.name(), "months_lookup")
+        super(SeveralVotes, self).__init__()
+        self.nweeks = utils.get_config(self.name(), "weeks_lookup")
+        self.votes = utils.get_config(self.name(), "number_votes")
 
     def description(self):
-        return 'Defect with the "meta" keyword with activity for the last {} months'.format(
-            self.nmonths
-        )
+        return "Bugs with several votes for the last {} weeks".format(self.nweeks)
 
     def columns(self):
         return ["id", "summary", "creation", "last_change"]
@@ -31,15 +30,18 @@ class MetaDefect(BzCleaner):
         params = {
             "include_fields": ["creation_time", "last_change_time"],
             "resolution": "---",
-            "keywords": "meta",
-            "keywords_type": "allwords",
-            "bug_type": ["defect"],
             "f1": "days_elapsed",
             "o1": "lessthan",
-            "v1": self.nmonths * 30,
+            "v1": self.nweeks * 7,
+            "f2": "votes",
+            "o2": "greaterthaneq",
+            "v2": self.votes,
+            "f3": "keywords",
+            "o3": "nowords",
+            "v3": ["meta", "intermittent"],
         }
         return params
 
 
 if __name__ == "__main__":
-    MetaDefect().run()
+    SeveralVotes().run()

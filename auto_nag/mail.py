@@ -94,11 +94,11 @@ def send(
         Body = replaceUnicode(Body)
     message.attach(MIMEText(Body, subtype))
 
-    for f in files:
-        with open(f, "rb") as In:
-            f = basename(f)
-            part = MIMEApplication(In.read(), Name=basename(f))
-            part["Content-Disposition"] = 'attachment; filename="%s"' % f
+    for file in files:
+        with open(file, "rb") as In:
+            file = basename(file)
+            part = MIMEApplication(In.read(), Name=basename(file))
+            part["Content-Disposition"] = 'attachment; filename="%s"' % file
             message.attach(part)
 
     sendMail(From, To + Cc + Bcc, message.as_string(), login=login, dryrun=dryrun)

@@ -31,7 +31,7 @@ class Intermittents(BzCleaner):
             "f7": "CP",
             "f8": "bug_severity",
             "o8": "notequals",
-            "v8": "critical",
+            "v8": ["S1", "critical"],
             "f9": "component",
             "o9": "nowordssubstr",
             "v9": "new tab page, messaging system",

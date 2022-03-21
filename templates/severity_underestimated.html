@@ -1,0 +1,46 @@
+<p>The following {{ plural('bug has', data, pword='bugs have') }} potential higher severity:
+  <table {{ table_attrs }}>
+    <thead>
+      <tr>
+        <th>Bug</th>
+        <th>Summary</th>
+        <th>Creation</th>
+        <th>Last comment</th>
+        <th>Severity</th>
+        <th>Duplicates</th>
+        <th>Votes</th>
+        <th>CC</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for i, (bugid, summary, creation, last_change, severity, dups_count, votes, cc_count) in enumerate(data) -%}
+      <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
+        <td>
+          <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+        </td>
+        <td>
+          {{ summary | e }}
+        </td>
+        <td>
+          {{ creation }}
+        </td>
+        <td>
+          {{ last_change }}
+        </td>
+        <td>
+          {{ severity }}
+        </td>
+        <td {% if dups_count >= extra["dups_threshold"] %}bgcolor="#FFB8B8"{% endif -%}>
+          {{ dups_count }}
+        </td>
+        <td {% if votes >= extra["votes_threshold"] %}bgcolor="#FFB8B8"{% endif -%}>
+          {{ votes }}
+        </td>
+        <td {% if cc_count >= extra["cc_threshold"] %}bgcolor="#FFB8B8"{% endif -%}>
+          {{ cc_count }}
+        </td>
+      </tr>
+      {% endfor -%}
+    </tbody>
+  </table>
+</p>

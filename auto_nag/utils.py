@@ -48,6 +48,10 @@ BUG_PAT = re.compile(r"^bug[s]?[ \t]*([0-9]+)", re.I)
 MAX_URL_LENGTH = 512
 
 
+def get_weekdays():
+    return {"Mon": 0, "Tue": 1, "Wed": 2, "Thu": 3, "Fri": 4, "Sat": 5, "Sun": 6}
+
+
 def _get_config():
     global _CONFIG
     if _CONFIG is None:
@@ -146,6 +150,14 @@ def plural(sword, data, pword=""):
     if pword:
         return pword
     return sword + "s"
+
+
+def english_list(items):
+    assert len(items) > 0
+    if len(items) == 1:
+        return items[0]
+
+    return "{} and {}".format(", ".join(items[:-1]), items[-1])
 
 
 def split_long_url(url):

@@ -1,20 +1,18 @@
 {
-    "fallback": "Dragana Damjanovic",
-    "components":
-    {
-        "Core::Networking": "default",
-        "Core::Networking: Cache": "default",
-        "Core::Networking: Cookies": "default",
-        "Core::Networking: DNS": "default",
-        "Core::Networking: Domain Lists": "default",
-        "Core::Networking: File": "default",
-        "Core::Networking: FTP": "default",
-        "Core::Networking: HTTP": "default",
-        "Core::Networking: JAR": "default",
-        "Core::Networking: WebSockets": "default"
-    },
-    "default":
-    {
-        "calendar": "https://mozilla-necko.github.io/triage-list/triage.json"
-    }
+  "fallback": "Dragana Damjanovic",
+  "components": {
+    "Core::Networking": "default",
+    "Core::Networking: Cache": "default",
+    "Core::Networking: Cookies": "default",
+    "Core::Networking: DNS": "default",
+    "Core::Networking: Domain Lists": "default",
+    "Core::Networking: File": "default",
+    "Core::Networking: FTP": "default",
+    "Core::Networking: HTTP": "default",
+    "Core::Networking: JAR": "default",
+    "Core::Networking: WebSockets": "default"
+  },
+  "default": {
+    "calendar": "https://mozilla-necko.github.io/triage-list/triage.json"
+  }
 }
