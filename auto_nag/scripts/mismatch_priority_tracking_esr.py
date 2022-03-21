@@ -49,7 +49,7 @@ class MismatchPrioTrackESR(BzCleaner):
     def get_autofix_change(self):
         return {
             "comment": {
-                "body": "Changing the priority to p1 as the bug is tracked by a release manager for the current esr.\nSee [What Do You Triage](https://firefox-source-docs.mozilla.org/bug-mgmt/guides/priority.html) for more information"
+                "body": "Changing the priority to P1 as the bug is tracked by a release manager for the current esr.\nSee [Triage for Bugzilla](https://firefox-source-docs.mozilla.org/bug-mgmt/policies/triage-bugzilla.html#automatic-bug-updates) for more information.\nIf you disagree, please discuss with a release manager."
             },
             "priority": "p1",
         }
