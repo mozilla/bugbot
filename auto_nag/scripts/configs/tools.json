@@ -126,7 +126,7 @@
   },
   "assignee_no_login": {
     "number_of_months": 7,
-    "last_activity_months": 12,
+    "last_activity_months": 24,
     "receivers": ["calixte@mozilla.com", "mcastelluccio@mozilla.com"]
   },
   "not_landed": {
