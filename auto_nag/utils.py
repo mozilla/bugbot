@@ -18,7 +18,7 @@ from dateutil.relativedelta import relativedelta
 from libmozdata import release_calendar as rc
 from libmozdata import utils as lmdutils
 from libmozdata import versions as lmdversions
-from libmozdata.bugzilla import Bugzilla
+from libmozdata.bugzilla import Bugzilla, BugzillaShorten
 from libmozdata.hgmozilla import Mercurial
 
 try:
@@ -44,8 +44,6 @@ UTC_PAT = re.compile(r"UTC\+[^ \t]*")
 COL_PAT = re.compile(":[^:]*")
 BACKOUT_PAT = re.compile("^back(s|(ed))?[ \t]*out", re.I)
 BUG_PAT = re.compile(r"^bug[s]?[ \t]*([0-9]+)", re.I)
-
-MAX_URL_LENGTH = 512
 
 
 def get_weekdays():
@@ -160,20 +158,21 @@ def english_list(items):
     return "{} and {}".format(", ".join(items[:-1]), items[-1])
 
 
-def split_long_url(url):
+def generate_short_bz_url(url):
     if not url:
         return url
 
     # the url can be very long and line length are limited in email protocol:
     # https://datatracker.ietf.org/doc/html/rfc5322#section-2.1.1
-    # So we insert some \n in the url every MAX_URL_LENGTH characters.
-    # The limit of 78 chars is for the rendering and here the url will end up in a
-    # href so we don't care.
-    if len(url) > MAX_URL_LENGTH:
-        url = "\n".join(
-            [url[i : i + MAX_URL_LENGTH] for i in range(0, len(url), MAX_URL_LENGTH)]
-        )
-    return url
+    # So we need to generate a short URL.
+
+    def url_handler(u, data):
+        data["url"] = u
+
+    data = {}
+    BugzillaShorten(url, url_data=data, url_handler=url_handler).wait()
+
+    return data["url"]
 
 
 def search_prev_merge(beta):
