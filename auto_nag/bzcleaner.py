@@ -271,6 +271,9 @@ class BzCleaner(object):
         else:
             data[bugid] = res
 
+    def get_products(self):
+        return self.get_config("products") + self.get_config("additional_products", [])
+
     def amend_bzparams(self, params, bug_ids):
         """Amend the Bugzilla params"""
         if not self.all_include_fields():
@@ -331,9 +334,7 @@ class BzCleaner(object):
             )
 
         if self.has_default_products():
-            params["product"] = self.get_config("products") + self.get_config(
-                "additional_products", []
-            )
+            params["product"] = self.get_products()
 
         if not self.has_access_to_sec_bugs():
             n = utils.get_last_field_num(params)
