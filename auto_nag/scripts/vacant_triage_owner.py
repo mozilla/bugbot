@@ -50,14 +50,22 @@ class TriageOwnerVacant(BzCleaner, Nag):
         return self.template()
 
     def identify_vacant_components(self):
-        products = self.fetch_products()
+        products = [
+            {
+                **product,
+                "components": [
+                    component
+                    for component in product["components"]
+                    if component["is_active"]
+                ],
+            }
+            for product in self.fetch_products()
+            if product["is_active"]
+        ]
+
         triage_owners = set()
         for product in products:
-            if not product["is_active"]:
-                continue
             for component in product["components"]:
-                if not component["is_active"]:
-                    continue
                 triage_owners.add(component["triage_owner"])
 
         inactive_users = UserActivity().check_users(triage_owners)
@@ -65,11 +73,7 @@ class TriageOwnerVacant(BzCleaner, Nag):
         vacant_components = []
 
         for product in products:
-            if not product["is_active"]:
-                continue
             for component in product["components"]:
-                if not component["is_active"]:
-                    continue
                 triage_owner = component["triage_owner"]
                 if triage_owner not in inactive_users:
                     continue
