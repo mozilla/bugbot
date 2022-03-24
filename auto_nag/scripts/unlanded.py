@@ -132,7 +132,7 @@ class Unlanded(BzCleaner, Nag):
 
         assignee = bug["assigned_to"]
         buginfo["to"] = assignee
-        if not self.add(assignee, buginfo):
+        if not self.add(assignee, buginfo, priority=priority):
             self.add_no_manager(buginfo["id"])
         return bug
 
