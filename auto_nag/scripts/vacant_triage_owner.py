@@ -40,7 +40,6 @@ class TriageOwnerVacant(BzCleaner, Nag):
         BugzillaProduct(
             product_names=self.get_products(),
             include_fields=include_fields,
-            product_types=["accessible", "selectable", "enterable"],
             product_handler=product_handler,
             product_data=data,
         ).wait()
