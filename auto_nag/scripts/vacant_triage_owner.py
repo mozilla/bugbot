@@ -89,7 +89,9 @@ class TriageOwnerVacant(BzCleaner, Nag):
                     "product": product["name"],
                     "component": component["name"],
                     "triage_owner": triage_owner,
-                    "status": inactive_users[triage_owner],
+                    "status": user_activity.get_string_status(
+                        inactive_users[triage_owner]
+                    ),
                 }
 
                 vacant_components.append(info)

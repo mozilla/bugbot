@@ -17,9 +17,6 @@ class UserStatus(Enum):
     DISABLED = 2
     INACTIVE = 3
 
-    def __str__(self) -> str:
-        return self.name
-
 
 class UserActivity:
     def __init__(self, weeks_count=DEFULT_ACTIVITY_WEEKS) -> None:
@@ -86,3 +83,13 @@ class UserActivity:
     def is_disabled_user(self, user_email):
         users = self.get_disabled_users([user_email])
         return user_email in users
+
+    def get_string_status(self, status: UserStatus):
+        if status == UserStatus.UNDEFINED:
+            return "Not assigned"
+        elif status == UserStatus.DISABLED:
+            return "Account disabled"
+        elif status == UserStatus.INACTIVE:
+            return f"Inactive on Bugzilla for {self.weeks_count} weeks"
+        else:
+            return status.name
