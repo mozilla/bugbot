@@ -51,6 +51,7 @@ class TriageOwnerVacant(BzCleaner, Nag):
         return self.template()
 
     def identify_vacant_components(self):
+        # Filter out products and components that are not active
         products = [
             {
                 **product,
