@@ -147,6 +147,9 @@ python -m auto_nag.scripts.severity_inconsistency --production
 # Needinfo for bugs with underestimated severity levels
 python -m auto_nag.scripts.severity_underestimated
 
+# Needinfo for bugs with high security keywords whose set to low severity
+python -m auto_nag.scripts.severity_underestimated
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send

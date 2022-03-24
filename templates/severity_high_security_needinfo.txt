@@ -1,0 +1,4 @@
+The severity field for this bug is set to {{ extra[bugid]["severity"] }}. However, the bug is flagged with the `{{ extra[bugid]["security_keyword"] }}` keyword.
+:{{ nickname }}, could you consider increasing the severity of this security bug?
+
+{{ documentation }}
