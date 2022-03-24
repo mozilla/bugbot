@@ -17,6 +17,7 @@ class TriageOwnerVacant(BzCleaner, Nag):
     def __init__(self):
         super(TriageOwnerVacant, self).__init__()
         self.query_url = None
+        self.inactive_weeks_number = self.get_config("inactive_weeks_number", 26)
 
     def description(self):
         return "Components with triage owner need to be assigned"
@@ -68,10 +69,11 @@ class TriageOwnerVacant(BzCleaner, Nag):
             for component in product["components"]:
                 triage_owners.add(component["triage_owner"])
 
-        inactive_users = UserActivity().check_users(triage_owners)
+        user_activity = UserActivity(self.inactive_weeks_number)
+        inactive_users = user_activity.check_users(triage_owners)
+
         team_managers = TeamManagers()
         vacant_components = []
-
         for product in products:
             for component in product["components"]:
                 triage_owner = component["triage_owner"]
