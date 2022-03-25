@@ -148,7 +148,7 @@ python -m auto_nag.scripts.severity_inconsistency --production
 python -m auto_nag.scripts.severity_underestimated
 
 # Nag for components that need triage owner to be assigned
-python -m auto_nag.scripts.vacant_triage_owner
+python -m auto_nag.scripts.vacant_triage_owner --production
 
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
