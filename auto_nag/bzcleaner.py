@@ -564,7 +564,7 @@ class BzCleaner(object):
             )
             common = env.get_template("common.html")
             body = common.render(
-                message=message, query_url=utils.split_long_url(self.query_url)
+                message=message, query_url=utils.shorten_long_bz_url(self.query_url)
             )
             return self.get_email_subject(date), body
         return None, None
