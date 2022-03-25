@@ -45,6 +45,8 @@ COL_PAT = re.compile(":[^:]*")
 BACKOUT_PAT = re.compile("^back(s|(ed))?[ \t]*out", re.I)
 BUG_PAT = re.compile(r"^bug[s]?[ \t]*([0-9]+)", re.I)
 
+MAX_URL_LENGTH = 512
+
 
 def get_weekdays():
     return {"Mon": 0, "Tue": 1, "Wed": 2, "Thu": 3, "Fri": 4, "Sat": 5, "Sun": 6}
@@ -159,7 +161,7 @@ def english_list(items):
 
 
 def generate_short_bz_url(url):
-    if not url:
+    if not url or len(url) <= MAX_URL_LENGTH:
         return url
 
     # the url can be very long and line length are limited in email protocol:
