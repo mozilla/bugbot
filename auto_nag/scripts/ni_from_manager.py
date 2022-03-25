@@ -77,7 +77,7 @@ class NiFromManager(BzCleaner, Nag):
                     buginfo["from"] = (
                         moz_name if moz_name is not None else flag["setter"]
                     )
-                    if self.add(requestee, buginfo):
+                    if self.add(requestee, buginfo, priority=priority):
                         has_manager = True
 
         if accepted and not has_manager:
