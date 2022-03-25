@@ -27,12 +27,8 @@ class SeverityHighSecurity(BzCleaner):
             "security_keyword": security_keyword,
             "severity": bug["severity"],
         }
-        self.extra_ni = data
 
         return bug
-
-    def get_extra_for_needinfo_template(self):
-        return self.extra_ni
 
     def columns(self):
         return ["id", "summary", "severity", "security_keyword"]
