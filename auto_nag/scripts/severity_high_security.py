@@ -56,7 +56,7 @@ class SeverityHighSecurity(BzCleaner):
             "v3": HIGH_SECURITY_KEYWORDS,
             "f4": "bug_severity",
             "o4": "anyexact",
-            "v4": ["S3", "S4"],
+            "v4": ["S3", "normal", "S4", "minor", "trivial", "enhancement"],
             "n15": 1,
             "f15": "longdesc",
             "o15": "casesubstring",
