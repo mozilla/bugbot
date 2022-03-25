@@ -10,7 +10,7 @@ HIGH_SECURITY_KEYWORDS = ["sec-high", "sec-critical"]
 
 class SeverityHighSecurity(BzCleaner):
     def description(self):
-        return "Bugs with high security keywords whose set to low severity"
+        return "Bugs with high security keywords which are set to low severity"
 
     def has_needinfo(self):
         return True
