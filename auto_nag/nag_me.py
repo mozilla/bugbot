@@ -232,7 +232,7 @@ class Nag(object):
                 enumerate=enumerate,
                 data=self.organize_nag(data),
                 nag=True,
-                query_url_nag=utils.generate_short_bz_url(query_url),
+                query_url_nag=utils.shorten_long_bz_url(query_url),
                 table_attrs=self.get_config("table_attrs"),
                 nag_preamble=self.nag_preamble(),
             )

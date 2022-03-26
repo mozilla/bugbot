@@ -160,7 +160,7 @@ def english_list(items):
     return "{} and {}".format(", ".join(items[:-1]), items[-1])
 
 
-def generate_short_bz_url(url):
+def shorten_long_bz_url(url):
     if not url or len(url) <= MAX_URL_LENGTH:
         return url
 
