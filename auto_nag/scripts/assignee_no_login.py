@@ -12,6 +12,7 @@ from auto_nag.bzcleaner import BzCleaner
 class AssigneeNoLogin(BzCleaner):
     def __init__(self):
         super(AssigneeNoLogin, self).__init__()
+        self.unassign_weeks = utils.get_config(self.name(), "unassign_weeks", 2)
         self.nmonths = utils.get_config(self.name(), "number_of_months", 12)
         self.last_activity_months = utils.get_config(
             self.name(), "last_activity_months", 3
@@ -75,6 +76,10 @@ class AssigneeNoLogin(BzCleaner):
             "f2": "days_elapsed",
             "o2": "lessthan",
             "v2": self.last_activity_months * 30,
+            "n3": "1",
+            "f3": "assigned_to",
+            "o3": "changedafter",
+            "v3": f"-{self.unassign_weeks}w",
         }
 
         utils.get_empty_assignees(params, negation=True)
