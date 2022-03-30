@@ -79,7 +79,7 @@
     ]
   },
   "missed_uplifts": {
-    "receivers": "rm"
+    "additional_receivers": "rm"
   },
   "has_str_no_range": {
     "days_lookup": 10,
@@ -187,7 +187,7 @@
     "days_lookup": 10
   },
   "next-release": {
-    "additional_receivers": ["release-mgmt@mozilla.com"]
+    "additional_receivers": "rm"
   },
   "escalation": {
     "high": {
