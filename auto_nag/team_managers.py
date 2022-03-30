@@ -14,13 +14,13 @@ class TeamManagers:
         self._load_team_managers(DEFAULT_PATH)
 
     def _load_team_managers(self, filepath):
-        peapole = People.get_instance()
+        people = People.get_instance()
 
         with open(filepath) as file:
             self.managers = {
                 team: {
                     "name": manager,
-                    "mozilla_email": peapole.get_mozmail_from_name(manager),
+                    "mozilla_email": people.get_mozmail_from_name(manager),
                 }
                 for team, manager in json.load(file).items()
             }

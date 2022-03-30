@@ -9,7 +9,7 @@ from libmozdata.bugzilla import Bugzilla, BugzillaUser
 
 from auto_nag import utils
 
-DEFULT_ACTIVITY_WEEKS = 26
+DEFAULT_ACTIVITY_WEEKS = 26
 
 
 class UserStatus(Enum):
@@ -19,7 +19,7 @@ class UserStatus(Enum):
 
 
 class UserActivity:
-    def __init__(self, weeks_count=DEFULT_ACTIVITY_WEEKS) -> None:
+    def __init__(self, weeks_count=DEFAULT_ACTIVITY_WEEKS) -> None:
         self.weeks_count = weeks_count
 
     def check_users(self, user_emails):
@@ -56,11 +56,11 @@ class UserActivity:
             "v2": first_date.strftime("%Y-%m-%d"),
         }
 
-        def handel_bugs(_, data):
+        def handle_bugs(_, data):
             data["count"] += 1
 
         Bugzilla(
-            params, include_fields=["id"], bughandler=handel_bugs, bugdata=bugs
+            params, include_fields=["id"], bughandler=handle_bugs, bugdata=bugs
         ).wait()
 
         return bugs["count"] == 0
