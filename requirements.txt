@@ -4,7 +4,7 @@ filelock==3.6.0
 humanize>=0.5.1
 icalendar==4.0.9
 icalevents==0.1.24
-Jinja2==3.0.3
+Jinja2==3.1.1
 libmozdata>=0.1.75
 numpy==1.21.5
 pep8==1.7.1

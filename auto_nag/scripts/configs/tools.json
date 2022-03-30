@@ -125,6 +125,7 @@
     "number_of_comments": 2
   },
   "assignee_no_login": {
+    "unassign_weeks": 2,
     "number_of_months": 7,
     "last_activity_months": 24,
     "receivers": ["calixte@mozilla.com", "mcastelluccio@mozilla.com"]
