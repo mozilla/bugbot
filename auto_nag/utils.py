@@ -74,6 +74,20 @@ def get_config(name, entry, default=None):
     return tool_conf.get(entry, default)
 
 
+def get_receivers(tool_name):
+    receiver_lists = get_config("common", "receiver_list", default={})
+
+    receivers = get_config(tool_name, "receivers", [])
+    if isinstance(receivers, six.string_types):
+        receivers = receiver_lists[receivers]
+
+    additional_receivers = get_config(tool_name, "additional_receivers", [])
+    if isinstance(additional_receivers, six.string_types):
+        additional_receivers = receiver_lists[additional_receivers]
+
+    return list(dict.fromkeys([*receivers, *additional_receivers]))
+
+
 def init_random():
     now = datetime.datetime.utcnow()
     now = now.timestamp()

@@ -217,19 +217,6 @@ class BzCleaner(object):
                 "bugids": [str(bugid)],
             }
 
-    def get_receivers(self):
-        receiver_lists = utils.get_config("common", "receiver_list", default={})
-
-        receivers = self.get_config("receivers")
-        if isinstance(receivers, six.string_types):
-            receivers = receiver_lists[receivers]
-
-        additional_receivers = self.get_config("additional_receivers")
-        if isinstance(additional_receivers, six.string_types):
-            additional_receivers = receiver_lists[additional_receivers]
-
-        return set([*receivers, *additional_receivers])
-
     def bughandler(self, bug, data):
         """bug handler for the Bugzilla query"""
         if bug["id"] in self.cache:
@@ -591,7 +578,7 @@ class BzCleaner(object):
         login_info = utils.get_login_info()
         title, body = self.get_email(date)
         if title:
-            receivers = self.get_receivers()
+            receivers = utils.get_receivers(self.name())
             status = "Success"
             try:
                 mail.send(

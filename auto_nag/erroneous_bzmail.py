@@ -12,7 +12,7 @@ def send_mail(err, dryrun=False):
             "erroneous_bzmail_email.html",
             fb,
             "Triage owners with erroneous Bugzilla email",
-            Cc=utils.get_config("common", "receivers"),
+            Cc=utils.get_receivers("common"),
             dryrun=dryrun,
             bzmails=bzmails,
             plural=utils.plural,
