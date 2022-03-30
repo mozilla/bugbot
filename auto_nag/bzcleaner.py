@@ -541,19 +541,23 @@ class BzCleaner(object):
         else:
             self.cache.add(bugs)
 
-    def get_email(self, date, bug_ids=[]):
-        """Get title and body for the email"""
+    def get_email_data(self, date, bug_ids):
         bugs = self.get_bugs(date=date, bug_ids=bug_ids)
         bugs = self.autofix(bugs)
         self.add_to_cache(bugs)
         if bugs:
-            bugs = self.organize(bugs)
+            return self.organize(bugs)
+
+    def get_email(self, date, bug_ids=[]):
+        """Get title and body for the email"""
+        data = self.get_email_data(date, bug_ids)
+        if data:
             extra = self.get_extra_for_template()
             env = Environment(loader=FileSystemLoader("templates"))
             template = env.get_template(self.template())
             message = template.render(
                 date=date,
-                data=bugs,
+                data=data,
                 extra=extra,
                 str=str,
                 enumerate=enumerate,

@@ -3,10 +3,8 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-from jinja2 import Environment, FileSystemLoader
 from libmozdata.bugzilla import BugzillaProduct
 
-from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.nag_me import Nag
 from auto_nag.team_managers import TeamManagers
@@ -99,76 +97,14 @@ class TriageOwnerVacant(BzCleaner, Nag):
 
         return vacant_components
 
-    def get_email(self, date, bug_ids=[]):
-        data = self.identify_vacant_components()
-        if not data:
-            return None, None
+    def get_email_data(self, date, bug_ids):
+        return self.identify_vacant_components()
 
-        extra = self.get_extra_for_template()
-        env = Environment(loader=FileSystemLoader("templates"))
-        template = env.get_template(self.template())
-        message = template.render(
-            date=date,
-            data=data,
-            extra=extra,
-            str=str,
-            enumerate=enumerate,
-            plural=utils.plural,
-            no_manager=self.no_manager,
-            table_attrs=self.get_config("table_attrs"),
-            preamble=self.preamble(),
-        )
-        common = env.get_template("common.html")
-        body = common.render(
-            message=message, query_url=utils.shorten_long_bz_url(self.query_url)
-        )
+    def organize_nag(self, data):
+        return data
 
-        return self.get_email_subject(date), body
-
-    def prepare_mails(self):
-        """Prepare nag emails"""
-
-        if not self.data:
-            return []
-
-        template = self.nag_template()
-        if not template:
-            return []
-
-        extra = self.get_extra_for_nag_template()
-        env = Environment(loader=FileSystemLoader("templates"))
-        template = env.get_template(template)
-        mails = []
-        for manager, info in self.data.items():
-            # The same bug can be several times in the list
-            # because we send an email to a team.
-            added_bug_ids = set()
-
-            data = []
-            To = sorted(info.keys())
-            for person in To:
-                data += [
-                    bug_data
-                    for bug_data in info[person]
-                    if bug_data["id"] not in added_bug_ids
-                ]
-                added_bug_ids.update(bug_data["id"] for bug_data in info[person])
-
-            body = template.render(
-                date=self.nag_date,
-                extra=extra,
-                plural=utils.plural,
-                enumerate=enumerate,
-                data=data,
-                nag=True,
-                table_attrs=self.get_config("table_attrs"),
-                nag_preamble=self.nag_preamble(),
-            )
-
-            m = {"manager": manager, "to": set(To), "body": body}
-            mails.append(m)
-
-        return mails
+    def get_query_url_for_components(self, components):
+        return None
 
 
 if __name__ == "__main__":
