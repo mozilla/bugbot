@@ -6,7 +6,7 @@ import smtplib
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from os.path import basename
+from os.path import basename, splitext
 
 import six
 from jinja2 import Environment, FileSystemLoader
@@ -94,11 +94,14 @@ def send(
         Body = replaceUnicode(Body)
     message.attach(MIMEText(Body, subtype))
 
-    for file in files:
-        with open(file, "rb") as In:
-            file = basename(file)
-            part = MIMEApplication(In.read(), Name=basename(file))
-            part["Content-Disposition"] = 'attachment; filename="%s"' % file
+    for file_path in files:
+        with open(file_path, "rb") as file:
+            name, ext = splitext(basename(file_path))
+            if ext == ".log":
+                ext = ".txt"
+            filename = name + ext
+            part = MIMEApplication(file.read(), Name=filename)
+            part["Content-Disposition"] = 'attachment; filename="%s"' % filename
             message.attach(part)
 
     sendMail(From, To + Cc + Bcc, message.as_string(), login=login, dryrun=dryrun)
