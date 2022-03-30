@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from datetime import datetime, timedelta
 from enum import Enum
 
 from libmozdata.bugzilla import Bugzilla, BugzillaUser
@@ -45,7 +44,6 @@ class UserActivity:
     def is_inactive_user(self, user_email):
         bugs = {"count": 0}
 
-        first_date = datetime.today() - timedelta(weeks=self.weeks_count)
         params = {
             "limit": 1,
             "f1": "anything",
@@ -53,7 +51,7 @@ class UserActivity:
             "v1": user_email,
             "f2": "anything",
             "o2": "changedafter",
-            "v2": first_date.strftime("%Y-%m-%d"),
+            "v2": f"-{self.weeks_count}w",
         }
 
         def handle_bugs(_, data):
