@@ -78,11 +78,11 @@ def get_receivers(tool_name):
     receiver_lists = get_config("common", "receiver_list", default={})
 
     receivers = get_config(tool_name, "receivers", [])
-    if isinstance(receivers, six.string_types):
+    if isinstance(receivers, str):
         receivers = receiver_lists[receivers]
 
     additional_receivers = get_config(tool_name, "additional_receivers", [])
-    if isinstance(additional_receivers, six.string_types):
+    if isinstance(additional_receivers, str):
         additional_receivers = receiver_lists[additional_receivers]
 
     return list(dict.fromkeys([*receivers, *additional_receivers]))
