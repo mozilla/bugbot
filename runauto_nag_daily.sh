@@ -150,6 +150,9 @@ python -m auto_nag.scripts.severity_underestimated --production
 # Needinfo for bugs with high security keywords whose set to low severity
 python -m auto_nag.scripts.severity_high_security --production
 
+# Nag for components that need triage owner to be assigned
+python -m auto_nag.scripts.vacant_triage_owner --production
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send

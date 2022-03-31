@@ -7,6 +7,7 @@ auto_nag/scripts/configs/*
 !auto_nag/scripts/configs/tools.json
 !auto_nag/scripts/configs/*round_robin.json
 !auto_nag/scripts/configs/rm.json
+!auto_nag/scripts/configs/team_managers.json
 models/
 venv/
 venv2/

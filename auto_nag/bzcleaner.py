@@ -271,6 +271,9 @@ class BzCleaner(object):
         else:
             data[bugid] = res
 
+    def get_products(self):
+        return self.get_config("products") + self.get_config("additional_products", [])
+
     def amend_bzparams(self, params, bug_ids):
         """Amend the Bugzilla params"""
         if not self.all_include_fields():
@@ -331,9 +334,7 @@ class BzCleaner(object):
             )
 
         if self.has_default_products():
-            params["product"] = self.get_config("products") + self.get_config(
-                "additional_products", []
-            )
+            params["product"] = self.get_products()
 
         if not self.has_access_to_sec_bugs():
             n = utils.get_last_field_num(params)
@@ -540,19 +541,23 @@ class BzCleaner(object):
         else:
             self.cache.add(bugs)
 
-    def get_email(self, date, bug_ids=[]):
-        """Get title and body for the email"""
+    def get_email_data(self, date, bug_ids):
         bugs = self.get_bugs(date=date, bug_ids=bug_ids)
         bugs = self.autofix(bugs)
         self.add_to_cache(bugs)
         if bugs:
-            bugs = self.organize(bugs)
+            return self.organize(bugs)
+
+    def get_email(self, date, bug_ids=[]):
+        """Get title and body for the email"""
+        data = self.get_email_data(date, bug_ids)
+        if data:
             extra = self.get_extra_for_template()
             env = Environment(loader=FileSystemLoader("templates"))
             template = env.get_template(self.template())
             message = template.render(
                 date=date,
-                data=bugs,
+                data=data,
                 extra=extra,
                 str=str,
                 enumerate=enumerate,
