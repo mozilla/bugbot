@@ -16,7 +16,7 @@ COMMENT_BODY = "A patch has been attached on this bug, which was already closed.
 class PatchClosedBug(BzCleaner):
     def __init__(self):
         super(PatchClosedBug, self).__init__()
-        self.days_count = self.get_config("days_count", 5)
+        self.days_count = self.get_config("days_count", 2)
         today = pytz.utc.localize(datetime.utcnow())
         self.start_date = today - timedelta(self.days_count)
 
