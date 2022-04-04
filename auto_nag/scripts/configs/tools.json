@@ -70,13 +70,7 @@
   },
   "patch_closed_bug": {
     "days_count": 5,
-    "receivers": [
-      "release-mgmt@mozilla.com",
-      "calixte@mozilla.com",
-      "sylvestre@mozilla.com",
-      "mcastelluccio@mozilla.com",
-      "smujahid@mozilla.com"
-    ]
+    "additional_receivers": "rm"
   },
   "has_str_no_hasstr": {
     "products": [
