@@ -22,7 +22,12 @@
     "database": "sqlite:///db/autonag.sqlite",
     "cache": "cache",
     "lock": "db/lock",
-    "receivers": ["calixte@mozilla.com", "sylvestre@mozilla.com"],
+    "receivers": [
+      "calixte@mozilla.com",
+      "sylvestre@mozilla.com",
+      "mcastelluccio@mozilla.com",
+      "smujahid@mozilla.com"
+    ],
     "on-errors": [
       "calixte@mozilla.com",
       "sylvestre@mozilla.com",
@@ -84,7 +89,7 @@
     ]
   },
   "missed_uplifts": {
-    "receivers": ["calixte@mozilla.com", "release-mgmt@mozilla.com"]
+    "additional_receivers": "rm"
   },
   "has_str_no_range": {
     "days_lookup": 10,
@@ -102,11 +107,6 @@
   },
   "regression": {
     "max_days_in_cache": 7,
-    "receivers": [
-      "calixte@mozilla.com",
-      "sylvestre@mozilla.com",
-      "mcastelluccio@mozilla.com"
-    ],
     "days_lookup": 3,
     "resolution_skiplist": ["DUPLICATE", "INCOMPLETE", "INVALID"],
     "reporter_skiplist": ["wptsync@mozilla.bugs"],
@@ -137,8 +137,7 @@
   "assignee_no_login": {
     "unassign_weeks": 2,
     "number_of_months": 7,
-    "last_activity_months": 24,
-    "receivers": ["calixte@mozilla.com", "mcastelluccio@mozilla.com"]
+    "last_activity_months": 24
   },
   "not_landed": {
     "number_of_weeks": 2,
@@ -147,12 +146,7 @@
   "ni_from_manager": {
     "white-list": ["aoverholt@mozilla.com"],
     "days_lookup": 183,
-    "number_of_weeks": 1,
-    "receivers": [
-      "calixte@mozilla.com",
-      "sylvestre@mozilla.com",
-      "mcastelluccio@mozilla.com"
-    ]
+    "number_of_weeks": 1
   },
   "leave_open_no_activity": {
     "skiplist": ["sdeckelmann@mozilla.com"],
@@ -170,19 +164,19 @@
   "several_dups": {
     "weeks_lookup": 3,
     "number_dups": 3,
-    "receivers": ["sledru@mozilla.com", "release-mgmt@mozilla.com"],
+    "additional_receivers": "rm",
     "must_run": ["Mon"]
   },
   "lot_of_votes": {
     "weeks_lookup": 3,
     "number_votes": 10,
-    "receivers": ["sledru@mozilla.com", "release-mgmt@mozilla.com"],
+    "additional_receivers": "rm",
     "must_run": ["Mon"]
   },
   "lot_of_cc": {
     "weeks_lookup": 3,
     "number_cc": 50,
-    "receivers": ["sledru@mozilla.com", "release-mgmt@mozilla.com"],
+    "additional_receivers": "rm",
     "must_run": ["Mon"]
   },
   "severity_underestimated": {
@@ -190,7 +184,7 @@
     "number_dups": 3,
     "number_votes": 10,
     "number_cc": 50,
-    "receivers": ["sledru@mozilla.com", "release-mgmt@mozilla.com"],
+    "additional_receivers": "rm",
     "must_run": ["Mon"]
   },
   "vacant_triage_owner": {
@@ -207,12 +201,7 @@
     "days_lookup": 10
   },
   "next-release": {
-    "receivers": [
-      "calixte@mozilla.com",
-      "sylvestre@mozilla.com",
-      "mcastelluccio@mozilla.com",
-      "release-mgmt@mozilla.com"
-    ]
+    "additional_receivers": "rm"
   },
   "escalation": {
     "high": {
@@ -373,24 +362,14 @@
     "general_confidence_threshold": 0.8,
     "days_lookup": 365,
     "max_days_in_cache": 7,
-    "receivers": [
-      "calixte@mozilla.com",
-      "sylvestre@mozilla.com",
-      "mcastelluccio@mozilla.com"
-    ],
     "cc": []
   },
   "code_freeze_week": {
-    "receivers": ["calixte@mozilla.com", "release-mgmt@mozilla.com"],
+    "additional_receivers": "rm",
     "assignee_skiplist": ["wptsync@mozilla.bugs"]
   },
   "defectenhancementtask": {
     "max_days_in_cache": 7,
-    "receivers": [
-      "calixte@mozilla.com",
-      "sylvestre@mozilla.com",
-      "mcastelluccio@mozilla.com"
-    ],
     "days_lookup": 3,
     "reporter_skiplist": [
       "intermittent-bug-filer@mozilla.bugs",
@@ -400,41 +379,31 @@
     "cc": []
   },
   "tracking": {
-    "receivers": "rm"
+    "additional_receivers": "rm"
   },
   "tracking_untouched": {
-    "receivers": "rm"
+    "additional_receivers": "rm"
   },
   "tracked_needinfo": {
-    "receivers": "rm"
+    "additional_receivers": "rm"
   },
   "unlanded": {
-    "receivers": "rm"
+    "additional_receivers": "rm"
   },
   "warn_regressed_by": {
     "max_days_in_cache": 7,
-    "receivers": ["calixte@mozilla.com", "release-mgmt@mozilla.com"]
+    "additional_receivers": "rm"
   },
   "regression_without_regressed_by": {
     "days_lookup": 30,
-    "reporter_skiplist": ["intermittent-bug-filer@mozilla.bugs"],
-    "receivers": [
-      "calixte@mozilla.com",
-      "sylvestre@mozilla.com",
-      "mcastelluccio@mozilla.com"
-    ]
+    "reporter_skiplist": ["intermittent-bug-filer@mozilla.bugs"]
   },
   "regressed_by_no_has_regression_range": {
     "days_lookup": 30
   },
   "prod_comp_changed_with_priority": {
     "days_lookup": 30,
-    "skiplist": ["nobody@mozilla.org", "bug-husbandry-bot@mozilla.bugs"],
-    "receivers": [
-      "calixte@mozilla.com",
-      "sylvestre@mozilla.com",
-      "mcastelluccio@mozilla.com"
-    ]
+    "skiplist": ["nobody@mozilla.org", "bug-husbandry-bot@mozilla.bugs"]
   },
   "to_triage": {
     "cc": [],
@@ -448,28 +417,17 @@
       }
     },
     "teams": ["DOM:LWS", "DOM:Core", "Core::General", "Media:audio"],
-    "persons": ["jdescottes@mozilla.com"],
-    "receivers": ["calixte@mozilla.com", "mcastelluccio@mozilla.com"]
+    "persons": ["jdescottes@mozilla.com"]
   },
   "spambug": {
     "max_days_in_cache": 7,
-    "receivers": [
-      "mcastelluccio@mozilla.com",
-      "sylvestre@mozilla.com",
-      "glob@mozilla.com",
-      "mhoye@mozilla.com"
-    ],
+    "additional_receivers": ["glob@mozilla.com", "mhoye@mozilla.com"],
     "days_lookup": 3,
     "confidence_threshold": 0.95,
     "cc": []
   },
   "stepstoreproduce": {
     "max_days_in_cache": 7,
-    "receivers": [
-      "calixte@mozilla.com",
-      "sylvestre@mozilla.com",
-      "mcastelluccio@mozilla.com"
-    ],
     "days_lookup": 3,
     "confidence_threshold": 0.9,
     "cc": [
@@ -480,11 +438,6 @@
   },
   "regressor": {
     "max_days_in_cache": 7,
-    "receivers": [
-      "calixte@mozilla.com",
-      "sylvestre@mozilla.com",
-      "mcastelluccio@mozilla.com"
-    ],
     "cc": [
       "sledru@mozilla.com",
       "mcastelluccio@mozilla.com",
@@ -501,42 +454,31 @@
       "sphink@gmail.com",
       "ttung@mozilla.com"
     ],
-    "receivers": [
-      "cdenizet@mozilla.com",
-      "sledru@mozilla.com",
-      "fbraun@mozilla.com",
-      "tritter@mozilla.com"
-    ]
+    "additional_receivers": ["fbraun@mozilla.com", "tritter@mozilla.com"]
   },
   "close_intermittents": {
     "sec": false
   },
   "uplift_beta": {
     "days_to_wait": 2,
-    "receivers": [
-      "calixte@mozilla.com",
-      "sylvestre@mozilla.com",
-      "mcastelluccio@mozilla.com",
-      "jcristau@mozilla.com"
-    ]
+    "additional_receivers": ["jcristau@mozilla.com"]
   },
   "regression_set_status_flags": {
-    "receivers": ["jcristau@mozilla.com"],
+    "additional_receivers": ["jcristau@mozilla.com"],
     "component_exception": ["Testing::geckodriver"]
   },
   "fuzzing_bisection_without_regressed_by": {
-    "receivers": ["mcastelluccio@mozilla.com", "jkratzer@mozilla.com"],
+    "additional_receivers": ["jkratzer@mozilla.com"],
     "max_ni": 1
   },
   "good_first_bug_unassign_inactive": {
-    "months_lookup": 2,
-    "receivers": ["sylvestre@mozilla.com"]
+    "months_lookup": 2
   },
   "missed_landing_comment": {
-    "receivers": ["shengst@mozilla.com", "jcristau@mozilla.com"]
+    "additional_receivers": ["shengst@mozilla.com", "jcristau@mozilla.com"]
   },
   "leave_open_sec": {
-    "receivers": ["release-mgmt@mozilla.com"],
+    "additional_receivers": "rm",
     "days_lookup": 2
   }
 }
