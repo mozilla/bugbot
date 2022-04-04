@@ -5,7 +5,7 @@
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 
-COMMENT_BODY = "A patch has been landed on this ticket, but it has already been closed. Filing a separate ticket will ensure better tracking. If this was not by mistake and further action is needed, please alert the appropriate party."
+COMMENT_BODY = "A patch has been attached on this bug, which was already closed. Filing a separate bug will ensure better tracking. If this was not by mistake and further action is needed, please alert the appropriate party."
 
 
 class PatchClosedBug(BzCleaner):
