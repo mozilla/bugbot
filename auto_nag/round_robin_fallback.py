@@ -14,7 +14,7 @@ def send_mail(nag, dryrun=False):
             "round_robin_fallback_email.html",
             fb,
             "Triage owners need to be updated",
-            Cc=utils.get_config("common", "receivers"),
+            Cc=utils.get_receivers("common"),
             dryrun=dryrun,
             calendars=calendars,
             plural=utils.plural,
