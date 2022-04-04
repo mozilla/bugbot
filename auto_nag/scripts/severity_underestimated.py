@@ -17,7 +17,7 @@ class UnderestimatedSeverity(BzCleaner):
         self.extra_ni = {}
 
     def description(self):
-        return "Bugs with underestemated severity for the last {} weeks".format(
+        return "Bugs with underestimated severity for the last {} weeks".format(
             self.nweeks
         )
 
