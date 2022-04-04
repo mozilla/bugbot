@@ -34,17 +34,17 @@ class PatchClosedBug(BzCleaner):
         return bugs
 
     def handle_bug(self, bug, data):
-        latest_patch_at = parser.parse(
-            max(
-                [
-                    attachment["creation_time"]
-                    for attachment in bug["attachments"]
-                    if attachment["content_type"] == "text/x-phabricator-request"
-                ]
-            )
-        )
+        patches = [
+            attachment["creation_time"]
+            for attachment in bug["attachments"]
+            if attachment["content_type"] == "text/x-phabricator-request"
+            and not attachment["is_obsolete"]
+        ]
+        if len(patches) == 0:
+            return
 
-        if self.start_date > latest_patch_at:
+        latest_patch_at = parser.parse(max(patches))
+        if latest_patch_at < self.start_date:
             return
 
         resolved_at = parser.parse(bug["cf_last_resolved"])
@@ -63,6 +63,7 @@ class PatchClosedBug(BzCleaner):
             "cf_last_resolved",
             "attachments.creation_time",
             "attachments.content_type",
+            "attachments.is_obsolete",
         ]
         params = {
             "include_fields": fields,
