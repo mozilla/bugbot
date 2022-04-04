@@ -2,6 +2,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from datetime import datetime, timedelta
+
+import pytz
+from dateutil import parser
+
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 
@@ -12,6 +17,8 @@ class PatchClosedBug(BzCleaner):
     def __init__(self):
         super(PatchClosedBug, self).__init__()
         self.days_count = self.get_config("days_count", 5)
+        today = pytz.utc.localize(datetime.utcnow())
+        self.start_date = today - timedelta(self.days_count)
 
     def description(self):
         return "Bugs with recent patches after being closed"
@@ -19,43 +26,49 @@ class PatchClosedBug(BzCleaner):
     def columns(self):
         return ["id", "summary", "resolved_at", "latest_patch_at"]
 
+    # Resolving https://github.com/mozilla/relman-auto-nag/issues/1300 should clean this
+    # including improve the wording in the template (i.e., "See the search query on Bugzilla").
+    def get_bugs(self, date="today", bug_ids=[], chunk_size=None):
+        bugs = super().get_bugs(date, bug_ids, chunk_size)
+        self.query_url = utils.get_bz_search_url({"bug_id": ",".join(bugs.keys())})
+        return bugs
+
     def handle_bug(self, bug, data):
+        latest_patch_at = parser.parse(
+            max(
+                [
+                    attachment["creation_time"]
+                    for attachment in bug["attachments"]
+                    if attachment["content_type"] == "text/x-phabricator-request"
+                ]
+            )
+        )
+
+        if self.start_date > latest_patch_at:
+            return
+
+        resolved_at = parser.parse(bug["cf_last_resolved"])
+        if latest_patch_at < resolved_at:
+            return
+
         bugid = str(bug["id"])
         data[bugid] = {
-            "resolved_at": bug["cf_last_resolved"],
+            "resolved_at": utils.get_human_lag(resolved_at),
+            "latest_patch_at": utils.get_human_lag(latest_patch_at),
         }
         return bug
 
-    def has_attachments(self):
-        return True
-
-    def attachmenthandler(self, attachments, bugid, data):
-        latest_patch = max(
-            [
-                attachment["last_change_time"]
-                for attachment in attachments
-                if attachment["content_type"] == "text/x-phabricator-request"
-            ]
-        )
-
-        bug = data[bugid]
-        bug_resolved_at = bug["resolved_at"]
-        if latest_patch > bug_resolved_at:
-            bug["resolved_at"] = utils.get_human_lag(bug_resolved_at)
-            bug["latest_patch_at"] = utils.get_human_lag(latest_patch)
-        else:
-            del data[bugid]
-
-    def get_attachment_include_fields(self):
-        return ["content_type", "last_change_time"]
-
     def get_bz_params(self, date):
-        fields = ["cf_last_resolved"]
+        fields = [
+            "cf_last_resolved",
+            "attachments.creation_time",
+            "attachments.content_type",
+        ]
         params = {
             "include_fields": fields,
             "bug_status": ["RESOLVED", "VERIFIED"],
-            "f1": "bug_status",
-            "o1": "changedafter",
+            "f1": "delta_ts",
+            "o1": "greaterthan",
             "v1": f"-{self.days_count}d",
             "f2": "attachments.mimetype",
             "o2": "equals",
@@ -67,9 +80,6 @@ class PatchClosedBug(BzCleaner):
         }
 
         return params
-
-    def get_bz_search_url(self, params):
-        return None
 
     def get_autofix_change(self):
         return {

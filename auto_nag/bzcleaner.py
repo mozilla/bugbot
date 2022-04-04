@@ -342,29 +342,15 @@ class BzCleaner(object):
 
         self.has_flags = "flags" in params.get("include_fields", [])
 
-    def has_attachments(self):
-        return False
-
-    def attachmenthandler(self, attachment, bugid, data):
-        raise Exception("Please implement the method in the inheriting class")
-
-    def get_attachment_include_fields(self):
-        return None
-
-    def get_bz_search_url(self, params):
-        return utils.get_bz_search_url(params)
-
     def get_bugs(self, date="today", bug_ids=[], chunk_size=None):
         """Get the bugs"""
         bugs = self.get_data()
         params = self.get_bz_params(date)
         self.amend_bzparams(params, bug_ids)
-        self.query_url = self.get_bz_search_url(params)
+        self.query_url = utils.get_bz_search_url(params)
 
         if isinstance(self, Nag):
             self.query_params = params
-
-        attachmenthandler = self.attachmenthandler if self.has_attachments() else None
 
         old_CHUNK_SIZE = Bugzilla.BUGZILLA_CHUNK_SIZE
         try:
@@ -375,9 +361,6 @@ class BzCleaner(object):
                 params,
                 bughandler=self.bughandler,
                 bugdata=bugs,
-                attachmenthandler=attachmenthandler,
-                attachmentdata=bugs,
-                attachment_include_fields=self.get_attachment_include_fields(),
                 timeout=self.get_config("bz_query_timeout"),
             ).get_data().wait()
         finally:
