@@ -63,6 +63,15 @@
       "rm": ["calixte@mozilla.com", "release-mgmt@mozilla.com"]
     }
   },
+  "patch_closed_bug": {
+    "days_count": 5,
+    "receivers": [
+      "calixte@mozilla.com",
+      "sylvestre@mozilla.com",
+      "mcastelluccio@mozilla.com",
+      "smujahid@mozilla.com"
+    ]
+  },
   "has_str_no_hasstr": {
     "products": [
       "Core",
