@@ -154,19 +154,19 @@
   "several_dups": {
     "weeks_lookup": 3,
     "number_dups": 3,
-    "receivers": ["sledru@mozilla.com", "release-mgmt@mozilla.com"],
+    "additional_receivers": "rm",
     "must_run": ["Mon"]
   },
   "lot_of_votes": {
     "weeks_lookup": 3,
     "number_votes": 10,
-    "receivers": ["sledru@mozilla.com", "release-mgmt@mozilla.com"],
+    "additional_receivers": "rm",
     "must_run": ["Mon"]
   },
   "lot_of_cc": {
     "weeks_lookup": 3,
     "number_cc": 50,
-    "receivers": ["sledru@mozilla.com", "release-mgmt@mozilla.com"],
+    "additional_receivers": "rm",
     "must_run": ["Mon"]
   },
   "severity_underestimated": {
@@ -174,7 +174,7 @@
     "number_dups": 3,
     "number_votes": 10,
     "number_cc": 50,
-    "receivers": ["sledru@mozilla.com", "release-mgmt@mozilla.com"],
+    "additional_receivers": "rm",
     "must_run": ["Mon"]
   },
   "vacant_triage_owner": {
@@ -369,16 +369,16 @@
     "cc": []
   },
   "tracking": {
-    "receivers": "rm"
+    "additional_receivers": "rm"
   },
   "tracking_untouched": {
-    "receivers": "rm"
+    "additional_receivers": "rm"
   },
   "tracked_needinfo": {
-    "receivers": "rm"
+    "additional_receivers": "rm"
   },
   "unlanded": {
-    "receivers": "rm"
+    "additional_receivers": "rm"
   },
   "warn_regressed_by": {
     "max_days_in_cache": 7,
@@ -454,7 +454,7 @@
     "additional_receivers": ["jcristau@mozilla.com"]
   },
   "regression_set_status_flags": {
-    "receivers": ["jcristau@mozilla.com"],
+    "additional_receivers": ["jcristau@mozilla.com"],
     "component_exception": ["Testing::geckodriver"]
   },
   "fuzzing_bisection_without_regressed_by": {
@@ -462,14 +462,13 @@
     "max_ni": 1
   },
   "good_first_bug_unassign_inactive": {
-    "months_lookup": 2,
-    "receivers": ["sylvestre@mozilla.com"]
+    "months_lookup": 2
   },
   "missed_landing_comment": {
-    "receivers": ["shengst@mozilla.com", "jcristau@mozilla.com"]
+    "additional_receivers": ["shengst@mozilla.com", "jcristau@mozilla.com"]
   },
   "leave_open_sec": {
-    "receivers": ["release-mgmt@mozilla.com"],
+    "additional_receivers": "rm",
     "days_lookup": 2
   }
 }
