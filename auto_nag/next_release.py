@@ -17,7 +17,7 @@ from . import logger, mail, utils
 def send_mail(next_date, bad_date_nrd, bad_date_ro, dryrun=False):
     mail.send_from_template(
         "next_release_email",
-        utils.get_config("next-release", "receivers"),
+        utils.get_receivers("next-release"),
         "Next release date is not up-to-date",
         dryrun=dryrun,
         next_date=next_date,

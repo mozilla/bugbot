@@ -217,14 +217,6 @@ class BzCleaner(object):
                 "bugids": [str(bugid)],
             }
 
-    def get_receivers(self):
-        receivers = self.get_config("receivers")
-        if isinstance(receivers, six.string_types):
-            receivers = utils.get_config("common", "receiver_list", default={})[
-                receivers
-            ]
-        return receivers
-
     def bughandler(self, bug, data):
         """bug handler for the Bugzilla query"""
         if bug["id"] in self.cache:
@@ -270,6 +262,9 @@ class BzCleaner(object):
             data[bugid].update(res)
         else:
             data[bugid] = res
+
+    def get_products(self):
+        return self.get_config("products") + self.get_config("additional_products", [])
 
     def amend_bzparams(self, params, bug_ids):
         """Amend the Bugzilla params"""
@@ -331,9 +326,7 @@ class BzCleaner(object):
             )
 
         if self.has_default_products():
-            params["product"] = self.get_config("products") + self.get_config(
-                "additional_products", []
-            )
+            params["product"] = self.get_products()
 
         if not self.has_access_to_sec_bugs():
             n = utils.get_last_field_num(params)
@@ -540,19 +533,23 @@ class BzCleaner(object):
         else:
             self.cache.add(bugs)
 
-    def get_email(self, date, bug_ids=[]):
-        """Get title and body for the email"""
+    def get_email_data(self, date, bug_ids):
         bugs = self.get_bugs(date=date, bug_ids=bug_ids)
         bugs = self.autofix(bugs)
         self.add_to_cache(bugs)
         if bugs:
-            bugs = self.organize(bugs)
+            return self.organize(bugs)
+
+    def get_email(self, date, bug_ids=[]):
+        """Get title and body for the email"""
+        data = self.get_email_data(date, bug_ids)
+        if data:
             extra = self.get_extra_for_template()
             env = Environment(loader=FileSystemLoader("templates"))
             template = env.get_template(self.template())
             message = template.render(
                 date=date,
-                data=bugs,
+                data=data,
                 extra=extra,
                 str=str,
                 enumerate=enumerate,
@@ -586,7 +583,7 @@ class BzCleaner(object):
         login_info = utils.get_login_info()
         title, body = self.get_email(date)
         if title:
-            receivers = self.get_receivers()
+            receivers = utils.get_receivers(self.name())
             status = "Success"
             try:
                 mail.send(

@@ -177,6 +177,10 @@
     "receivers": ["sledru@mozilla.com", "release-mgmt@mozilla.com"],
     "must_run": ["Mon"]
   },
+  "vacant_triage_owner": {
+    "inactive_weeks_number": 26,
+    "must_run": ["Mon"]
+  },
   "closed_dupeme": {
     "days_lookup": 100
   },
