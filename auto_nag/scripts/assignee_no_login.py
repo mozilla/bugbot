@@ -2,6 +2,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import datetime
+
+import dateutil.parser
 from dateutil.relativedelta import relativedelta
 from libmozdata import utils as lmdutils
 
@@ -64,6 +67,20 @@ class AssigneeNoLogin(BzCleaner):
         if self.has_bot_set_ni(bug):
             return None
 
+        # Avoid to ni if the bug was last touched many years ago and has low priority and low severity.
+        # It's not paramount for triage owners to make an explicit decision here, it's enough for them
+        # to receive the notification about the unassignment from Bugzilla via email.
+        last_change = dateutil.parser.parse(bug["last_change_time"]).replace(
+            tzinfo=None
+        )
+        if (
+            last_change < datetime.datetime.utcnow() - relativedelta(years=3)
+            and bug["priority"] in ("P3", "P4", "P5")
+            and bug["severity"]
+            in ("S3", "normal", "S4", "minor", "trivial", "enhancement")
+        ):
+            return None
+
         mail = bug["triage_owner"]
         nick = bug["triage_owner_detail"]["nick"]
         return {"mail": mail, "nickname": nick}
@@ -71,7 +88,14 @@ class AssigneeNoLogin(BzCleaner):
     def get_bz_params(self, date):
         date = lmdutils.get_date_ymd(date)
         start_date = date - relativedelta(months=self.nmonths)
-        fields = ["assigned_to", "triage_owner", "flags"]
+        fields = [
+            "assigned_to",
+            "triage_owner",
+            "flags",
+            "last_change_time",
+            "priority",
+            "severity",
+        ]
         params = {
             "include_fields": fields,
             "resolution": "---",
