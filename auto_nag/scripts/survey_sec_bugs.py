@@ -75,4 +75,5 @@ class SurveySecurityBugs(BzCleaner):
 
 
 if __name__ == "__main__":
-    SurveySecurityBugs().run()
+    return
+    # SurveySecurityBugs().run()
