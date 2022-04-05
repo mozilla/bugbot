@@ -14,9 +14,7 @@ class AssigneeNoLogin(BzCleaner):
         super(AssigneeNoLogin, self).__init__()
         self.unassign_weeks = utils.get_config(self.name(), "unassign_weeks", 2)
         self.nmonths = utils.get_config(self.name(), "number_of_months", 12)
-        self.last_activity_months = utils.get_config(
-            self.name(), "last_activity_months", 3
-        )
+        self.max_ni = utils.get_config(self.name(), "max_ni")
         self.autofix_assignee = {}
         self.default_assignees = utils.get_default_assignees()
         self.people = people.People.get_instance()
@@ -47,6 +45,13 @@ class AssigneeNoLogin(BzCleaner):
             return None
 
         bugid = str(bug["id"])
+
+        if bug["triage_owner"] in self.auto_needinfo:
+            info = self.auto_needinfo[bug["triage_owner"]]
+            if len(info["bugids"]) >= self.max_ni:
+                # Don't unassign if we can't needinfo.
+                return None
+
         data[bugid] = {"triage_owner": bug["triage_owner_detail"]["real_name"]}
         prod = bug["product"]
         comp = bug["component"]
@@ -73,9 +78,6 @@ class AssigneeNoLogin(BzCleaner):
             "f1": "assignee_last_login",
             "o1": "lessthan",
             "v1": start_date,
-            "f2": "days_elapsed",
-            "o2": "lessthan",
-            "v2": self.last_activity_months * 30,
             "n3": "1",
             "f3": "assigned_to",
             "o3": "changedafter",
