@@ -67,7 +67,7 @@ class AssigneeNoLogin(BzCleaner):
         # Avoid to ni if the bug has low priority and low severity.
         # It's not paramount for triage owners to make an explicit decision here, it's enough for them
         # to receive the notification about the unassignment from Bugzilla via email.
-        if bug["priority"] in ("P3", "P4", "P5") and bug["severity"] in (
+        if bug["priority"] in ("--", "P3", "P4", "P5") and bug["severity"] in (
             "S3",
             "normal",
             "S4",
