@@ -85,9 +85,9 @@ class AssigneeNoLogin(BzCleaner):
         if do_needinfo:
             reason = []
             if bug["priority"] in HIGH_PRIORITY:
-                reason.append(bug["priority"])
+                reason.append("priority '{}'".format(bug["priority"]))
             if bug["severity"] in HIGH_SEVERITY:
-                reason.append(bug["severity"])
+                reason.append("severity '{}'".format(bug["severity"]))
             self.extra_ni[bugid] = {
                 "reason": "/".join(reason),
             }
