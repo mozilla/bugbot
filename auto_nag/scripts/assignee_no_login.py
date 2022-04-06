@@ -8,6 +8,9 @@ from libmozdata import utils as lmdutils
 from auto_nag import people, utils
 from auto_nag.bzcleaner import BzCleaner
 
+HIGH_PRIORITY = {"P1", "P2"}
+HIGH_SEVERITY = {"S1", "critical", "S2", "major"}
+
 
 class AssigneeNoLogin(BzCleaner):
     def __init__(self):
@@ -57,13 +60,9 @@ class AssigneeNoLogin(BzCleaner):
         # Avoid to ni if the bug has low priority and low severity.
         # It's not paramount for triage owners to make an explicit decision here, it's enough for them
         # to receive the notification about the unassignment from Bugzilla via email.
-        if bug["priority"] in ("--", "P3", "P4", "P5") and bug["severity"] in (
-            "S3",
-            "normal",
-            "S4",
-            "minor",
-            "trivial",
-            "enhancement",
+        if (
+            bug["priority"] not in HIGH_PRIORITY
+            and bug["severity"] not in HIGH_SEVERITY
         ):
             do_needinfo = False
 
@@ -84,9 +83,9 @@ class AssigneeNoLogin(BzCleaner):
         self.autofix_assignee[bugid] = {"assigned_to": default_assignee}
         if do_needinfo:
             reason = []
-            if bug["priority"] in ("P1", "P2"):
+            if bug["priority"] in HIGH_PRIORITY:
                 reason.append(bug["priority"])
-            if bug["severity"] in ("S1", "S2"):
+            if bug["severity"] in HIGH_SEVERITY:
                 reason.append(bug["severity"])
             self.extra_ni[bugid] = {
                 "reason": "/".join(reason),
