@@ -11,6 +11,8 @@ from libmozdata import utils as lmdutils
 from auto_nag import people, utils
 from auto_nag.bzcleaner import BzCleaner
 
+THREE_YEARS_AGO = datetime.datetime.utcnow() - relativedelta(years=3)
+
 
 class AssigneeNoLogin(BzCleaner):
     def __init__(self):
@@ -74,7 +76,7 @@ class AssigneeNoLogin(BzCleaner):
             tzinfo=None
         )
         if (
-            last_change < datetime.datetime.utcnow() - relativedelta(years=3)
+            last_change < THREE_YEARS_AGO
             and bug["priority"] in ("P3", "P4", "P5")
             and bug["severity"]
             in ("S3", "normal", "S4", "minor", "trivial", "enhancement")
