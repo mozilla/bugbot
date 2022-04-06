@@ -46,23 +46,11 @@ class AssigneeNoLogin(BzCleaner):
 
         bugid = str(bug["id"])
 
-        if bug["triage_owner"] in self.auto_needinfo:
-            info = self.auto_needinfo[bug["triage_owner"]]
-            if len(info["bugids"]) >= self.max_ni:
-                # Don't unassign if we can't needinfo.
-                return None
+        do_needinfo = True
 
-        data[bugid] = {"triage_owner": bug["triage_owner_detail"]["real_name"]}
-        prod = bug["product"]
-        comp = bug["component"]
-        default_assignee = self.default_assignees[prod][comp]
-        self.autofix_assignee[bugid] = {"assigned_to": default_assignee}
-        return bug
-
-    def get_mail_to_auto_ni(self, bug):
         # Avoid to ni everyday...
         if self.has_bot_set_ni(bug):
-            return None
+            do_needinfo = False
 
         # Avoid to ni if the bug has low priority and low severity.
         # It's not paramount for triage owners to make an explicit decision here, it's enough for them
@@ -75,11 +63,28 @@ class AssigneeNoLogin(BzCleaner):
             "trivial",
             "enhancement",
         ):
+            do_needinfo = False
+
+        if do_needinfo and not self.add_auto_ni(
+            bugid,
+            {
+                "mail": bug["triage_owner"],
+                "nickname": bug["triage_owner_detail"]["nick"],
+            },
+        ):
+            # Don't unassign if we can't needinfo.
             return None
 
-        mail = bug["triage_owner"]
-        nick = bug["triage_owner_detail"]["nick"]
-        return {"mail": mail, "nickname": nick}
+        data[bugid] = {"triage_owner": bug["triage_owner_detail"]["real_name"]}
+        prod = bug["product"]
+        comp = bug["component"]
+        default_assignee = self.default_assignees[prod][comp]
+        self.autofix_assignee[bugid] = {"assigned_to": default_assignee}
+        if not do_needinfo:
+            self.autofix_assignee[bugid]["comment"] = {
+                "body": f"The bug assignee didn't login in Bugzilla in the last { self.nmonths } months, so the assignee is being reset."
+            }
+        return bug
 
     def get_bz_params(self, date):
         date = lmdutils.get_date_ymd(date)

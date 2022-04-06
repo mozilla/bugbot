@@ -201,21 +201,23 @@ class BzCleaner(object):
 
     def add_auto_ni(self, bugid, data):
         if not data:
-            return
+            return False
 
         ni_mail = data["mail"]
         if ni_mail in self.get_auto_ni_skiplist():
-            return
+            return False
         if ni_mail in self.auto_needinfo:
             max_ni = self.get_max_ni()
             info = self.auto_needinfo[ni_mail]
-            if max_ni <= 0 or len(info["bugids"]) < max_ni:
-                info["bugids"].append(str(bugid))
+            if max_ni > 0 and len(info["bugids"]) >= max_ni:
+                return False
+            info["bugids"].append(str(bugid))
         else:
             self.auto_needinfo[ni_mail] = {
                 "nickname": data["nickname"],
                 "bugids": [str(bugid)],
             }
+        return True
 
     def bughandler(self, bug, data):
         """bug handler for the Bugzilla query"""
