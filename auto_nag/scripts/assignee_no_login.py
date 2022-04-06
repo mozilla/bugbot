@@ -2,16 +2,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import datetime
-
-import dateutil.parser
 from dateutil.relativedelta import relativedelta
 from libmozdata import utils as lmdutils
 
 from auto_nag import people, utils
 from auto_nag.bzcleaner import BzCleaner
-
-THREE_YEARS_AGO = datetime.datetime.utcnow() - relativedelta(years=3)
 
 
 class AssigneeNoLogin(BzCleaner):
@@ -69,17 +64,16 @@ class AssigneeNoLogin(BzCleaner):
         if self.has_bot_set_ni(bug):
             return None
 
-        # Avoid to ni if the bug was last touched many years ago and has low priority and low severity.
+        # Avoid to ni if the bug has low priority and low severity.
         # It's not paramount for triage owners to make an explicit decision here, it's enough for them
         # to receive the notification about the unassignment from Bugzilla via email.
-        last_change = dateutil.parser.parse(bug["last_change_time"]).replace(
-            tzinfo=None
-        )
-        if (
-            last_change < THREE_YEARS_AGO
-            and bug["priority"] in ("P3", "P4", "P5")
-            and bug["severity"]
-            in ("S3", "normal", "S4", "minor", "trivial", "enhancement")
+        if bug["priority"] in ("P3", "P4", "P5") and bug["severity"] in (
+            "S3",
+            "normal",
+            "S4",
+            "minor",
+            "trivial",
+            "enhancement",
         ):
             return None
 
@@ -94,7 +88,6 @@ class AssigneeNoLogin(BzCleaner):
             "assigned_to",
             "triage_owner",
             "flags",
-            "last_change_time",
             "priority",
             "severity",
         ]
