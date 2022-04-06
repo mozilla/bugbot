@@ -63,7 +63,7 @@
       "Web Compatibility",
       "WebExtensions"
     ],
-    "log": "/tmp/auto_nag_errors.log",
+    "log": "/tmp/auto_nag_errors.txt",
     "receiver_list": {
       "rm": ["calixte@mozilla.com", "release-mgmt@mozilla.com"]
     }
