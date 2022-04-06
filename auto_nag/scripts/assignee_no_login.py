@@ -51,8 +51,6 @@ class AssigneeNoLogin(BzCleaner):
 
         bugid = str(bug["id"])
 
-        do_needinfo = True
-
         # Avoid to ni everyday...
         if self.has_bot_set_ni(bug):
             do_needinfo = False
@@ -60,11 +58,14 @@ class AssigneeNoLogin(BzCleaner):
         # Avoid to ni if the bug has low priority and low severity.
         # It's not paramount for triage owners to make an explicit decision here, it's enough for them
         # to receive the notification about the unassignment from Bugzilla via email.
-        if (
+        elif (
             bug["priority"] not in HIGH_PRIORITY
             and bug["severity"] not in HIGH_SEVERITY
         ):
             do_needinfo = False
+
+        else:
+            do_needinfo = True
 
         if do_needinfo and not self.add_auto_ni(
             bugid,
