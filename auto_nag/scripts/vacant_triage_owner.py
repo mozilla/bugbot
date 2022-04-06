@@ -106,6 +106,9 @@ class TriageOwnerVacant(BzCleaner, Nag):
     def get_query_url_for_components(self, components):
         return None
 
+    def get_cc(self):
+        return set()
+
 
 if __name__ == "__main__":
     TriageOwnerVacant().run()
