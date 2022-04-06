@@ -2,23 +2,20 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
-import pytz
 from dateutil import parser
+from libmozdata import utils as lmdutils
 
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
-
-COMMENT_BODY = "A patch has been attached on this bug, which was already closed. Filing a separate bug will ensure better tracking. If this was not by mistake and further action is needed, please alert the appropriate party."
 
 
 class PatchClosedBug(BzCleaner):
     def __init__(self):
         super(PatchClosedBug, self).__init__()
         self.days_count = self.get_config("days_count", 2)
-        today = pytz.utc.localize(datetime.utcnow())
-        self.start_date = today - timedelta(self.days_count)
+        self.start_date = lmdutils.get_date_ymd("today") - timedelta(self.days_count)
 
     def description(self):
         return "Bugs with recent patches after being closed"
@@ -77,14 +74,16 @@ class PatchClosedBug(BzCleaner):
             "n6": 1,
             "f6": "longdesc",
             "o6": "casesubstring",
-            "v6": COMMENT_BODY,
+            "v6": "A patch has been attached on this bug, which was already closed.",
         }
 
         return params
 
     def get_autofix_change(self):
         return {
-            "comment": {"body": COMMENT_BODY},
+            "comment": {
+                "body": "A patch has been attached on this bug, which was already closed. Filing a separate bug will ensure better tracking. If this was not by mistake and further action is needed, please alert the appropriate party."
+            },
         }
 
 
