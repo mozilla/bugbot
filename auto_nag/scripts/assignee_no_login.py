@@ -19,6 +19,8 @@ class AssigneeNoLogin(BzCleaner):
         self.default_assignees = utils.get_default_assignees()
         self.people = people.People.get_instance()
 
+        self.extra_ni = {"nmonths": self.nmonths}
+
     def description(self):
         return "Open and assigned bugs where the assignee's last login was more than {} months ago".format(
             self.nmonths
@@ -34,7 +36,7 @@ class AssigneeNoLogin(BzCleaner):
         return self.get_extra_for_template()
 
     def get_extra_for_template(self):
-        return {"nmonths": self.nmonths}
+        return self.extra_ni
 
     def columns(self):
         return ["triage_owner", "component", "id", "summary", "assignee"]
@@ -80,10 +82,20 @@ class AssigneeNoLogin(BzCleaner):
         comp = bug["component"]
         default_assignee = self.default_assignees[prod][comp]
         self.autofix_assignee[bugid] = {"assigned_to": default_assignee}
-        if not do_needinfo:
+        if do_needinfo:
+            reason = []
+            if bug["priority"] in ("P1", "P2"):
+                reason.append(bug["priority"])
+            if bug["severity"] in ("S1", "S2"):
+                reason.append(bug["severity"])
+            self.extra_ni[bugid] = {
+                "reason": "/".join(reason),
+            }
+        else:
             self.autofix_assignee[bugid]["comment"] = {
                 "body": f"The bug assignee didn't login in Bugzilla in the last { self.nmonths } months, so the assignee is being reset."
             }
+
         return bug
 
     def get_bz_params(self, date):
