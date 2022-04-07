@@ -7,6 +7,7 @@ from enum import Enum
 from libmozdata.bugzilla import Bugzilla, BugzillaUser
 
 from auto_nag import utils
+from auto_nag.people import People
 
 DEFAULT_ACTIVITY_WEEKS = 26
 
@@ -20,9 +21,10 @@ class UserStatus(Enum):
 class UserActivity:
     def __init__(self, weeks_count=DEFAULT_ACTIVITY_WEEKS) -> None:
         self.weeks_count = weeks_count
+        self.people = People.get_instance()
 
     def check_users(self, user_emails):
-        user_emails = set(user_emails)
+        user_emails = self.get_not_employees(user_emails)
 
         none_users = {
             user_email for user_email in user_emails if utils.is_no_assignee(user_email)
@@ -40,6 +42,13 @@ class UserActivity:
                 status[user_email] = UserStatus.INACTIVE
 
         return status
+
+    def get_not_employees(self, user_emails):
+        return {
+            user_email
+            for user_email in user_emails
+            if self.people.is_mozilla(user_email)
+        }
 
     def is_inactive_user(self, user_email):
         bugs = {"count": 0}
@@ -88,6 +97,6 @@ class UserActivity:
         elif status == UserStatus.DISABLED:
             return "Account disabled"
         elif status == UserStatus.INACTIVE:
-            return f"Inactive on Bugzilla for {self.weeks_count} weeks"
+            return f"Inactive on Bugzilla in last {self.weeks_count} weeks"
         else:
             return status.name

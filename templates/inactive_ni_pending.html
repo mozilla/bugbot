@@ -1,0 +1,31 @@
+<p>The following {{ plural('bug has', data, pword='bugs have') }} pending needinfo on inactive {{ plural('user', data) }}:
+    <table {{ table_attrs }}>
+      <thead>
+        <tr>
+          <th>Bug</th><th>Summary</th><th>Requestee</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for i, (bugid, summary, inactive_ni, inactive_ni_count) in enumerate(data) -%}
+        {% for j,(requestee, reason) in enumerate(inactive_ni) -%}
+        <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
+          {% if j == 0 %}
+          <td rowspan="{{ inactive_ni_count }}">
+            <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+          </td>
+          <td rowspan="{{ inactive_ni_count }}">
+            {{ summary | e }}
+          </td>
+          {% endif -%}
+          <td>
+            {{ requestee }}
+          </td>
+          <td>
+            {{ reason }}
+          </td>
+        </tr>
+        {% endfor -%}
+        {% endfor -%}
+      </tbody>
+    </table>
+  </p>
