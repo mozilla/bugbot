@@ -10,10 +10,11 @@
         <th>Duplicates</th>
         <th>Votes</th>
         <th>CC</th>
+        <th>See Also</th>
       </tr>
     </thead>
     <tbody>
-      {% for i, (bugid, summary, creation, last_change, severity, dups_count, votes, cc_count) in enumerate(data) -%}
+      {% for i, (bugid, summary, creation, last_change, severity, dups_count, votes, cc_count, see_also_count) in enumerate(data) -%}
       <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
         <td>
           <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
@@ -38,6 +39,9 @@
         </td>
         <td {% if cc_count >= extra["cc_threshold"] %}bgcolor="#FFB8B8"{% endif -%}>
           {{ cc_count }}
+        </td>
+        <td {% if see_also_count >= extra["see_also_threshold"] %}bgcolor="#FFB8B8"{% endif -%}>
+          {{ see_also_count }}
         </td>
       </tr>
       {% endfor -%}
