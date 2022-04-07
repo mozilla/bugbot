@@ -153,6 +153,9 @@ python -m auto_nag.scripts.severity_high_security --production
 # Nag for components that need triage owner to be assigned
 python -m auto_nag.scripts.vacant_triage_owner --production
 
+# Notify about bugs with needinfo requests on inactive users
+python -m auto_nag.scripts.inactive_ni_pending --production
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
