@@ -9,10 +9,11 @@ from auto_nag.bzcleaner import BzCleaner
 class UnderestimatedSeverity(BzCleaner):
     def __init__(self):
         super(UnderestimatedSeverity, self).__init__()
-        self.nweeks = utils.get_config(self.name(), "weeks_lookup")
-        self.ndups = utils.get_config(self.name(), "number_dups")
-        self.votes = utils.get_config("lot_of_votes", "number_votes")
-        self.cc = utils.get_config("lot_of_cc", "number_cc")
+        self.nweeks = self.get_config("weeks_lookup")
+        self.ndups = self.get_config("number_dups")
+        self.votes = self.get_config("number_votes")
+        self.cc = self.get_config("number_cc")
+        self.see_also = self.get_config("number_see_also")
 
         self.extra_ni = {}
 
@@ -45,6 +46,7 @@ class UnderestimatedSeverity(BzCleaner):
             "dups_count",
             "votes",
             "cc_count",
+            "see_also_count",
         ]
 
     def get_extra_for_template(self):
@@ -52,6 +54,7 @@ class UnderestimatedSeverity(BzCleaner):
             "dups_threshold": self.ndups,
             "votes_threshold": self.votes,
             "cc_threshold": self.cc,
+            "see_also_threshold": self.see_also,
         }
 
     def handle_bug(self, bug, data):
@@ -59,6 +62,7 @@ class UnderestimatedSeverity(BzCleaner):
         cc_count = len(bug["cc"])
         dups_count = len(bug["duplicates"])
         votes_count = bug["votes"]
+        see_also_count = len(bug["see_also"])
 
         data[bugid] = {
             "creation": utils.get_human_lag(bug["creation_time"]),
@@ -67,6 +71,7 @@ class UnderestimatedSeverity(BzCleaner):
             "dups_count": dups_count,
             "votes": votes_count,
             "cc_count": cc_count,
+            "see_also_count": see_also_count,
         }
 
         factors = []
@@ -76,6 +81,8 @@ class UnderestimatedSeverity(BzCleaner):
             factors.append(f"{votes_count} votes")
         if cc_count >= self.cc:
             factors.append(f"{cc_count} CCs")
+        if see_also_count >= self.see_also:
+            factors.append(f"{see_also_count} See Also bugs")
 
         self.extra_ni[bugid] = {
             "severity": bug["severity"],
@@ -94,6 +101,7 @@ class UnderestimatedSeverity(BzCleaner):
             "votes",
             "cc",
             "duplicates",
+            "see_also",
         ]
 
         params = {
@@ -118,7 +126,10 @@ class UnderestimatedSeverity(BzCleaner):
             "f6": "cc_count",
             "o6": "greaterthaneq",
             "v6": self.cc,
-            "f7": "CP",
+            "f7": "see_also_count",
+            "o7": "greaterthaneq",
+            "v7": self.see_also,
+            "f8": "CP",
             "n15": 1,
             "f15": "longdesc",
             "o15": "casesubstring",

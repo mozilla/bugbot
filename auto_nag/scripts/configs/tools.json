@@ -175,6 +175,7 @@
     "number_dups": 3,
     "number_votes": 10,
     "number_cc": 50,
+    "number_see_also": 5,
     "additional_receivers": "rm",
     "must_run": ["Mon"]
   },
