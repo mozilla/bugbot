@@ -44,6 +44,9 @@ class AssigneeNoLogin(BzCleaner):
     def columns(self):
         return ["triage_owner", "component", "id", "summary", "assignee"]
 
+    def get_max_ni(self):
+        return self.max_ni
+
     def handle_bug(self, bug, data):
         assignee = bug["assigned_to"]
         if self.people.is_mozilla(assignee):
