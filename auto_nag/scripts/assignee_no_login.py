@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import collections
+
 from dateutil.relativedelta import relativedelta
 from libmozdata import utils as lmdutils
 
@@ -18,9 +20,13 @@ class AssigneeNoLogin(BzCleaner):
         self.unassign_weeks = utils.get_config(self.name(), "unassign_weeks", 2)
         self.nmonths = utils.get_config(self.name(), "number_of_months", 12)
         self.max_ni = utils.get_config(self.name(), "max_ni")
+        self.max_unassign_per_triage_owner = utils.get_config(
+            self.name(), "max_unassign_per_triage_owner"
+        )
         self.autofix_assignee = {}
         self.default_assignees = utils.get_default_assignees()
         self.people = people.People.get_instance()
+        self.unassign_count = collections.defaultdict(int)
 
         self.extra_ni = {"nmonths": self.nmonths}
 
@@ -70,15 +76,23 @@ class AssigneeNoLogin(BzCleaner):
         else:
             do_needinfo = True
 
-        if do_needinfo and not self.add_auto_ni(
-            bugid,
-            {
-                "mail": bug["triage_owner"],
-                "nickname": bug["triage_owner_detail"]["nick"],
-            },
-        ):
-            # Don't unassign if we can't needinfo.
-            return None
+        if do_needinfo:
+            if not self.add_auto_ni(
+                bugid,
+                {
+                    "mail": bug["triage_owner"],
+                    "nickname": bug["triage_owner_detail"]["nick"],
+                },
+            ):
+                # Don't unassign if we can't needinfo.
+                return None
+        else:
+            if (
+                self.unassign_count[bug["triage_owner"]]
+                >= self.max_unassign_per_triage_owner
+            ):
+                return None
+            self.unassign_count[bug["triage_owner"]] += 1
 
         data[bugid] = {"triage_owner": bug["triage_owner_detail"]["real_name"]}
         prod = bug["product"]
