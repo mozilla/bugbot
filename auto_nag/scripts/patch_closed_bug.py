@@ -52,7 +52,7 @@ class PatchClosedBug(BzCleaner):
         bugid = str(bug["id"])
         data[bugid] = {
             "resolved_at": utils.get_human_lag(resolved_at),
-            "latest_patch_at": f"after {humanize.naturaldelta(latest_patch_at - resolved_at)}",
+            "latest_patch_at": f"{humanize.naturaldelta(latest_patch_at - resolved_at)} after resolution",
         }
         return bug
 
