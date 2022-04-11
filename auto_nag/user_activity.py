@@ -31,6 +31,8 @@ class UserActivity:
         }
         user_emails.difference_update(none_users)
         status = {user_email: UserStatus.UNDEFINED for user_email in none_users}
+        if len(user_emails) == 0:
+            return status
 
         disabled_users = self.get_disabled_users(user_emails)
         user_emails.difference_update(disabled_users)
