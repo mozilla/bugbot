@@ -78,12 +78,22 @@ class UserActivity:
                 data.add(user["name"])
 
         data = set()
-        BugzillaUser(
-            user_data=data,
-            user_names=set(user_emails),
-            user_handler=handler,
-            include_fields=["name", "can_login"],
-        ).wait()
+        user_emails = (
+            user_emails if isinstance(user_emails, list) else list(user_emails)
+        )
+
+        step = 200
+        start = 0
+        end = start + step
+        while start < len(user_emails):
+            chunk = user_emails[start:end]
+            BugzillaUser(
+                user_data=data,
+                user_names=chunk,
+                user_handler=handler,
+                include_fields=["name", "can_login"],
+            ).wait()
+            start, end = end, end + step
 
         return data
 
