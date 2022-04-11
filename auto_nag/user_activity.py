@@ -47,7 +47,7 @@ class UserActivity:
         return {
             user_email
             for user_email in user_emails
-            if self.people.is_mozilla(user_email)
+            if not self.people.is_mozilla(user_email)
         }
 
     def is_inactive_user(self, user_email):
