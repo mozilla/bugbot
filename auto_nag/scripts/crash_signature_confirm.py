@@ -7,7 +7,7 @@ from auto_nag.bzcleaner import BzCleaner
 
 class CrashSignatureConfirm(BzCleaner):
     def description(self):
-        return "Uncomforted bugs that have a crash signature"
+        return "Unconfirmed bugs that have a crash signature"
 
     def get_bz_params(self, date):
         params = {
