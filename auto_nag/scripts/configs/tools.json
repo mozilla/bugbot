@@ -127,7 +127,7 @@
   "assignee_no_login": {
     "unassign_weeks": 2,
     "number_of_months": 7,
-    "max_ni": 14,
+    "max_ni": 7,
     "must_run": ["Mon"]
   },
   "not_landed": {
