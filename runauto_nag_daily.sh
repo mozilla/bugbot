@@ -156,6 +156,12 @@ python -m auto_nag.scripts.vacant_triage_owner --production
 # Notify about bugs with needinfo requests on inactive users
 python -m auto_nag.scripts.inactive_ni_pending --production
 
+# Confirm bugs with crash signatures
+python -m auto_nag.scripts.crash_signature_confirm --production
+
+# Bugs with patches after being closed
+python -m auto_nag.scripts.patch_closed_bug --production
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
