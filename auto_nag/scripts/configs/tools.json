@@ -68,6 +68,10 @@
       "rm": ["calixte@mozilla.com", "release-mgmt@mozilla.com"]
     }
   },
+  "patch_closed_bug": {
+    "days_count": 2,
+    "additional_receivers": "rm"
+  },
   "has_str_no_hasstr": {
     "products": [
       "Core",
@@ -127,7 +131,8 @@
   "assignee_no_login": {
     "unassign_weeks": 2,
     "number_of_months": 7,
-    "max_ni": 14,
+    "max_ni": 7,
+    "max_unassign_per_triage_owner": 7,
     "must_run": ["Mon"]
   },
   "not_landed": {

@@ -580,7 +580,7 @@ def ireplace(old, repl, text):
 
 def get_human_lag(date):
     today = pytz.utc.localize(datetime.datetime.utcnow())
-    dt = dateutil.parser.parse(date)
+    dt = dateutil.parser.parse(date) if isinstance(date, str) else date
 
     return humanize.naturaldelta(today - dt)
 
