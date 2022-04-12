@@ -20,6 +20,7 @@ from libmozdata import utils as lmdutils
 from libmozdata import versions as lmdversions
 from libmozdata.bugzilla import Bugzilla, BugzillaShorten
 from libmozdata.hgmozilla import Mercurial
+from requests.exceptions import HTTPError
 
 try:
     from urllib.parse import urlencode
@@ -186,7 +187,12 @@ def shorten_long_bz_url(url):
         data["url"] = u
 
     data = {}
-    BugzillaShorten(url, url_data=data, url_handler=url_handler).wait()
+    try:
+        BugzillaShorten(url, url_data=data, url_handler=url_handler).wait()
+    except HTTPError:  # workaround for https://github.com/mozilla/relman-auto-nag/issues/1402
+        return "\n".join(
+            [url[i : i + MAX_URL_LENGTH] for i in range(0, len(url), MAX_URL_LENGTH)]
+        )
 
     return data["url"]
 
