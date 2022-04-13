@@ -22,8 +22,8 @@ class AffectedFlagConfirm(BzCleaner):
         for version in range(first_version, last_version + 1):
             i = version - first_version + 2
             params[f"f{i}"] = f"cf_status_firefox{version}"
-            params[f"o{i}"] = "equals"
-            params[f"v{i}"] = "affected"
+            params[f"o{i}"] = "anyexact"
+            params[f"v{i}"] = "affected,wontfix,fix-optional,fixed,disabled"
         params[f"f{i+1}"] = "CP"
 
         return params
@@ -31,7 +31,7 @@ class AffectedFlagConfirm(BzCleaner):
     def get_autofix_change(self):
         return {
             "comment": {
-                "body": "The bug has an affected Firefox version flag, thus the bug will be considered confirmed."
+                "body": "The bug has a release status flag, thus it will be considered confirmed."
             },
             "status": "NEW",
         }
