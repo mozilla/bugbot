@@ -43,7 +43,7 @@ class AffectedFlagConfirm(BzCleaner):
     def get_autofix_change(self):
         return {
             "comment": {
-                "body": "The bug has a release status flag, thus it will be considered confirmed."
+                "body": "The bug has a release status flag that shows some version of Firefox is affected, thus it will be considered confirmed."
             },
             "status": "NEW",
         }
