@@ -17,13 +17,25 @@ class AffectedFlagConfirm(BzCleaner):
             "f1": "OP",
         }
 
+        statuses = ",".join(
+            [
+                "affected",
+                "wontfix",
+                "fix-optional",
+                "fixed",
+                "disabled",
+                "verified",
+                "verified disabled",
+            ]
+        )
+
         last_version = utils.get_nightly_version_from_bz()
         first_version = last_version - 40
         for version in range(first_version, last_version + 1):
             i = version - first_version + 2
             params[f"f{i}"] = f"cf_status_firefox{version}"
             params[f"o{i}"] = "anyexact"
-            params[f"v{i}"] = "affected,wontfix,fix-optional,fixed,disabled"
+            params[f"v{i}"] = statuses
         params[f"f{i+1}"] = "CP"
 
         return params
