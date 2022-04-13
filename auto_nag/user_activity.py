@@ -105,7 +105,7 @@ class UserActivity:
 
     def get_string_status(self, status: UserStatus):
         if status == UserStatus.UNDEFINED:
-            return "Not assigned"
+            return "Not specified"
         elif status == UserStatus.DISABLED:
             return "Account disabled"
         elif status == UserStatus.INACTIVE:

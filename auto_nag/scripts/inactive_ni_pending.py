@@ -36,6 +36,9 @@ class InactiveNeedinfoPending(BzCleaner):
         requestee_bugs = {}
         for bugid, bug in bugs.items():
             for flag in bug["needinfo_flags"]:
+                if "requestee" not in flag:
+                    flag["requestee"] = ""
+
                 if flag["requestee"] not in requestee_bugs:
                     requestee_bugs[flag["requestee"]] = [bugid]
                 else:
@@ -67,9 +70,7 @@ class InactiveNeedinfoPending(BzCleaner):
         bugid = str(bug["id"])
         data[bugid] = {
             "needinfo_flags": [
-                flag
-                for flag in bug["flags"]
-                if "requestee" in flag and flag["name"] == "needinfo"
+                flag for flag in bug["flags"] if flag["name"] == "needinfo"
             ]
         }
 
