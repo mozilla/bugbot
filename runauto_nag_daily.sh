@@ -157,7 +157,7 @@ python -m auto_nag.scripts.vacant_triage_owner --production
 python -m auto_nag.scripts.crash_signature_confirm --production
 
 # Bugs with patches after being closed
-python -m auto_nag.scripts.patch_closed_bug --production
+# python -m auto_nag.scripts.patch_closed_bug --production
 
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
