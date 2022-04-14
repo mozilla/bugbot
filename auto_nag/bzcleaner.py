@@ -6,6 +6,7 @@ import argparse
 import os
 import sys
 import time
+from collections import defaultdict
 
 import six
 from dateutil.relativedelta import relativedelta
@@ -18,11 +19,19 @@ from auto_nag.cache import Cache
 from auto_nag.nag_me import Nag
 
 
+class dummySet:
+    @staticmethod
+    def add(_):
+        pass
+
+
 class BzCleaner(object):
     def __init__(self):
         super(BzCleaner, self).__init__()
         self._set_tool_name()
         self.has_autofix = False
+        self.autofix_changes = {}
+        self.quota_actions = defaultdict(list)
         self.no_manager = set()
         self.auto_needinfo = {}
         self.has_flags = False
@@ -127,6 +136,12 @@ class BzCleaner(object):
     def get_max_ni(self):
         return -1
 
+    def get_max_actions(self):
+        return -1
+
+    def exclude_no_action_bugs(self):
+        return True
+
     def ignore_meta(self):
         return False
 
@@ -218,6 +233,70 @@ class BzCleaner(object):
                 "bugids": [str(bugid)],
             }
         return True
+
+    def add_prioritized_action(
+        self, bug, quota_name, needinfo=None, autofix=None, allow_multi_ni=False
+    ):
+        assert needinfo or autofix
+
+        # Avoid having more than one ni from our bot
+        if needinfo and not allow_multi_ni and self.has_bot_set_ni(bug):
+            needinfo = autofix = None
+
+        action = {"bugid": str(bug["id"]), "needinfo": needinfo, "autofix": autofix}
+        action["key"] = self.get_sort_action_key(action, bug)
+        self.quota_actions[quota_name].append(action)
+
+    def get_sort_action_key(self, action, bug):
+        # Sort bugs with needinfo first
+        return not action["needinfo"]
+
+    def _populate_prioritized_actions(self, bugs):
+        max_actions = self.get_max_actions()
+        max_ni = self.get_max_ni()
+        exclude_no_action_bugs = (
+            len(self.quota_actions) > 0 and self.exclude_no_action_bugs()
+        )
+        bugs_with_action = set() if exclude_no_action_bugs else dummySet
+
+        for actions in self.quota_actions.values():
+            if len(actions) > max_ni or len(actions) > max_actions:
+                actions.sort(key=lambda x: x["key"])
+
+            ni_count = 0
+            actions_count = 0
+            for action in actions:
+                bugid = action["bugid"]
+                if max_actions > 0 and actions_count >= max_actions:
+                    break
+
+                if action["needinfo"]:
+                    if max_ni > 0 and ni_count >= max_ni:
+                        continue
+
+                    ok = self.add_auto_ni(bugid, action["needinfo"])
+                    if not ok:
+                        # If we can't needinfo, we do add the autofix
+                        continue
+
+                    if "extra" in action["needinfo"]:
+                        self.extra_ni[bugid] = action["needinfo"]["extra"]
+
+                    bugs_with_action.add(bugid)
+                    ni_count += 1
+
+                if action["autofix"]:
+                    assert bugid not in self.autofix_changes
+                    self.autofix_changes[bugid] = action["autofix"]
+                    bugs_with_action.add(bugid)
+
+                if action["autofix"] or action["needinfo"]:
+                    actions_count += 1
+
+        if exclude_no_action_bugs:
+            bugs = {id: bug for id, bug in bugs.items() if id in bugs_with_action}
+
+        return bugs
 
     def bughandler(self, bug, data):
         """bug handler for the Bugzilla query"""
@@ -461,7 +540,7 @@ class BzCleaner(object):
 
     def get_autofix_change(self):
         """Get the change to do to autofix the bugs"""
-        return {}
+        return self.autofix_changes
 
     def autofix(self, bugs):
         """Autofix the bugs according to what is returned by get_autofix_change"""
@@ -537,6 +616,7 @@ class BzCleaner(object):
 
     def get_email_data(self, date, bug_ids):
         bugs = self.get_bugs(date=date, bug_ids=bug_ids)
+        bugs = self._populate_prioritized_actions(bugs)
         bugs = self.autofix(bugs)
         self.add_to_cache(bugs)
         if bugs:
