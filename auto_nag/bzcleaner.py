@@ -235,6 +235,9 @@ class BzCleaner(object):
         return True
 
     def add_prioritized_action(self, bug, quota_name, needinfo=None, autofix=None):
+        """
+        - `quota_name` is the key used to apply the limits, e.g., triage owner, team, or component
+        """
         assert needinfo or autofix
 
         # Avoid having more than one ni from our bot
