@@ -243,13 +243,20 @@ class BzCleaner(object):
         if needinfo and not allow_multi_ni and self.has_bot_set_ni(bug):
             needinfo = autofix = None
 
-        action = {"bugid": str(bug["id"]), "needinfo": needinfo, "autofix": autofix}
-        action["key"] = self.get_sort_action_key(action, bug)
+        action = {
+            "bugid": str(bug["id"]),
+            "needinfo": needinfo,
+            "autofix": autofix,
+        }
+
+        sort_key = self.get_bug_sort_key(bug)
+        if sort_key is not None:
+            action["key"] = sort_key
+
         self.quota_actions[quota_name].append(action)
 
-    def get_sort_action_key(self, action, bug):
-        # Sort bugs with needinfo first
-        return not action["needinfo"]
+    def get_bug_sort_key(self, bug):
+        return None
 
     def _populate_prioritized_actions(self, bugs):
         max_actions = self.get_max_actions()
@@ -261,7 +268,11 @@ class BzCleaner(object):
 
         for actions in self.quota_actions.values():
             if len(actions) > max_ni or len(actions) > max_actions:
-                actions.sort(key=lambda x: x["key"])
+                actions.sort(
+                    key=lambda x: (not x["needinfo"], x["key"])
+                    if "key" in x
+                    else not x["needinfo"]
+                )
 
             ni_count = 0
             actions_count = 0

@@ -621,12 +621,11 @@ def nice_round(val):
     return int(round(100 * val))
 
 
-def sort_bugs_by_importance(action, bug):
-    has_needinfo = not action["needinfo"]
+def get_sort_by_bug_importance_key(bug):
     priority = bug["priority"] if bug["priority"].startswith("P") else "P10"
     severity = (
         bug["severity"]
         if bug["severity"].startswith("S")
         else OLD_SEVERITY_MAP.get(bug["severity"], "S10")
     )
-    return (has_needinfo, priority, severity)
+    return (priority, severity)

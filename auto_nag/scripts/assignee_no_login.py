@@ -94,8 +94,8 @@ class AssigneeNoLogin(BzCleaner):
 
         return bug
 
-    def get_sort_action_key(self, *args, **kwargs):
-        return utils.sort_bugs_by_importance(*args, **kwargs)
+    def get_bug_sort_key(self, *args, **kwargs):
+        return utils.get_sort_by_bug_importance_key(*args, **kwargs)
 
     def get_bz_params(self, date):
         date = lmdutils.get_date_ymd(date)
