@@ -234,13 +234,11 @@ class BzCleaner(object):
             }
         return True
 
-    def add_prioritized_action(
-        self, bug, quota_name, needinfo=None, autofix=None, allow_multi_ni=False
-    ):
+    def add_prioritized_action(self, bug, quota_name, needinfo=None, autofix=None):
         assert needinfo or autofix
 
         # Avoid having more than one ni from our bot
-        if needinfo and not allow_multi_ni and self.has_bot_set_ni(bug):
+        if needinfo and self.has_bot_set_ni(bug):
             needinfo = autofix = None
 
         action = {
