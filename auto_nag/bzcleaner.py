@@ -136,7 +136,7 @@ class BzCleaner(object):
     def exclude_no_action_bugs(self):
         """
         If True, then remove bugs that have no actions from the email (e.g.,
-        needingo got ignored due to exceeding the limit). This is apply only
+        needinfo got ignored due to exceeding the limit). This is applied only
         when using the `add_prioritized_action()` method.
         """
         return True
