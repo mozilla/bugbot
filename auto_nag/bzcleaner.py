@@ -296,15 +296,13 @@ class BzCleaner(object):
                     if "extra" in action["needinfo"]:
                         self.extra_ni[bugid] = action["needinfo"]["extra"]
 
-                    if exclude_no_action_bugs:
-                        bugs_with_action.add(bugid)
+                    bugs_with_action.add(bugid)
                     ni_count += 1
 
                 if action["autofix"]:
                     assert bugid not in self.autofix_changes
                     self.autofix_changes[bugid] = action["autofix"]
-                    if exclude_no_action_bugs:
-                        bugs_with_action.add(bugid)
+                    bugs_with_action.add(bugid)
 
                 if action["autofix"] or action["needinfo"]:
                     actions_count += 1
