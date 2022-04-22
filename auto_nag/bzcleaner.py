@@ -247,14 +247,10 @@ class BzCleaner(object):
             needinfo = autofix = None
 
         action = {
-            "bugid": str(bug["id"]),
+            "bug": bug,
             "needinfo": needinfo,
             "autofix": autofix,
         }
-
-        sort_key = self.get_bug_sort_key(bug)
-        if sort_key is not None:
-            action["key"] = sort_key
 
         self.quota_actions[quota_name].append(action)
 
@@ -272,15 +268,16 @@ class BzCleaner(object):
         for actions in self.quota_actions.values():
             if len(actions) > max_ni or len(actions) > max_actions:
                 actions.sort(
-                    key=lambda x: (not x["needinfo"], x["key"])
-                    if "key" in x
-                    else not x["needinfo"]
+                    key=lambda action: (
+                        not action["needinfo"],
+                        self.get_bug_sort_key(action["bug"]),
+                    )
                 )
 
             ni_count = 0
             actions_count = 0
             for action in actions:
-                bugid = action["bugid"]
+                bugid = str(action["bug"]["id"])
                 if max_actions > 0 and actions_count >= max_actions:
                     break
 
