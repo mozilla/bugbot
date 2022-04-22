@@ -19,12 +19,6 @@ from auto_nag.cache import Cache
 from auto_nag.nag_me import Nag
 
 
-class dummySet:
-    @staticmethod
-    def add(_):
-        pass
-
-
 class BzCleaner(object):
     def __init__(self):
         super(BzCleaner, self).__init__()
@@ -270,7 +264,7 @@ class BzCleaner(object):
         exclude_no_action_bugs = (
             len(self.quota_actions) > 0 and self.exclude_no_action_bugs()
         )
-        bugs_with_action = set() if exclude_no_action_bugs else dummySet
+        bugs_with_action = set()
 
         for actions in self.quota_actions.values():
             if len(actions) > max_ni or len(actions) > max_actions:
@@ -299,13 +293,15 @@ class BzCleaner(object):
                     if "extra" in action["needinfo"]:
                         self.extra_ni[bugid] = action["needinfo"]["extra"]
 
-                    bugs_with_action.add(bugid)
+                    if exclude_no_action_bugs:
+                        bugs_with_action.add(bugid)
                     ni_count += 1
 
                 if action["autofix"]:
                     assert bugid not in self.autofix_changes
                     self.autofix_changes[bugid] = action["autofix"]
-                    bugs_with_action.add(bugid)
+                    if exclude_no_action_bugs:
+                        bugs_with_action.add(bugid)
 
                 if action["autofix"] or action["needinfo"]:
                     actions_count += 1
