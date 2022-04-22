@@ -287,7 +287,7 @@ class BzCleaner(object):
 
                     ok = self.add_auto_ni(bugid, action["needinfo"])
                     if not ok:
-                        # If we can't needinfo, we do add the autofix
+                        # If we can't needinfo, we do not add the autofix
                         continue
 
                     if "extra" in action["needinfo"]:
