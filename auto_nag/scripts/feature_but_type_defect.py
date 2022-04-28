@@ -5,19 +5,19 @@
 from auto_nag.bzcleaner import BzCleaner
 
 
-class RegressionButDefectTask(BzCleaner):
+class FeatureButDefect(BzCleaner):
     def description(self):
-        return "Defect or task with the 'feature' keyword"
+        return "Defect with the 'feature' keyword"
 
     def get_bz_params(self, date):
         params = {
             "resolution": "---",
             "keywords": "feature",
             "keywords_type": "allwords",
-            "bug_type": ["task", "defect"],
+            "bug_type": "defect",
         }
         return params
 
 
 if __name__ == "__main__":
-    RegressionButDefectTask().run()
+    FeatureButDefect().run()
