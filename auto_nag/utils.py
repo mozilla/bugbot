@@ -37,6 +37,16 @@ _CURRENT_VERSIONS = None
 _CONFIG_PATH = "./auto_nag/scripts/configs/"
 
 
+OLD_SEVERITY_MAP = {
+    "critical": "S1",
+    "major": "S2",
+    "normal": "S3",
+    "minor": "S4",
+    "trivial": "S4",
+    "enhancement": "S4",
+}
+
+
 BZ_FIELD_PAT = re.compile(r"^[fovj]([0-9]+)$")
 PAR_PAT = re.compile(r"\([^\)]*\)")
 BRA_PAT = re.compile(r"\[[^\]]*\]")
@@ -609,3 +619,13 @@ def get_nightly_version_from_bz():
 
 def nice_round(val):
     return int(round(100 * val))
+
+
+def get_sort_by_bug_importance_key(bug):
+    priority = bug["priority"] if bug["priority"].startswith("P") else "P10"
+    severity = (
+        bug["severity"]
+        if bug["severity"].startswith("S")
+        else OLD_SEVERITY_MAP.get(bug["severity"], "S10")
+    )
+    return (priority, severity)
