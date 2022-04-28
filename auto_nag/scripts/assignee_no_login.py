@@ -20,10 +20,7 @@ class AssigneeNoLogin(BzCleaner):
         self.unassign_weeks = utils.get_config(self.name(), "unassign_weeks", 2)
         self.nmonths = utils.get_config(self.name(), "number_of_months", 12)
         self.max_ni = utils.get_config(self.name(), "max_ni")
-        self.max_unassign_per_triage_owner = utils.get_config(
-            self.name(), "max_unassign_per_triage_owner"
-        )
-        self.autofix_assignee = {}
+        self.max_actions = utils.get_config(self.name(), "max_actions")
         self.default_assignees = utils.get_default_assignees()
         self.people = people.People.get_instance()
         self.unassign_count = collections.defaultdict(int)
@@ -53,67 +50,52 @@ class AssigneeNoLogin(BzCleaner):
     def get_max_ni(self):
         return self.max_ni
 
+    def get_max_actions(self):
+        return self.max_actions
+
     def handle_bug(self, bug, data):
         assignee = bug["assigned_to"]
         if self.people.is_mozilla(assignee):
             return None
 
-        bugid = str(bug["id"])
-
-        # Avoid to ni everyday...
-        if self.has_bot_set_ni(bug):
-            do_needinfo = False
+        prod = bug["product"]
+        comp = bug["component"]
+        default_assignee = self.default_assignees[prod][comp]
+        autofix = {"assigned_to": default_assignee}
 
         # Avoid to ni if the bug has low priority and low severity.
         # It's not paramount for triage owners to make an explicit decision here, it's enough for them
         # to receive the notification about the unassignment from Bugzilla via email.
-        elif (
+        if (
             bug["priority"] not in HIGH_PRIORITY
             and bug["severity"] not in HIGH_SEVERITY
         ):
-            do_needinfo = False
-
+            needinfo = None
+            autofix["comment"] = {
+                "body": f"The bug assignee didn't login in Bugzilla in the last { self.nmonths } months, so the assignee is being reset."
+            }
         else:
-            do_needinfo = True
-
-        if do_needinfo:
-            if not self.add_auto_ni(
-                bugid,
-                {
-                    "mail": bug["triage_owner"],
-                    "nickname": bug["triage_owner_detail"]["nick"],
-                },
-            ):
-                # Don't unassign if we can't needinfo.
-                return None
-        else:
-            if (
-                self.unassign_count[bug["triage_owner"]]
-                >= self.max_unassign_per_triage_owner
-            ):
-                return None
-            self.unassign_count[bug["triage_owner"]] += 1
-
-        data[bugid] = {"triage_owner": bug["triage_owner_detail"]["real_name"]}
-        prod = bug["product"]
-        comp = bug["component"]
-        default_assignee = self.default_assignees[prod][comp]
-        self.autofix_assignee[bugid] = {"assigned_to": default_assignee}
-        if do_needinfo:
             reason = []
             if bug["priority"] in HIGH_PRIORITY:
                 reason.append("priority '{}'".format(bug["priority"]))
             if bug["severity"] in HIGH_SEVERITY:
                 reason.append("severity '{}'".format(bug["severity"]))
-            self.extra_ni[bugid] = {
-                "reason": "/".join(reason),
-            }
-        else:
-            self.autofix_assignee[bugid]["comment"] = {
-                "body": f"The bug assignee didn't login in Bugzilla in the last { self.nmonths } months, so the assignee is being reset."
+
+            needinfo = {
+                "mail": bug["triage_owner"],
+                "nickname": bug["triage_owner_detail"]["nick"],
+                "extra": {"reason": "/".join(reason)},
             }
 
+        self.add_prioritized_action(bug, bug["triage_owner"], needinfo, autofix)
+
+        bugid = str(bug["id"])
+        data[bugid] = {"triage_owner": bug["triage_owner_detail"]["real_name"]}
+
         return bug
+
+    def get_bug_sort_key(self, *args, **kwargs):
+        return utils.get_sort_by_bug_importance_key(*args, **kwargs)
 
     def get_bz_params(self, date):
         date = lmdutils.get_date_ymd(date)
@@ -140,9 +122,6 @@ class AssigneeNoLogin(BzCleaner):
         utils.get_empty_assignees(params, negation=True)
 
         return params
-
-    def get_autofix_change(self):
-        return self.autofix_assignee
 
 
 if __name__ == "__main__":

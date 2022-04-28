@@ -53,12 +53,18 @@ class TrackedNeedinfo(BzCleaner, Nag):
         if not self.filter_bug(priority):
             return None
 
+        flags = [
+            flag for flag in utils.get_needinfo(bug, days=1) if "requestee" in flag
+        ]
+        if len(flags) == 0:
+            # The bug will still show up in the query link,
+            # resolving https://github.com/mozilla/relman-auto-nag/issues/1300 should fix this
+            return None
+
         has_manager = False
-        for flag in utils.get_needinfo(bug, days=1):
-            requestee = flag.get("requestee", "")
-            if requestee:
-                if self.add(requestee, buginfo, priority=priority):
-                    has_manager = True
+        for flag in flags:
+            if self.add(flag["requestee"], buginfo, priority=priority):
+                has_manager = True
 
         if not has_manager:
             self.add_no_manager(buginfo["id"])

@@ -75,8 +75,8 @@ python -m auto_nag.scripts.not_landed --production
 # https://docs.google.com/drawings/d/1oZA-AUvkOxGMNhZNofL8Wlfk6ol3o5ATQCV5DJJKbwM/edit
 python -m auto_nag.scripts.workflow.multi_nag --production
 
-# Defect or task with the "feature" keyword
-python -m auto_nag.scripts.feature_but_type_defect_task --production
+# Defect with the "feature" keyword
+python -m auto_nag.scripts.feature_but_type_defect --production
 
 # Defect with the "meta" keyword
 python -m auto_nag.scripts.meta_defect --production
@@ -160,7 +160,10 @@ python -m auto_nag.scripts.inactive_ni_pending --production
 python -m auto_nag.scripts.crash_signature_confirm --production
 
 # Bugs with patches after being closed
-python -m auto_nag.scripts.patch_closed_bug --production
+# python -m auto_nag.scripts.patch_closed_bug --production
+
+# Confirm bugs with affected flags
+python -m auto_nag.scripts.affected_flag_confirm --production
 
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
