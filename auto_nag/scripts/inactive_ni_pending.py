@@ -54,13 +54,15 @@ class InactiveNeedinfoPending(BzCleaner):
         for bugid in set(bugs.keys()) - set(selected_bugs):
             del bugs[bugid]
 
-        # Add the requestee info for the email template
         for bug in bugs.values():
             bug["inactive_ni"] = [
-                (
-                    flag["requestee"],
-                    user_activity.get_string_status(inactive_users[flag["requestee"]]),
-                )
+                {
+                    "id": flag["id"],
+                    "requestee": flag["requestee"],
+                    "requestee_status": user_activity.get_string_status(
+                        inactive_users[flag["requestee"]]
+                    ),
+                }
                 for flag in bug["needinfo_flags"]
                 if flag["requestee"] in inactive_users
             ]
@@ -81,9 +83,9 @@ class InactiveNeedinfoPending(BzCleaner):
         params = {
             "include_fields": fields,
             "resolution": "---",
-            "f6": "flagtypes.name",
-            "o6": "equals",
-            "v6": "needinfo?",
+            "f1": "flagtypes.name",
+            "o1": "equals",
+            "v1": "needinfo?",
         }
 
         return params

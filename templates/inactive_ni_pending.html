@@ -7,7 +7,7 @@
       </thead>
       <tbody>
         {% for i, (bugid, summary, inactive_ni, inactive_ni_count) in enumerate(data) -%}
-        {% for j,(requestee, reason) in enumerate(inactive_ni) -%}
+        {% for j, flag in enumerate(inactive_ni) -%}
         <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
           {% if j == 0 %}
           <td rowspan="{{ inactive_ni_count }}">
@@ -18,10 +18,10 @@
           </td>
           {% endif -%}
           <td>
-            {{ requestee }}
+            {{ flag["requestee"] }}
           </td>
           <td>
-            {{ reason }}
+            {{ flag["requestee_status"] }}
           </td>
         </tr>
         {% endfor -%}
