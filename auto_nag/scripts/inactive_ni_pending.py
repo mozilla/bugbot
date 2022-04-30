@@ -24,11 +24,7 @@ class InactiveNeedinfoPending(BzCleaner):
 
         # Resolving https://github.com/mozilla/relman-auto-nag/issues/1300 should clean this
         # including improve the wording in the template (i.e., "See the search query on Bugzilla").
-        self.query_url = (
-            utils.get_bz_search_url({"bug_id": ",".join(bugs.keys())})
-            if len(bugs) < 500
-            else None  # workaround to avoid https://github.com/mozilla/relman-auto-nag/issues/1402
-        )
+        self.query_url = utils.get_bz_search_url({"bug_id": ",".join(bugs.keys())})
 
         return bugs
 
