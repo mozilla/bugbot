@@ -68,6 +68,9 @@
       "rm": ["calixte@mozilla.com", "release-mgmt@mozilla.com"]
     }
   },
+  "inactive_ni_pending": {
+    "must_run": ["Mon"]
+  },
   "patch_closed_bug": {
     "days_count": 2,
     "additional_receivers": "rm"

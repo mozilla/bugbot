@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from libmozdata import utils as lmdutils
 
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
@@ -76,6 +77,8 @@ class InactiveNeedinfoPending(BzCleaner):
 
     def get_bz_params(self, date):
         fields = ["flags"]
+        date = lmdutils.get_date_ymd(date)
+
         params = {
             "include_fields": fields,
             "resolution": "---",
@@ -83,6 +86,16 @@ class InactiveNeedinfoPending(BzCleaner):
             "o1": "equals",
             "v1": "needinfo?",
         }
+
+        # Run monthly on all bugs and weekly on recently created bugs
+        if date.day >= 7:
+            params.update(
+                {
+                    "f2": "creation_ts",
+                    "o2": "greaterthan",
+                    "v2": "-1m",
+                }
+            )
 
         return params
 
