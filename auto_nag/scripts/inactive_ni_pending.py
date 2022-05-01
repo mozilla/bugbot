@@ -168,7 +168,7 @@ class InactiveNeedinfoPending(BzCleaner):
         }
 
         # Run monthly on all bugs and weekly on recently created bugs
-        if date.day >= 7:
+        if date.day > 7:
             params.update(
                 {
                     "f2": "creation_ts",
