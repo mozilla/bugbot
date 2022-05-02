@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from collections import defaultdict
+
 from dateutil.relativedelta import relativedelta
 from libmozdata import utils as lmdutils
 
@@ -41,16 +43,13 @@ class InactiveNeedinfoPending(BzCleaner):
         return bugs
 
     def handle_inactive_requestee(self, bugs):
-        requestee_bugs = {}
+        requestee_bugs = defaultdict(list)
         for bugid, bug in bugs.items():
             for flag in bug["needinfo_flags"]:
                 if "requestee" not in flag:
                     flag["requestee"] = ""
 
-                if flag["requestee"] not in requestee_bugs:
-                    requestee_bugs[flag["requestee"]] = [bugid]
-                else:
-                    requestee_bugs[flag["requestee"]].append(bugid)
+                requestee_bugs[flag["requestee"]].append(bugid)
 
         user_activity = UserActivity()
         inactive_users = user_activity.check_users(requestee_bugs.keys())
