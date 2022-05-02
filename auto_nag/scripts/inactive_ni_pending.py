@@ -96,17 +96,22 @@ class InactiveNeedinfoPending(BzCleaner):
         return bugs
 
     @staticmethod
-    def is_recent_bug(bug):
-        return lmdutils.get_date_ymd(bug["creation_time"]) >= RECENT_BUG_LIMIT
+    def should_forward_needinfo(bug):
+        """
+        Determain if the bug is important enough to have the needinfos forwarded
+        to the triage owner.
+        """
+
+        return (
+            bug["priority"] in HIGH_PRIORITY
+            or bug["severity"] in HIGH_SEVERITY
+            or lmdutils.get_date_ymd(bug["creation_time"]) >= RECENT_BUG_LIMIT
+        )
 
     def add_action(self, bug):
         users_num = len(set([flag["requestee"] for flag in bug["inactive_ni"]]))
 
-        if (
-            bug["priority"] in HIGH_PRIORITY
-            or bug["severity"] in HIGH_SEVERITY
-            or self.is_recent_bug(bug)
-        ):
+        if self.should_forward_needinfo(bug):
             autofix = {
                 "flags": [
                     {
@@ -137,9 +142,7 @@ class InactiveNeedinfoPending(BzCleaner):
 
     def get_bug_sort_key(self, bug):
         return (
-            bug["priority"] not in HIGH_PRIORITY,
-            bug["severity"] not in HIGH_SEVERITY,
-            not self.is_recent_bug(bug),
+            not self.should_forward_needinfo(bug),
             utils.get_sort_by_bug_importance_key(bug),
         )
 
