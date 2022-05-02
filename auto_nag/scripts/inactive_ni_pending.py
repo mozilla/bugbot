@@ -53,10 +53,12 @@ class InactiveNeedinfoPending(BzCleaner):
 
         user_activity = UserActivity()
         inactive_users = user_activity.check_users(requestee_bugs.keys())
-        selected_bugs = []
-        for requestee, bugids in requestee_bugs.items():
-            if requestee in inactive_users:
-                selected_bugs.extend(bugids)
+        selected_bugs = {
+            bugid
+            for requestee, bugids in requestee_bugs.items()
+            if requestee in inactive_users
+            for bugid in bugids
+        }
 
         for bugid in set(bugs.keys()) - set(selected_bugs):
             del bugs[bugid]
