@@ -58,7 +58,7 @@ class InactiveNeedinfoPending(BzCleaner):
 
                 requestee_bugs[flag["requestee"]].append(bugid)
 
-        triage_owners = {bug["triage_owner"] for bug in bugs}
+        triage_owners = {bug["triage_owner"] for bug in bugs.values()}
 
         user_activity = UserActivity()
         inactive_users = user_activity.check_users(
