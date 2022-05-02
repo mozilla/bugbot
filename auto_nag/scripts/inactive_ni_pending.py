@@ -34,7 +34,7 @@ class InactiveNeedinfoPending(BzCleaner):
 
     def get_bugs(self, *args, **kwargs):
         bugs = super().get_bugs(*args, **kwargs)
-        self.handle_inactive_requestee(bugs)
+        bugs = self.handle_inactive_requestee(bugs)
 
         # Resolving https://github.com/mozilla/relman-auto-nag/issues/1300 should clean this
         # including improve the wording in the template (i.e., "See the search query on Bugzilla").
@@ -43,6 +43,13 @@ class InactiveNeedinfoPending(BzCleaner):
         return bugs
 
     def handle_inactive_requestee(self, bugs):
+        """
+        Detect inactive users and filter bugs to keep only the ones with needinfo pending on
+        inactive users.
+
+        Note: This method will mutate the provided bug objects and will return a new `bugs`
+        dictionary.
+        """
         requestee_bugs = defaultdict(list)
         for bugid, bug in bugs.items():
             for flag in bug["needinfo_flags"]:
@@ -60,9 +67,7 @@ class InactiveNeedinfoPending(BzCleaner):
             for bugid in bugids
         }
 
-        for bugid in set(bugs.keys()) - set(selected_bugs):
-            del bugs[bugid]
-
+        bugs = {bugid: bug for bugid, bug in bugs.items() if bugid in selected_bugs}
         for bug in bugs.values():
             bug["inactive_ni"] = [
                 {
@@ -77,6 +82,8 @@ class InactiveNeedinfoPending(BzCleaner):
             ]
             bug["inactive_ni_count"] = len(bug["inactive_ni"])
             self.add_action(bug)
+
+        return bugs
 
     @staticmethod
     def is_recent_bug(bug):
