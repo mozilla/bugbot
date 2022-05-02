@@ -11,7 +11,7 @@ from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.user_activity import UserActivity
 
-__RECENT_BUG_LIMIT = lmdutils.get_date_ymd("today") - relativedelta(months=6)
+RECENT_BUG_LIMIT = lmdutils.get_date_ymd("today") - relativedelta(months=6)
 
 # TODO: should be moved when resolving https://github.com/mozilla/relman-auto-nag/issues/1384
 HIGH_PRIORITY = {"P1", "P2"}
@@ -87,7 +87,7 @@ class InactiveNeedinfoPending(BzCleaner):
 
     @staticmethod
     def is_recent_bug(bug):
-        return lmdutils.get_date_ymd(bug["creation_time"]) >= __RECENT_BUG_LIMIT
+        return lmdutils.get_date_ymd(bug["creation_time"]) >= RECENT_BUG_LIMIT
 
     def add_action(self, bug):
         users_num = len(set([flag["requestee"] for flag in bug["inactive_ni"]]))
