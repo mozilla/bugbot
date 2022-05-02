@@ -58,16 +58,26 @@ class InactiveNeedinfoPending(BzCleaner):
 
                 requestee_bugs[flag["requestee"]].append(bugid)
 
+        triage_owners = {bug["triage_owner"] for bug in bugs}
+
         user_activity = UserActivity()
-        inactive_users = user_activity.check_users(requestee_bugs.keys())
-        selected_bugs = {
+        inactive_users = user_activity.check_users(
+            set(requestee_bugs.keys()) | triage_owners
+        )
+        inactive_requestee_bugs = {
             bugid
             for requestee, bugids in requestee_bugs.items()
             if requestee in inactive_users
             for bugid in bugids
         }
 
-        bugs = {bugid: bug for bugid, bug in bugs.items() if bugid in selected_bugs}
+        bugs = {
+            bugid: bug
+            for bugid, bug in bugs.items()
+            if bugid in inactive_requestee_bugs
+            and bug["triage_owner"] not in inactive_users
+        }
+
         for bug in bugs.values():
             bug["inactive_ni"] = [
                 {
@@ -93,18 +103,9 @@ class InactiveNeedinfoPending(BzCleaner):
         users_num = len(set([flag["requestee"] for flag in bug["inactive_ni"]]))
 
         if (
-            (
-                bug["priority"] in HIGH_PRIORITY
-                or bug["severity"] in HIGH_SEVERITY
-                or self.is_recent_bug(bug)
-            )
-            and not utils.is_no_assignee(bug["triage_owner"])
-            and not any(
-                [
-                    flag["requestee"] == bug["triage_owner"]
-                    for flag in bug["inactive_ni"]
-                ]
-            )
+            bug["priority"] in HIGH_PRIORITY
+            or bug["severity"] in HIGH_SEVERITY
+            or self.is_recent_bug(bug)
         ):
             autofix = {
                 "flags": [
