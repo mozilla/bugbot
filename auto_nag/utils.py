@@ -637,9 +637,10 @@ def get_sort_by_bug_importance_key(bug):
         if bug["severity"].startswith("S")
         else OLD_SEVERITY_MAP.get(bug["severity"], "S10")
     )
+
     return (
         not is_important,
-        priority,
         severity,
+        priority,
         int(bug["id"]) * -1,
     )
