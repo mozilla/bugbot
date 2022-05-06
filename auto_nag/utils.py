@@ -58,6 +58,10 @@ BUG_PAT = re.compile(r"^bug[s]?[ \t]*([0-9]+)", re.I)
 
 MAX_URL_LENGTH = 512
 
+# TODO: should be moved when resolving https://github.com/mozilla/relman-auto-nag/issues/1384
+HIGH_PRIORITY = {"P1", "P2"}
+HIGH_SEVERITY = {"S1", "critical", "S2", "major"}
+
 
 def get_weekdays():
     return {"Mon": 0, "Tue": 1, "Wed": 2, "Thu": 3, "Fri": 4, "Sat": 5, "Sun": 6}
@@ -622,10 +626,11 @@ def nice_round(val):
 
 
 def get_sort_by_bug_importance_key(bug):
+    is_important = bug["priority"] in HIGH_PRIORITY or bug["severity"] in HIGH_SEVERITY
     priority = bug["priority"] if bug["priority"].startswith("P") else "P10"
     severity = (
         bug["severity"]
         if bug["severity"].startswith("S")
         else OLD_SEVERITY_MAP.get(bug["severity"], "S10")
     )
-    return (priority, severity)
+    return (not is_important, priority, severity, int(bug["id"]) * -1)
