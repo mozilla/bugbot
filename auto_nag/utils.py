@@ -33,10 +33,12 @@ _CYCLE_SPAN = None
 _MERGE_DAY = None
 _TRIAGE_OWNERS = None
 _DEFAULT_ASSIGNEES = None
-_CURRENT_VERSIONS = None
 _CONFIG_PATH = "./auto_nag/scripts/configs/"
 
 
+# TODO: should be moved when resolving https://github.com/mozilla/relman-auto-nag/issues/1384
+HIGH_PRIORITY = {"P1", "P2"}
+HIGH_SEVERITY = {"S1", "critical", "S2", "major"}
 OLD_SEVERITY_MAP = {
     "critical": "S1",
     "major": "S2",
@@ -45,7 +47,6 @@ OLD_SEVERITY_MAP = {
     "trivial": "S4",
     "enhancement": "S4",
 }
-
 
 BZ_FIELD_PAT = re.compile(r"^[fovj]([0-9]+)$")
 PAR_PAT = re.compile(r"\([^\)]*\)")
@@ -57,10 +58,6 @@ BACKOUT_PAT = re.compile("^back(s|(ed))?[ \t]*out", re.I)
 BUG_PAT = re.compile(r"^bug[s]?[ \t]*([0-9]+)", re.I)
 
 MAX_URL_LENGTH = 512
-
-# TODO: should be moved when resolving https://github.com/mozilla/relman-auto-nag/issues/1384
-HIGH_PRIORITY = {"P1", "P2"}
-HIGH_SEVERITY = {"S1", "critical", "S2", "major"}
 
 
 def get_weekdays():
@@ -626,6 +623,13 @@ def nice_round(val):
 
 
 def get_sort_by_bug_importance_key(bug):
+    """
+    We need bugs with high severity (S1 or S2) or high priority (P1 or P2) to be
+    first (do not need to be high in both). Next, bugs with higher priority and
+    severity are preferred. Finally, for bugs with the same severity and priority,
+    we favour recent bugs. We use the bug ID to reflect the creation order.
+    """
+
     is_important = bug["priority"] in HIGH_PRIORITY or bug["severity"] in HIGH_SEVERITY
     priority = bug["priority"] if bug["priority"].startswith("P") else "P10"
     severity = (
@@ -633,4 +637,9 @@ def get_sort_by_bug_importance_key(bug):
         if bug["severity"].startswith("S")
         else OLD_SEVERITY_MAP.get(bug["severity"], "S10")
     )
-    return (not is_important, priority, severity, int(bug["id"]) * -1)
+    return (
+        not is_important,
+        priority,
+        severity,
+        int(bug["id"]) * -1,
+    )
