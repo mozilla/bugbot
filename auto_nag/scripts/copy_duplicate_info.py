@@ -23,7 +23,10 @@ class CopyDuplicateInfo(BzCleaner):
         for bugid, missed_sgns in signatures.items():
             sgns = dups[bugid]["signature"]
             sgns = utils.add_signatures(sgns, missed_sgns)
-            self.autofix_data[bugid] = {"cf_crash_signature": sgns}
+            self.autofix_data[bugid] = {
+                "cf_crash_signature": sgns,
+                "comment": {"body": "Copying crash signatures from duplicate bugs."},
+            }
 
         for bugid, pc in pcs.items():
             if bugid in self.autofix_data:
