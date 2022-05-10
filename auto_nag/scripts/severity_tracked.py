@@ -28,7 +28,7 @@ class SeverityTracked(BzCleaner):
         }
 
     def description(self):
-        return "Bugs with low severity that are marked as blocking or is tracked by release managers"
+        return "Bugs with low severity that are marked as blocking or are tracked by release managers"
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
