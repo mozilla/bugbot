@@ -1,0 +1,31 @@
+<p>The following {{ plural('bug has', data, pword='bugs have') }} a version tracking flag, however, {{ plural('its', data, pword='their') }} severity is low. {{ plural('Owner', data) }} got {{ plural('a needinfo request', data, pword='needinfo requests') }} to bump the severity:
+    <table {{ table_attrs }}>
+      <thead>
+        <tr>
+          <th>Bug</th><th>Summary</th><th>Severity</th><th>Tracking Flags</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for i, (bugid, summary, severity, reasons) in enumerate(data) -%}
+        <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
+          <td>
+            <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+           </td>
+          <td>
+            {{ summary | e }}
+          </td>
+          <td>
+            {{ severity }}
+          </td>
+          <td>
+            <ul>
+              {% for reason in reasons -%}
+              <li>{{ reason }}</li>
+              {% endfor -%}
+            </ul>
+          </td>
+        </tr>
+        {% endfor -%}
+      </tbody>
+    </table>
+</p>
