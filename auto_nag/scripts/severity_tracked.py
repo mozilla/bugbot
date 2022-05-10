@@ -90,6 +90,15 @@ class SeverityTracked(BzCleaner):
             "f6": "longdesc",
             "o6": "casesubstring",
             "v6": "could you consider increasing the severity of this tracked bug?",
+            "f7": "keywords",
+            "o7": "nowords",
+            "v7": "intermittent-failure",
+            "f8": "status_whiteboard",
+            "o8": "notsubstring",
+            "v8": "[stockwell]",
+            "f9": "short_desc",
+            "o9": "notregexp",
+            "v9": r"^Perma |Intermittent ",
         }
 
         return params
