@@ -457,7 +457,6 @@
     "sec": false
   },
   "uplift_beta": {
-    "days_to_wait": 2,
     "additional_receivers": ["jcristau@mozilla.com"]
   },
   "regression_set_status_flags": {

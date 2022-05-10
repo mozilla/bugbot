@@ -82,7 +82,6 @@ class UpliftBeta(BzCleaner):
 
     def get_bz_params(self, date):
         self.date = lmdutils.get_date_ymd(date)
-        to_wait = self.get_config("days_to_wait")
         fields = [self.status_beta, "regressions"]
         params = {
             "include_fields": fields,
@@ -94,37 +93,26 @@ class UpliftBeta(BzCleaner):
             "f2": self.status_beta,
             "o2": "anyexact",
             "v2": "affected",
-            # Changed before 2 days ago and not changed after 2 days ago
-            # So we get bugs where the last status_central change (fixed or verified)
-            # was 2 days ago
-            "f3": self.status_central,
-            "o3": "changedbefore",
-            "v3": f"-{to_wait}d",
-            "n4": 1,
-            "f4": self.status_central,
-            "o4": "changedafter",
-            "v4": f"-{to_wait}d",
-            #
-            "f5": "flagtypes.name",
-            "o5": "notsubstring",
-            "v5": "approval-mozilla-beta",
-            "f6": "flagtypes.name",
-            "o6": "notsubstring",
-            "v6": "needinfo",
+            "f3": "flagtypes.name",
+            "o3": "notsubstring",
+            "v3": "approval-mozilla-beta",
+            "f4": "flagtypes.name",
+            "o4": "notsubstring",
+            "v4": "needinfo",
             # Don't nag several times
-            "n7": 1,
-            "f7": "longdesc",
-            "o7": "casesubstring",
+            "n5": 1,
+            "f5": "longdesc",
+            "o5": "casesubstring",
             # this a part of the comment we've in templates/uplift_beta_needinfo.txt
-            "v7": ", is this bug important enough to require an uplift?",
+            "v5": ", is this bug important enough to require an uplift?",
             # Check if have at least one attachment which is a Phabricator request
-            "f8": "attachments.mimetype",
-            "o8": "anywordssubstr",
-            "v8": "text/x-phabricator-request",
+            "f6": "attachments.mimetype",
+            "o6": "anywordssubstr",
+            "v6": "text/x-phabricator-request",
             # skip if whiteboard contains checkin-needed-beta (e.g. test-only uplift)
-            "f9": "status_whiteboard",
-            "o9": "notsubstring",
-            "v9": "[checkin-needed-beta]",
+            "f7": "status_whiteboard",
+            "o7": "notsubstring",
+            "v7": "[checkin-needed-beta]",
         }
 
         return params
