@@ -1,0 +1,4 @@
+The severity field for this bug is set to {{ extra[bugid]["severity"] }}. However, this bug has a P1 WebCompat priority.
+:{{ nickname }}, could you consider increasing the severity of this web compatibility bug?
+
+{{ documentation }}
