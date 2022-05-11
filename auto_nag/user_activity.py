@@ -4,98 +4,88 @@
 
 from enum import Enum
 
-from libmozdata.bugzilla import Bugzilla, BugzillaUser
+from libmozdata import utils as lmdutils
+from libmozdata.bugzilla import BugzillaUser
 
 from auto_nag import utils
 from auto_nag.people import People
 
 DEFAULT_ACTIVITY_WEEKS = 26
+DEFAULT_ABSENT_WEEKS = 13
 
 
 class UserStatus(Enum):
     UNDEFINED = 1
     DISABLED = 2
     INACTIVE = 3
+    ABSENT = 4
 
 
 class UserActivity:
-    def __init__(self, weeks_count=DEFAULT_ACTIVITY_WEEKS) -> None:
-        self.weeks_count = weeks_count
+    def __init__(
+        self,
+        activity_weeks_count=DEFAULT_ACTIVITY_WEEKS,
+        absent_weeks_count=DEFAULT_ABSENT_WEEKS,
+    ) -> None:
+        self.activity_weeks_count = activity_weeks_count
+        self.absent_weeks_count = absent_weeks_count
         self.people = People.get_instance()
+
+        self.activity_limit = lmdutils.get_date("today", self.activity_weeks_count * 7)
+        self.seen_limit = lmdutils.get_date("today", self.absent_weeks_count * 7)
 
     def check_users(self, user_emails):
         user_emails = self.get_not_employees(user_emails)
 
-        none_users = {
-            user_email for user_email in user_emails if utils.is_no_assignee(user_email)
+        status = {
+            user_email: UserStatus.UNDEFINED
+            for user_email in user_emails
+            if utils.is_no_assignee(user_email)
         }
-        user_emails.difference_update(none_users)
-        status = {user_email: UserStatus.UNDEFINED for user_email in none_users}
-        if len(user_emails) == 0:
+        if len(user_emails) == len(status):
             return status
 
-        disabled_users = self.get_disabled_users(user_emails)
-        user_emails.difference_update(disabled_users)
-        for user_email in disabled_users:
-            status[user_email] = UserStatus.DISABLED
+        user_emails = [
+            user_email for user_email in user_emails if user_email not in status
+        ]
 
-        for user_email in user_emails:
-            if self.is_inactive_user(user_email):
-                status[user_email] = UserStatus.INACTIVE
-
-        return status
+        return self.get_bz_status(user_emails, status)
 
     def get_not_employees(self, user_emails):
-        return {
+        return [
             user_email
             for user_email in user_emails
             if not self.people.is_mozilla(user_email)
-        }
+        ]
 
-    def is_inactive_user(self, user_email):
-        bugs = {"count": 0}
-
-        params = {
-            "limit": 1,
-            "f1": "anything",
-            "o1": "changedby",
-            "v1": user_email,
-            "f2": "anything",
-            "o2": "changedafter",
-            "v2": f"-{self.weeks_count}w",
-        }
-
-        def handle_bugs(_, data):
-            data["count"] += 1
-
-        Bugzilla(
-            params, include_fields=["id"], bughandler=handle_bugs, bugdata=bugs
-        ).wait()
-
-        return bugs["count"] == 0
-
-    def get_disabled_users(self, user_emails):
+    def get_bz_status(self, user_emails, status={}):
         def handler(user, data):
             if not user["can_login"]:
-                data.add(user["name"])
-
-        data = set()
-        user_emails = (
-            user_emails if isinstance(user_emails, list) else list(user_emails)
-        )
+                data[user["name"]] = UserStatus.DISABLED
+            elif (
+                user["last_seen_date"] is None
+                or user["last_seen_date"] < self.seen_limit
+            ):
+                data[user["name"]] = UserStatus.ABSENT
+            elif (
+                user["last_activity_time"] is None
+                or user["last_activity_time"] < self.activity_limit
+            ):
+                data[user["name"]] = UserStatus.INACTIVE
 
         BugzillaUser(
-            user_data=data,
+            user_data=status,
             user_names=user_emails,
             user_handler=handler,
-            include_fields=["name", "can_login"],
+            include_fields=[
+                "name",
+                "can_login",
+                "last_activity_time",
+                "last_seen_date",
+            ],
         ).wait()
 
-        return data
-
-    def is_disabled_user(self, user_email):
-        users = self.get_disabled_users([user_email])
-        return user_email in users
+        return status
 
     def get_string_status(self, status: UserStatus):
         if status == UserStatus.UNDEFINED:
@@ -103,6 +93,8 @@ class UserActivity:
         elif status == UserStatus.DISABLED:
             return "Account disabled"
         elif status == UserStatus.INACTIVE:
-            return f"Inactive on Bugzilla in last {self.weeks_count} weeks"
+            return f"Inactive on Bugzilla in last {self.activity_weeks_count} weeks"
+        elif status == UserStatus.ABSENT:
+            return f"Not seen on Bugzilla in last {self.absent_weeks_count} weeks"
         else:
             return status.name
