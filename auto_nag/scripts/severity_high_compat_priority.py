@@ -11,7 +11,7 @@ LOW_SEVERITY = ["S3", "normal", "S4", "minor", "trivial", "enhancement"]
 
 class SeverityHighCompatPriority(BzCleaner):
     def description(self):
-        return "P1 web compatibility bugs with low severity"
+        return "Bugs with P1 WebCompat priority and severity set to low"
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
@@ -42,13 +42,12 @@ class SeverityHighCompatPriority(BzCleaner):
         params = {
             "include_fields": fields,
             "resolution": "---",
-            "priority": "P1",
-            "component": "Web Compatibility",
+            "cf_webcompat_priority": "P1",
             "bug_severity": LOW_SEVERITY,
-            "n15": 1,
-            "f15": "longdesc",
-            "o15": "casesubstring",
-            "v15": "could you consider increasing the severity of this web compatibility bug?",
+            "n1": 1,
+            "f1": "longdesc",
+            "o1": "casesubstring",
+            "v1": "could you consider increasing the severity of this web compatibility bug?",
         }
 
         return params
