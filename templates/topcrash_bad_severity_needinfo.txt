@@ -1,0 +1,4 @@
+The severity field for this bug is set to {{ extra[bugid]["severity"] }}. However, the bug has the `topcrash` keyword.
+:{{ nickname }}, could you consider increasing the severity of this top-crash bug? If the crash isn't "top" anymore, could you drop the `topcrash` keyword?
+
+{{ documentation }}
