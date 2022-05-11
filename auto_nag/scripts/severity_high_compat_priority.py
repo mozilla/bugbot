@@ -9,7 +9,7 @@ from auto_nag.bzcleaner import BzCleaner
 LOW_SEVERITY = ["S3", "normal", "S4", "minor", "trivial", "enhancement"]
 
 
-class SeverityHighPriorityCompat(BzCleaner):
+class SeverityHighCompatPriority(BzCleaner):
     def description(self):
         return "P1 web compatibility bugs with low severity"
 
@@ -55,4 +55,4 @@ class SeverityHighPriorityCompat(BzCleaner):
 
 
 if __name__ == "__main__":
-    SeverityHighPriorityCompat().run()
+    SeverityHighCompatPriority().run()
