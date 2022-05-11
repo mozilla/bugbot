@@ -1,0 +1,4 @@
+The severity field for this bug is set to {{ extra[bugid]["severity"] }}. However, the bug is marked as {{ extra[bugid]["reasons_inline"] }}.
+:{{ nickname }}, could you consider increasing the severity of this tracked bug?
+
+{{ documentation }}
