@@ -179,12 +179,12 @@ class InactiveNeedinfoPending(BzCleaner):
             "v1": "needinfo?",
         }
 
-        # Run monthly on all bugs and weekly on recently created bugs
+        # Run monthly on all bugs and weekly on recently changed bugs
         if date.day > 7:
             params.update(
                 {
-                    "f2": "creation_ts",
-                    "o2": "greaterthan",
+                    "f2": "anything",
+                    "o2": "changedafter",
                     "v2": "-1m",
                 }
             )
