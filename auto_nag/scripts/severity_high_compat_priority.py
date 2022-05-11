@@ -42,6 +42,7 @@ class SeverityHighCompatPriority(BzCleaner):
         params = {
             "include_fields": fields,
             "resolution": "---",
+            "bug_type": "defect",
             "cf_webcompat_priority": "P1",
             "bug_severity": LOW_SEVERITY,
             "n1": 1,
