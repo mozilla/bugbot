@@ -9,9 +9,10 @@ from libmozdata import utils as lmdutils
 
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag.user_activity import UserActivity
+from auto_nag.user_activity import UserActivity, UserStatus
 
 RECENT_BUG_LIMIT = lmdutils.get_date("today", timedelta(weeks=26).days)
+RECENT_NEEINFO_LIMIT = lmdutils.get_date("today", timedelta(weeks=3).days)
 
 # TODO: should be moved when resolving https://github.com/mozilla/relman-auto-nag/issues/1384
 HIGH_PRIORITY = {"P1", "P2"}
@@ -89,6 +90,11 @@ class InactiveNeedinfoPending(BzCleaner):
                 }
                 for flag in bug["needinfo_flags"]
                 if flag["requestee"] in inactive_users
+                and (
+                    flag["modification_date"] < RECENT_NEEINFO_LIMIT
+                    or inactive_users[flag["requestee"]]
+                    in [UserStatus.DISABLED, UserStatus.UNDEFINED]
+                )
             ]
             bug["inactive_ni_count"] = len(bug["inactive_ni"])
             self.add_action(bug)
