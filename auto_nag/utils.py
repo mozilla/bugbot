@@ -34,6 +34,7 @@ _MERGE_DAY = None
 _TRIAGE_OWNERS = None
 _DEFAULT_ASSIGNEES = None
 _CONFIG_PATH = "./auto_nag/scripts/configs/"
+_CURRENT_VERSIONS = None
 
 
 # TODO: should be moved when resolving https://github.com/mozilla/relman-auto-nag/issues/1384
@@ -47,6 +48,7 @@ OLD_SEVERITY_MAP = {
     "trivial": "S4",
     "enhancement": "S4",
 }
+
 
 BZ_FIELD_PAT = re.compile(r"^[fovj]([0-9]+)$")
 PAR_PAT = re.compile(r"\([^\)]*\)")
