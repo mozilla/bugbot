@@ -222,7 +222,7 @@ class BzCleaner(object):
             return False
 
         ni_mail = data["mail"]
-        if ni_mail in self.get_auto_ni_skiplist():
+        if ni_mail in self.get_auto_ni_skiplist() or utils.is_no_assignee(ni_mail):
             return False
         if ni_mail in self.auto_needinfo:
             max_ni = self.get_max_ni()

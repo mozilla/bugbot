@@ -67,10 +67,7 @@
     "receiver_list": {
       "rm": ["calixte@mozilla.com", "release-mgmt@mozilla.com"]
     },
-    "needinfo_skiplist": [
-      "intermittent-bug-filer@mozilla.bugs",
-      "wptsync@mozilla.bugs"
-    ]
+    "needinfo_skiplist": []
   },
   "patch_closed_bug": {
     "days_count": 2,
