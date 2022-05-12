@@ -98,7 +98,7 @@ class InactiveNeedinfoPending(BzCleaner):
     @staticmethod
     def should_forward_needinfo(bug):
         """
-        Determain if the bug is important enough to have the needinfos forwarded
+        Determine if the bug is important enough to have the needinfos forwarded
         to the triage owner.
         """
 
