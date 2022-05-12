@@ -116,6 +116,7 @@ class InactiveNeedinfoPending(BzCleaner):
                 "flags": [
                     {
                         "id": flag["id"],
+                        "status": "?",
                         "requestee": bug["triage_owner"],
                     }
                     for flag in bug["inactive_ni"]
