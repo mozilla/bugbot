@@ -11,7 +11,7 @@ from auto_nag import utils
 from auto_nag.people import People
 
 DEFAULT_ACTIVITY_WEEKS = 26
-DEFAULT_ABSENT_WEEKS = 13
+DEFAULT_ABSENT_WEEKS = 26
 
 
 class UserStatus(Enum):
