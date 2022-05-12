@@ -27,7 +27,7 @@ class LeaveOpenNoActivity(BzCleaner):
         return {"nmonths": self.nmonths}
 
     def get_auto_ni_skiplist(self):
-        return self.skiplist
+        return super().get_auto_ni_skiplist() | self.skiplist
 
     def get_max_ni(self):
         return self.max_ni

@@ -214,7 +214,8 @@ class BzCleaner(object):
         }
 
     def get_auto_ni_skiplist(self):
-        return set()
+        """Return a set of email addresses that should never be needinfoed"""
+        return set(self.get_config("needinfo_skiplist", default=[]))
 
     def add_auto_ni(self, bugid, data):
         if not data:
