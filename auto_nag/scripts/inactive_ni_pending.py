@@ -3,15 +3,15 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from collections import defaultdict
+from datetime import timedelta
 
-from dateutil.relativedelta import relativedelta
 from libmozdata import utils as lmdutils
 
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.user_activity import UserActivity
 
-RECENT_BUG_LIMIT = lmdutils.get_date_ymd("today") - relativedelta(months=6)
+RECENT_BUG_LIMIT = lmdutils.get_date("today", timedelta(weeks=26).days)
 
 # TODO: should be moved when resolving https://github.com/mozilla/relman-auto-nag/issues/1384
 HIGH_PRIORITY = {"P1", "P2"}
@@ -105,7 +105,7 @@ class InactiveNeedinfoPending(BzCleaner):
         return (
             bug["priority"] in HIGH_PRIORITY
             or bug["severity"] in HIGH_SEVERITY
-            or lmdutils.get_date_ymd(bug["creation_time"]) >= RECENT_BUG_LIMIT
+            or bug["creation_time"] >= RECENT_BUG_LIMIT
         )
 
     def add_action(self, bug):
@@ -163,8 +163,6 @@ class InactiveNeedinfoPending(BzCleaner):
         return bug
 
     def get_bz_params(self, date):
-        date = lmdutils.get_date_ymd(date)
-
         fields = [
             "triage_owner",
             "flags",
@@ -183,7 +181,7 @@ class InactiveNeedinfoPending(BzCleaner):
         }
 
         # Run monthly on all bugs and weekly on recently changed bugs
-        if date.day > 7:
+        if lmdutils.get_date_ymd(date).day > 7:
             params.update(
                 {
                     "f2": "anything",
