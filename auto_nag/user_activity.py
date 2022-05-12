@@ -38,19 +38,19 @@ class UserActivity:
         # Employees will always be considered active
         user_emails = self.get_not_employees(user_emails)
 
-        status = {
+        user_statuses = {
             user_email: UserStatus.UNDEFINED
             for user_email in user_emails
             if utils.is_no_assignee(user_email)
         }
-        if len(user_emails) == len(status):
-            return status
+        if len(user_emails) == len(user_statuses):
+            return user_statuses
 
         user_emails = [
-            user_email for user_email in user_emails if user_email not in status
+            user_email for user_email in user_emails if user_email not in user_statuses
         ]
 
-        return self.get_bz_status(user_emails, status)
+        return self.get_bz_status(user_emails, user_statuses)
 
     def get_not_employees(self, user_emails):
         return [
@@ -59,7 +59,7 @@ class UserActivity:
             if not self.people.is_mozilla(user_email)
         ]
 
-    def get_bz_status(self, user_emails, status={}):
+    def get_bz_status(self, user_emails, user_statuses={}):
         def handler(user, data):
             if not user["can_login"]:
                 data[user["name"]] = UserStatus.DISABLED
@@ -75,7 +75,7 @@ class UserActivity:
                 data[user["name"]] = UserStatus.INACTIVE
 
         BugzillaUser(
-            user_data=status,
+            user_data=user_statuses,
             user_names=user_emails,
             user_handler=handler,
             include_fields=[
@@ -86,7 +86,7 @@ class UserActivity:
             ],
         ).wait()
 
-        return status
+        return user_statuses
 
     def get_string_status(self, status: UserStatus):
         if status == UserStatus.UNDEFINED:
