@@ -35,6 +35,7 @@ class UserActivity:
         self.seen_limit = lmdutils.get_date("today", self.absent_weeks_count * 7)
 
     def check_users(self, user_emails):
+        # Employees will always be considered active
         user_emails = self.get_not_employees(user_emails)
 
         status = {
