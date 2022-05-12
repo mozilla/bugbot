@@ -629,7 +629,7 @@ def get_sort_by_bug_importance_key(bug):
     We need bugs with high severity (S1 or S2) or high priority (P1 or P2) to be
     first (do not need to be high in both). Next, bugs with higher priority and
     severity are preferred. Finally, for bugs with the same severity and priority,
-    we favour recent bugs. We use the bug ID to reflect the creation order.
+    we favour recently changed or created bugs.
     """
 
     is_important = bug["priority"] in HIGH_PRIORITY or bug["severity"] in HIGH_SEVERITY
@@ -639,10 +639,15 @@ def get_sort_by_bug_importance_key(bug):
         if bug["severity"].startswith("S")
         else OLD_SEVERITY_MAP.get(bug["severity"], "S10")
     )
+    time_order = (
+        lmdutils.get_timestamp(bug["last_change_time"])
+        if "last_change_time" in bug
+        else int(bug["id"])  # Bug ID reflects the creation order
+    )
 
     return (
         not is_important,
         severity,
         priority,
-        int(bug["id"]) * -1,
+        time_order * -1,
     )

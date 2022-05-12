@@ -153,6 +153,7 @@ class InactiveNeedinfoPending(BzCleaner):
             "priority": bug["priority"],
             "severity": bug["severity"],
             "creation_time": bug["creation_time"],
+            "last_change_time": bug["last_change_time"],
             "triage_owner": bug["triage_owner"],
             "needinfo_flags": [
                 flag for flag in bug["flags"] if flag["name"] == "needinfo"
@@ -170,6 +171,7 @@ class InactiveNeedinfoPending(BzCleaner):
             "priority",
             "severity",
             "creation_time",
+            "last_change_time",
         ]
 
         params = {
