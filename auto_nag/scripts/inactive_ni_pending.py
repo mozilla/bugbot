@@ -31,7 +31,14 @@ class InactiveNeedinfoPending(BzCleaner):
         return "Bugs with needinfo pending on inactive people"
 
     def columns(self):
-        return ["id", "summary", "inactive_ni", "inactive_ni_count"]
+        return [
+            "id",
+            "summary",
+            "inactive_ni",
+            "inactive_ni_count",
+            "should_forward_ni",
+            "triage_owner",
+        ]
 
     def get_bugs(self, *args, **kwargs):
         bugs = super().get_bugs(*args, **kwargs)
@@ -97,6 +104,7 @@ class InactiveNeedinfoPending(BzCleaner):
                 )
             ]
             bug["inactive_ni_count"] = len(bug["inactive_ni"])
+            bug["should_forward_ni"] = self.should_forward_needinfo(bug)
             self.add_action(bug)
 
         return bugs
@@ -117,7 +125,7 @@ class InactiveNeedinfoPending(BzCleaner):
     def add_action(self, bug):
         users_num = len(set([flag["requestee"] for flag in bug["inactive_ni"]]))
 
-        if self.should_forward_needinfo(bug):
+        if bug["should_forward_ni"]:
             autofix = {
                 "flags": [
                     {
@@ -149,7 +157,7 @@ class InactiveNeedinfoPending(BzCleaner):
 
     def get_bug_sort_key(self, bug):
         return (
-            not self.should_forward_needinfo(bug),
+            bug["should_forward_ni"],
             utils.get_sort_by_bug_importance_key(bug),
         )
 
