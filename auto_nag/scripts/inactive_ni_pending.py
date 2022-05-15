@@ -66,12 +66,11 @@ class InactiveNeedinfoPending(BzCleaner):
 
                 requestee_bugs[flag["requestee"]].append(bugid)
 
+        user_activity = UserActivity(include_fields=["groups"])
+        needinfo_requestees = set(requestee_bugs.keys())
         triage_owners = {bug["triage_owner"] for bug in bugs.values()}
+        inactive_users = user_activity.check_users(needinfo_requestees | triage_owners)
 
-        user_activity = UserActivity()
-        inactive_users = user_activity.check_users(
-            set(requestee_bugs.keys()) | triage_owners
-        )
         inactive_requestee_bugs = {
             bugid
             for requestee, bugids in requestee_bugs.items()
@@ -86,8 +85,8 @@ class InactiveNeedinfoPending(BzCleaner):
             and bug["triage_owner"] not in inactive_users
         }
 
-        for bug in bugs.values():
-            bug["inactive_ni"] = [
+        def get_inactive_ni(bug):
+            return [
                 {
                     "id": flag["id"],
                     "requestee": flag["requestee"],
@@ -98,11 +97,16 @@ class InactiveNeedinfoPending(BzCleaner):
                 for flag in bug["needinfo_flags"]
                 if flag["requestee"] in inactive_users
                 and (
+                    # Excloud recent needinfos to allow some time for external
+                    # users to response.
                     flag["modification_date"] < RECENT_NEEINFO_LIMIT
                     or inactive_users[flag["requestee"]]
                     in [UserStatus.DISABLED, UserStatus.UNDEFINED]
                 )
             ]
+
+        for bug in bugs.values():
+            bug["inactive_ni"] = get_inactive_ni(bug)
             bug["inactive_ni_count"] = len(bug["inactive_ni"])
             bug["should_forward_ni"] = self.should_forward_needinfo(bug)
             self.add_action(bug)

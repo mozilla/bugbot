@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from enum import Enum
+from enum import Enum, auto
 
 from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import BugzillaUser
@@ -15,10 +15,10 @@ DEFAULT_ABSENT_WEEKS = 26
 
 
 class UserStatus(Enum):
-    UNDEFINED = 1
-    DISABLED = 2
-    INACTIVE = 3
-    ABSENT = 4
+    UNDEFINED = auto()
+    DISABLED = auto()
+    INACTIVE = auto()
+    ABSENT = auto()
 
 
 class UserActivity:
