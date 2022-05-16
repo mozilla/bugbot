@@ -226,7 +226,7 @@ class InactiveNeedinfoPending(BzCleaner):
 
         elif bug["action"] == NeedinfoAction.CLOSE_BUG:
             autofix = {
-                "status": "CLOSED",
+                "status": "RESOLVED",
                 "resolution": "INCOMPLETE",
                 "comment": {
                     "body": "A needinfo is requested from the reporter, however, the reporter is inactive on Bugzilla. Closing the bug as incomplete."
