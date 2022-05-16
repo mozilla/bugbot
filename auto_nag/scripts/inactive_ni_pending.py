@@ -196,7 +196,7 @@ class InactiveNeedinfoPending(BzCleaner):
                 ),
                 "comment": {
                     "body": (
-                        f'Redirect needinfo pending on inactive { plural("user", users_num) } to the triage owner.'
+                        f'Redirect { plural("a needinfo that is", bug["inactive_ni"], "needinfos that are") } pending on { plural("an inactive user", users_num, "inactive users") } to the triage owner.'
                         f'\n:{ bug["triage_owner_nic"] }, could you have a look please?'
                     )
                 },
@@ -206,7 +206,7 @@ class InactiveNeedinfoPending(BzCleaner):
             autofix = {
                 "flags": self._clear_inactive_ni_flags(bug),
                 "comment": {
-                    "body": f'Clear needinfo pending on inactive { plural("user", users_num) }.',
+                    "body": f'Clear { plural("a needinfo that is", bug["inactive_ni"], "needinfos that are") } pending on { plural("an inactive user", users_num, "inactive users") }.',
                 },
             }
 
@@ -218,7 +218,7 @@ class InactiveNeedinfoPending(BzCleaner):
                 ),
                 "comment": {
                     "body": (
-                        f'{ plural("Needinfo is", bug["inactive_ni"], "Needinfos are") } pending on inactive { plural("user", users_num) }.'
+                        f'{ plural("A needinfo is", bug["inactive_ni"], "Needinfos are") } pending on { plural("an inactive user", users_num, "inactive users") }.'
                         f'\n:{ bug["triage_owner_nic"] }, could you please set the severity or close the bug?'
                     )
                 },
