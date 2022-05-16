@@ -4,12 +4,14 @@
 
 from collections import defaultdict
 from datetime import timedelta
+from enum import IntEnum, auto
 
 from libmozdata import utils as lmdutils
 
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.user_activity import UserActivity, UserStatus
+from auto_nag.utils import plural
 
 RECENT_BUG_LIMIT = lmdutils.get_date("today", timedelta(weeks=26).days)
 RECENT_NEEINFO_LIMIT = lmdutils.get_date("today", timedelta(weeks=3).days)
@@ -17,6 +19,16 @@ RECENT_NEEINFO_LIMIT = lmdutils.get_date("today", timedelta(weeks=3).days)
 # TODO: should be moved when resolving https://github.com/mozilla/relman-auto-nag/issues/1384
 HIGH_PRIORITY = {"P1", "P2"}
 HIGH_SEVERITY = {"S1", "critical", "S2", "major"}
+
+
+class NeedinfoAction(IntEnum):
+    FORWARD_NEEDINFO = auto()
+    CLEAR_NEEDINFO = auto()
+    NEEDINFO_TRIAGE_OWNER = auto()
+    CLOSE_BUG = auto()
+
+    def __str__(self):
+        return self.name.title().replace("_", " ")
 
 
 class InactiveNeedinfoPending(BzCleaner):
@@ -36,7 +48,7 @@ class InactiveNeedinfoPending(BzCleaner):
             "summary",
             "inactive_ni",
             "inactive_ni_count",
-            "should_forward_ni",
+            "action",
             "triage_owner",
         ]
 
@@ -54,9 +66,6 @@ class InactiveNeedinfoPending(BzCleaner):
         """
         Detect inactive users and filter bugs to keep only the ones with needinfo pending on
         inactive users.
-
-        Note: This method will mutate the provided bug objects and will return a new `bugs`
-        dictionary.
         """
         requestee_bugs = defaultdict(list)
         for bugid, bug in bugs.items():
@@ -78,12 +87,11 @@ class InactiveNeedinfoPending(BzCleaner):
             for bugid in bugids
         }
 
-        bugs = {
-            bugid: bug
-            for bugid, bug in bugs.items()
-            if bugid in inactive_requestee_bugs
-            and bug["triage_owner"] not in inactive_users
-        }
+        def has_canconfirm_group(user_email):
+            for group in inactive_users[user_email].get("groups", []):
+                if group["name"] == "canconfirm":
+                    return True
+            return False
 
         def get_inactive_ni(bug):
             return [
@@ -91,8 +99,9 @@ class InactiveNeedinfoPending(BzCleaner):
                     "id": flag["id"],
                     "requestee": flag["requestee"],
                     "requestee_status": user_activity.get_string_status(
-                        inactive_users[flag["requestee"]]
+                        inactive_users[flag["requestee"]]["status"]
                     ),
+                    "canconfirm": has_canconfirm_group(flag["requestee"]),
                 }
                 for flag in bug["needinfo_flags"]
                 if flag["requestee"] in inactive_users
@@ -100,79 +109,151 @@ class InactiveNeedinfoPending(BzCleaner):
                     # Excloud recent needinfos to allow some time for external
                     # users to response.
                     flag["modification_date"] < RECENT_NEEINFO_LIMIT
-                    or inactive_users[flag["requestee"]]
+                    or inactive_users[flag["requestee"]]["status"]
                     in [UserStatus.DISABLED, UserStatus.UNDEFINED]
                 )
             ]
 
-        for bug in bugs.values():
-            bug["inactive_ni"] = get_inactive_ni(bug)
-            bug["inactive_ni_count"] = len(bug["inactive_ni"])
-            bug["should_forward_ni"] = self.should_forward_needinfo(bug)
+        res = {}
+        for bugid, bug in bugs.items():
+            if (
+                bugid not in inactive_requestee_bugs
+                or bug["triage_owner"] in inactive_users
+            ):
+                continue
+
+            inactive_ni = get_inactive_ni(bug)
+            if len(inactive_ni) == 0:
+                continue
+
+            bug = {
+                **bug,
+                "inactive_ni": inactive_ni,
+                "inactive_ni_count": len(inactive_ni),
+                "action": self.get_action_type(bug),
+            }
+            res[bugid] = bug
             self.add_action(bug)
 
-        return bugs
+        return res
 
     @staticmethod
-    def should_forward_needinfo(bug):
+    def get_action_type(bug):
         """
-        Determine if the bug is important enough to have the needinfos forwarded
-        to the triage owner.
+        Determine if should forward needinfos to the triage owner, clear the
+        needinfos, or close the bug.
         """
 
-        return (
+        if (
             bug["priority"] in HIGH_PRIORITY
             or bug["severity"] in HIGH_SEVERITY
             or bug["creation_time"] >= RECENT_BUG_LIMIT
-        )
+        ):
+            return NeedinfoAction.FORWARD_NEEDINFO
+
+        if not bug["severity"]:
+            flag = bug["inactive_ni"][0]
+            if (
+                len(bug["needinfo_flags"]) == 1
+                and flag["requestee"] == bug["creator"]
+                and not flag["canconfirm"]
+            ):
+                return NeedinfoAction.CLOSE_BUG
+
+            return NeedinfoAction.NEEDINFO_TRIAGE_OWNER
+
+        return NeedinfoAction.CLEAR_NEEDINFO
+
+    @staticmethod
+    def _clear_inactive_ni_flags(bug):
+        return [
+            {
+                "id": flag["id"],
+                "status": "X",
+            }
+            for flag in bug["inactive_ni"]
+        ]
+
+    @staticmethod
+    def _needinfo_triage_owner_flag(bug):
+        return [
+            {
+                "name": "needinfo",
+                "requestee": bug["triage_owner"],
+                "status": "?",
+                "new": "true",
+            }
+        ]
 
     def add_action(self, bug):
         users_num = len(set([flag["requestee"] for flag in bug["inactive_ni"]]))
 
-        if bug["should_forward_ni"]:
+        if bug["action"] == NeedinfoAction.FORWARD_NEEDINFO:
             autofix = {
-                "flags": [
-                    {
-                        "id": flag["id"],
-                        "status": "?",
-                        "requestee": bug["triage_owner"],
-                    }
-                    for flag in bug["inactive_ni"]
-                ],
+                "flags": (
+                    self._clear_inactive_ni_flags(bug)
+                    + self._needinfo_triage_owner_flag(bug)
+                ),
                 "comment": {
-                    "body": f"Redirect needinfo pending on inactive {utils.plural('user', users_num)} to the triage owner.",
-                },
-            }
-        else:
-            autofix = {
-                "flags": [
-                    {
-                        "id": flag["id"],
-                        "status": "X",
-                    }
-                    for flag in bug["inactive_ni"]
-                ],
-                "comment": {
-                    "body": f"Clear needinfo pending on inactive {utils.plural('user', users_num)}.",
+                    "body": (
+                        f'Redirect needinfo pending on inactive { plural("user", users_num) } to the triage owner.'
+                        f'\n:{ bug["triage_owner_nic"] }, could you have a look please?'
+                    )
                 },
             }
 
+        elif bug["action"] == NeedinfoAction.CLEAR_NEEDINFO:
+            autofix = {
+                "flags": self._clear_inactive_ni_flags(bug),
+                "comment": {
+                    "body": f'Clear needinfo pending on inactive { plural("user", users_num) }.',
+                },
+            }
+
+        elif bug["action"] == NeedinfoAction.NEEDINFO_TRIAGE_OWNER:
+            autofix = {
+                "flags": (
+                    self._clear_inactive_ni_flags(bug)
+                    + self._needinfo_triage_owner_flag(bug)
+                ),
+                "comment": {
+                    "body": (
+                        f'{ plural("Needinfo is", bug["inactive_ni"], "Needinfos are") } pending on inactive { plural("user", users_num) }.'
+                        f'\n:{ bug["triage_owner_nic"] }, could you please set the severity or close the bug?'
+                    )
+                },
+            }
+
+        elif bug["action"] == NeedinfoAction.CLOSE_BUG:
+            autofix = {
+                "status": "CLOSED",
+                "resolution": "INCOMPLETE",
+                "comment": {
+                    "body": "A needinfo is requested from the reporter, however, the reporter is inactive on Bugzilla. Closing the bug as incomplete."
+                },
+            }
+
+        autofix["comment"]["body"] += f"\n\n{self.get_documentation()}\n"
         self.add_prioritized_action(bug, bug["triage_owner"], autofix=autofix)
 
     def get_bug_sort_key(self, bug):
         return (
-            bug["should_forward_ni"],
+            bug["action"],
             utils.get_sort_by_bug_importance_key(bug),
         )
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
+        triage_owner_nic = (
+            bug["triage_owner_detail"]["nick"] if bug["triage_owner"] in bug else ""
+        )
         data[bugid] = {
             "priority": bug["priority"],
             "severity": bug["severity"],
             "creation_time": bug["creation_time"],
             "last_change_time": bug["last_change_time"],
             "triage_owner": bug["triage_owner"],
+            "triage_owner_nic": triage_owner_nic,
             "needinfo_flags": [
                 flag for flag in bug["flags"] if flag["name"] == "needinfo"
             ],
@@ -188,6 +269,7 @@ class InactiveNeedinfoPending(BzCleaner):
             "severity",
             "creation_time",
             "last_change_time",
+            "creator",
         ]
 
         params = {

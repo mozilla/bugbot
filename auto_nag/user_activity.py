@@ -26,9 +26,11 @@ class UserActivity:
         self,
         activity_weeks_count=DEFAULT_ACTIVITY_WEEKS,
         absent_weeks_count=DEFAULT_ABSENT_WEEKS,
+        include_fields=[],
     ) -> None:
         self.activity_weeks_count = activity_weeks_count
         self.absent_weeks_count = absent_weeks_count
+        self.include_fields = include_fields
         self.people = People.get_instance()
 
         self.activity_limit = lmdutils.get_date("today", self.activity_weeks_count * 7)
@@ -39,7 +41,7 @@ class UserActivity:
         user_emails = self.get_not_employees(user_emails)
 
         user_statuses = {
-            user_email: UserStatus.UNDEFINED
+            user_email: {"status": UserStatus.UNDEFINED}
             for user_email in user_emails
             if utils.is_no_assignee(user_email)
         }
@@ -62,17 +64,21 @@ class UserActivity:
     def get_bz_status(self, user_emails, user_statuses={}):
         def handler(user, data):
             if not user["can_login"]:
-                data[user["name"]] = UserStatus.DISABLED
+                user["status"] = UserStatus.DISABLED
             elif (
                 user["last_seen_date"] is None
                 or user["last_seen_date"] < self.seen_limit
             ):
-                data[user["name"]] = UserStatus.ABSENT
+                user["status"] = UserStatus.ABSENT
             elif (
                 user["last_activity_time"] is None
                 or user["last_activity_time"] < self.activity_limit
             ):
-                data[user["name"]] = UserStatus.INACTIVE
+                user["status"] = UserStatus.INACTIVE
+            else:
+                return
+
+            data[user["name"]] = user
 
         BugzillaUser(
             user_data=user_statuses,
@@ -83,7 +89,8 @@ class UserActivity:
                 "can_login",
                 "last_activity_time",
                 "last_seen_date",
-            ],
+            ]
+            + self.include_fields,
         ).wait()
 
         return user_statuses

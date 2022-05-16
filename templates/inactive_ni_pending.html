@@ -6,7 +6,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for i, (bugid, summary, inactive_ni, inactive_ni_count, should_forward_ni, triage_owner) in enumerate(data) -%}
+        {% for i, (bugid, summary, inactive_ni, inactive_ni_count, action, triage_owner) in enumerate(data) -%}
         {% for j, flag in enumerate(inactive_ni) -%}
         <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
           {% if j == 0 %}
@@ -19,8 +19,8 @@
           <td rowspan="{{ inactive_ni_count }}">
             {{ triage_owner | e }}
           </td>
-          <td rowspan="{{ inactive_ni_count }}"  {% if should_forward_ni %}bgcolor="#00FF00"{% endif -%}>
-            {% if should_forward_ni %}forwarded{% else %}cleared{% endif -%}
+          <td rowspan="{{ inactive_ni_count }}"  {% if action.name == "FORWARD_NEEDINFO" %}bgcolor="#00FF00"{% endif -%}>
+            {{ action }}
           </td>
           {% endif -%}
           <td>

@@ -88,7 +88,7 @@ class TriageOwnerVacant(BzCleaner, Nag):
                     "component": component["name"],
                     "triage_owner": triage_owner,
                     "status": user_activity.get_string_status(
-                        inactive_users[triage_owner]
+                        inactive_users[triage_owner]["status"]
                     ),
                 }
 
