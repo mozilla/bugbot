@@ -115,10 +115,12 @@ class InactiveNeedinfoPending(BzCleaner):
             ]
 
         res = {}
+        skiplist = self.get_auto_ni_skiplist()
         for bugid, bug in bugs.items():
             if (
                 bugid not in inactive_requestee_bugs
                 or bug["triage_owner"] in inactive_users
+                or bug["triage_owner"] in skiplist
             ):
                 continue
 
