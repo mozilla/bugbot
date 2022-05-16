@@ -33,8 +33,8 @@ _CYCLE_SPAN = None
 _MERGE_DAY = None
 _TRIAGE_OWNERS = None
 _DEFAULT_ASSIGNEES = None
-_CONFIG_PATH = "./auto_nag/scripts/configs/"
 _CURRENT_VERSIONS = None
+_CONFIG_PATH = "./auto_nag/scripts/configs/"
 
 
 # TODO: should be moved when resolving https://github.com/mozilla/relman-auto-nag/issues/1384
