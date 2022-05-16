@@ -66,7 +66,8 @@
     "log": "/tmp/auto_nag_errors.txt",
     "receiver_list": {
       "rm": ["calixte@mozilla.com", "release-mgmt@mozilla.com"]
-    }
+    },
+    "needinfo_skiplist": []
   },
   "inactive_ni_pending": {
     "max_actions": 7,

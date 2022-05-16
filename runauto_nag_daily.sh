@@ -165,6 +165,9 @@ python -m auto_nag.scripts.crash_signature_confirm --production
 # Confirm bugs with affected flags
 python -m auto_nag.scripts.affected_flag_confirm --production
 
+# Suggest increasing the severity for bugs with P1 WebCompat priority
+python -m auto_nag.scripts.severity_high_compat_priority --production
+
 # Suggest increasing the severity for tracked bugs
 python -m auto_nag.scripts.severity_tracked --production
 
