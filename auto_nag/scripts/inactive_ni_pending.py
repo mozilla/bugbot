@@ -220,7 +220,7 @@ class InactiveNeedinfoPending(BzCleaner):
                 ),
                 "comment": {
                     "body": (
-                        f'{ plural("A needinfo is", bug["inactive_ni"], "Needinfos are") } pending on { plural("an inactive user", users_num, "inactive users") }.'
+                        f'Redirect { plural("a needinfo that is", bug["inactive_ni"], "needinfos that are") } pending on { plural("an inactive user", users_num, "inactive users") } to the triage owner.'
                         f'\n:{ bug["triage_owner_nic"] }, could you please set the severity or close the bug?'
                     )
                 },
