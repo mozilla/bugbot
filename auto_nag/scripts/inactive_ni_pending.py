@@ -132,7 +132,7 @@ class InactiveNeedinfoPending(BzCleaner):
                 **bug,
                 "inactive_ni": inactive_ni,
                 "inactive_ni_count": len(inactive_ni),
-                "action": self.get_action_type(bug),
+                "action": self.get_action_type(bug, inactive_ni),
             }
             res[bugid] = bug
             self.add_action(bug)
@@ -140,7 +140,7 @@ class InactiveNeedinfoPending(BzCleaner):
         return res
 
     @staticmethod
-    def get_action_type(bug):
+    def get_action_type(bug, inactive_ni):
         """
         Determine if should forward needinfos to the triage owner, clear the
         needinfos, or close the bug.
@@ -153,12 +153,11 @@ class InactiveNeedinfoPending(BzCleaner):
         ):
             return NeedinfoAction.FORWARD_NEEDINFO
 
-        if not bug["severity"]:
-            flag = bug["inactive_ni"][0]
+        if bug["severity"] == "--":
             if (
                 len(bug["needinfo_flags"]) == 1
-                and flag["requestee"] == bug["creator"]
-                and not flag["canconfirm"]
+                and inactive_ni[0]["requestee"] == bug["creator"]
+                and not inactive_ni[0]["canconfirm"]
             ):
                 return NeedinfoAction.CLOSE_BUG
 
@@ -254,6 +253,7 @@ class InactiveNeedinfoPending(BzCleaner):
             "severity": bug["severity"],
             "creation_time": bug["creation_time"],
             "last_change_time": bug["last_change_time"],
+            "creator": bug["creator"],
             "triage_owner": bug["triage_owner"],
             "triage_owner_nic": triage_owner_nic,
             "needinfo_flags": [
