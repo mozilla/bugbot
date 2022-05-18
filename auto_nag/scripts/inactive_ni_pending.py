@@ -22,9 +22,8 @@ HIGH_SEVERITY = {"S1", "critical", "S2", "major"}
 
 
 class NeedinfoAction(IntEnum):
-    FORWARD_NEEDINFO = auto()
-    CLEAR_NEEDINFO = auto()
-    NEEDINFO_TRIAGE_OWNER = auto()
+    FORWARD = auto()
+    CLEAR = auto()
     CLOSE_BUG = auto()
 
     def __str__(self):
@@ -151,7 +150,7 @@ class InactiveNeedinfoPending(BzCleaner):
             or bug["severity"] in HIGH_SEVERITY
             or bug["creation_time"] >= RECENT_BUG_LIMIT
         ):
-            return NeedinfoAction.FORWARD_NEEDINFO
+            return NeedinfoAction.FORWARD
 
         if bug["severity"] == "--":
             if (
@@ -161,9 +160,9 @@ class InactiveNeedinfoPending(BzCleaner):
             ):
                 return NeedinfoAction.CLOSE_BUG
 
-            return NeedinfoAction.NEEDINFO_TRIAGE_OWNER
+            return NeedinfoAction.FORWARD
 
-        return NeedinfoAction.CLEAR_NEEDINFO
+        return NeedinfoAction.CLEAR
 
     @staticmethod
     def _clear_inactive_ni_flags(bug):
@@ -189,7 +188,12 @@ class InactiveNeedinfoPending(BzCleaner):
     def add_action(self, bug):
         users_num = len(set([flag["requestee"] for flag in bug["inactive_ni"]]))
 
-        if bug["action"] == NeedinfoAction.FORWARD_NEEDINFO:
+        if bug["action"] == NeedinfoAction.FORWARD:
+            request_from_triage_owner = (
+                "could you please set the severity or close the bug?"
+                if bug["severity"] == "--"
+                else "could you have a look please?"
+            )
             autofix = {
                 "flags": (
                     self._clear_inactive_ni_flags(bug)
@@ -198,30 +202,16 @@ class InactiveNeedinfoPending(BzCleaner):
                 "comment": {
                     "body": (
                         f'Redirect { plural("a needinfo that is", bug["inactive_ni"], "needinfos that are") } pending on { plural("an inactive user", users_num, "inactive users") } to the triage owner.'
-                        f'\n:{ bug["triage_owner_nic"] }, could you have a look please?'
+                        f'\n:{ bug["triage_owner_nic"] }, {request_from_triage_owner}'
                     )
                 },
             }
 
-        elif bug["action"] == NeedinfoAction.CLEAR_NEEDINFO:
+        elif bug["action"] == NeedinfoAction.CLEAR:
             autofix = {
                 "flags": self._clear_inactive_ni_flags(bug),
                 "comment": {
                     "body": f'Clear { plural("a needinfo that is", bug["inactive_ni"], "needinfos that are") } pending on { plural("an inactive user", users_num, "inactive users") }.',
-                },
-            }
-
-        elif bug["action"] == NeedinfoAction.NEEDINFO_TRIAGE_OWNER:
-            autofix = {
-                "flags": (
-                    self._clear_inactive_ni_flags(bug)
-                    + self._needinfo_triage_owner_flag(bug)
-                ),
-                "comment": {
-                    "body": (
-                        f'Redirect { plural("a needinfo that is", bug["inactive_ni"], "needinfos that are") } pending on { plural("an inactive user", users_num, "inactive users") } to the triage owner.'
-                        f'\n:{ bug["triage_owner_nic"] }, could you please set the severity or close the bug?'
-                    )
                 },
             }
 

@@ -19,7 +19,7 @@
           <td rowspan="{{ inactive_ni_count }}">
             {{ triage_owner | e }}
           </td>
-          <td rowspan="{{ inactive_ni_count }}"  {% if action.name == "FORWARD_NEEDINFO" %}bgcolor="#00FF00"{% endif -%}>
+          <td rowspan="{{ inactive_ni_count }}"  {% if action.name == "FORWARD" %}bgcolor="#00FF00"{% endif -%}>
             {{ action }}
           </td>
           {% endif -%}
