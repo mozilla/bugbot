@@ -167,7 +167,7 @@ class Nag(object):
         mails = self.prepare_mails()
 
         for m in mails:
-            Cc = Default_Cc.copy()
+            Cc = Default_Cc | m["management_chain"]
             if m["manager"]:
                 Cc.add(m["manager"])
             body = common.render(message=m["body"], query_url=None)
@@ -210,6 +210,7 @@ class Nag(object):
             data = []
             To = sorted(info.keys())
             components = set()
+            management_chain = set()
             for person in To:
                 data += [
                     bug_data
@@ -219,6 +220,10 @@ class Nag(object):
                 added_bug_ids.update(bug_data["id"] for bug_data in info[person])
                 if person in self.triage_owners_components:
                     components |= self.triage_owners_components[person]
+
+                management_chain |= self.people.get_management_chain_mails(
+                    person, manager
+                )
 
             if components:
                 query_url = self.get_query_url_for_components(sorted(components))
@@ -237,7 +242,12 @@ class Nag(object):
                 nag_preamble=self.nag_preamble(),
             )
 
-            m = {"manager": manager, "to": set(To), "body": body}
+            m = {
+                "manager": manager,
+                "management_chain": management_chain,
+                "to": set(To),
+                "body": body,
+            }
             mails.append(m)
 
         return mails
