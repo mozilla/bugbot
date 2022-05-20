@@ -96,7 +96,8 @@ class TestEscalation(unittest.TestCase):
             },
         ]
 
-        e = Escalation(People(people), data=TestEscalation.config)
+        p = People(people)
+        e = Escalation(p, data=TestEscalation.config)
         assert (
             e.get_supervisor("high", 35, "a.b@mozilla.com", foobar="foobar@mozilla.com")
             == "foobar@mozilla.com"
@@ -131,3 +132,40 @@ class TestEscalation(unittest.TestCase):
         assert e.get_supervisor("default", 7, "a.b@mozilla.com") == "c.d@mozilla.com"
         assert e.get_supervisor("default", 1, "a.b@mozilla.com") == "c.d@mozilla.com"
         assert e.get_supervisor("default", 0, "a.b@mozilla.com") == "c.d@mozilla.com"
+
+        person = "a.b@mozilla.com"
+        superior_n1 = e.get_supervisor("high", 20, person)
+        superior_n2 = e.get_supervisor("high", 15, person)
+        superior_n3 = p.get_nth_manager_mail(person, 3)
+        superior_director = e.get_supervisor("high", 5, person)
+        superior_vp = e.get_supervisor("high", 0, person)
+
+        self.assertEqual(p.get_management_chain_mails(person, superior_n1), set())
+        self.assertEqual(
+            p.get_management_chain_mails(person, superior_n2),
+            {
+                superior_n1,
+            },
+        )
+        self.assertEqual(
+            p.get_management_chain_mails(person, superior_director),
+            {
+                superior_n1,
+                superior_n2,
+                superior_n3,
+            },
+        )
+        self.assertEqual(
+            p.get_management_chain_mails(person, superior_vp),
+            {
+                superior_n1,
+                superior_n2,
+                superior_n3,
+                superior_director,
+            },
+        )
+
+        with self.assertRaisesRegex(
+            Exception, "Cannot identify .* as a superior of .*"
+        ):
+            p.get_management_chain_mails(superior_director, person)

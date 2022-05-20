@@ -5,6 +5,7 @@
 import json
 import re
 from math import sqrt
+from typing import Set
 
 import numpy as np
 import six
@@ -301,6 +302,23 @@ class People:
             if not mail or mail == prev:
                 return prev
         return mail
+
+    def get_management_chain_mails(self, person: str, superior: str) -> Set[str]:
+        """Get the mails of people in the management chain between a person and
+        their superior.
+
+        Note: the person and the superior will not be returned in result.
+        """
+        result = set()
+
+        manager = self.get_manager_mail(person)
+        while manager != superior:
+            result.add(manager)
+            manager = self.get_manager_mail(manager)
+            if not manager or manager in result:
+                raise Exception(f"Cannot identify {superior} as a superior of {person}")
+
+        return result
 
     def get_director_mail(self, mail):
         """Get the director of the person with this mail"""

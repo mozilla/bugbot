@@ -71,13 +71,18 @@ class MultiNaggers(object):
             for m in mails:
                 manager = m["manager"]
                 if manager not in all_mails:
-                    all_mails[manager] = {"to": m["to"], "body": m["body"]}
+                    all_mails[manager] = {
+                        "to": m["to"],
+                        "management_chain": m["management_chain"],
+                        "body": m["body"],
+                    }
                 else:
                     all_mails[manager]["to"] |= m["to"]
+                    all_mails[manager]["management_chain"] |= m["management_chain"]
                     all_mails[manager]["body"] += "\n" + m["body"]
 
         for manager, m in all_mails.items():
-            Cc = Default_Cc.copy()
+            Cc = Default_Cc | m["management_chain"]
             Cc.add(manager)
             body = common.render(message=m["body"], has_table=True)
             mail.send(
