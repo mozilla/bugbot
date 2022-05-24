@@ -199,10 +199,10 @@ class InactiveNeedinfoPending(BzCleaner):
         if bug["severity"] in HIGH_SEVERITY:
             reasons.append("high severity")
         if bug["last_change_time"] >= RECENT_BUG_LIMIT:
-            reasons.append("recent activities")
+            reasons.append("recent activity")
 
         if len(reasons) == 0 and bug["severity"] == "--":
-            return "since the bug has the severity not set, could you please set the severity or close the bug?"
+            return "since the bug doesn't have a severity set, could you please set the severity or close the bug?"
 
         return f"since the bug has {utils.english_list(reasons)}, could you have a look please?"
 
