@@ -106,7 +106,7 @@ class InactiveNeedinfoPending(BzCleaner):
                 if flag["requestee"] in inactive_users
                 and (
                     # Exclude recent needinfos to allow some time for external
-                    # users to response.
+                    # users to respond.
                     flag["modification_date"] < RECENT_NEEDINFO_LIMIT
                     or inactive_users[flag["requestee"]]["status"]
                     in [UserStatus.DISABLED, UserStatus.UNDEFINED]
