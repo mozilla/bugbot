@@ -14,7 +14,7 @@ from auto_nag.user_activity import UserActivity, UserStatus
 from auto_nag.utils import plural
 
 RECENT_BUG_LIMIT = lmdutils.get_date("today", timedelta(weeks=26).days)
-RECENT_NEEDINFO_LIMIT = lmdutils.get_date("today", timedelta(weeks=3).days)
+RECENT_NEEDINFO_LIMIT = lmdutils.get_date("today", timedelta(weeks=2).days)
 
 # TODO: should be moved when resolving https://github.com/mozilla/relman-auto-nag/issues/1384
 HIGH_PRIORITY = {"P1", "P2"}
