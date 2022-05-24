@@ -252,7 +252,7 @@ class InactiveNeedinfoPending(BzCleaner):
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
         triage_owner_nic = (
-            bug["triage_owner_detail"]["nick"] if bug["triage_owner"] in bug else ""
+            bug["triage_owner_detail"]["nick"] if "triage_owner_detail" in bug else ""
         )
         data[bugid] = {
             "priority": bug["priority"],
