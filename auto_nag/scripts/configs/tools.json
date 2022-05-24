@@ -70,7 +70,7 @@
     "needinfo_skiplist": []
   },
   "inactive_ni_pending": {
-    "max_actions": 7,
+    "max_actions": 3,
     "must_run": ["Mon"]
   },
   "patch_closed_bug": {
