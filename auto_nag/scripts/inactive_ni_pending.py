@@ -100,7 +100,7 @@ class InactiveNeedinfoPending(BzCleaner):
                     "requestee_status": user_activity.get_string_status(
                         inactive_users[flag["requestee"]]["status"]
                     ),
-                    "canconfirm": has_canconfirm_group(flag["requestee"]),
+                    "requestee_canconfirm": has_canconfirm_group(flag["requestee"]),
                 }
                 for flag in bug["needinfo_flags"]
                 if flag["requestee"] in inactive_users
@@ -156,7 +156,7 @@ class InactiveNeedinfoPending(BzCleaner):
             if (
                 len(bug["needinfo_flags"]) == 1
                 and inactive_ni[0]["requestee"] == bug["creator"]
-                and not inactive_ni[0]["canconfirm"]
+                and not inactive_ni[0]["requestee_canconfirm"]
             ):
                 return NeedinfoAction.CLOSE_BUG
 
