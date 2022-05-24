@@ -155,8 +155,14 @@ class InactiveNeedinfoPending(BzCleaner):
         if bug["severity"] == "--":
             if (
                 len(bug["needinfo_flags"]) == 1
+                and bug["type"] == "defect"
                 and inactive_ni[0]["requestee"] == bug["creator"]
                 and not inactive_ni[0]["requestee_canconfirm"]
+                and not any(
+                    attachment["content_type"] == "text/x-phabricator-request"
+                    and not attachment["is_obsolete"]
+                    for attachment in bug["attachments"]
+                )
             ):
                 return NeedinfoAction.CLOSE_BUG
 
@@ -244,6 +250,8 @@ class InactiveNeedinfoPending(BzCleaner):
             "creation_time": bug["creation_time"],
             "last_change_time": bug["last_change_time"],
             "creator": bug["creator"],
+            "type": bug["type"],
+            "attachments": bug["attachments"],
             "triage_owner": bug["triage_owner"],
             "triage_owner_nic": triage_owner_nic,
             "needinfo_flags": [
@@ -255,6 +263,9 @@ class InactiveNeedinfoPending(BzCleaner):
 
     def get_bz_params(self, date):
         fields = [
+            "type",
+            "attachments.content_type",
+            "attachments.is_obsolete",
             "triage_owner",
             "flags",
             "priority",
