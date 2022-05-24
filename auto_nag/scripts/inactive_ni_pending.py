@@ -148,7 +148,7 @@ class InactiveNeedinfoPending(BzCleaner):
         if (
             bug["priority"] in HIGH_PRIORITY
             or bug["severity"] in HIGH_SEVERITY
-            or bug["creation_time"] >= RECENT_BUG_LIMIT
+            or bug["last_change_time"] >= RECENT_BUG_LIMIT
         ):
             return NeedinfoAction.FORWARD
 
@@ -191,15 +191,25 @@ class InactiveNeedinfoPending(BzCleaner):
             }
         ]
 
+    @staticmethod
+    def _request_from_triage_owner(bug):
+        reasons = []
+        if bug["priority"] in HIGH_PRIORITY:
+            reasons.append("high priority")
+        if bug["severity"] in HIGH_SEVERITY:
+            reasons.append("high severity")
+        if bug["last_change_time"] >= RECENT_BUG_LIMIT:
+            reasons.append("recent activities")
+
+        if len(reasons) == 0 and bug["severity"] == "--":
+            return "since the bug has the severity not set, could you please set the severity or close the bug?"
+
+        return f"since the bug has {utils.english_list(reasons)}, could you have a look please?"
+
     def add_action(self, bug):
         users_num = len(set([flag["requestee"] for flag in bug["inactive_ni"]]))
 
         if bug["action"] == NeedinfoAction.FORWARD:
-            request_from_triage_owner = (
-                "could you please set the severity or close the bug?"
-                if bug["severity"] == "--"
-                else "could you have a look please?"
-            )
             autofix = {
                 "flags": (
                     self._clear_inactive_ni_flags(bug)
@@ -208,7 +218,7 @@ class InactiveNeedinfoPending(BzCleaner):
                 "comment": {
                     "body": (
                         f'Redirect { plural("a needinfo that is", bug["inactive_ni"], "needinfos that are") } pending on { plural("an inactive user", users_num, "inactive users") } to the triage owner.'
-                        f'\n:{ bug["triage_owner_nic"] }, {request_from_triage_owner}'
+                        f'\n:{ bug["triage_owner_nic"] }, {self._request_from_triage_owner(bug)}'
                     )
                 },
             }
