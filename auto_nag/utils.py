@@ -37,6 +37,9 @@ _CURRENT_VERSIONS = None
 _CONFIG_PATH = "./auto_nag/scripts/configs/"
 
 
+# TODO: should be moved when resolving https://github.com/mozilla/relman-auto-nag/issues/1384
+HIGH_PRIORITY = {"P1", "P2"}
+HIGH_SEVERITY = {"S1", "critical", "S2", "major"}
 OLD_SEVERITY_MAP = {
     "critical": "S1",
     "major": "S2",
@@ -622,10 +625,29 @@ def nice_round(val):
 
 
 def get_sort_by_bug_importance_key(bug):
+    """
+    We need bugs with high severity (S1 or S2) or high priority (P1 or P2) to be
+    first (do not need to be high in both). Next, bugs with higher priority and
+    severity are preferred. Finally, for bugs with the same severity and priority,
+    we favour recently changed or created bugs.
+    """
+
+    is_important = bug["priority"] in HIGH_PRIORITY or bug["severity"] in HIGH_SEVERITY
     priority = bug["priority"] if bug["priority"].startswith("P") else "P10"
     severity = (
         bug["severity"]
         if bug["severity"].startswith("S")
         else OLD_SEVERITY_MAP.get(bug["severity"], "S10")
     )
-    return (priority, severity)
+    time_order = (
+        lmdutils.get_timestamp(bug["last_change_time"])
+        if "last_change_time" in bug
+        else int(bug["id"])  # Bug ID reflects the creation order
+    )
+
+    return (
+        not is_important,
+        severity,
+        priority,
+        time_order * -1,
+    )

@@ -153,6 +153,9 @@ python -m auto_nag.scripts.severity_high_security --production
 # Nag for components that need triage owner to be assigned
 python -m auto_nag.scripts.vacant_triage_owner --production
 
+# Notify about bugs with needinfo requests on inactive users
+python -m auto_nag.scripts.inactive_ni_pending --production
+
 # Confirm bugs with crash signatures
 python -m auto_nag.scripts.crash_signature_confirm --production
 

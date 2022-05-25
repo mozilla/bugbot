@@ -69,6 +69,10 @@
     },
     "needinfo_skiplist": []
   },
+  "inactive_ni_pending": {
+    "max_actions": 3,
+    "must_run": ["Mon"]
+  },
   "patch_closed_bug": {
     "days_count": 2,
     "additional_receivers": "rm"
