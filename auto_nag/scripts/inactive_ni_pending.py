@@ -96,6 +96,7 @@ class InactiveNeedinfoPending(BzCleaner):
             return [
                 {
                     "id": flag["id"],
+                    "setter": flag["setter"],
                     "requestee": flag["requestee"],
                     "requestee_status": user_activity.get_string_status(
                         inactive_users[flag["requestee"]]["status"]
@@ -193,6 +194,12 @@ class InactiveNeedinfoPending(BzCleaner):
 
     @staticmethod
     def _request_from_triage_owner(bug):
+        if (
+            len(bug["inactive_ni"]) == 1
+            and bug["inactive_ni"][0]["setter"] == bug["triage_owner"]
+        ):
+            return "could you please find another way to get the information or close the bug as `INCOMPLETE` if it is not actionable?"
+
         reasons = []
         if bug["priority"] in HIGH_PRIORITY:
             reasons.append("high priority")
