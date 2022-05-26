@@ -198,7 +198,7 @@ class InactiveNeedinfoPending(BzCleaner):
             len(bug["inactive_ni"]) == 1
             and bug["inactive_ni"][0]["setter"] == bug["triage_owner"]
         ):
-            return "could you find another way to get the information or close the bug as `INCOMPLETE` if it is not actionable?"
+            return "could you please find another way to get the information or close the bug as `INCOMPLETE` if it is not actionable?"
 
         reasons = []
         if bug["priority"] in HIGH_PRIORITY:
