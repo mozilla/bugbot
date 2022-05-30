@@ -21,7 +21,7 @@ SIGNATURES_PAT = re.compile(r"\[@ ?(.*?) ?\]")
 
 class TopcrashAddKeyword(BzCleaner):
     def description(self):
-        return "Bugs with topcrash keyword but incorrect severity"
+        return "Bugs with missing topcrash keywords"
 
     def columns(self):
         return ["id", "summary", "severity", "added_keyword"]
