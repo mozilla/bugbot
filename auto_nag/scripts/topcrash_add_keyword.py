@@ -16,7 +16,6 @@ from auto_nag.topcrash import Topcrash
 HIGH_SEVERITY = {"S1", "critical", "S2", "major"}
 
 MAX_SIGNATURES_PER_QUERY = 30
-SIGNATURES_PAT = re.compile(r"\[@ ?(.*?) ?\]")
 
 
 class TopcrashAddKeyword(BzCleaner):
@@ -36,7 +35,7 @@ class TopcrashAddKeyword(BzCleaner):
         if has_topcrash_keyword and has_startup_keyword:
             return
 
-        signatures = SIGNATURES_PAT.findall(bug["cf_crash_signature"])
+        signatures = utils.get_signatures(bug["cf_crash_signature"])
         has_topcrash_signature = any(
             signature in self.topcrashes for signature in signatures
         )
