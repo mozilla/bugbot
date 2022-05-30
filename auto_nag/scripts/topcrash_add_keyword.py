@@ -26,15 +26,6 @@ class TopcrashAddKeyword(BzCleaner):
     def columns(self):
         return ["id", "summary", "severity", "added_keyword"]
 
-    @staticmethod
-    def __get_mail_to_ni(bug):
-        for field in ["assigned_to", "triage_owner"]:
-            person = bug.get(field, "")
-            if not utils.is_no_assignee(person):
-                return {"mail": person, "nickname": bug[f"{field}_detail"]["nick"]}
-
-        return None
-
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
         if bugid in data:
@@ -76,7 +67,7 @@ class TopcrashAddKeyword(BzCleaner):
             },
         }
 
-        ni_person = self.__get_mail_to_ni(bug)
+        ni_person = utils.get_mail_to_ni(bug)
         if ni_person and bug["severity"] not in HIGH_SEVERITY:
             autofix["flags"] = [
                 {
