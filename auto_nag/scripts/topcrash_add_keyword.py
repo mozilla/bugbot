@@ -41,7 +41,8 @@ class TopcrashAddKeyword(BzCleaner):
         assert has_topcrash_signature
 
         has_startup_signature = any(
-            self.topcrashes.get(signature) for signature in signatures
+            signature in self.topcrashes and self.topcrashes[signature]["is_startup"]
+            for signature in signatures
         )
 
         should_add_keyword = (

@@ -31,7 +31,7 @@ class Topcrash:
         date: Union[str, datetime],
         duration: Optional[int] = 11,
         tc_limit: Optional[int] = 50,
-    ) -> Dict[str, bool]:
+    ) -> Dict[str, dict]:
         """Fetch the top crashes from socorro.
 
         Top crashes will be queried twice for each release channel, one that
@@ -44,7 +44,7 @@ class Topcrash:
 
         Returns:
             A dictionary where the keys are crash signatures, and the values are
-            booleans that indicate whether a crash is a startup crash or not.
+            dictionaries that contains details about a crash signature.
         """
 
         start_date = lmdutils.get_date(date, duration - 1)
@@ -66,8 +66,8 @@ class Topcrash:
             for channel in ("release", "beta", "nightly")
             for is_startup in (True, None)
         ]
-        data = {}
 
+        data = {}
         searches = [
             socorro.SuperSearch(
                 params=params,
@@ -94,4 +94,11 @@ class Topcrash:
                 for startup in signature["facets"]["startup_crash"]
             )
 
-            data[signature["term"]] = data.get(signature["term"], False) or is_startup
+            signature_name = signature["term"]
+            if signature_name not in data:
+                data[signature_name] = {
+                    "is_startup": is_startup,
+                }
+            else:
+                details = data[signature_name]
+                details["is_startup"] = is_startup or details["is_startup"]
