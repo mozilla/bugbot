@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-
 import re
 
 from libmozdata.bugzilla import Bugzilla
@@ -128,12 +127,6 @@ class TopcrashAddKeyword(BzCleaner):
         params_base = {
             "include_fields": fields,
             "resolution": "---",
-            "keywords": ["topcrash", "topcrash-startup"],
-            "keywords_type": "nowords",
-            "n1": 1,
-            "f1": "longdesc",
-            "o1": "casesubstring",
-            "v1": "could you consider increasing the severity of this top-crash bug?",
         }
         self.amend_bzparams(params_base, [])
 
