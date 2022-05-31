@@ -45,12 +45,15 @@ class TopcrashAddKeyword(BzCleaner):
             for signature in signatures
         )
 
-        should_add_keyword = (
-            has_topcrash_signature
-            and not (has_topcrash_keyword or has_startup_signature)
-        ) or (has_startup_signature and not has_startup_keyword)
-
-        if not should_add_keyword:
+        if (
+            # We already have a topcrash keyword and the crash is not a startup crash.
+            has_topcrash_keyword
+            and not has_startup_signature
+        ) or (
+            # It is a startup crash and we already have the topcrash-startup keyword.
+            has_startup_signature
+            and has_startup_keyword
+        ):
             return
 
         keyword_to_add = "topcrash-startup" if has_startup_signature else "topcrash"
