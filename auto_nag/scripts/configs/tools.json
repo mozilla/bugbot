@@ -465,6 +465,7 @@
     "additional_receivers": ["jcristau@mozilla.com"]
   },
   "regression_set_status_flags": {
+    "days_lookup": 21,
     "additional_receivers": ["jcristau@mozilla.com"],
     "component_exception": ["Testing::geckodriver"]
   },
