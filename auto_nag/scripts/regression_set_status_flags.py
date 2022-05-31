@@ -23,7 +23,6 @@ class RegressionSetStatusFlags(BzCleaner):
         return "Set release status flags based on info from the regressing bug"
 
     def get_bz_params(self, date):
-        # XXX should perhaps look further back than one week, e.g. a month?
         start_date, _ = self.get_dates(date)
 
         # Find all bugs with regressed_by information which were open after start_date or
