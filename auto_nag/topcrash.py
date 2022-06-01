@@ -13,18 +13,14 @@ class Topcrash:
     def __init__(
         self,
         minimum_crashes: Optional[int] = 0,
-        minimum_startup_crashes: Optional[int] = 0,
     ) -> None:
         """Constructor
 
         Args:
             minimum_crashes: the minimum number of crashes to consider a
                 signature in the top crashes.
-            minimum_startup_crashes: the minimum number of crashes to consider a
-                signature as a startup crash.
         """
         self.minimum_crashes = minimum_crashes
-        self.minimum_startup_crashes = minimum_startup_crashes
 
     def get_signatures(
         self,
@@ -57,9 +53,6 @@ class Topcrash:
                 "date": date_range,
                 "release_channel": channel,
                 "startup_crash": is_startup,
-                "_aggs.signature": [
-                    "startup_crash",
-                ],
                 "_results_number": 0,
                 "_facets_size": tc_limit,
             }
@@ -71,7 +64,9 @@ class Topcrash:
         searches = [
             socorro.SuperSearch(
                 params=params,
-                handler=self.__startup_signatures_handler,
+                handler=self.__startup_signatures_handler
+                if params["startup_crash"]
+                else self.__signatures_handler,
                 handlerdata=data,
             )
             for params in params_combinations
@@ -87,18 +82,21 @@ class Topcrash:
             if signature["count"] < self.minimum_crashes:
                 break
 
-            is_startup = any(
-                # Check if the signature has numbers for startup crashes
-                startup["term"] == "T"
-                and startup["count"] >= self.minimum_startup_crashes
-                for startup in signature["facets"]["startup_crash"]
-            )
+            signature_name = signature["term"]
+            if signature_name not in data:
+                data[signature_name] = {
+                    "is_startup": True,
+                }
+            else:
+                data[signature_name]["is_startup"] = True
+
+    def __signatures_handler(self, search_resp: dict, data: dict):
+        for signature in search_resp["facets"]["signature"]:
+            if signature["count"] < self.minimum_crashes:
+                break
 
             signature_name = signature["term"]
             if signature_name not in data:
                 data[signature_name] = {
-                    "is_startup": is_startup,
+                    "is_startup": False,
                 }
-            else:
-                details = data[signature_name]
-                details["is_startup"] = is_startup or details["is_startup"]
