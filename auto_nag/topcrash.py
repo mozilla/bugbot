@@ -100,20 +100,7 @@ class Topcrash:
         data = {}
         searches = [
             socorro.SuperSearch(
-                params={
-                    "product": criteria["product"],
-                    "process_type": criteria.get("process_type"),
-                    "date": date_range,
-                    "platform": criteria.get("platform"),
-                    "release_channel": criteria["channel"],
-                    "_aggs.signature": [
-                        "startup_crash",
-                    ],
-                    "_results_number": 0,
-                    "_facets_size": criteria.get(
-                        "tc_startup_limit", criteria["tc_limit"]
-                    ),
-                },
+                params=self.__get_params_from_criteria(date_range, criteria),
                 handler=self.__signatures_handler(criteria),
                 handlerdata=data,
             )
@@ -124,6 +111,22 @@ class Topcrash:
             search.wait()
 
         return data
+
+    @staticmethod
+    def __get_params_from_criteria(date_range: list, criteria: dict):
+        params = {
+            "product": criteria["product"],
+            "process_type": criteria.get("process_type"),
+            "date": date_range,
+            "platform": criteria.get("platform"),
+            "release_channel": criteria["channel"],
+            "_aggs.signature": [
+                "startup_crash",
+            ],
+            "_results_number": 0,
+            "_facets_size": criteria.get("tc_startup_limit", criteria["tc_limit"]),
+        }
+        return params
 
     @staticmethod
     def __is_startup_crash(signature: dict):
