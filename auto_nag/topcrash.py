@@ -51,11 +51,13 @@ class Topcrash:
             {
                 "product": "Firefox",
                 "date": date_range,
+                "platform": platform,
                 "release_channel": channel,
                 "startup_crash": is_startup,
                 "_results_number": 0,
                 "_facets_size": tc_limit,
             }
+            for platform in ("Windows", "Mac OS X", "Linux", None)
             for channel in ("release", "beta", "nightly")
             for is_startup in (True, None)
         ]
