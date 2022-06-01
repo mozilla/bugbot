@@ -22,49 +22,53 @@ class TopcrashAddKeyword(BzCleaner):
         return "Bugs with missing topcrash keywords"
 
     def columns(self):
-        return ["id", "summary", "severity", "added_keyword"]
+        return ["id", "summary", "severity", "added_keywords"]
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
         if bugid in data:
             return
 
-        has_topcrash_keyword = "topcrash" in bug["keywords"]
-        has_startup_keyword = "topcrash-startup" in bug["keywords"]
-        if has_topcrash_keyword and has_startup_keyword:
+        existing_keywords = {
+            keyword
+            for keyword in ("topcrash", "topcrash-startup")
+            if keyword in bug["keywords"]
+        }
+
+        if len(existing_keywords) == 2:
+            # No topcrash keywords to add, the bug has them all
             return
 
         signatures = utils.get_signatures(bug["cf_crash_signature"])
-        has_topcrash_signature = any(
-            signature in self.topcrashes for signature in signatures
-        )
-        assert has_topcrash_signature
 
-        has_startup_signature = any(
+        if any(
+            # Is it a startup topcrash bug?
             signature in self.topcrashes and self.topcrashes[signature]["is_startup"]
             for signature in signatures
-        )
-
-        if (
-            # We already have a topcrash keyword and the crash is not a startup crash.
-            has_topcrash_keyword
-            and not has_startup_signature
-        ) or (
-            # It is a startup crash and we already have the topcrash-startup keyword.
-            has_startup_signature
-            and has_startup_keyword
         ):
-            return
+            keywords_to_add = {"topcrash", "topcrash-startup"}
 
-        keyword_to_add = "topcrash-startup" if has_startup_signature else "topcrash"
+        elif any(
+            # Is it a topcrash bug?
+            signature in self.topcrashes
+            for signature in signatures
+        ):
+            keywords_to_add = {"topcrash"}
+
+        else:
+            raise Exception("The bug should have a topcrash signature.")
+
+        keywords_to_add = keywords_to_add - existing_keywords
+        if not keywords_to_add:
+            return
 
         autofix = {
             "keywords": {
-                "add": keyword_to_add,
+                "add": list(keywords_to_add),
             },
             "comment": {
                 "body": "The bug is linked to a startup topcrash signature."
-                if has_startup_signature
+                if "topcrash-startup" in keywords_to_add
                 else "The bug is linked to a topcrash signature.",
             },
         }
@@ -89,7 +93,7 @@ class TopcrashAddKeyword(BzCleaner):
 
         data[bugid] = {
             "severity": bug["severity"],
-            "added_keyword": keyword_to_add,
+            "added_keywords": utils.english_list(sorted(keywords_to_add)),
         }
 
         return bug
