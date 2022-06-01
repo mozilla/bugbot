@@ -11,7 +11,9 @@ from auto_nag.bzcleaner import BzCleaner
 class RegressionSetStatusFlags(BzCleaner):
     def __init__(self):
         super().__init__()
-        self.init_versions()
+        if not self.init_versions():
+            return
+
         self.status_esr = utils.get_flag(self.versions["esr_previous"], "status", "esr")
         self.status_esr_next = utils.get_flag(self.versions["esr"], "status", "esr")
         self.status_changes = {}
