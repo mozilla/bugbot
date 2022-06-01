@@ -8,29 +8,76 @@ from typing import Dict, Optional, Union
 import libmozdata.socorro as socorro
 from libmozdata import utils as lmdutils
 
+# Top crash identification criteria as defined on Mozilla Wiki.
+# Reference: https://wiki.mozilla.org/CrashKill/Topcrash
+TOP_CRASH_IDENTIFICATION_CRITERIA = [
+    # Top 20 desktop browser crashes on Release
+    {
+        "product": "Firefox",
+        "channel": "release",
+        "tc_limit": 20,
+        "tc_startup_limit": 30,
+    },
+    # Top 20 desktop browser crashes on Beta
+    {
+        "product": "Firefox",
+        "channel": "beta",
+        "tc_limit": 20,
+        "tc_startup_limit": 30,
+    },
+    # Top 10 desktop browser crashes on Nightly
+    {
+        "product": "Firefox",
+        "channel": "nightly",
+        "tc_limit": 10,
+    },
+    # Top 10 plugin crashes on Beta and Release
+    {
+        "product": "Firefox",
+        "process_type": "plugin",
+        "channel": ["beta", "release"],
+        "tc_limit": 10,
+    },
+    # Top 5 desktop browser crashes on Linux-, Mac-, and Win8- specific list on
+    # Beta and Release
+    {
+        "product": "Firefox",
+        "platform": "Linux",
+        "channel": ["beta", "release"],
+        "tc_limit": 5,
+    },
+    {
+        "product": "Firefox",
+        "platform": "Mac OS X",
+        "channel": ["beta", "release"],
+        "tc_limit": 5,
+    },
+    {
+        "product": "Firefox",
+        "platform": "Linux",
+        "channel": ["beta", "release"],
+        "tc_limit": 5,
+    },
+]
+
 
 class Topcrash:
     def __init__(
         self,
-        minimum_crashes: Optional[int] = 0,
-        minimum_startup_crashes: Optional[int] = 0,
+        minimum_crashes: Optional[int] = 5,
     ) -> None:
         """Constructor
 
         Args:
             minimum_crashes: the minimum number of crashes to consider a
                 signature in the top crashes.
-            minimum_startup_crashes: the minimum number of crashes to consider a
-                signature as a startup crash.
         """
         self.minimum_crashes = minimum_crashes
-        self.minimum_startup_crashes = minimum_startup_crashes
 
     def get_signatures(
         self,
         date: Union[str, datetime],
-        duration: Optional[int] = 11,
-        tc_limit: Optional[int] = 50,
+        duration: Optional[int] = 7,
     ) -> Dict[str, dict]:
         """Fetch the top crashes from socorro.
 
@@ -40,41 +87,37 @@ class Topcrash:
         Args:
             date: the final date
             duration: the number of days to retrieve the crash data
-            tc_limit: the number of topcrashes to load on each query
 
         Returns:
             A dictionary where the keys are crash signatures, and the values are
             dictionaries that contains details about a crash signature.
         """
 
-        start_date = lmdutils.get_date(date, duration - 1)
+        start_date = lmdutils.get_date(date, duration)
         end_date = lmdutils.get_date(date)
         date_range = socorro.SuperSearch.get_search_date(start_date, end_date)
-
-        params_combinations = [
-            {
-                "product": "Firefox",
-                "date": date_range,
-                "release_channel": channel,
-                "startup_crash": is_startup,
-                "_aggs.signature": [
-                    "startup_crash",
-                ],
-                "_results_number": 0,
-                "_facets_size": tc_limit,
-            }
-            for channel in ("release", "beta", "nightly")
-            for is_startup in (True, None)
-        ]
 
         data = {}
         searches = [
             socorro.SuperSearch(
-                params=params,
-                handler=self.__startup_signatures_handler,
+                params={
+                    "product": criteria["product"],
+                    "process_type": criteria.get("process_type"),
+                    "date": date_range,
+                    "platform": criteria.get("platform"),
+                    "release_channel": criteria["channel"],
+                    "_aggs.signature": [
+                        "startup_crash",
+                    ],
+                    "_results_number": 0,
+                    "_facets_size": criteria.get(
+                        "tc_startup_limit", criteria["tc_limit"]
+                    ),
+                },
+                handler=self.__signatures_handler(criteria),
                 handlerdata=data,
             )
-            for params in params_combinations
+            for criteria in TOP_CRASH_IDENTIFICATION_CRITERIA
         ]
 
         for search in searches:
@@ -82,23 +125,50 @@ class Topcrash:
 
         return data
 
-    def __startup_signatures_handler(self, search_resp: dict, data: dict):
-        for signature in search_resp["facets"]["signature"]:
-            if signature["count"] < self.minimum_crashes:
-                break
+    @staticmethod
+    def __is_startup_crash(signature: dict):
+        return any(
+            startup["term"] == "T" for startup in signature["facets"]["startup_crash"]
+        )
 
-            is_startup = any(
-                # Check if the signature has numbers for startup crashes
-                startup["term"] == "T"
-                and startup["count"] >= self.minimum_startup_crashes
-                for startup in signature["facets"]["startup_crash"]
-            )
+    def __signatures_handler(self, criteria: dict):
+        def handler(search_resp: dict, data: dict):
+            """
+            Handle and merge crash signatures form different quires.
 
-            signature_name = signature["term"]
-            if signature_name not in data:
-                data[signature_name] = {
-                    "is_startup": is_startup,
-                }
-            else:
-                details = data[signature_name]
-                details["is_startup"] = is_startup or details["is_startup"]
+            Only startup crashes will be considered after exceeding `tc_limit`
+            and up to `tc_startup_limit`.
+            """
+            signatures = search_resp["facets"]["signature"][: criteria["tc_limit"]]
+            for signature in signatures:
+                if signature["count"] < self.minimum_crashes:
+                    return
+
+                name = signature["term"]
+                if name not in data:
+                    data[name] = {
+                        "is_startup": self.__is_startup_crash(signature),
+                    }
+                else:
+                    data[name]["is_startup"] |= self.__is_startup_crash(signature)
+
+            if "tc_startup_limit" not in criteria:
+                return
+
+            assert criteria["tc_startup_limit"] > criteria["tc_limit"]
+            signatures = search_resp["facets"]["signature"][
+                criteria["tc_limit"] : criteria["tc_startup_limit"]
+            ]
+            for signature in signatures:
+                if not self.__is_startup_crash(signature):
+                    continue
+
+                name = signature["term"]
+                if name not in data:
+                    data[name] = {
+                        "is_startup": True,
+                    }
+                else:
+                    data[name]["is_startup"] = True
+
+        return handler
