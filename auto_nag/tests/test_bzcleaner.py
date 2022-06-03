@@ -57,6 +57,7 @@ class TestBZClearnerClass(unittest.TestCase):
             tool.status_release = utils.get_flag(
                 tool.versions["release"], "status", "release"
             )
+            tool.flags_map = {}
 
         p = tool.get_bz_params(None)
         assert p["f1"] == "OP"
