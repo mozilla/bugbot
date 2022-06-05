@@ -60,19 +60,28 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = [
     },
 ]
 
+CRASH_SIGNATURE_BLOCK_LIST = [
+    "OOM | small",
+]
+
 
 class Topcrash:
     def __init__(
         self,
         minimum_crashes: Optional[int] = 5,
+        signature_block_list: list = CRASH_SIGNATURE_BLOCK_LIST,
     ) -> None:
         """Constructor
 
         Args:
             minimum_crashes: the minimum number of crashes to consider a
                 signature in the top crashes.
+            signature_block_list: a list of crash signature to be ignored.
         """
         self.minimum_crashes = minimum_crashes
+        self.signature_is_not_list = [
+            f"!={signature}" for signature in signature_block_list
+        ]
 
     def get_signatures(
         self,
@@ -112,14 +121,14 @@ class Topcrash:
 
         return data
 
-    @staticmethod
-    def __get_params_from_criteria(date_range: list, criteria: dict):
+    def __get_params_from_criteria(self, date_range: list, criteria: dict):
         params = {
             "product": criteria["product"],
             "process_type": criteria.get("process_type"),
             "date": date_range,
             "platform": criteria.get("platform"),
             "release_channel": criteria["channel"],
+            "signature": self.signature_is_not_list,
             "_aggs.signature": [
                 "startup_crash",
             ],
