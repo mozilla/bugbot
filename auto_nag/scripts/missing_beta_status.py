@@ -36,8 +36,12 @@ class MissingBetaStatus(BzCleaner):
         release = bug[self.status_release]
         doc = self.get_documentation()
 
+        # If the two status are different, we don't know what to set.
+        # If this affected on nightly and release, beta will be affected.
+        # Otherwise we cannot say per say if beta should be the same as nightly
+        # and release.
         if nightly == release:
-            if release != "verified":
+            if release in ["affected", "?"]:
                 self.autofix_status[bugid] = {
                     "comment": {
                         "body": "Change the status for beta to have the same as nightly and release.\n{}".format(
@@ -47,14 +51,9 @@ class MissingBetaStatus(BzCleaner):
                     self.status_beta: nightly,
                 }
             else:
-                # if the two status are different, we don't know what to set
-                # if this verified on nightly and release, we cannot say
-                # per say if this is verified
                 self.autofix_status[bugid] = {
                     "comment": {
-                        "body": "Since it has been verified for nightly and release, is it verified for beta too?\n{}".format(
-                            doc
-                        )
+                        "body": f"Since it has been ${nightly} for nightly and release, is it ${nightly} for beta too?\n${doc}"
                     },
                     self.status_beta: "?",
                 }
