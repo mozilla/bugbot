@@ -13,7 +13,7 @@ class MissingBetaStatus(BzCleaner):
         if not self.init_versions():
             return
 
-        self.status_central = utils.get_flag(
+        self.status_nightly = utils.get_flag(
             self.versions["central"], "status", "nightly"
         )
         self.status_beta = utils.get_flag(self.versions["beta"], "status", "beta")
@@ -32,11 +32,11 @@ class MissingBetaStatus(BzCleaner):
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
-        central = bug[self.status_central]
+        nightly = bug[self.status_nightly]
         release = bug[self.status_release]
         doc = self.get_documentation()
 
-        if central == release:
+        if nightly == release:
             if release != "verified":
                 self.autofix_status[bugid] = {
                     "comment": {
@@ -44,7 +44,7 @@ class MissingBetaStatus(BzCleaner):
                             doc
                         )
                     },
-                    self.status_beta: central,
+                    self.status_beta: nightly,
                 }
             else:
                 # if the two status are different, we don't know what to set
@@ -70,7 +70,7 @@ class MissingBetaStatus(BzCleaner):
         return bug
 
     def get_bz_params(self, date):
-        fields = [self.status_central, self.status_release]
+        fields = [self.status_nightly, self.status_release]
         params = {
             "include_fields": fields,
             "f1": self.status_beta,
@@ -79,7 +79,7 @@ class MissingBetaStatus(BzCleaner):
             "f2": self.status_release,
             "o2": "notequals",
             "v2": "---",
-            "f3": self.status_central,
+            "f3": self.status_nightly,
             "o3": "notequals",
             "v3": "---",
         }
