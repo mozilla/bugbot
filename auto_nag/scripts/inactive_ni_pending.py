@@ -240,6 +240,7 @@ class InactiveNeedinfoPending(BzCleaner):
 
         elif bug["action"] == NeedinfoAction.CLOSE_BUG:
             autofix = {
+                "flags": self._clear_inactive_ni_flags(bug),
                 "status": "RESOLVED",
                 "resolution": "INCOMPLETE",
                 "comment": {
