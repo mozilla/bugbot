@@ -37,9 +37,10 @@ class MissingBetaStatus(BzCleaner):
         doc = self.get_documentation()
 
         # If the two status are different, we don't know what to set.
-        # If this affected on nightly and release, beta will be affected.
-        # Otherwise we cannot say per say if beta should be the same as nightly
-        # and release.
+        # If this affects nightly and release, beta will likely be affected too.
+        # Otherwise we cannot say for sure if beta should be the same as nightly
+        # and release, and we better be conservative in this case to avoid bugs
+        # falling through the cracks.
         if nightly == release:
             if release in ["affected", "?"]:
                 self.autofix_status[bugid] = {
