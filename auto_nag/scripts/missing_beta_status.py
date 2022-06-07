@@ -30,40 +30,29 @@ class MissingBetaStatus(BzCleaner):
     def get_autofix_change(self):
         return self.autofix_status
 
+    @staticmethod
+    def _is_affected(status):
+        return status and status not in ("unaffected", "?")
+
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
         nightly = bug[self.status_nightly]
         release = bug[self.status_release]
         doc = self.get_documentation()
 
-        # If the two status are different, we don't know what to set.
-        # If this affects nightly and release, beta will likely be affected too.
-        # Otherwise we cannot say for sure if beta should be the same as nightly
-        # and release, and we better be conservative in this case to avoid bugs
-        # falling through the cracks.
-        if nightly == release:
-            if release in ["affected", "?"]:
-                self.autofix_status[bugid] = {
-                    "comment": {
-                        "body": "Change the status for beta to have the same as nightly and release.\n{}".format(
-                            doc
-                        )
-                    },
-                    self.status_beta: nightly,
-                }
-            else:
-                self.autofix_status[bugid] = {
-                    "comment": {
-                        "body": f"Since it has been ${nightly} for nightly and release, is it ${nightly} for beta too?\n${doc}"
-                    },
-                    self.status_beta: "?",
-                }
+        if self._is_affected(nightly) and self._is_affected(release):
+            self.autofix_status[bugid] = {
+                "comment": {
+                    "body": f"Since nightly and release are affected, beta will likely be affected too.\n${doc}"
+                },
+                self.status_beta: "affected",
+            }
         else:
             self.autofix_status[bugid] = {
                 "comment": {
-                    "body": "Since the status are different for nightly and release, what's the status for beta?\n{}".format(
-                        doc
-                    )
+                    "body": f"Since the status is marked as `${nightly}` for nightly and release, is it `${nightly}` for beta too?\n${doc}"
+                    if nightly == release
+                    else f"Since the status is marked as `${nightly}` for nightly and as `${release}` for release, is it `${nightly}` or `${release}` for beta?\n${doc}"
                 },
                 self.status_beta: "?",
             }
