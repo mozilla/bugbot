@@ -1,0 +1,7 @@
+{% for reminder in extra[bugid]["reminders"] -%}
+
+{{ reminder["when"] }} ago, {{ reminder["who"] }} placed a reminder on the bug using the whiteboard tag {% if reminder["invalid_date"] %} which could not be parsed as a valid `yyyy-m-d` date {% else -%} `{{ reminder["full_tag"] }}` {% endif %}.
+
+{% endfor -%}
+
+{{ nickname }}, please refer to the original comment to better understand the reason for the {{ plural("reminder", extra[bugid]["reminders"]) }}.
