@@ -311,6 +311,11 @@ class People:
         """
         result = set()
 
+        assert person in self.people
+        assert superior in self.people
+        if person == superior:
+            return result
+
         manager = self.get_manager_mail(person)
         while manager != superior:
             result.add(manager)
