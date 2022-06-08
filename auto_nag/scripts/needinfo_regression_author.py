@@ -130,8 +130,8 @@ class RegressionSetStatusFlags(BzCleaner):
             set(bug["regressor_author_email"] for bug in bugs.values())
         )
         bugs = {
-            bug["id"]: bug
-            for bug in bugs.values()
+            bug_id: bug
+            for bug_id, bug in bugs.items()
             if bug["regressor_author_email"] not in inactive_users
         }
 
