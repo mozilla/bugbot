@@ -50,9 +50,11 @@ class MissingBetaStatus(BzCleaner):
         else:
             self.autofix_status[bugid] = {
                 "comment": {
-                    "body": f"Since the status is marked as `${nightly}` for nightly and release, is it `${nightly}` for beta too?\n${doc}"
-                    if nightly == release
-                    else f"Since the status is marked as `${nightly}` for nightly and as `${release}` for release, is it `${nightly}` or `${release}` for beta?\n${doc}"
+                    "body": (
+                        f"Since the status is marked as `${nightly}` for nightly and release, is it `${nightly}` for beta too?\n${doc}"
+                        if nightly == release
+                        else f"Since the status is marked as `${nightly}` for nightly and as `${release}` for release, is it `${nightly}` or `${release}` for beta?\n${doc}"
+                    )
                 },
                 self.status_beta: "?",
             }
