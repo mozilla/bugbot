@@ -8,6 +8,7 @@ from libmozdata.bugzilla import Bugzilla
 
 from auto_nag import logger, utils
 from auto_nag.bzcleaner import BzCleaner
+from auto_nag.user_activity import UserActivity
 
 
 class RegressionSetStatusFlags(BzCleaner):
@@ -121,6 +122,18 @@ class RegressionSetStatusFlags(BzCleaner):
                 for comment in bug["comments"]
             ):
                 del bugs[str(bug_id)]
+
+        # Exclude bugs where the regressor author is inactive.
+        # TODO: We can drop this when https://github.com/mozilla/relman-auto-nag/issues/1465 is implemented.
+        user_activity = UserActivity()
+        inactive_users = user_activity.check_users(
+            set(bug["regressor_author_email"] for bug in bugs.values())
+        )
+        bugs = {
+            bug_id: bug
+            for bug_id, bug in bugs.items()
+            if bug["regressor_author_email"] not in inactive_users
+        }
 
         Bugzilla(
             bugids=self.get_list_bugs(bugs),
