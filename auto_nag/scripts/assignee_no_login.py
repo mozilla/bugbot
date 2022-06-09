@@ -128,7 +128,9 @@ class AssigneeNoLogin(BzCleaner):
         data[bugid] = {
             "assigned_to": bug["assigned_to"],
             "triage_owner": bug["triage_owner"],
-            "triage_owner_name": bug["triage_owner_detail"]["real_name"],
+            "triage_owner_name": utils.get_name_from_user_detail(
+                bug["triage_owner_detail"]
+            ),
             "triage_owner_nick": bug["triage_owner_detail"]["nick"],
             "priority": bug["priority"],
             "severity": bug["severity"],

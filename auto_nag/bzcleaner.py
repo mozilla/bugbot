@@ -327,14 +327,7 @@ class BzCleaner(object):
         res["summary"] = self.get_summary(bug)
 
         if self.has_assignee():
-            real = bug["assigned_to_detail"]["real_name"]
-            if utils.is_no_assignee(bug["assigned_to"]):
-                real = "nobody"
-            if real.strip() == "":
-                real = bug["assigned_to_detail"]["name"]
-                if real.strip() == "":
-                    real = bug["assigned_to_detail"]["email"]
-            res["assignee"] = real
+            res["assignee"] = utils.get_name_from_user_detail(bug["assigned_to_detail"])
 
         if self.has_needinfo():
             s = set()

@@ -651,3 +651,20 @@ def get_sort_by_bug_importance_key(bug):
         priority,
         time_order * -1,
     )
+
+
+def get_name_from_user_detail(detail: dict) -> str:
+    """Get the name of the user from the detail object.
+
+    Returns:
+        The name of the user or the email as a fallback.
+    """
+    name = detail["real_name"]
+    if is_no_assignee(detail["email"]):
+        name = "nobody"
+    if name.strip() == "":
+        name = detail["name"]
+        if name.strip() == "":
+            name = detail["email"]
+
+    return name
