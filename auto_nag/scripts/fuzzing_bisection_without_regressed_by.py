@@ -24,9 +24,6 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
     def description(self):
         return "Bugs with a fuzzing bisection and without regressed_by"
 
-    def get_max_ni(self):
-        return utils.get_config(self.name(), "max_ni")
-
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
         data[bugid] = {
