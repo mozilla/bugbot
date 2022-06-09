@@ -18,7 +18,9 @@ BUG_PAT = re.compile(r"[\t ]*[Bb][Uu][Gg][\t ]*([0-9]+)")
 def is_ignorable_path(path: str) -> bool:
     # TODO: also ignore other kinds of files that certainly can't cause regressions.
 
-    if any(path.endswith(ext) for ext in (".txt", ".md")):
+    if any(
+        path.endswith(ext) for ext in (".txt", ".md", ".rst", ".pdf", ".doc", ".otf")
+    ):
         return True
 
     # This code was adapted from https://github.com/mozsearch/mozsearch/blob/2e24a308bf66b4c149683bfeb4ceeea3b250009a/router/router.py#L127
