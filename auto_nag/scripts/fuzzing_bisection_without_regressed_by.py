@@ -2,13 +2,25 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from libmozdata.bugzilla import Bugzilla
+import re
 
-from auto_nag import utils
+import requests
+from libmozdata.bugzilla import Bugzilla, BugzillaUser
+
+from auto_nag import logger, utils
 from auto_nag.bzcleaner import BzCleaner
+from auto_nag.people import People
+
+PUSHLOG_PAT = re.compile(r"Pushlog: (.+)")
+BUG_PAT = re.compile(r"[\t ]*[Bb][Uu][Gg][\t ]*([0-9]+)")
 
 
 class FuzzingBisectionWithoutRegressedBy(BzCleaner):
+    def __init__(self):
+        super().__init__()
+        self.autofix_regressed_by = {}
+        self.bzmail_to_nickname = {}
+
     def description(self):
         return "Bugs with a fuzzing bisection and without regressed_by"
 
@@ -22,17 +34,26 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
             "assigned_to_nickname": bug["assigned_to_detail"]["nick"],
             "depends_on": bug["depends_on"],
         }
+        self.bzmail_to_nickname[bug["assigned_to"]] = bug["assigned_to_detail"]["nick"]
         return bug
 
     def set_autofix(self, bugs):
         for bugid, info in bugs.items():
-            self.add_auto_ni(
-                bugid,
-                {
-                    "mail": info["assigned_to_email"],
-                    "nickname": info["assigned_to_nickname"],
-                },
-            )
+            if "regressor_bug_id" in info:
+                self.autofix_regressed_by[bugid] = {
+                    "comment": {
+                        "body": "Setting regressed_by field after analyzing regression range found by bugmon."
+                    },
+                    "regressed_by": info["regressor_bug_id"],
+                }
+            elif "needinfo_target" in info:
+                self.add_auto_ni(
+                    bugid,
+                    info["needinfo_target"],
+                )
+
+    def get_autofix_change(self):
+        return self.autofix_regressed_by
 
     def get_bz_params(self, date):
         return {
@@ -51,22 +72,78 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
             "email1": "bugmon@mozilla.com",
         }
 
-    def filter_bugs(self, bugs):
-        # Exclude bugs assigned to nobody.
-        bugs = {
-            bug["id"]: bug
-            for bug in bugs.values()
-            if not utils.is_no_assignee(bug["assigned_to_email"])
-        }
+    def find_regressor_or_needinfo_target(self, bugs):
+        # Needinfo assignee when there is one.
+        for bug in bugs.values():
+            if not utils.is_no_assignee(bug["assigned_to_email"]):
+                bug["needinfo_target"] = {
+                    "mail": bug["assigned_to_email"],
+                    "nickname": bug["assigned_to_nickname"],
+                }
+
+        people = People.get_instance()
 
         # Exclude bugs that do not have a range found by BugMon.
         def comment_handler(bug, bug_id):
-            if not any(
-                "BugMon: Reduced build range" in comment["text"]
-                or "The bug appears to have been introduced in the following build range"
-                in comment["text"]
-                for comment in bug["comments"]
-            ):
+            range_found = False
+            # We start from the last comment just in case bugmon has updated the range.
+            for comment in bug["comments"][::-1]:
+                if (
+                    "BugMon: Reduced build range" in comment["text"]
+                    or "The bug appears to have been introduced in the following build range"
+                    in comment["text"]
+                ):
+                    range_found = True
+
+                    # Try to parse the regression range to find the regressor or at least somebody good to needinfo.
+                    pushlog_match = PUSHLOG_PAT.search(comment["text"])
+                    url = (
+                        pushlog_match.group(1).replace("pushloghtml", "json-pushes")
+                        + "&full=1&version=2"
+                    )
+                    r = requests.get(url)
+
+                    # TODO: Exclude changesets that only touch test files.
+                    changesets = [
+                        changeset
+                        for push in r.json()["pushes"].values()
+                        for changeset in push["changesets"]
+                    ]
+
+                    regressor_bug_ids = set()
+                    for changeset in changesets:
+                        bug_match = BUG_PAT.search(changeset["desc"])
+                        if bug_match is not None:
+                            regressor_bug_ids.add(bug_match.group(1))
+
+                    if len(regressor_bug_ids) == 1:
+                        # Only one bug in the regression range, we are sure about the regressor!
+                        bugs[bug_id]["regressor_bug_id"] = regressor_bug_ids.pop()
+                        break
+
+                    if "needinfo_target" not in bugs[bug_id]:
+                        authors = set(changeset["author"] for changeset in changesets)
+                        # TODO: also needinfo when there is more than one author, e.g. if there are up to three (where three should be a configurable number).
+                        if len(authors) == 1:
+                            author = authors.pop()
+                            author_parts = author.split("<")
+                            author_email = author_parts[1][:-1]
+                            bzmail = people.get_bzmail_from_name(author_email)
+                            if bzmail is None:
+                                logger.warning(
+                                    f"No bzmail for {author} for bug {bug_id}"
+                                )
+                                continue
+                            print(author)
+                            print(bzmail)
+                            self.bzmail_to_nickname[bzmail] = ""
+                            bugs[bug_id]["needinfo_target"] = {
+                                "mail": bzmail,
+                                "nickname": "",
+                            }
+                            break
+
+            if not range_found:
                 del bugs[bug_id]
 
         Bugzilla(
@@ -75,13 +152,41 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
             comment_include_fields=["text"],
         ).get_data().wait()
 
+        def user_handler(user):
+            self.bzmail_to_nickname[user["name"]] = user["nick"]
+
+        users = set(
+            bzmail
+            for bzmail, nickname in self.bzmail_to_nickname.items()
+            if not nickname
+        )
+        if len(users) > 0:
+            BugzillaUser(
+                user_names=list(users),
+                user_handler=user_handler,
+                include_fields=["name", "nick"],
+            ).wait()
+
+        for bug in bugs.values():
+            if "needinfo_target" in bug and not bug["needinfo_target"]["nickname"]:
+                bug["needinfo_target"]["nickname"] = self.bzmail_to_nickname[
+                    bug["needinfo_target"]["mail"]
+                ]
+
+        # Exclude all bugs where we couldn't find a definite regressor bug ID or an applicable needinfo target.
+        bugs = {
+            bug_id: bug
+            for bug_id, bug in bugs.items()
+            if "regressor_bug_id" in bug or "needinfo_target" in bug
+        }
+
         return bugs
 
     def get_bugs(self, date="today", bug_ids=[]):
         bugs = super(FuzzingBisectionWithoutRegressedBy, self).get_bugs(
             date=date, bug_ids=bug_ids
         )
-        bugs = self.filter_bugs(bugs)
+        bugs = self.find_regressor_or_needinfo_target(bugs)
         self.set_autofix(bugs)
 
         return bugs
