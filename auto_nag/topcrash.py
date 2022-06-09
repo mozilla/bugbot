@@ -9,8 +9,12 @@ import libmozdata.socorro as socorro
 from libmozdata import utils as lmdutils
 
 # Top crash identification criteria as defined on Mozilla Wiki.
-# Reference: https://wiki.mozilla.org/CrashKill/Topcrash
+#
+# Wiki page: https://wiki.mozilla.org/CrashKill/Topcrash
 TOP_CRASH_IDENTIFICATION_CRITERIA = [
+    # -------
+    # Firefox
+    # -------
     # Top 20 desktop browser crashes on Release
     {
         "product": "Firefox",
@@ -31,31 +35,59 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = [
         "channel": "nightly",
         "tc_limit": 10,
     },
-    # Top 10 plugin crashes on Beta and Release
+    # Top 10 content process crashes on Beta and Release
     {
         "product": "Firefox",
-        "process_type": "plugin",
         "channel": ["beta", "release"],
+        "process_type": "content",
         "tc_limit": 10,
+    },
+    # Top 5 gpu process crashes on Beta and Release
+    {
+        "product": "Firefox",
+        "channel": ["beta", "release"],
+        "process_type": "gpu",
+        "tc_limit": 5,
+    },
+    # Top 5 socket and utility process crashes on Beta and Release
+    {
+        "product": "Firefox",
+        "channel": ["beta", "release"],
+        "process_type": "gpu",
+        "tc_limit": 5,
+    },
+    # Top 5 rdd process crashes on Beta and Release
+    {
+        "product": "Firefox",
+        "channel": ["beta", "release"],
+        "process_type": "rdd",
+        "tc_limit": 5,
+    },
+    # Top 5 socket and utility process crashes on Beta and Release
+    {
+        "product": "Firefox",
+        "channel": ["beta", "release"],
+        "process_type": ["socket", "utility"],
+        "tc_limit": 5,
     },
     # Top 5 desktop browser crashes on Linux-, Mac-, and Win8- specific list on
     # Beta and Release
     {
         "product": "Firefox",
-        "platform": "Linux",
         "channel": ["beta", "release"],
+        "platform": "Linux",
         "tc_limit": 5,
     },
     {
         "product": "Firefox",
+        "channel": ["beta", "release"],
         "platform": "Mac OS X",
-        "channel": ["beta", "release"],
         "tc_limit": 5,
     },
     {
         "product": "Firefox",
-        "platform": "Linux",
         "channel": ["beta", "release"],
+        "platform": "Linux",
         "tc_limit": 5,
     },
 ]
@@ -132,10 +164,11 @@ class Topcrash:
     def __get_params_from_criteria(self, date_range: list, criteria: dict):
         params = {
             "product": criteria["product"],
-            "process_type": criteria.get("process_type"),
-            "date": date_range,
-            "platform": criteria.get("platform"),
             "release_channel": criteria["channel"],
+            "process_type": criteria.get("process_type"),
+            "cpu_arch": criteria.get("cpu_arch"),
+            "platform": criteria.get("platform"),
+            "date": date_range,
             "signature": self.signature_block_patterns,
             "_aggs.signature": [
                 "startup_crash",
