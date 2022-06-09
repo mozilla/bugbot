@@ -130,8 +130,6 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
                                     f"No bzmail for {author} for bug {bug_id}"
                                 )
                                 continue
-                            print(author)
-                            print(bzmail)
                             self.bzmail_to_nickname[bzmail] = ""
                             bugs[bug_id]["needinfo_target"] = {
                                 "mail": bzmail,
