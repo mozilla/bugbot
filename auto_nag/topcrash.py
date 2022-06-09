@@ -90,6 +90,23 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = [
         "platform": "Linux",
         "tc_limit": 5,
     },
+    # -----
+    # Fenix
+    # -----
+    # Top 10 AArch64- and ARM-crashes for Nightly, Beta and Release
+    {
+        "product": "Fenix",
+        "channel": ["nightly", "beta", "release"],
+        "cpu_arch": ["arm64", "arm"],
+        "tc_limit": 10,
+    },
+    # Top 5 AMD64- and x86- crashes for Beta and Release
+    {
+        "product": "Fenix",
+        "channel": ["beta", "release"],
+        "cpu_arch": ["amd64", "x86"],
+        "tc_limit": 5,
+    },
 ]
 
 # The crash signature block patterns are based on the criteria defined on
