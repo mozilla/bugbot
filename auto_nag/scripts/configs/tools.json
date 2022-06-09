@@ -135,7 +135,6 @@
   },
   "assignee_no_login": {
     "unassign_weeks": 2,
-    "number_of_months": 7,
     "max_ni": 7,
     "max_actions": 10,
     "must_run": ["Mon"]

@@ -4,11 +4,11 @@
 
 import collections
 
-from dateutil.relativedelta import relativedelta
 from libmozdata import utils as lmdutils
 
 from auto_nag import people, utils
 from auto_nag.bzcleaner import BzCleaner
+from auto_nag.user_activity import UserActivity
 
 HIGH_PRIORITY = {"P1", "P2"}
 HIGH_SEVERITY = {"S1", "critical", "S2", "major"}
@@ -18,19 +18,16 @@ class AssigneeNoLogin(BzCleaner):
     def __init__(self):
         super(AssigneeNoLogin, self).__init__()
         self.unassign_weeks = utils.get_config(self.name(), "unassign_weeks", 2)
-        self.nmonths = utils.get_config(self.name(), "number_of_months", 12)
         self.max_ni = utils.get_config(self.name(), "max_ni")
         self.max_actions = utils.get_config(self.name(), "max_actions")
         self.default_assignees = utils.get_default_assignees()
         self.people = people.People.get_instance()
         self.unassign_count = collections.defaultdict(int)
 
-        self.extra_ni = {"nmonths": self.nmonths}
+        self.extra_ni = {}
 
     def description(self):
-        return "Open and assigned bugs where the assignee's last login was more than {} months ago".format(
-            self.nmonths
-        )
+        return "Open and assigned bugs where the assignee is inactive"
 
     def has_product_component(self):
         return True
@@ -45,7 +42,14 @@ class AssigneeNoLogin(BzCleaner):
         return self.extra_ni
 
     def columns(self):
-        return ["triage_owner", "component", "id", "summary", "assignee"]
+        return [
+            "triage_owner_name",
+            "component",
+            "id",
+            "summary",
+            "assignee",
+            "assignee_status",
+        ]
 
     def get_max_ni(self):
         return self.max_ni
@@ -53,11 +57,41 @@ class AssigneeNoLogin(BzCleaner):
     def get_max_actions(self):
         return self.max_actions
 
-    def handle_bug(self, bug, data):
-        assignee = bug["assigned_to"]
-        if self.people.is_mozilla(assignee):
-            return None
+    def get_bugs(self, *args, **kwargs):
+        bugs = super().get_bugs(*args, **kwargs)
+        bugs = self.handle_inactive_assignees(bugs)
 
+        # Resolving https://github.com/mozilla/relman-auto-nag/issues/1300 should clean this
+        # including improve the wording in the template (i.e., "See the search query on Bugzilla").
+        self.query_url = utils.get_bz_search_url({"bug_id": ",".join(bugs.keys())})
+
+        return bugs
+
+    def handle_inactive_assignees(self, bugs):
+        user_activity = UserActivity()
+        assignees = {bug["assigned_to"] for bug in bugs.values()}
+        triage_owners = {bug["triage_owner"] for bug in bugs.values()}
+        inactive_users = user_activity.check_users(assignees | triage_owners)
+
+        res = {}
+        for bugid, bug in bugs.items():
+            if (
+                bug["assigned_to"] not in inactive_users
+                # If we don't have an active triage owner, we need to wait until
+                # we have one before doing anything.
+                or bug["triage_owner"] in inactive_users
+            ):
+                continue
+
+            bug["assignee_status"] = user_activity.get_string_status(
+                inactive_users[bug["assigned_to"]]["status"]
+            )
+            self.add_action(bug)
+            res[bugid] = bug
+
+        return res
+
+    def add_action(self, bug):
         prod = bug["product"]
         comp = bug["component"]
         default_assignee = self.default_assignees[prod][comp]
@@ -72,7 +106,7 @@ class AssigneeNoLogin(BzCleaner):
         ):
             needinfo = None
             autofix["comment"] = {
-                "body": f"The bug assignee didn't login in Bugzilla in the last { self.nmonths } months, so the assignee is being reset."
+                "body": "The bug assignee is inactive on Bugzilla, so the assignee is being reset."
             }
         else:
             reason = []
@@ -83,14 +117,22 @@ class AssigneeNoLogin(BzCleaner):
 
             needinfo = {
                 "mail": bug["triage_owner"],
-                "nickname": bug["triage_owner_detail"]["nick"],
+                "nickname": bug["triage_owner_nick"],
                 "extra": {"reason": "/".join(reason)},
             }
 
         self.add_prioritized_action(bug, bug["triage_owner"], needinfo, autofix)
 
+    def handle_bug(self, bug, data):
         bugid = str(bug["id"])
-        data[bugid] = {"triage_owner": bug["triage_owner_detail"]["real_name"]}
+        data[bugid] = {
+            "assigned_to": bug["assigned_to"],
+            "triage_owner": bug["triage_owner"],
+            "triage_owner_name": bug["triage_owner_detail"]["real_name"],
+            "triage_owner_nick": bug["triage_owner_detail"]["nick"],
+            "priority": bug["priority"],
+            "severity": bug["severity"],
+        }
 
         return bug
 
@@ -99,7 +141,6 @@ class AssigneeNoLogin(BzCleaner):
 
     def get_bz_params(self, date):
         date = lmdutils.get_date_ymd(date)
-        start_date = date - relativedelta(months=self.nmonths)
         fields = [
             "assigned_to",
             "triage_owner",
@@ -110,9 +151,6 @@ class AssigneeNoLogin(BzCleaner):
         params = {
             "include_fields": fields,
             "resolution": "---",
-            "f1": "assignee_last_login",
-            "o1": "lessthan",
-            "v1": start_date,
             "n3": "1",
             "f3": "assigned_to",
             "o3": "changedafter",
