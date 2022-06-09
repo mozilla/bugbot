@@ -32,7 +32,6 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
         data[bugid] = {
             "assigned_to_email": bug["assigned_to"],
             "assigned_to_nickname": bug["assigned_to_detail"]["nick"],
-            "depends_on": bug["depends_on"],
         }
         self.bzmail_to_nickname[bug["assigned_to"]] = bug["assigned_to_detail"]["nick"]
         return bug
@@ -57,7 +56,7 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
 
     def get_bz_params(self, date):
         return {
-            "include_fields": ["assigned_to", "depends_on"],
+            "include_fields": ["assigned_to"],
             "f1": "regressed_by",
             "o1": "isempty",
             "n2": 1,
