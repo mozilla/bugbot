@@ -15,6 +15,33 @@ PUSHLOG_PAT = re.compile(r"Pushlog: (.+)")
 BUG_PAT = re.compile(r"[\t ]*[Bb][Uu][Gg][\t ]*([0-9]+)")
 
 
+def is_ignorable_path(path: str) -> bool:
+    # TODO: also ignore other kinds of files that certainly can't cause regressions.
+
+    if any(path.endswith(ext) for ext in (".txt", ".md")):
+        return True
+
+    # This code was adapted from https://github.com/mozsearch/mozsearch/blob/2e24a308bf66b4c149683bfeb4ceeea3b250009a/router/router.py#L127
+    if (
+        "/test/" in path
+        or "/tests/" in path
+        or "/mochitest/" in path
+        or "/unit/" in path
+        or "/gtest/" in path
+        or "testing/" in path
+        or "/jsapi-tests/" in path
+        or "/reftests/" in path
+        or "/reftest/" in path
+        or "/crashtests/" in path
+        or "/crashtest/" in path
+        or "/gtests/" in path
+        or "/googletest/" in path
+    ):
+        return True
+
+    return False
+
+
 class FuzzingBisectionWithoutRegressedBy(BzCleaner):
     def __init__(self):
         super().__init__()
@@ -99,11 +126,13 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
                     )
                     r = requests.get(url)
 
-                    # TODO: Exclude changesets that only touch test files.
                     changesets = [
                         changeset
                         for push in r.json()["pushes"].values()
                         for changeset in push["changesets"]
+                        if not all(
+                            is_ignorable_path(path) for path in changeset["files"]
+                        )
                     ]
 
                     regressor_bug_ids = set()
