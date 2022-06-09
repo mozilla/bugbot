@@ -60,8 +60,18 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = [
     },
 ]
 
-CRASH_SIGNATURE_BLOCK_LIST = [
-    "OOM | small",
+# The crash signature block patterns are based on the criteria defined on
+# Mozilla Wiki. However, the matching roles (e.g., `!=` and `!^`) are based on
+# the SuperSearch docs.
+#
+# Wiki page: https://wiki.mozilla.org/CrashKill/Topcrash
+# Docs: https://crash-stats.mozilla.org/documentation/supersearch/#operators
+CRASH_SIGNATURE_BLOCK_PATTERNS = [
+    "!^EMPTY: ",
+    "!^OOM | large | EMPTY: ",
+    "!=OOM | small",
+    "!=IPCError-browser | ShutDownKill",
+    "!^java.lang.OutOfMemoryError",
 ]
 
 
@@ -69,7 +79,7 @@ class Topcrash:
     def __init__(
         self,
         minimum_crashes: Optional[int] = 5,
-        signature_block_list: list = CRASH_SIGNATURE_BLOCK_LIST,
+        signature_block_patterns: list = CRASH_SIGNATURE_BLOCK_PATTERNS,
     ) -> None:
         """Constructor
 
@@ -79,9 +89,7 @@ class Topcrash:
             signature_block_list: a list of crash signature to be ignored.
         """
         self.minimum_crashes = minimum_crashes
-        self.signature_is_not_list = [
-            f"!={signature}" for signature in signature_block_list
-        ]
+        self.signature_block_patterns = signature_block_patterns
 
     def get_signatures(
         self,
@@ -128,7 +136,7 @@ class Topcrash:
             "date": date_range,
             "platform": criteria.get("platform"),
             "release_channel": criteria["channel"],
-            "signature": self.signature_is_not_list,
+            "signature": self.signature_block_patterns,
             "_aggs.signature": [
                 "startup_crash",
             ],
