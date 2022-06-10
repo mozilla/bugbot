@@ -70,7 +70,7 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
                     "comment": {
                         "body": "Setting regressed_by field after analyzing regression range found by bugmon."
                     },
-                    "regressed_by": bug["regressor_bug_id"],
+                    "regressed_by": {"add": [bug["regressor_bug_id"]]},
                 }
             elif "needinfo_target" in bug:
                 self.add_auto_ni(
