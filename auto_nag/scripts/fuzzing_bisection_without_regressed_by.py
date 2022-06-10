@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import re
+from typing import Dict
 
 import requests
 from libmozdata.bugzilla import Bugzilla, BugzillaUser
@@ -48,8 +49,8 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
     def __init__(self) -> None:
         super().__init__()
         self.people = People.get_instance()
-        self.autofix_regressed_by = {}
-        self.bzmail_to_nickname = {}
+        self.autofix_regressed_by: Dict[str, str] = {}
+        self.bzmail_to_nickname: Dict[str, str] = {}
 
     def description(self):
         return "Bugs with a fuzzing bisection and without regressed_by"
