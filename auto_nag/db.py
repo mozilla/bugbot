@@ -6,9 +6,9 @@ import calendar
 import csv
 import json
 import os
+from typing import Any
 
 import dateutil.parser
-import six
 from filelock import FileLock
 from libmozdata import utils as lmdutils
 from sqlalchemy import Column, ForeignKey, Integer, String, create_engine
@@ -19,7 +19,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from auto_nag import logger, utils
 from auto_nag.history import History
 
-Base = declarative_base()
+Base: Any = declarative_base()
 lock_path = utils.get_config("common", "lock")
 db_url = utils.get_config("common", "database")
 engine = create_engine(db_url)
@@ -43,10 +43,10 @@ def check(table_name):
 
 
 def get_ts(date, default=0):
-    if isinstance(date, six.integer_types):
+    if isinstance(date, int):
         return date
     if date:
-        if isinstance(date, six.string_types):
+        if isinstance(date, str):
             date = dateutil.parser.parse(date)
         date = int(calendar.timegm(date.timetuple()))
         return date

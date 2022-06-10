@@ -8,12 +8,12 @@ import json
 import os
 import random
 import re
+from urllib.parse import urlencode
 
 import dateutil.parser
 import humanize
 import pytz
 import requests
-import six
 from dateutil.relativedelta import relativedelta
 from libmozdata import release_calendar as rc
 from libmozdata import utils as lmdutils
@@ -21,12 +21,6 @@ from libmozdata import versions as lmdversions
 from libmozdata.bugzilla import Bugzilla, BugzillaShorten
 from libmozdata.hgmozilla import Mercurial
 from requests.exceptions import HTTPError
-
-try:
-    from urllib.parse import urlencode
-except ImportError:
-    from urllib import urlencode
-
 
 _CONFIG = None
 _CYCLE_SPAN = None
@@ -169,7 +163,7 @@ def get_private():
 
 
 def plural(sword, data, pword=""):
-    if isinstance(data, six.integer_types):
+    if isinstance(data, int):
         p = data != 1
     else:
         p = len(data) != 1
