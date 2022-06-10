@@ -135,6 +135,7 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
                     + "&full=1&version=2"
                 )
                 r = requests.get(url)
+                r.raise_for_status()
 
                 changesets = [
                     changeset
