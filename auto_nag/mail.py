@@ -8,7 +8,6 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from os.path import basename
 
-import six
 from jinja2 import Environment, FileSystemLoader
 
 from . import logger, utils
@@ -72,11 +71,11 @@ def send(
         To = ft["to"]
         Cc = []
 
-    if isinstance(To, six.string_types):
+    if isinstance(To, str):
         To = [To]
-    if isinstance(Cc, six.string_types):
+    if isinstance(Cc, str):
         Cc = [Cc]
-    if isinstance(Bcc, six.string_types):
+    if isinstance(Bcc, str):
         Bcc = [Bcc]
 
     Cc = clean_cc(Cc, To)
