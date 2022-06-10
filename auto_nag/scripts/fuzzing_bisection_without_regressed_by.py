@@ -164,7 +164,7 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
                         author_email = author_parts[1][:-1]
                         bzmail = people.get_bzmail_from_name(author_email)
                         if bzmail is None:
-                            logger.warning(f"No bzmail for {author} for bug {bug_id}")
+                            logger.warning(f"No bzmail for {author} in bug {bug_id}")
                             continue
                         self.bzmail_to_nickname[bzmail] = ""
                         bugs[bug_id]["needinfo_target"] = {
