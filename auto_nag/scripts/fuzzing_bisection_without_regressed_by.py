@@ -141,7 +141,7 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
                     changeset
                     for push in r.json()["pushes"].values()
                     for changeset in push["changesets"]
-                    if not all(is_ignorable_path(path) for path in changeset["files"])
+                    if any(not is_ignorable_path(path) for path in changeset["files"])
                 ]
 
                 regressor_bug_ids = set()
