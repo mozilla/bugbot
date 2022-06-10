@@ -92,6 +92,10 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
             "f3": "longdesc",
             "o3": "casesubstring",
             "v3": "since this bug contains a bisection range, could you fill (if possible) the regressed_by field",
+            # TODO: Nag in the duplicate target instead, making sure it doesn't already have regressed_by.
+            "f4": "resolution",
+            "o4": "notequals",
+            "v4": "DUPLICATE",
             "emaillongdesc1": "1",
             "emailtype1": "exact",
             "email1": "bugmon@mozilla.com",
