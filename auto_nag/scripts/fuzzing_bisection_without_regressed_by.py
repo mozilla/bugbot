@@ -120,59 +120,57 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
             # We start from the last comment just in case bugmon has updated the range.
             for comment in bug["comments"][::-1]:
                 if (
-                    "BugMon: Reduced build range" in comment["text"]
-                    or "The bug appears to have been introduced in the following build range"
-                    in comment["text"]
+                    "BugMon: Reduced build range" not in comment["text"]
+                    and "The bug appears to have been introduced in the following build range"
+                    not in comment["text"]
                 ):
-                    range_found = True
+                    continue
 
-                    # Try to parse the regression range to find the regressor or at least somebody good to needinfo.
-                    pushlog_match = PUSHLOG_PAT.search(comment["text"])
-                    url = (
-                        pushlog_match.group(1).replace("pushloghtml", "json-pushes")
-                        + "&full=1&version=2"
-                    )
-                    r = requests.get(url)
+                range_found = True
 
-                    changesets = [
-                        changeset
-                        for push in r.json()["pushes"].values()
-                        for changeset in push["changesets"]
-                        if not all(
-                            is_ignorable_path(path) for path in changeset["files"]
-                        )
-                    ]
+                # Try to parse the regression range to find the regressor or at least somebody good to needinfo.
+                pushlog_match = PUSHLOG_PAT.search(comment["text"])
+                url = (
+                    pushlog_match.group(1).replace("pushloghtml", "json-pushes")
+                    + "&full=1&version=2"
+                )
+                r = requests.get(url)
 
-                    regressor_bug_ids = set()
-                    for changeset in changesets:
-                        bug_match = BUG_PAT.search(changeset["desc"])
-                        if bug_match is not None:
-                            regressor_bug_ids.add(bug_match.group(1))
+                changesets = [
+                    changeset
+                    for push in r.json()["pushes"].values()
+                    for changeset in push["changesets"]
+                    if not all(is_ignorable_path(path) for path in changeset["files"])
+                ]
 
-                    if len(regressor_bug_ids) == 1:
-                        # Only one bug in the regression range, we are sure about the regressor!
-                        bugs[bug_id]["regressor_bug_id"] = regressor_bug_ids.pop()
+                regressor_bug_ids = set()
+                for changeset in changesets:
+                    bug_match = BUG_PAT.search(changeset["desc"])
+                    if bug_match is not None:
+                        regressor_bug_ids.add(bug_match.group(1))
+
+                if len(regressor_bug_ids) == 1:
+                    # Only one bug in the regression range, we are sure about the regressor!
+                    bugs[bug_id]["regressor_bug_id"] = regressor_bug_ids.pop()
+                    break
+
+                if "needinfo_target" not in bugs[bug_id]:
+                    authors = set(changeset["author"] for changeset in changesets)
+                    # TODO: also needinfo when there is more than one author, e.g. if there are up to three (where three should be a configurable number).
+                    if len(authors) == 1:
+                        author = authors.pop()
+                        author_parts = author.split("<")
+                        author_email = author_parts[1][:-1]
+                        bzmail = people.get_bzmail_from_name(author_email)
+                        if bzmail is None:
+                            logger.warning(f"No bzmail for {author} for bug {bug_id}")
+                            continue
+                        self.bzmail_to_nickname[bzmail] = ""
+                        bugs[bug_id]["needinfo_target"] = {
+                            "mail": bzmail,
+                            "nickname": "",
+                        }
                         break
-
-                    if "needinfo_target" not in bugs[bug_id]:
-                        authors = set(changeset["author"] for changeset in changesets)
-                        # TODO: also needinfo when there is more than one author, e.g. if there are up to three (where three should be a configurable number).
-                        if len(authors) == 1:
-                            author = authors.pop()
-                            author_parts = author.split("<")
-                            author_email = author_parts[1][:-1]
-                            bzmail = people.get_bzmail_from_name(author_email)
-                            if bzmail is None:
-                                logger.warning(
-                                    f"No bzmail for {author} for bug {bug_id}"
-                                )
-                                continue
-                            self.bzmail_to_nickname[bzmail] = ""
-                            bugs[bug_id]["needinfo_target"] = {
-                                "mail": bzmail,
-                                "nickname": "",
-                            }
-                            break
 
             if not range_found:
                 del bugs[bug_id]
