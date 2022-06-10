@@ -76,6 +76,10 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
                     bug_id,
                     bug["needinfo_target"],
                 )
+            else:
+                assert (
+                    False
+                ), "If we are here, we should either have a regressor or a needinfo target"
 
     def get_autofix_change(self) -> dict[int, dict]:
         return self.autofix_regressed_by
