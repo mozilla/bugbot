@@ -164,9 +164,9 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
                     }
                     break
 
-            # Exclude bugs that do not have a range found by BugMon.
-            if not range_found:
-                del bugs[bug_id]
+        # Exclude bugs that do not have a range found by BugMon.
+        if not range_found:
+            del bugs[bug_id]
 
     def find_regressor_or_needinfo_target(self, bugs: dict) -> dict:
         # Needinfo assignee when there is one.
