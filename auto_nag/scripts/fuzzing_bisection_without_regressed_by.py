@@ -82,7 +82,7 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
                     False
                 ), "If we are here, we should either have a regressor or a needinfo target"
 
-    def get_autofix_change(self) -> dict[int, dict]:
+    def get_autofix_change(self) -> dict:
         return self.autofix_regressed_by
 
     def get_bz_params(self, date):
@@ -168,9 +168,7 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
             if not range_found:
                 del bugs[bug_id]
 
-    def find_regressor_or_needinfo_target(
-        self, bugs: dict[str, dict]
-    ) -> dict[str, dict]:
+    def find_regressor_or_needinfo_target(self, bugs: dict) -> dict:
         # Needinfo assignee when there is one.
         for bug in bugs.values():
             if not utils.is_no_assignee(bug["assigned_to_email"]):
