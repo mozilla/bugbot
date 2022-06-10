@@ -63,18 +63,18 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
         return bug
 
     def set_autofix(self, bugs):
-        for bugid, info in bugs.items():
-            if "regressor_bug_id" in info:
-                self.autofix_regressed_by[bugid] = {
+        for bug_id, bug in bugs.items():
+            if "regressor_bug_id" in bug:
+                self.autofix_regressed_by[bug_id] = {
                     "comment": {
                         "body": "Setting regressed_by field after analyzing regression range found by bugmon."
                     },
-                    "regressed_by": info["regressor_bug_id"],
+                    "regressed_by": bug["regressor_bug_id"],
                 }
-            elif "needinfo_target" in info:
+            elif "needinfo_target" in bug:
                 self.add_auto_ni(
-                    bugid,
-                    info["needinfo_target"],
+                    bug_id,
+                    bug["needinfo_target"],
                 )
 
     def get_autofix_change(self) -> dict[int, dict]:
