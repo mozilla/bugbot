@@ -45,7 +45,7 @@ def is_ignorable_path(path: str) -> bool:
 
 
 class FuzzingBisectionWithoutRegressedBy(BzCleaner):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.autofix_regressed_by = {}
         self.bzmail_to_nickname = {}
@@ -77,7 +77,7 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
                     info["needinfo_target"],
                 )
 
-    def get_autofix_change(self):
+    def get_autofix_change(self) -> dict[int, dict]:
         return self.autofix_regressed_by
 
     def get_bz_params(self, date):
@@ -97,7 +97,9 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
             "email1": "bugmon@mozilla.com",
         }
 
-    def find_regressor_or_needinfo_target(self, bugs):
+    def find_regressor_or_needinfo_target(
+        self, bugs: dict[str, dict]
+    ) -> dict[str, dict]:
         # Needinfo assignee when there is one.
         for bug in bugs.values():
             if not utils.is_no_assignee(bug["assigned_to_email"]):
@@ -177,7 +179,7 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
             comment_include_fields=["text"],
         ).get_data().wait()
 
-        def user_handler(user):
+        def user_handler(user: dict) -> None:
             self.bzmail_to_nickname[user["name"]] = user["nick"]
 
         users = set(
