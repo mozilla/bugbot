@@ -3,7 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from datetime import datetime
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Set, Union
 
 import libmozdata.socorro as socorro
 from libmozdata import utils as lmdutils
@@ -140,9 +140,9 @@ class Topcrash:
         self.minimum_crashes = minimum_crashes
         self.signature_block_patterns = signature_block_patterns
 
-    def _fetch_signatures_from_patters(self, patterns, date_range) -> int:
+    def _fetch_signatures_from_patters(self, patterns, date_range) -> Set[str]:
         MAX_SIGNATURES_IN_REQUEST = 1000
-        signatures = set()
+        signatures: Set[str] = set()
         params = {
             "date": date_range,
             "signature": [
@@ -197,7 +197,7 @@ class Topcrash:
             self.signature_block_patterns, date_range
         )
 
-        data = {}
+        data: Dict[str, dict] = {}
         searches = [
             socorro.SuperSearch(
                 params=self.__get_params_from_criteria(date_range, criteria),
