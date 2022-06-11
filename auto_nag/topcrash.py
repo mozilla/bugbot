@@ -140,6 +140,37 @@ class Topcrash:
         self.minimum_crashes = minimum_crashes
         self.signature_block_patterns = signature_block_patterns
 
+    def _fetch_signatures_from_patters(self, patterns, date_range) -> int:
+        MAX_SIGNATURES_IN_REQUEST = 1000
+        signatures = set()
+        params = {
+            "date": date_range,
+            "signature": [
+                pattern if pattern[0] != "!" else pattern[1:] for pattern in patterns
+            ],
+            "_results_number": 0,
+            "_facets_size": MAX_SIGNATURES_IN_REQUEST,
+        }
+
+        def handler(search_resp: dict, data: set):
+            data.update(
+                signature["term"]
+                for signature in search_resp["facets"]["signature"]
+                if signature["count"] >= self.minimum_crashes
+            )
+
+        socorro.SuperSearch(
+            params=params,
+            handler=handler,
+            handlerdata=signatures,
+        ).wait()
+
+        assert (
+            len(signatures) < MAX_SIGNATURES_IN_REQUEST
+        ), "the patterns match more signatures than what the request could return, consider increase the threshold"
+
+        return signatures
+
     def get_signatures(
         self,
         date: Union[str, datetime],
@@ -162,6 +193,9 @@ class Topcrash:
         start_date = lmdutils.get_date(date, duration)
         end_date = lmdutils.get_date(date)
         date_range = socorro.SuperSearch.get_search_date(start_date, end_date)
+        self.blocked_signatures = self._fetch_signatures_from_patters(
+            self.signature_block_patterns, date_range
+        )
 
         data = {}
         searches = [
@@ -186,12 +220,18 @@ class Topcrash:
             "cpu_arch": criteria.get("cpu_arch"),
             "platform": criteria.get("platform"),
             "date": date_range,
-            "signature": self.signature_block_patterns,
             "_aggs.signature": [
                 "startup_crash",
             ],
             "_results_number": 0,
-            "_facets_size": criteria.get("tc_startup_limit", criteria["tc_limit"]),
+            "_facets_size": (
+                criteria.get("tc_startup_limit", criteria["tc_limit"])
+                # Because of the limitation in https://bugzilla.mozilla.org/show_bug.cgi?id=1257376#c9,
+                # we cannot ignore the generic signatures in the Socorro side, thus we ignore them
+                # in the client side. We add here the maximum number of signatures that could be
+                # ignored to stay in the safe side.
+                + len(self.blocked_signatures)
+            ),
         }
         return params
 
@@ -209,36 +249,33 @@ class Topcrash:
             Only startup crashes will be considered after exceeding `tc_limit`
             and up to `tc_startup_limit`.
             """
-            signatures = search_resp["facets"]["signature"][: criteria["tc_limit"]]
+
+            signatures = search_resp["facets"]["signature"]
+            tc_limit = criteria["tc_limit"]
+            tc_startup_limit = criteria.get("tc_startup_limit", tc_limit)
+            assert tc_startup_limit >= tc_limit
+
+            rank = 0
             for signature in signatures:
-                if signature["count"] < self.minimum_crashes:
+                if (
+                    rank >= tc_startup_limit
+                    or signature["count"] < self.minimum_crashes
+                ):
                     return
 
                 name = signature["term"]
-                if name not in data:
-                    data[name] = {
-                        "is_startup": self.__is_startup_crash(signature),
-                    }
-                else:
-                    data[name]["is_startup"] |= self.__is_startup_crash(signature)
-
-            if "tc_startup_limit" not in criteria:
-                return
-
-            assert criteria["tc_startup_limit"] > criteria["tc_limit"]
-            signatures = search_resp["facets"]["signature"][
-                criteria["tc_limit"] : criteria["tc_startup_limit"]
-            ]
-            for signature in signatures:
-                if not self.__is_startup_crash(signature):
+                if name in self.blocked_signatures:
                     continue
 
-                name = signature["term"]
-                if name not in data:
-                    data[name] = {
-                        "is_startup": True,
-                    }
-                else:
-                    data[name]["is_startup"] = True
+                is_startup = self.__is_startup_crash(signature)
+                if is_startup or rank < tc_limit:
+                    if name not in data:
+                        data[name] = {
+                            "is_startup": is_startup,
+                        }
+                    else:
+                        data[name]["is_startup"] |= is_startup
+
+                rank += 1
 
         return handler
