@@ -16,7 +16,7 @@ from auto_nag.round_robin_calendar import BadFallback, Calendar, InvalidCalendar
 
 class RoundRobin(object):
 
-    _instances = {}
+    _instances: dict = {}
 
     def __init__(self, rr=None, people=None, teams=None):
         self.people = People.get_instance() if people is None else people

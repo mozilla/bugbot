@@ -14,7 +14,9 @@ class NiFromManager(BzCleaner, Nag):
         self.vip = self.get_people().get_rm_or_directors()
         self.white_list = utils.get_config(self.name(), "white-list", [])
         self.black_list = utils.get_config(self.name(), "black-list", [])
-        self.init_versions()
+        if not self.init_versions():
+            return
+
         self.status_flags = (
             utils.get_flag(self.versions["central"], "status", "central"),
             utils.get_flag(self.versions["beta"], "status", "beta"),

@@ -7,8 +7,8 @@ import os
 import sys
 import time
 from collections import defaultdict
+from datetime import datetime
 
-import six
 from dateutil.relativedelta import relativedelta
 from jinja2 import Environment, FileSystemLoader
 from libmozdata import utils as lmdutils
@@ -327,14 +327,7 @@ class BzCleaner(object):
         res["summary"] = self.get_summary(bug)
 
         if self.has_assignee():
-            real = bug["assigned_to_detail"]["real_name"]
-            if utils.is_no_assignee(bug["assigned_to"]):
-                real = "nobody"
-            if real.strip() == "":
-                real = bug["assigned_to_detail"]["name"]
-                if real.strip() == "":
-                    real = bug["assigned_to_detail"]["email"]
-            res["assignee"] = real
+            res["assignee"] = utils.get_name_from_user_detail(bug["assigned_to_detail"])
 
         if self.has_needinfo():
             s = set()
@@ -367,7 +360,7 @@ class BzCleaner(object):
                 if isinstance(fields, list):
                     if "id" not in fields:
                         fields.append("id")
-                elif isinstance(fields, six.string_types):
+                elif isinstance(fields, str):
                     if fields != "id":
                         params["include_fields"] = [fields, "id"]
                 else:
@@ -435,7 +428,7 @@ class BzCleaner(object):
         self.query_url = utils.get_bz_search_url(params)
 
         if isinstance(self, Nag):
-            self.query_params = params
+            self.query_params: dict = params
 
         old_CHUNK_SIZE = Bugzilla.BUGZILLA_CHUNK_SIZE
         try:
@@ -547,7 +540,7 @@ class BzCleaner(object):
         # return True if all the keys are bug number
         # (which means that each bug has its own autofix)
         return changes and all(
-            isinstance(bugid, six.integer_types) or bugid.isdigit() for bugid in changes
+            isinstance(bugid, int) or bugid.isdigit() for bugid in changes
         )
 
     def get_autofix_change(self):
@@ -665,7 +658,7 @@ class BzCleaner(object):
             date = lmdutils.get_date(date)
             d = lmdutils.get_date_ymd(date)
             if isinstance(self, Nag):
-                self.nag_date = d
+                self.nag_date: datetime = d
 
             if not self.must_run(d):
                 return

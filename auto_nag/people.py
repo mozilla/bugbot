@@ -8,7 +8,6 @@ from math import sqrt
 from typing import Set
 
 import numpy as np
-import six
 
 WORDS = re.compile(r"(\w+)")
 MAIL = re.compile(r"^([^@]+@[^ ]+)")
@@ -309,7 +308,12 @@ class People:
 
         Note: the person and the superior will not be returned in result.
         """
-        result = set()
+        result: Set[str] = set()
+
+        assert person in self.people
+        assert superior in self.people
+        if person == superior:
+            return result
 
         manager = self.get_manager_mail(person)
         while manager != superior:
@@ -355,7 +359,7 @@ class People:
         im = person.get("im", "")
         if not im:
             return []
-        if isinstance(im, six.string_types):
+        if isinstance(im, str):
             return [im]
         return im
 
@@ -376,7 +380,7 @@ class People:
         aliases = person.get("emailalias", "")
         if not aliases:
             return []
-        if isinstance(aliases, six.string_types):
+        if isinstance(aliases, str):
             return [aliases]
         return aliases
 

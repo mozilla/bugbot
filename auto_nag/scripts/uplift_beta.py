@@ -20,7 +20,9 @@ class UpliftBeta(BzCleaner):
             self.versions["central"], "status", "central"
         )
         self.status_beta = utils.get_flag(self.beta, "status", "beta")
-        self.extra_ni = {}
+
+        # Bugs will be added to `extra_ni` later after being fetched
+        self.extra_ni = {"status_beta": f"status-firefox{self.beta}"}
 
     def description(self):
         return "Bugs fixed in nightly but still affecting beta"
