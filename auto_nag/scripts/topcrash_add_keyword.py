@@ -103,7 +103,7 @@ class TopcrashAddKeyword(BzCleaner):
         self.query_url = None
         timeout = self.get_config("bz_query_timeout")
         bugs = self.get_data()
-        params_list = self.get_bz_params(date)
+        params_list = self.get_bz_params_list(date)
 
         searches = [
             Bugzilla(
@@ -120,7 +120,7 @@ class TopcrashAddKeyword(BzCleaner):
 
         return bugs
 
-    def get_bz_params(self, date):
+    def get_bz_params_list(self, date):
         self.topcrashes = Topcrash().get_signatures(date)
 
         fields = [
