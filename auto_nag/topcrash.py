@@ -274,6 +274,7 @@ class Topcrash:
                 is_startup = self.__is_startup_crash(signature)
                 if is_startup or rank < tc_limit:
                     data[name] = {
+                        "criterion_name": criterion["name"],
                         "is_startup": is_startup,
                     }
 
