@@ -195,11 +195,11 @@ class Topcrash:
         data: dict = defaultdict(dict)
         searches = [
             socorro.SuperSearch(
-                params=self.__get_params_from_criteria(date_range, criteria),
-                handler=self.__signatures_handler(criteria),
-                handlerdata=data[criteria["name"]],
+                params=self.__get_params_from_criterion(date_range, criterion),
+                handler=self.__signatures_handler(criterion),
+                handlerdata=data[criterion["name"]],
             )
-            for criteria in TOP_CRASH_IDENTIFICATION_CRITERIA
+            for criterion in TOP_CRASH_IDENTIFICATION_CRITERIA
         ]
 
         for search in searches:
@@ -216,20 +216,20 @@ class Topcrash:
 
         return result
 
-    def __get_params_from_criteria(self, date_range: list, criteria: dict):
+    def __get_params_from_criterion(self, date_range: list, criterion: dict):
         params = {
-            "product": criteria["product"],
-            "release_channel": criteria["channel"],
-            "process_type": criteria.get("process_type"),
-            "cpu_arch": criteria.get("cpu_arch"),
-            "platform": criteria.get("platform"),
+            "product": criterion["product"],
+            "release_channel": criterion["channel"],
+            "process_type": criterion.get("process_type"),
+            "cpu_arch": criterion.get("cpu_arch"),
+            "platform": criterion.get("platform"),
             "date": date_range,
             "_aggs.signature": [
                 "startup_crash",
             ],
             "_results_number": 0,
             "_facets_size": (
-                criteria.get("tc_startup_limit", criteria["tc_limit"])
+                criterion.get("tc_startup_limit", criterion["tc_limit"])
                 # Because of the limitation in https://bugzilla.mozilla.org/show_bug.cgi?id=1257376#c9,
                 # we cannot ignore the generic signatures in the Socorro side, thus we ignore them
                 # in the client side. We add here the maximum number of signatures that could be
@@ -245,7 +245,7 @@ class Topcrash:
             startup["term"] == "T" for startup in signature["facets"]["startup_crash"]
         )
 
-    def __signatures_handler(self, criteria: dict):
+    def __signatures_handler(self, criterion: dict):
         def handler(search_resp: dict, data: dict):
             """
             Handle and merge crash signatures form different quires.
@@ -255,8 +255,8 @@ class Topcrash:
             """
 
             signatures = search_resp["facets"]["signature"]
-            tc_limit = criteria["tc_limit"]
-            tc_startup_limit = criteria.get("tc_startup_limit", tc_limit)
+            tc_limit = criterion["tc_limit"]
+            tc_startup_limit = criterion.get("tc_startup_limit", tc_limit)
             assert tc_startup_limit >= tc_limit
 
             rank = 0
