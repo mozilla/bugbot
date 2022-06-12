@@ -15,93 +15,87 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = [
     # -------
     # Firefox
     # -------
-    # Top 20 desktop browser crashes on Release
     {
+        "name": "Top 20 desktop browser crashes on Release",
         "product": "Firefox",
         "channel": "release",
         "tc_limit": 20,
         "tc_startup_limit": 30,
     },
-    # Top 20 desktop browser crashes on Beta
     {
+        "name": "Top 20 desktop browser crashes on Beta",
         "product": "Firefox",
         "channel": "beta",
         "tc_limit": 20,
         "tc_startup_limit": 30,
     },
-    # Top 10 desktop browser crashes on Nightly
     {
+        "name": "Top 10 desktop browser crashes on Nightly",
         "product": "Firefox",
         "channel": "nightly",
         "tc_limit": 10,
     },
-    # Top 10 content process crashes on Beta and Release
     {
+        "name": "Top 10 content process crashes on Beta and Release",
         "product": "Firefox",
         "channel": ["beta", "release"],
         "process_type": "content",
         "tc_limit": 10,
     },
-    # Top 5 gpu process crashes on Beta and Release
     {
+        "name": "Top 5 GPU process crashes on Beta and Release",
         "product": "Firefox",
         "channel": ["beta", "release"],
         "process_type": "gpu",
         "tc_limit": 5,
     },
-    # Top 5 socket and utility process crashes on Beta and Release
     {
-        "product": "Firefox",
-        "channel": ["beta", "release"],
-        "process_type": "gpu",
-        "tc_limit": 5,
-    },
-    # Top 5 rdd process crashes on Beta and Release
-    {
+        "name": "Top 5 RRD process crashes on Beta and Release",
         "product": "Firefox",
         "channel": ["beta", "release"],
         "process_type": "rdd",
         "tc_limit": 5,
     },
-    # Top 5 socket and utility process crashes on Beta and Release
     {
+        "name": "Top 5 socket and utility process crashes on Beta and Release",
         "product": "Firefox",
         "channel": ["beta", "release"],
         "process_type": ["socket", "utility"],
         "tc_limit": 5,
     },
-    # Top 5 desktop browser crashes on Linux-, Mac-, and Win8- specific list on
-    # Beta and Release
     {
+        "name": "Top 5 desktop browser crashes on Linux on Beta and Release",
         "product": "Firefox",
         "channel": ["beta", "release"],
         "platform": "Linux",
         "tc_limit": 5,
     },
     {
+        "name": "Top 5 desktop browser crashes on Mac on Beta and Release",
         "product": "Firefox",
         "channel": ["beta", "release"],
         "platform": "Mac OS X",
         "tc_limit": 5,
     },
     {
+        "name": "Top 5 desktop browser crashes on Windows on Beta and Release",
         "product": "Firefox",
         "channel": ["beta", "release"],
-        "platform": "Linux",
+        "platform": "Windows",
         "tc_limit": 5,
     },
     # -----
     # Fenix
     # -----
-    # Top 10 AArch64- and ARM-crashes for Nightly, Beta and Release
     {
+        "name": "Top 10 AArch64 and ARM crashes on Nightly, Beta and Release",
         "product": "Fenix",
         "channel": ["nightly", "beta", "release"],
         "cpu_arch": ["arm64", "arm"],
         "tc_limit": 10,
     },
-    # Top 5 AMD64- and x86- crashes for Beta and Release
     {
+        "name": "Top 5 AMD64 and x86 crashes on Beta and Release",
         "product": "Fenix",
         "channel": ["beta", "release"],
         "cpu_arch": ["amd64", "x86"],
