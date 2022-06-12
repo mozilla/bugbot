@@ -2,8 +2,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from collections import defaultdict
 from datetime import datetime
-from typing import Dict, Optional, Set, Union
+from typing import Dict, List, Optional, Set, Union
 
 import libmozdata.socorro as socorro
 from libmozdata import utils as lmdutils
@@ -169,7 +170,7 @@ class Topcrash:
         self,
         date: Union[str, datetime],
         duration: Optional[int] = 7,
-    ) -> Dict[str, dict]:
+    ) -> Dict[str, List[dict]]:
         """Fetch the top crashes from socorro.
 
         Top crashes will be queried twice for each release channel, one that
@@ -181,7 +182,7 @@ class Topcrash:
 
         Returns:
             A dictionary where the keys are crash signatures, and the values are
-            dictionaries that contains details about a crash signature.
+            list of criteria that the crash signature matches.
         """
 
         start_date = lmdutils.get_date(date, duration)
@@ -191,12 +192,12 @@ class Topcrash:
             self.signature_block_patterns, date_range
         )
 
-        data: Dict[str, dict] = {}
+        data: dict = defaultdict(dict)
         searches = [
             socorro.SuperSearch(
                 params=self.__get_params_from_criteria(date_range, criteria),
                 handler=self.__signatures_handler(criteria),
-                handlerdata=data,
+                handlerdata=data[criteria["name"]],
             )
             for criteria in TOP_CRASH_IDENTIFICATION_CRITERIA
         ]
@@ -204,7 +205,16 @@ class Topcrash:
         for search in searches:
             search.wait()
 
-        return data
+        # We merge the results after finishing all queries to avoid race conditions
+        result = {}
+        for _, signatures in data.items():
+            for signature_name, signature_info in signatures.items():
+                if signature_name not in result:
+                    result[signature_name] = [signature_info]
+                else:
+                    result[signature_name].append(signature_info)
+
+        return result
 
     def __get_params_from_criteria(self, date_range: list, criteria: dict):
         params = {
@@ -263,12 +273,9 @@ class Topcrash:
 
                 is_startup = self.__is_startup_crash(signature)
                 if is_startup or rank < tc_limit:
-                    if name not in data:
-                        data[name] = {
-                            "is_startup": is_startup,
-                        }
-                    else:
-                        data[name]["is_startup"] |= is_startup
+                    data[name] = {
+                        "is_startup": is_startup,
+                    }
 
                 rank += 1
 

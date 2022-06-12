@@ -43,7 +43,8 @@ class TopcrashAddKeyword(BzCleaner):
 
         if any(
             # Is it a startup topcrash bug?
-            signature in self.topcrashes and self.topcrashes[signature]["is_startup"]
+            signature in self.topcrashes
+            and any(matching["is_startup"] for matching in self.topcrashes[signature])
             for signature in signatures
         ):
             keywords_to_add = {"topcrash", "topcrash-startup"}
