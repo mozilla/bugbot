@@ -15,7 +15,6 @@ class TeamManagerVacant(BzCleaner):
     def __init__(self) -> None:
         super(TeamManagerVacant, self).__init__()
         self.query_url = None
-        self.inactive_weeks_number = self.get_config("inactive_weeks_number", 26)
 
     def description(self) -> str:
         return "Teams with managers that need to be assigned"
