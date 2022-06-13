@@ -1,0 +1,24 @@
+<p>The following {{ plural('team is', data, pword='teams are') }} missing an active team manager:
+  <table {{ table_attrs }}>
+    <thead>
+      <tr>
+        <th>Team</th><th>Team Manager</th><th>Team Manager Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for i, row in enumerate(data) -%}
+      <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
+        <td>
+          {{ row["team"] }}
+        </td>
+        <td>
+          {{ row["manager"] }}
+        </td>
+        <td>
+          {{ row["status"] }}
+        </td>
+      </tr>
+      {% endfor -%}
+    </tbody>
+  </table>
+</p>

@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import json
+from typing import Dict, Optional
 
 from auto_nag.people import People
 
@@ -25,8 +26,13 @@ class TeamManagers:
                 for team, manager in json.load(file).items()
             }
 
-    def get_team_manager(self, team_name):
+    def get_team_manager(
+        self, team_name: str, fallback: bool = True
+    ) -> Optional[Dict[str, str]]:
         if team_name not in self.managers:
-            return self.managers["fallback"]
+            if fallback:
+                return self.managers["fallback"]
+            else:
+                return None
 
         return self.managers[team_name]

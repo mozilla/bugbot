@@ -103,9 +103,6 @@ class TriageOwnerVacant(BzCleaner, Nag):
     def organize_nag(self, data):
         return data
 
-    def get_query_url_for_components(self, components):
-        return None
-
     def get_cc(self):
         return set()
 
