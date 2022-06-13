@@ -44,7 +44,7 @@ class TeamManagerVacant(BzCleaner, Nag):
         return self.template()
 
     def identify_vacant_teams(self) -> List[dict]:
-        # Filter out products and components that are not active
+        # We need team names for active components only.
         teams = {
             component["team_name"]
             for product in self.fetch_teams()
