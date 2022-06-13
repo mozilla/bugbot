@@ -45,15 +45,15 @@ class TeamManagerVacant(BzCleaner, Nag):
 
     def identify_vacant_teams(self) -> List[dict]:
         # Filter out products and components that are not active
-        teams = set(
+        teams = {
             component["team_name"]
             for product in self.fetch_teams()
             if product["is_active"]
             for component in product["components"]
             if component["is_active"]
-        )
+        }
         # Remove catch-all teams
-        teams -= set(("Mozilla", "Other"))
+        teams -= {"Mozilla", "Other"}
         # Add "fallback" so we make sure the "fallback" is active.
         teams.add("fallback")
 
