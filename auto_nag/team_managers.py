@@ -27,10 +27,10 @@ class TeamManagers:
             }
 
     def get_team_manager(
-        self, team_name: str, no_fallback: bool = False
+        self, team_name: str, fallback: bool = True
     ) -> Optional[Dict[str, str]]:
         if team_name not in self.managers:
-            if not no_fallback:
+            if fallback:
                 return self.managers["fallback"]
             else:
                 return None

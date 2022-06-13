@@ -60,7 +60,7 @@ class TeamManagerVacant(BzCleaner, Nag):
         team_managers = TeamManagers()
         vacant_teams = []
         for team in teams:
-            manager = team_managers.get_team_manager(team, no_fallback=True)
+            manager = team_managers.get_team_manager(team, fallback=False)
 
             if manager is not None and manager["mozilla_email"] is not None:
                 continue
