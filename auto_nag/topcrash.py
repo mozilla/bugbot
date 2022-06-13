@@ -51,7 +51,7 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = [
         "tc_limit": 5,
     },
     {
-        "name": "Top 5 RRD process crashes on Beta and Release",
+        "name": "Top 5 RDD process crashes on Beta and Release",
         "product": "Firefox",
         "channel": ["beta", "release"],
         "process_type": "rdd",
@@ -162,7 +162,7 @@ class Topcrash:
 
         assert (
             len(signatures) < MAX_SIGNATURES_IN_REQUEST
-        ), "the patterns match more signatures than what the request could return, consider increase the threshold"
+        ), "the patterns match more signatures than what the request could return, consider to increase the threshold"
 
         return signatures
 
@@ -248,7 +248,7 @@ class Topcrash:
     def __signatures_handler(self, criterion: dict):
         def handler(search_resp: dict, data: dict):
             """
-            Handle and merge crash signatures form different quires.
+            Handle and merge crash signatures from different queries.
 
             Only startup crashes will be considered after exceeding `tc_limit`
             and up to `tc_startup_limit`.
