@@ -3,16 +3,15 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-from typing import List, Set
+from typing import List
 
 from libmozdata.bugzilla import BugzillaProduct
 
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag.nag_me import Nag
 from auto_nag.team_managers import TeamManagers
 
 
-class TeamManagerVacant(BzCleaner, Nag):
+class TeamManagerVacant(BzCleaner):
     def __init__(self) -> None:
         super(TeamManagerVacant, self).__init__()
         self.query_url = None
@@ -39,9 +38,6 @@ class TeamManagerVacant(BzCleaner, Nag):
         ).wait()
 
         return data
-
-    def nag_template(self) -> str:
-        return self.template()
 
     def identify_vacant_teams(self) -> List[dict]:
         # We need team names for active components only.
@@ -82,12 +78,6 @@ class TeamManagerVacant(BzCleaner, Nag):
 
     def get_email_data(self, date: str, bug_ids: List[int]) -> List[dict]:
         return self.identify_vacant_teams()
-
-    def organize_nag(self, data: List[dict]) -> List[dict]:
-        return data
-
-    def get_cc(self) -> Set[str]:
-        return set()
 
 
 if __name__ == "__main__":
