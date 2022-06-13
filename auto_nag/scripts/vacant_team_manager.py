@@ -3,7 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-from typing import List, Optional, Set
+from typing import List, Set
 
 from libmozdata.bugzilla import BugzillaProduct
 
@@ -85,9 +85,6 @@ class TeamManagerVacant(BzCleaner, Nag):
 
     def organize_nag(self, data: List[dict]) -> List[dict]:
         return data
-
-    def get_query_url_for_components(self, components: List[str]) -> Optional[str]:
-        return None
 
     def get_cc(self) -> Set[str]:
         return set()
