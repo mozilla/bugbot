@@ -171,6 +171,9 @@ python -m auto_nag.scripts.severity_high_compat_priority --production
 # Suggest increasing the severity for tracked bugs
 python -m auto_nag.scripts.severity_tracked --production
 
+# Identify missing or inactive team managers
+python -m auto_nag.scripts.vacant_team_manager --production
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
