@@ -65,8 +65,13 @@ class TeamManagerVacant(BzCleaner, Nag):
             if manager is not None and manager["mozilla_email"] is not None:
                 continue
 
+            if manager is not None:
+                name = manager["name"]
+            else:
+                name = "Nobody"
+
             info = {
-                "manager": manager["name"] if manager is not None else "Nobody",
+                "manager": name,
                 "team": team,
                 "status": "No longer in people" if manager is not None else "Undefined",
             }
