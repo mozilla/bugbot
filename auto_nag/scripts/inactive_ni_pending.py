@@ -153,20 +153,21 @@ class InactiveNeedinfoPending(BzCleaner):
         ):
             return NeedinfoAction.FORWARD
 
-        if bug["severity"] == "--":
-            if (
-                len(bug["needinfo_flags"]) == 1
-                and bug["type"] == "defect"
-                and inactive_ni[0]["requestee"] == bug["creator"]
-                and not inactive_ni[0]["requestee_canconfirm"]
-                and not any(
-                    attachment["content_type"] == "text/x-phabricator-request"
-                    and not attachment["is_obsolete"]
-                    for attachment in bug["attachments"]
-                )
-            ):
-                return NeedinfoAction.CLOSE_BUG
+        if (
+            len(bug["needinfo_flags"]) == 1
+            and bug["type"] == "defect"
+            and bug["severity"] in ("--", "normal", "minor", "trivial")
+            and inactive_ni[0]["requestee"] == bug["creator"]
+            and not inactive_ni[0]["requestee_canconfirm"]
+            and not any(
+                attachment["content_type"] == "text/x-phabricator-request"
+                and not attachment["is_obsolete"]
+                for attachment in bug["attachments"]
+            )
+        ):
+            return NeedinfoAction.CLOSE_BUG
 
+        if bug["severity"] == "--":
             return NeedinfoAction.FORWARD
 
         return NeedinfoAction.CLEAR
