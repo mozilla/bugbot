@@ -198,6 +198,10 @@ class Nag(object):
         if not template:
             return []
 
+        # If we escalating only to hierarchical mangers, we should always have a
+        # management chain.
+        fail_on_missing_mgmt_chain = self.escalation.is_hierarchical_escalation_only()
+
         extra = self.get_extra_for_nag_template()
         env = Environment(loader=FileSystemLoader("templates"))
         template = env.get_template(template)
@@ -222,7 +226,7 @@ class Nag(object):
                     components |= self.triage_owners_components[person]
 
                 management_chain |= self.people.get_management_chain_mails(
-                    person, manager
+                    person, manager, fail_on_missing_mgmt_chain
                 )
 
             if components:
