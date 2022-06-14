@@ -310,8 +310,8 @@ class People:
 
         Args:
             person: the moz email of an employee.
-            superior: the moz email of one the employee's superiors.
-            raise_on_missing: If True, an exception will be raise when the
+            superior: the moz email of one of the employee's superiors.
+            raise_on_missing: If True, an exception will be raised when the
                 superior is not in the management hierarchy of the employee. If
                 False, an empty set will be returned instead of raising an
                 exception.
