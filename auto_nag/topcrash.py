@@ -34,6 +34,7 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = [
         "name": "Top 10 desktop browser crashes on Nightly",
         "product": "Firefox",
         "channel": "nightly",
+        "minimum_installations": 5,
         "tc_limit": 10,
     },
     {
@@ -69,6 +70,7 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = [
         "product": "Firefox",
         "channel": ["beta", "release"],
         "platform": "Linux",
+        "minimum_installations": 3,
         "tc_limit": 5,
     },
     {
@@ -76,6 +78,7 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = [
         "product": "Firefox",
         "channel": ["beta", "release"],
         "platform": "Mac OS X",
+        "minimum_installations": 3,
         "tc_limit": 5,
     },
     {
@@ -83,6 +86,7 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = [
         "product": "Firefox",
         "channel": ["beta", "release"],
         "platform": "Windows",
+        "minimum_installations": 3,
         "tc_limit": 5,
     },
     # -----
@@ -225,6 +229,7 @@ class Topcrash:
             "platform": criterion.get("platform"),
             "date": date_range,
             "_aggs.signature": [
+                "_cardinality.install_time",
                 "startup_crash",
             ],
             "_results_number": 0,
@@ -257,6 +262,7 @@ class Topcrash:
             signatures = search_resp["facets"]["signature"]
             tc_limit = criterion["tc_limit"]
             tc_startup_limit = criterion.get("tc_startup_limit", tc_limit)
+            minimum_installations = criterion.get("minimum_installations", 0)
             assert tc_startup_limit >= tc_limit
 
             rank = 0
@@ -268,7 +274,11 @@ class Topcrash:
                     return
 
                 name = signature["term"]
-                if name in self.blocked_signatures:
+                installations = signature["facets"]["cardinality_install_time"]["value"]
+                if (
+                    installations < minimum_installations
+                    or name in self.blocked_signatures
+                ):
                     continue
 
                 is_startup = self.__is_startup_crash(signature)
