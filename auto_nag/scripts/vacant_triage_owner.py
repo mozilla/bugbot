@@ -128,6 +128,7 @@ class TriageOwnerVacant(BzCleaner, Nag):
             params = {
                 "resolution": "---",
                 "severity": "--",
+                "bug_type": "defect",
                 "product": component["product"],
                 "component": component["component"],
             }
