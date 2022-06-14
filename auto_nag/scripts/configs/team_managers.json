@@ -1,5 +1,6 @@
 {
   "fallback": "Thomas Elin",
+  "Desktop Integrations": "Amir Habibi",
   "DOM Core": "Hsin-Yi Tsai",
   "DOM LWS": "Jens Manuel Stutte",
   "Services": "Mark Hammond",
@@ -10,7 +11,6 @@
   "Crypto": "Christoph Kerschbaumer",
   "Security Engineering": "Christoph Kerschbaumer",
   "Javascript": "Steven De Tar",
-  "Compiler and Development Tools": "Marco Castelluccio",
   "CI and Quality Tools": "Marco Castelluccio",
   "OS Integration": "Gian-Carlo Pascutto",
   "GFX": "Bob Hood",
@@ -19,5 +19,6 @@
   "Accessibility": "Frank Griffith Jr.",
   "Frontend": "Yasmin Shash",
   "Search and New Tab": "Chris Bellini",
-  "Privacy and Security": "Ethan Tseng"
+  "Privacy and Security": "Ethan Tseng",
+  "RelEng": "Cyrus Bond"
 }
