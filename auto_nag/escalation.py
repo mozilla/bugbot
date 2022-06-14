@@ -76,6 +76,18 @@ class Supervisor(object):
 
         return sup
 
+    def is_hierarchical_supervisor(self) -> bool:
+        """Identify if the supervisor is a superior in the management chain"""
+        return bool(
+            NPLUS_PAT.match(self.who)
+            or self.who
+            in (
+                "director",
+                "vp",
+                "self",
+            )
+        )
+
     def __str__(self):
         return self.who
 
@@ -124,6 +136,16 @@ class Escalation(object):
             "normal": Escalation._get_steps("normal", people, data),
             "default": Escalation._get_steps("default", people, data),
         }
+
+    def is_hierarchical_escalation_only(self) -> bool:
+        """Identify if all escalation steps are pointing to a superior in the
+        management chain.
+        """
+        return all(
+            step.supervisor.is_hierarchical_supervisor()
+            for steps in self.data.values()
+            for step in steps
+        )
 
     def get_supervisor(self, priority, days, person, **kwargs):
         steps = self.data[priority]
