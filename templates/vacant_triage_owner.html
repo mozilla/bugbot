@@ -2,7 +2,7 @@
   <table {{ table_attrs }}>
     <thead>
       <tr>
-        <th>Component</th><th>Team</th><th>Team Manager</th><th>Triage Owner</th><th>Triage Owner Status</th>
+        <th>Component</th><th>Team</th><th>Team Manager</th><th>Triage Owner</th><th>Triage Owner Status</th><th>Untriaged Bugs</th>
       </tr>
     </thead>
     <tbody>
@@ -22,6 +22,9 @@
         </td>
         <td>
           {{ row["status"] }}
+        </td>
+        <td>
+          <a href="{{ row["untriaged_bugs_url"] }}">{{ row["untriaged_bugs"] }}</a>
         </td>
       </tr>
       {% endfor -%}

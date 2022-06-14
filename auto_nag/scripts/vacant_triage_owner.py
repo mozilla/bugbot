@@ -3,8 +3,11 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-from libmozdata.bugzilla import BugzillaProduct
+from typing import List
 
+from libmozdata.bugzilla import Bugzilla, BugzillaProduct
+
+from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.nag_me import Nag
 from auto_nag.team_managers import TeamManagers
@@ -110,8 +113,45 @@ class TriageOwnerVacant(BzCleaner, Nag):
 
         return vacant_components
 
-    def get_email_data(self, date, bug_ids):
-        return self.identify_vacant_components()
+    def populate_num_untriaged_bugs(self, components: List[dict]) -> None:
+        """Add the number of untriaged bugs and the URL to its search query to
+        the provided components.
+
+        The method will mutate the provided dictionaries to add the results.
+        """
+
+        def handler(bug, data):
+            data["untriaged_bugs"] += 1
+
+        queries = [None] * len(components)
+        for i, component in enumerate(components):
+            params = {
+                "resolution": "---",
+                "severity": "--",
+                "bug_type": "defect",
+                "product": component["product"],
+                "component": component["component"],
+            }
+            component["untriaged_bugs"] = 0
+            component["untriaged_bugs_url"] = utils.get_bz_search_url(params)
+            query = Bugzilla(
+                params,
+                bughandler=handler,
+                include_fields="-",
+                bugdata=component,
+            ).get_data()
+
+            queries[i] = query
+
+        # Since we query Bugzilla concurrently, we need to wait for the results
+        # form all queries.
+        for query in queries:
+            query.wait()
+
+    def get_email_data(self, date, bug_ids) -> List[dict]:
+        components = self.identify_vacant_components()
+        self.populate_num_untriaged_bugs(components)
+        return components
 
     def organize_nag(self, data):
         return data
