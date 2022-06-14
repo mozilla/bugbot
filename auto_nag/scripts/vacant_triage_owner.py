@@ -12,10 +12,23 @@ from auto_nag.user_activity import UserActivity
 
 
 class TriageOwnerVacant(BzCleaner, Nag):
-    def __init__(self):
+    def __init__(
+        self,
+        activity_weeks_count: int = 8,
+        absent_weeks_count: int = 4,
+    ):
+        """Components with triage owner need to be assigned.
+
+        Args:
+            activity_weeks_count: the number of weeks of not doing any activity
+                on Bugzilla before considering a triage owner as inactive.
+            absent_weeks_count: number of weeks of not visiting Bugzilla before
+                considering a triage owner as inactive.
+        """
         super(TriageOwnerVacant, self).__init__()
         self.query_url = None
-        self.inactive_weeks_number = self.get_config("inactive_weeks_number", 26)
+        self.activity_weeks_count = activity_weeks_count
+        self.absent_weeks_count = absent_weeks_count
 
     def description(self):
         return "Components with triage owner need to be assigned"
@@ -67,7 +80,7 @@ class TriageOwnerVacant(BzCleaner, Nag):
             for component in product["components"]:
                 triage_owners.add(component["triage_owner"])
 
-        user_activity = UserActivity(self.inactive_weeks_number)
+        user_activity = UserActivity(self.activity_weeks_count, self.absent_weeks_count)
         inactive_users = user_activity.check_users(triage_owners)
 
         team_managers = TeamManagers()
