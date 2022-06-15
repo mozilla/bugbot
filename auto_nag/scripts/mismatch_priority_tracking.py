@@ -48,7 +48,11 @@ class MismatchPriorityTracking(BzCleaner):
     def get_autofix_change(self):
         return {
             "comment": {
-                "body": f"Changing the priority to `{self.target_priority}` as the bug is tracked by a release manager for the current `{self.channel}`.\nSee [Triage for Bugzilla](https://firefox-source-docs.mozilla.org/bug-mgmt/policies/triage-bugzilla.html#automatic-bug-updates) for more information.\nIf you disagree, please discuss with a release manager."
+                "body": (
+                    f"Changing the priority to `{self.target_priority}` as the bug is tracked by a release manager for the current `{self.channel}`.\n"
+                    "See [Triage for Bugzilla](https://firefox-source-docs.mozilla.org/bug-mgmt/policies/triage-bugzilla.html#automatic-bug-updates) for more information.\n"
+                    "If you disagree, please discuss with a release manager."
+                )
             },
             "priority": self.target_priority,
         }
