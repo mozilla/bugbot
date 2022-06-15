@@ -294,7 +294,7 @@ class People:
         return manager_mail
 
     def get_nth_manager_mail(self, mail, rank):
-        """Get the manager of the person with this mail"""
+        """Get the nth manager of the person with this mail"""
         for _ in range(rank):
             prev = mail
             mail = self.get_manager_mail(mail)
@@ -414,14 +414,14 @@ class People:
         return person["mail"]
 
     def get_moz_mail(self, mail):
-        """Get the manager of the person with this mail"""
+        """Get the Mozilla email of the person with this Bugzilla email"""
         person = self._get_people_by_bzmail().get(mail, None)
         if person:
             return person["mail"]
         return mail
 
     def get_moz_name(self, mail):
-        """Get the manager of the person with this mail"""
+        """Get the name of the person with this Bugzilla email"""
         person = self._get_people_by_bzmail().get(mail, None)
         if person is None:
             return None
