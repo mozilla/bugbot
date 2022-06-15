@@ -398,9 +398,6 @@
     "days_lookup": 30,
     "reporter_skiplist": ["intermittent-bug-filer@mozilla.bugs"]
   },
-  "regressed_by_no_has_regression_range": {
-    "days_lookup": 30
-  },
   "prod_comp_changed_with_priority": {
     "days_lookup": 30,
     "skiplist": ["nobody@mozilla.org", "bug-husbandry-bot@mozilla.bugs"]
