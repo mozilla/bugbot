@@ -135,9 +135,6 @@ python -m auto_nag.scripts.ni_from_manager --production
 # Approve tracking request for bugs automatically filed for expiring telemetry probes
 python -m auto_nag.scripts.telemetry_expiry_tracking_autoapproval --production
 
-# Set "Has Regression Range" to "yes" on bugs where "Regressed By" is set
-python -m auto_nag.scripts.regressed_by_no_has_regression_range --production
-
 # Needinfo triage owner on bugs assigned to inactive accounts
 python -m auto_nag.scripts.assignee_no_login --production
 
