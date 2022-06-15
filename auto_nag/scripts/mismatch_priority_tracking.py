@@ -59,7 +59,7 @@ class MismatchPriorityTracking(BzCleaner):
 
 
 if __name__ == "__main__":
+    MismatchPriorityTracking("esr", "P1").run()
     MismatchPriorityTracking("release", "P1").run()
     MismatchPriorityTracking("beta", "P1").run()
-    MismatchPriorityTracking("esr", "P1").run()
     MismatchPriorityTracking("nightly", "P2").run()
