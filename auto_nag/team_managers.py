@@ -3,7 +3,10 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import json
+from collections import defaultdict
 from typing import Dict, Optional
+
+from libmozdata.bugzilla import BugzillaProduct, BugzillaUser
 
 from auto_nag.people import People
 
@@ -12,6 +15,7 @@ DEFAULT_PATH = "./auto_nag/scripts/configs/team_managers.json"
 
 class TeamManagers:
     def __init__(self):
+        self.component_teams = {}
         self._load_team_managers(DEFAULT_PATH)
 
     def _load_team_managers(self, filepath):
@@ -36,3 +40,81 @@ class TeamManagers:
                 return None
 
         return self.managers[team_name]
+
+    def _fetch_component_teams(self):
+        include_fields = [
+            "components.name",
+            "components.team_name",
+        ]
+
+        def handler(product, data):
+            data.update(
+                {
+                    component["name"]: component["team_name"]
+                    for component in product["components"]
+                }
+            )
+
+        # This is workaround until merging https://github.com/mozilla/libmozdata/pull/198
+        search = "type=accessible&include_fields=" + ",".join(include_fields)
+        BugzillaProduct(
+            search_strings=search,
+            product_handler=handler,
+            product_data=self.component_teams,
+        ).wait()
+
+    def _fetch_managers_nicnames(self):
+        people = People.get_instance()
+
+        bz_emails_map = defaultdict(list)
+        for manager in self.managers.values():
+            if not manager["mozilla_email"]:
+                continue
+
+            info = people.get_info(manager["mozilla_email"])
+            bz_mail = info["bugzillaEmail"]
+            if not bz_mail:
+                bz_mail = info["mail"]
+
+            # Some manager could manage multiple teams, we need to update all of
+            # them.
+            bz_emails_map[bz_mail].append(manager)
+
+        include_fields = [
+            "email",
+            "nick",
+        ]
+
+        bz_emails = [email for email in bz_emails_map.keys() if email]
+
+        def handler(user, data):
+            for manager in data[user["email"]]:
+                manager["nick"] = user["nick"]
+                manager["bz_email"] = user["email"]
+
+        BugzillaUser(
+            bz_emails,
+            include_fields=include_fields,
+            user_handler=handler,
+            user_data=bz_emails_map,
+        ).wait()
+
+    def get_component_manager(
+        self, component: str, fallback: bool = True
+    ) -> Optional[dict]:
+        """Get the manager of the provided component.
+
+        Args:
+            component: the name of the component.
+            fallback: if True, will return the fallback manager when cannot find
+                the component manager; if False, will return None.
+
+        Returns:
+            Info for the component manager.
+        """
+        if not self.component_teams:
+            self._fetch_component_teams()
+            self._fetch_managers_nicnames()
+
+        team_name = self.component_teams[component]
+        return self.get_team_manager(team_name, fallback=fallback)
