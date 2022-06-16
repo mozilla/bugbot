@@ -55,10 +55,7 @@ python -m auto_nag.scripts.has_str_no_range --production
 # Notify bugs tracked (+ or blocking)
 # with P3, P4 or P5 priorities for the ongoing releases
 # Pretty common
-python -m auto_nag.scripts.mismatch_priority_tracking_esr --production
-python -m auto_nag.scripts.mismatch_priority_tracking_release --production
-python -m auto_nag.scripts.mismatch_priority_tracking_beta --production
-python -m auto_nag.scripts.mismatch_priority_tracking_nightly --production
+python -m auto_nag.scripts.mismatch_priority_tracking --production
 
 # Move info (signatures, product/component) from/to bugs & their dups
 # Pretty common

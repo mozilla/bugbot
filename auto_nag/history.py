@@ -183,20 +183,10 @@ class History(object):
                     ):
                         tool = "has_str_no_range"
                     elif (
-                        "as the bug is tracked by a release manager for the current nightly"
+                        "as the bug is tracked by a release manager for the current"
                         in c
                     ):
-                        tool = "mismatch_priority_tracking_nightly"
-                    elif (
-                        "as the bug is tracked by a release manager for the current beta"
-                        in c
-                    ):
-                        tool = "mismatch_priority_tracking_beta"
-                    elif (
-                        "as the bug is tracked by a release manager for the current release"
-                        in c
-                    ):
-                        tool = "mismatch_priority_tracking_release"
+                        tool = "mismatch_priority_tracking"
                     elif c.startswith("The severity flag is not set for this bug.\n:"):
                         tool = "no_severity"
                     elif c.startswith(
