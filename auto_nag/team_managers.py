@@ -18,7 +18,7 @@ class TeamManagers:
         self.component_teams = {}
         self._load_team_managers(DEFAULT_PATH)
 
-    def _load_team_managers(self, filepath: str):
+    def _load_team_managers(self, filepath: str) -> None:
         people = People.get_instance()
 
         with open(filepath) as file:
@@ -32,7 +32,7 @@ class TeamManagers:
 
     def get_team_manager(
         self, team_name: str, fallback: bool = True
-    ) -> Optional[Dict[str, str]]:
+    ) -> Optional[Dict[str, dict]]:
         """Get the manager of the provided team.
 
         Args:
@@ -52,7 +52,7 @@ class TeamManagers:
 
         return self.managers[team_name]
 
-    def _fetch_component_teams(self):
+    def _fetch_component_teams(self) -> None:
         include_fields = [
             "components.name",
             "components.team_name",
@@ -74,7 +74,7 @@ class TeamManagers:
             product_data=self.component_teams,
         ).wait()
 
-    def _fetch_managers_nicknames(self):
+    def _fetch_managers_nicknames(self) -> None:
         people = People.get_instance()
 
         bz_emails_map = defaultdict(list)
@@ -106,7 +106,7 @@ class TeamManagers:
 
     def get_component_manager(
         self, component: str, fallback: bool = True
-    ) -> Optional[dict]:
+    ) -> Optional[Dict[str, dict]]:
         """Get the manager of the team who owns the provided component.
 
         Args:
