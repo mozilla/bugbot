@@ -18,7 +18,7 @@ class TeamManagers:
         self.component_teams = {}
         self._load_team_managers(DEFAULT_PATH)
 
-    def _load_team_managers(self, filepath):
+    def _load_team_managers(self, filepath: str):
         people = People.get_instance()
 
         with open(filepath) as file:
@@ -33,6 +33,17 @@ class TeamManagers:
     def get_team_manager(
         self, team_name: str, fallback: bool = True
     ) -> Optional[Dict[str, str]]:
+        """Get the manager of the provided team.
+
+        Args:
+            team_name: the name of the team.
+            fallback: if True, will return the fallback manager when cannot find
+                the team manager; if False, will return None.
+
+        Returns:
+            Info for the team manager.
+        """
+
         if team_name not in self.managers:
             if fallback:
                 return self.managers["fallback"]
@@ -96,7 +107,7 @@ class TeamManagers:
     def get_component_manager(
         self, component: str, fallback: bool = True
     ) -> Optional[dict]:
-        """Get the manager of the provided component.
+        """Get the manager of the team who owns the provided component.
 
         Args:
             component: the name of the component.
@@ -104,7 +115,7 @@ class TeamManagers:
                 the component manager; if False, will return None.
 
         Returns:
-            Info for the component manager.
+            Info for the manager of team who owns the component.
         """
         if not self.component_teams:
             self._fetch_component_teams()
