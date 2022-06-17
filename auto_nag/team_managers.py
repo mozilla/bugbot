@@ -68,13 +68,14 @@ class TeamManagers:
 
         bz_emails_map = defaultdict(list)
         for manager in self.managers.values():
-            if not manager["mozilla_email"]:
+            moz_mail = manager["mozilla_email"]
+            if not moz_mail:
                 continue
 
-            info = people.get_info(manager["mozilla_email"])
+            info = people.get_info(moz_mail)
             bz_mail = info["bugzillaEmail"]
             if not bz_mail:
-                bz_mail = info["mail"]
+                bz_mail = moz_mail
 
             # Some manager could manage multiple teams, we need to update all of
             # them.
@@ -85,15 +86,13 @@ class TeamManagers:
             "nick",
         ]
 
-        bz_emails = [email for email in bz_emails_map.keys() if email]
-
         def handler(user, data):
             for manager in data[user["email"]]:
                 manager["nick"] = user["nick"]
                 manager["bz_email"] = user["email"]
 
         BugzillaUser(
-            bz_emails,
+            list(bz_emails_map.keys()),
             include_fields=include_fields,
             user_handler=handler,
             user_data=bz_emails_map,
