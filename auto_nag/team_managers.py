@@ -81,11 +81,6 @@ class TeamManagers:
             # them.
             bz_emails_map[bz_mail].append(manager)
 
-        include_fields = [
-            "email",
-            "nick",
-        ]
-
         def handler(user, data):
             for manager in data[user["email"]]:
                 manager["nick"] = user["nick"]
@@ -93,7 +88,7 @@ class TeamManagers:
 
         BugzillaUser(
             list(bz_emails_map.keys()),
-            include_fields=include_fields,
+            include_fields=["email", "nick"],
             user_handler=handler,
             user_data=bz_emails_map,
         ).wait()
