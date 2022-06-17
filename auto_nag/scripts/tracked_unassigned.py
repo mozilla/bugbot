@@ -21,8 +21,8 @@ class TrackedUnassigned(BzCleaner):
 
         soft_freeze_date = get_calendar()[0]["soft freeze"]
         today = lmdutils.get_date_ymd("today")
-        self.soft_freeze_days = (soft_freeze_date - today).days
-        self.extra_ni = {"soft_freeze_days": self.soft_freeze_days}
+        soft_freeze_days = (soft_freeze_date - today).days
+        self.extra_ni = {"soft_freeze_days": soft_freeze_days}
 
     def description(self):
         return "Tracked bugs with no assignee"
@@ -55,7 +55,6 @@ class TrackedUnassigned(BzCleaner):
         ]
 
         is_regression = "regression" in bug["keywords"]
-        show_soft_freeze_comment = self.soft_freeze_days <= 14 and is_regression
 
         data[bugid] = {
             "reasons": reasons,
@@ -64,7 +63,7 @@ class TrackedUnassigned(BzCleaner):
 
         self.extra_ni[bugid] = {
             "reasons": utils.english_list(reasons),
-            "show_soft_freeze_comment": show_soft_freeze_comment,
+            "is_regression": is_regression,
         }
 
         return bug
