@@ -63,7 +63,7 @@ class TeamManagers:
             product_data=self.component_teams,
         ).wait()
 
-    def _fetch_managers_nicnames(self):
+    def _fetch_managers_nicknames(self):
         people = People.get_instance()
 
         bz_emails_map = defaultdict(list)
@@ -114,7 +114,7 @@ class TeamManagers:
         """
         if not self.component_teams:
             self._fetch_component_teams()
-            self._fetch_managers_nicnames()
+            self._fetch_managers_nicknames()
 
         team_name = self.component_teams[component]
         return self.get_team_manager(team_name, fallback=fallback)
