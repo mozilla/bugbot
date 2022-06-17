@@ -54,6 +54,9 @@ class TrackedUnassigned(BzCleaner):
             for flag in bug_trackings
         ]
 
+        # We are using the regressed_by field to identify regression instead of
+        # using the regression keyword because we want to suggesting backout. We
+        # can only suggest backout if we know the exact cause of the regression.
         is_regression = bool(bug["regressed_by"])
 
         data[bugid] = {
