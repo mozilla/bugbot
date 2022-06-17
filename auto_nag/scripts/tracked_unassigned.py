@@ -54,7 +54,7 @@ class TrackedUnassigned(BzCleaner):
             for flag in bug_trackings
         ]
 
-        is_regression = "regression" in bug["keywords"]
+        is_regression = bool(bug["regressed_by"])
 
         data[bugid] = {
             "reasons": reasons,
@@ -70,7 +70,7 @@ class TrackedUnassigned(BzCleaner):
 
     def get_bz_params(self, date):
         fields = [
-            "keywords",
+            "regressed_by",
             "component.team_name",
             "components.team_name",
             "triage_owner",
