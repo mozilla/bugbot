@@ -53,11 +53,6 @@ class TeamManagers:
         return self.managers[team_name]
 
     def _fetch_component_teams(self) -> None:
-        include_fields = [
-            "components.name",
-            "components.team_name",
-        ]
-
         def handler(product, data):
             data.update(
                 {
@@ -66,10 +61,9 @@ class TeamManagers:
                 }
             )
 
-        # This is workaround until merging https://github.com/mozilla/libmozdata/pull/198
-        search = "type=accessible&include_fields=" + ",".join(include_fields)
         BugzillaProduct(
-            search_strings=search,
+            product_types="accessible",
+            include_fields=["components.name", "components.team_name"],
             product_handler=handler,
             product_data=self.component_teams,
         ).wait()
