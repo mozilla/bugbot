@@ -9,104 +9,191 @@ from typing import Dict, List, Optional, Set, Union
 import libmozdata.socorro as socorro
 from libmozdata import utils as lmdutils
 
+
+def _formate_criteria_names(criteria: List[dict]):
+    return [
+        {
+            **criterion,
+            "name": "Top {tc_limit} {name} on {channel}".format(**criterion),
+        }
+        for criterion in criteria
+    ]
+
+
 # Top crash identification criteria as defined on Mozilla Wiki.
 #
 # Wiki page: https://wiki.mozilla.org/CrashKill/Topcrash
-TOP_CRASH_IDENTIFICATION_CRITERIA = [
-    # -------
-    # Firefox
-    # -------
-    {
-        "name": "Top 20 desktop browser crashes on Release",
-        "product": "Firefox",
-        "channel": "release",
-        "tc_limit": 20,
-        "tc_startup_limit": 30,
-    },
-    {
-        "name": "Top 20 desktop browser crashes on Beta",
-        "product": "Firefox",
-        "channel": "beta",
-        "tc_limit": 20,
-        "tc_startup_limit": 30,
-    },
-    {
-        "name": "Top 10 desktop browser crashes on Nightly",
-        "product": "Firefox",
-        "channel": "nightly",
-        "minimum_installations": 5,
-        "tc_limit": 10,
-    },
-    {
-        "name": "Top 10 content process crashes on Beta and Release",
-        "product": "Firefox",
-        "channel": ["beta", "release"],
-        "process_type": "content",
-        "tc_limit": 10,
-    },
-    {
-        "name": "Top 5 GPU process crashes on Beta and Release",
-        "product": "Firefox",
-        "channel": ["beta", "release"],
-        "process_type": "gpu",
-        "tc_limit": 5,
-    },
-    {
-        "name": "Top 5 RDD process crashes on Beta and Release",
-        "product": "Firefox",
-        "channel": ["beta", "release"],
-        "process_type": "rdd",
-        "tc_limit": 5,
-    },
-    {
-        "name": "Top 5 socket and utility process crashes on Beta and Release",
-        "product": "Firefox",
-        "channel": ["beta", "release"],
-        "process_type": ["socket", "utility"],
-        "tc_limit": 5,
-    },
-    {
-        "name": "Top 5 desktop browser crashes on Linux on Beta and Release",
-        "product": "Firefox",
-        "channel": ["beta", "release"],
-        "platform": "Linux",
-        "minimum_installations": 3,
-        "tc_limit": 5,
-    },
-    {
-        "name": "Top 5 desktop browser crashes on Mac on Beta and Release",
-        "product": "Firefox",
-        "channel": ["beta", "release"],
-        "platform": "Mac OS X",
-        "minimum_installations": 3,
-        "tc_limit": 5,
-    },
-    {
-        "name": "Top 5 desktop browser crashes on Windows on Beta and Release",
-        "product": "Firefox",
-        "channel": ["beta", "release"],
-        "platform": "Windows",
-        "minimum_installations": 3,
-        "tc_limit": 5,
-    },
-    # -----
-    # Fenix
-    # -----
-    {
-        "name": "Top 10 AArch64 and ARM crashes on Nightly, Beta and Release",
-        "product": "Fenix",
-        "channel": ["nightly", "beta", "release"],
-        "cpu_arch": ["arm64", "arm"],
-        "tc_limit": 10,
-    },
-    {
-        "name": "Top 5 AMD64 and x86 crashes on Beta and Release",
-        "product": "Fenix",
-        "channel": ["beta", "release"],
-        "cpu_arch": ["amd64", "x86"],
-        "tc_limit": 5,
-    },
-]
+
+TOP_CRASH_IDENTIFICATION_CRITERIA = _formate_criteria_names(
+    [
+        # -------
+        # Firefox
+        # -------
+        {
+            "name": "desktop browser crashes",
+            "product": "Firefox",
+            "channel": "release",
+            "tc_limit": 20,
+            "tc_startup_limit": 30,
+        },
+        {
+            "name": "desktop browser crashes",
+            "product": "Firefox",
+            "channel": "beta",
+            "tc_limit": 20,
+            "tc_startup_limit": 30,
+        },
+        {
+            "name": "desktop browser crashes",
+            "product": "Firefox",
+            "channel": "nightly",
+            "minimum_installations": 5,
+            "tc_limit": 10,
+        },
+        {
+            "name": "content process crashes",
+            "product": "Firefox",
+            "channel": "beta",
+            "process_type": "content",
+            "tc_limit": 10,
+        },
+        {
+            "name": "content process crashes",
+            "product": "Firefox",
+            "channel": "release",
+            "process_type": "content",
+            "tc_limit": 10,
+        },
+        {
+            "name": "GPU process crashes",
+            "product": "Firefox",
+            "channel": "beta",
+            "process_type": "gpu",
+            "tc_limit": 5,
+        },
+        {
+            "name": "GPU process crashes",
+            "product": "Firefox",
+            "channel": "release",
+            "process_type": "gpu",
+            "tc_limit": 5,
+        },
+        {
+            "name": "RDD process crashes",
+            "product": "Firefox",
+            "channel": "beta",
+            "process_type": "rdd",
+            "tc_limit": 5,
+        },
+        {
+            "name": "RDD process crashes",
+            "product": "Firefox",
+            "channel": "release",
+            "process_type": "rdd",
+            "tc_limit": 5,
+        },
+        {
+            "name": "socket and utility process crashes",
+            "product": "Firefox",
+            "channel": "beta",
+            "process_type": ["socket", "utility"],
+            "tc_limit": 5,
+        },
+        {
+            "name": "socket and utility process crashes",
+            "product": "Firefox",
+            "channel": "release",
+            "process_type": ["socket", "utility"],
+            "tc_limit": 5,
+        },
+        {
+            "name": "desktop browser crashes on Linux",
+            "product": "Firefox",
+            "channel": "beta",
+            "platform": "Linux",
+            "minimum_installations": 3,
+            "tc_limit": 5,
+        },
+        {
+            "name": "desktop browser crashes on Linux",
+            "product": "Firefox",
+            "channel": "release",
+            "platform": "Linux",
+            "minimum_installations": 3,
+            "tc_limit": 5,
+        },
+        {
+            "name": "desktop browser crashes on Mac",
+            "product": "Firefox",
+            "channel": "beta",
+            "platform": "Mac OS X",
+            "minimum_installations": 3,
+            "tc_limit": 5,
+        },
+        {
+            "name": "desktop browser crashes on Mac",
+            "product": "Firefox",
+            "channel": "release",
+            "platform": "Mac OS X",
+            "minimum_installations": 3,
+            "tc_limit": 5,
+        },
+        {
+            "name": "desktop browser crashes on Windows",
+            "product": "Firefox",
+            "channel": "beta",
+            "platform": "Windows",
+            "minimum_installations": 3,
+            "tc_limit": 5,
+        },
+        {
+            "name": "desktop browser crashes on Windows",
+            "product": "Firefox",
+            "channel": "release",
+            "platform": "Windows",
+            "minimum_installations": 3,
+            "tc_limit": 5,
+        },
+        # -----
+        # Fenix
+        # -----
+        {
+            "name": "AArch64 and ARM crashes",
+            "product": "Fenix",
+            "channel": "nightly",
+            "cpu_arch": ["arm64", "arm"],
+            "tc_limit": 10,
+        },
+        {
+            "name": "AArch64 and ARM crashes",
+            "product": "Fenix",
+            "channel": "beta",
+            "cpu_arch": ["arm64", "arm"],
+            "tc_limit": 10,
+        },
+        {
+            "name": "AArch64 and ARM crashes",
+            "product": "Fenix",
+            "channel": "release",
+            "cpu_arch": ["arm64", "arm"],
+            "tc_limit": 10,
+        },
+        {
+            "name": "AMD64 and x86 crashes",
+            "product": "Fenix",
+            "channel": "beta",
+            "cpu_arch": ["amd64", "x86"],
+            "tc_limit": 5,
+        },
+        {
+            "name": "AMD64 and x86 crashes",
+            "product": "Fenix",
+            "channel": "release",
+            "cpu_arch": ["amd64", "x86"],
+            "tc_limit": 5,
+        },
+    ]
+)
 
 # The crash signature block patterns are based on the criteria defined on
 # Mozilla Wiki. However, the matching roles (e.g., `!=` and `!^`) are based on
