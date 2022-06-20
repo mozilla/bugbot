@@ -189,7 +189,6 @@
     "must_run": ["Mon"]
   },
   "vacant_triage_owner": {
-    "inactive_weeks_number": 26,
     "must_run": ["Mon"]
   },
   "closed_dupeme": {
@@ -398,9 +397,6 @@
   "regression_without_regressed_by": {
     "days_lookup": 30,
     "reporter_skiplist": ["intermittent-bug-filer@mozilla.bugs"]
-  },
-  "regressed_by_no_has_regression_range": {
-    "days_lookup": 30
   },
   "prod_comp_changed_with_priority": {
     "days_lookup": 30,

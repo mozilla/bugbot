@@ -43,7 +43,7 @@ class MissingBetaStatus(BzCleaner):
         if self._is_affected(nightly) and self._is_affected(release):
             self.autofix_status[bugid] = {
                 "comment": {
-                    "body": f"Since nightly and release are affected, beta will likely be affected too.\n${doc}"
+                    "body": f"Since nightly and release are affected, beta will likely be affected too.\n{doc}"
                 },
                 self.status_beta: "affected",
             }
@@ -51,9 +51,9 @@ class MissingBetaStatus(BzCleaner):
             self.autofix_status[bugid] = {
                 "comment": {
                     "body": (
-                        f"Since the status is marked as `${nightly}` for nightly and release, is it `${nightly}` for beta too?\n${doc}"
+                        f"Since the status is marked as `{nightly}` for nightly and release, is it `{nightly}` for beta too?\n{doc}"
                         if nightly == release
-                        else f"Since the status is marked as `${nightly}` for nightly and as `${release}` for release, is it `${nightly}` or `${release}` for beta?\n${doc}"
+                        else f"Since the status is marked as `{nightly}` for nightly and as `{release}` for release, is it `{nightly}` or `{release}` for beta?\n{doc}"
                     )
                 },
                 self.status_beta: "?",

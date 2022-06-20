@@ -294,7 +294,7 @@ class People:
         return manager_mail
 
     def get_nth_manager_mail(self, mail, rank):
-        """Get the manager of the person with this mail"""
+        """Get the nth manager of the person with this mail"""
         for _ in range(rank):
             prev = mail
             mail = self.get_manager_mail(mail)
@@ -302,11 +302,24 @@ class People:
                 return prev
         return mail
 
-    def get_management_chain_mails(self, person: str, superior: str) -> Set[str]:
+    def get_management_chain_mails(
+        self, person: str, superior: str, raise_on_missing: bool = True
+    ) -> Set[str]:
         """Get the mails of people in the management chain between a person and
         their superior.
 
-        Note: the person and the superior will not be returned in result.
+        Args:
+            person: the moz email of an employee.
+            superior: the moz email of one of the employee's superiors.
+            raise_on_missing: If True, an exception will be raised when the
+                superior is not in the management hierarchy of the employee. If
+                False, an empty set will be returned instead of raising an
+                exception.
+
+        Returns:
+            A set of moz emails for people in the management chain between
+            `person` and `superior`. Emails for `person` and `superior` will not
+            be returned with the result.
         """
         result: Set[str] = set()
 
@@ -319,8 +332,14 @@ class People:
         while manager != superior:
             result.add(manager)
             manager = self.get_manager_mail(manager)
-            if not manager or manager in result:
+
+            if not manager:
+                if not raise_on_missing:
+                    return set()
                 raise Exception(f"Cannot identify {superior} as a superior of {person}")
+
+            if manager in result:
+                raise Exception("Circular management chain")
 
         return result
 
@@ -395,14 +414,14 @@ class People:
         return person["mail"]
 
     def get_moz_mail(self, mail):
-        """Get the manager of the person with this mail"""
+        """Get the Mozilla email of the person with this Bugzilla email"""
         person = self._get_people_by_bzmail().get(mail, None)
         if person:
             return person["mail"]
         return mail
 
     def get_moz_name(self, mail):
-        """Get the manager of the person with this mail"""
+        """Get the name of the person with this Bugzilla email"""
         person = self._get_people_by_bzmail().get(mail, None)
         if person is None:
             return None

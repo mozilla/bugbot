@@ -135,9 +135,6 @@ python -m auto_nag.scripts.ni_from_manager --production
 # Approve tracking request for bugs automatically filed for expiring telemetry probes
 python -m auto_nag.scripts.telemetry_expiry_tracking_autoapproval --production
 
-# Set "Has Regression Range" to "yes" on bugs where "Regressed By" is set
-python -m auto_nag.scripts.regressed_by_no_has_regression_range --production
-
 # Needinfo triage owner on bugs assigned to inactive accounts
 python -m auto_nag.scripts.assignee_no_login --production
 
@@ -170,6 +167,9 @@ python -m auto_nag.scripts.severity_high_compat_priority --production
 
 # Suggest increasing the severity for tracked bugs
 python -m auto_nag.scripts.severity_tracked --production
+
+# Identify missing or inactive team managers
+python -m auto_nag.scripts.vacant_team_manager --production
 
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
