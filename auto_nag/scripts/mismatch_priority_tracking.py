@@ -24,6 +24,7 @@ class MismatchPriorityTracking(BzCleaner):
     def get_bz_params(self, date):
         version = self.versions[self.channel]
         params = {
+            "priority": ["P3", "P4", "P5"],
             "f1": utils.get_flag(version, "tracking", self.channel),
             "o1": "anyexact",
             "v1": ["+", "blocking"],
