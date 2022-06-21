@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from typing import List, Optional
+from typing import Optional
 
 from libmozdata import utils as lmdutils
 from libmozdata.release_calendar import get_calendar
@@ -12,9 +12,13 @@ from auto_nag.bzcleaner import BzCleaner
 from auto_nag.history import History
 from auto_nag.team_managers import TeamManagers
 
+# TODO: should be moved when resolving https://github.com/mozilla/relman-auto-nag/issues/1384
+LOW_SEVERITY = ["S3", "normal", "S4", "minor", "trivial", "enhancement"]
+LOW_PRIORITY = ["P3", "P4", "P5"]
 
-class TrackedUnassigned(BzCleaner):
-    """Tracked bugs with no assignee"""
+
+class TrackedAttention(BzCleaner):
+    """Tracked bugs that need attention"""
 
     def __init__(
         self,
@@ -30,9 +34,9 @@ class TrackedUnassigned(BzCleaner):
                 start showing the soft freeze comment in the needinfo requests.
         """
         super().__init__()
-        self.init_versions()
-        self.version_flags: List[dict] = []
-        self.target_channels = target_channels
+        if not self.init_versions():
+            return
+
         self.team_managers = TeamManagers()
 
         soft_freeze_date = get_calendar()[0]["soft freeze"]
@@ -43,10 +47,24 @@ class TrackedUnassigned(BzCleaner):
             "show_soft_freeze_comment": self.show_soft_freeze_comment,
             "soft_freeze_days": self.soft_freeze_days,
         }
-        self.is_weekend = utils.is_weekend(today)
 
         # Determine the date to decide if a bug will receive a reminder comment
-        self.reminder_commit_date = lmdutils.get_date("today", 3)
+        self.reminder_commit_date = lmdutils.get_date(today, 3)
+        self.is_weekend = utils.is_weekend(today)
+
+        self.version_flags = [
+            {
+                "version": self.versions[channel],
+                "channel": channel,
+                "tracking_field": utils.get_flag(
+                    self.versions[channel], "tracking", channel
+                ),
+                "status_field": utils.get_flag(
+                    self.versions[channel], "status", channel
+                ),
+            }
+            for channel in target_channels
+        ]
 
     def description(self):
         return "Tracked bugs with no assignee"
@@ -55,41 +73,56 @@ class TrackedUnassigned(BzCleaner):
         return self.extra_ni
 
     def columns(self):
-        return ["id", "summary", "reasons", "is_regression", "action"]
+        return [
+            "id",
+            "summary",
+            "tracking_statuses",
+            "is_regression",
+            "reasons",
+            "action",
+        ]
 
     def handle_bug(self, bug, data):
+        is_no_assignee = utils.is_no_assignee(bug["assigned_to"])
         last_comment = self._get_last_comment(bug)
-        if last_comment:
-            if (
-                # If we commented before, we want to send reminders when we are
-                # close to the soft freeze.
-                self.is_weekend
-                or not self.show_soft_freeze_comment
-                or last_comment["time"] > self.reminder_commit_date
-            ):
-                return
+
+        # If we commented before, we want to send reminders when we are close to
+        # the soft freeze.
+        is_reminder = bool(last_comment)
+        if is_reminder and (
+            self.is_weekend
+            or not is_no_assignee
+            or not self.show_soft_freeze_comment
+            or last_comment["time"] > self.reminder_commit_date
+        ):
+            return None
 
         bugid = str(bug["id"])
 
-        is_reminder = bool(last_comment)
+        def format_flag(flag: dict) -> str:
+            tracking_type = (
+                "tracked for" if bug[flag["tracking_field"]] == "+" else "blocking"
+            )
+            version = flag["version"]
+            channel = flag["channel"]
+            return f"{tracking_type} firefox{version} ({channel})"
 
-        bug_trackings = [
-            flag
+        tracking_statuses = [
+            format_flag(flag)
             for flag in self.version_flags
             if bug.get(flag["tracking_field"]) in ("blocking", "+")
             and bug.get(flag["status_field"]) in ("affected", "---")
         ]
+        assert tracking_statuses
 
-        reasons = [
-            "{tracking_type} firefox{version} ({channel})".format(
-                tracking_type=(
-                    "tracked for" if bug[flag["tracking_field"]] == "+" else "blocking"
-                ),
-                version=flag["version"],
-                channel=flag["channel"],
-            )
-            for flag in bug_trackings
-        ]
+        reasons = []
+        if is_no_assignee:
+            reasons.append("isn't assigned")
+        if bug["severity"] in LOW_SEVERITY:
+            reasons.append("has low severity")
+        if bug["priority"] in LOW_PRIORITY:
+            reasons.append("has low priority")
+        assert reasons
 
         # We are using the regressed_by field to identify regression instead of
         # using the regression keyword because we want to suggesting backout. We
@@ -100,12 +133,14 @@ class TrackedUnassigned(BzCleaner):
         bug["is_reminder"] = is_reminder
 
         data[bugid] = {
+            "tracking_statuses": tracking_statuses,
             "reasons": reasons,
             "is_regression": is_regression,
             "action": "Reminder comment" if is_reminder else "Needinfo",
         }
 
         str_reasons = utils.english_list(reasons)
+        str_tracking_statuses = utils.english_list(tracking_statuses)
         if is_reminder:
             comment_num = last_comment["count"]
             self.autofix_changes[bugid] = {
@@ -113,15 +148,16 @@ class TrackedUnassigned(BzCleaner):
                     "body": (
                         f"This is a reminder regarding [comment #{comment_num}]"
                         f"(https://bugzilla.mozilla.org/show_bug.cgi?id={bugid}#{comment_num})!\n\n"
-                        f"The bug is marked as { str_reasons }. "
+                        f"The bug is marked as { str_tracking_statuses }. "
                         "We have limited time to fix this, "
                         f"the soft freeze is in { self.soft_freeze_days } days. "
-                        "However, the bug still isn't assigned."
+                        f"However, the bug still {str_reasons}."
                     )
                 },
             }
         else:
             self.extra_ni[bugid] = {
+                "tracking_statuses": str_tracking_statuses,
                 "reasons": str_reasons,
                 "is_regression": is_regression,
             }
@@ -134,49 +170,69 @@ class TrackedUnassigned(BzCleaner):
             "component.team_name",
             "components.team_name",
             "triage_owner",
+            "assigned_to",
             "comments",
+            "severity",
+            "priority",
         ]
+        for flag in self.version_flags:
+            fields.extend((flag["tracking_field"], flag["status_field"]))
 
         params = {
             "include_fields": fields,
             "resolution": "---",
-            "f1": "OP",
-            "j1": "OR",
+            "f1": "keywords",
+            "o1": "nowords",
+            "v1": "intermittent-failure",
+            "f2": "status_whiteboard",
+            "o2": "notsubstring",
+            "v2": "[stockwell]",
+            "f3": "short_desc",
+            "o3": "notregexp",
+            "v3": r"^Perma |Intermittent ",
+            "j4": "OR",
+            "f4": "OP",
+            "f5": "bug_severity",
+            "o5": "anyexact",
+            "v5": LOW_SEVERITY,
+            "f6": "priority",
+            "o6": "anyexact",
+            "v6": LOW_PRIORITY,
         }
-        for channel in self.target_channels:
-            version = self.versions[channel]
-            tracking_field = utils.get_flag(version, "tracking", channel)
-            status_field = utils.get_flag(version, "status", channel)
-            fields.extend((tracking_field, status_field))
+        utils.get_empty_assignees(params)
+        n = utils.get_last_field_num(params)
+        params[f"f{n}"] = "CP"
 
-            # We need this to explain the needinfo
-            self.version_flags.append(
-                {
-                    "version": version,
-                    "channel": channel,
-                    "tracking_field": tracking_field,
-                    "status_field": status_field,
-                }
-            )
+        self._amend_tracking_params(params)
 
+        return params
+
+    def _amend_tracking_params(self, params: dict) -> None:
+        n = utils.get_last_field_num(params)
+        params.update(
+            {
+                f"j{n}": "OR",
+                f"f{n}": "OP",
+            }
+        )
+
+        for flag in self.version_flags:
             n = int(utils.get_last_field_num(params))
             params.update(
                 {
                     f"f{n}": "OP",
-                    f"f{n+1}": tracking_field,
+                    f"f{n+1}": flag["tracking_field"],
                     f"o{n+1}": "anyexact",
                     f"v{n+1}": ["+", "blocking"],
-                    f"f{n+2}": status_field,
+                    f"f{n+2}": flag["status_field"],
                     f"o{n+2}": "anyexact",
                     f"v{n+2}": ["---", "affected"],
                     f"f{n+3}": "CP",
                 }
             )
-        n = int(utils.get_last_field_num(params))
-        params[f"f{n}"] = "CP"
-        utils.get_empty_assignees(params)
 
-        return params
+        n = utils.get_last_field_num(params)
+        params[f"f{n}"] = "CP"
 
     def get_mail_to_auto_ni(self, bug):
         # If this is not the first time, we will needinfo no body
@@ -213,4 +269,4 @@ class TrackedUnassigned(BzCleaner):
 
 
 if __name__ == "__main__":
-    TrackedUnassigned().run()
+    TrackedAttention().run()
