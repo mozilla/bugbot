@@ -8,6 +8,7 @@ import json
 import os
 import random
 import re
+from typing import Union
 from urllib.parse import urlencode
 
 import dateutil.parser
@@ -662,3 +663,9 @@ def get_name_from_user_detail(detail: dict) -> str:
             name = detail["email"]
 
     return name
+
+
+def is_weekend(date: Union[datetime.datetime, str]) -> bool:
+    """Get if the provided date is a weekend day (Saturday or Sunday)"""
+    parsed_date = lmdutils.get_date_ymd(date)
+    return parsed_date.weekday() >= 5
