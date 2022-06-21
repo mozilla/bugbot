@@ -74,7 +74,11 @@ class TopcrashAddKeyword(BzCleaner):
         }
 
         ni_person = utils.get_mail_to_ni(bug)
-        if ni_person and bug["severity"] not in HIGH_SEVERITY:
+        if (
+            ni_person
+            and bug["severity"] not in HIGH_SEVERITY
+            and "meta" not in bug["keywords"]
+        ):
             autofix["flags"] = [
                 {
                     "name": "needinfo",
