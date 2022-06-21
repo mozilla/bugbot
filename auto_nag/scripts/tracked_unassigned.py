@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from typing import List
+
 from libmozdata import utils as lmdutils
 from libmozdata.release_calendar import get_calendar
 
@@ -9,14 +11,24 @@ from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.team_managers import TeamManagers
 
-TARGET_CHANNELS = ["release", "beta", "nightly"]
-
 
 class TrackedUnassigned(BzCleaner):
-    def __init__(self):
+    """Tracked bugs with no assignee"""
+
+    def __init__(
+        self,
+        target_channels: tuple = ("release", "beta", "nightly"),
+    ):
+        """Constructor
+
+        Args:
+            target_channels: the list of channels that we target to find tracked
+                and unassigned bugs.
+        """
         super().__init__()
         self.init_versions()
-        self.version_flags = []
+        self.version_flags: List[dict] = []
+        self.target_channels = target_channels
         self.team_managers = TeamManagers()
 
         soft_freeze_date = get_calendar()[0]["soft freeze"]
@@ -85,7 +97,7 @@ class TrackedUnassigned(BzCleaner):
             "f1": "OP",
             "j1": "OR",
         }
-        for channel in TARGET_CHANNELS:
+        for channel in self.target_channels:
             version = self.versions[channel]
             tracking_field = utils.get_flag(version, "tracking", channel)
             status_field = utils.get_flag(version, "status", channel)
