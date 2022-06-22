@@ -24,6 +24,7 @@ class TrackedAttention(BzCleaner):
         self,
         target_channels: tuple = ("esr", "release", "beta", "nightly"),
         show_soft_freeze_days: int = 14,
+        reminder_interval: int = 5,
     ):
         """Constructor
 
@@ -32,6 +33,9 @@ class TrackedAttention(BzCleaner):
                 and unassigned bugs.
             show_soft_freeze_days: number of days before the soft freeze date to
                 start showing the soft freeze comment in the needinfo requests.
+            reminder_interval: number of days to wait before posting a reminder
+                comment. We remind only if the bug is not assigned, it is not a
+                weekend, and we are close to the soft-freeze date.
         """
         super().__init__()
         if not self.init_versions():
@@ -49,7 +53,7 @@ class TrackedAttention(BzCleaner):
         }
 
         # Determine the date to decide if a bug will receive a reminder comment
-        self.reminder_comment_date = lmdutils.get_date(today, 3)
+        self.reminder_comment_date = lmdutils.get_date(today, reminder_interval)
         self.is_weekend = utils.is_weekend(today)
 
         self.version_flags = [
