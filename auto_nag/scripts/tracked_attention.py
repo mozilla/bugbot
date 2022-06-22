@@ -49,7 +49,7 @@ class TrackedAttention(BzCleaner):
         }
 
         # Determine the date to decide if a bug will receive a reminder comment
-        self.reminder_commit_date = lmdutils.get_date(today, 3)
+        self.reminder_comment_date = lmdutils.get_date(today, 3)
         self.is_weekend = utils.is_weekend(today)
 
         self.version_flags = [
@@ -93,7 +93,7 @@ class TrackedAttention(BzCleaner):
             self.is_weekend
             or not is_no_assignee
             or not self.show_soft_freeze_comment
-            or last_comment["time"] > self.reminder_commit_date
+            or last_comment["time"] > self.reminder_comment_date
         ):
             return None
 
