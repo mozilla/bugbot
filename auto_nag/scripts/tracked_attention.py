@@ -22,7 +22,7 @@ class TrackedAttention(BzCleaner):
 
     def __init__(
         self,
-        target_channels: tuple = ("release", "beta", "nightly"),
+        target_channels: tuple = ("esr", "release", "beta", "nightly"),
         show_soft_freeze_days: int = 14,
     ):
         """Constructor
