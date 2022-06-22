@@ -46,9 +46,10 @@ class TrackedAttention(BzCleaner):
         soft_freeze_date = get_calendar()[0]["soft freeze"]
         today = lmdutils.get_date_ymd("today")
         self.soft_freeze_days = (soft_freeze_date - today).days
-        self.show_soft_freeze_comment = self.soft_freeze_days <= show_soft_freeze_days
+        self.is_soft_freeze_soon = (
+            self.soft_freeze_days <= show_soft_freeze_days and self.soft_freeze_days > 1
+        )
         self.extra_ni = {
-            "show_soft_freeze_comment": self.show_soft_freeze_comment,
             "soft_freeze_days": self.soft_freeze_days,
         }
 
@@ -96,7 +97,7 @@ class TrackedAttention(BzCleaner):
         if is_reminder and (
             self.is_weekend
             or not is_no_assignee
-            or not self.show_soft_freeze_comment
+            or not self.is_soft_freeze_soon
             or last_comment["time"] > self.reminder_comment_date
         ):
             return None
@@ -147,8 +148,6 @@ class TrackedAttention(BzCleaner):
             "action": "Reminder comment" if is_reminder else "Needinfo",
         }
 
-        str_reasons = utils.english_list(reasons)
-        str_tracking_statuses = utils.english_list(tracking_statuses)
         if is_reminder:
             comment_num = last_comment["count"]
             self.autofix_changes[bugid] = {
@@ -156,20 +155,21 @@ class TrackedAttention(BzCleaner):
                     "body": (
                         f"This is a reminder regarding [comment #{comment_num}]"
                         f"(https://bugzilla.mozilla.org/show_bug.cgi?id={bugid}#{comment_num})!\n\n"
-                        f"The bug is marked as { str_tracking_statuses }. "
+                        f"The bug is marked as { utils.english_list(tracking_statuses) }. "
                         "We have limited time to fix this, "
                         f"the soft freeze is in { self.soft_freeze_days } days. "
-                        f"However, the bug still {str_reasons}."
+                        f"However, the bug still { utils.english_list(reasons) }."
                     )
                 },
             }
         else:
-            str_solutions = utils.english_list(solutions)
+            need_action = is_no_assignee or bug["priority"] in LOW_PRIORITY
             self.extra_ni[bugid] = {
-                "tracking_statuses": str_tracking_statuses,
-                "reasons": str_reasons,
-                "solutions": str_solutions,
-                "is_regression": is_regression,
+                "tracking_statuses": utils.english_list(tracking_statuses),
+                "reasons": utils.english_list(reasons),
+                "solutions": utils.english_list(solutions),
+                "show_soft_freeze_comment": self.is_soft_freeze_soon and need_action,
+                "show_regression_comment": is_regression and need_action,
             }
 
         return bug
