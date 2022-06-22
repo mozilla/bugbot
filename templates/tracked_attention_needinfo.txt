@@ -1,9 +1,8 @@
 The bug is marked as {{ extra[bugid]["tracking_statuses"] }}.{% if extra["show_soft_freeze_comment"] %} We have limited time to fix this, the soft freeze is in {{ extra["soft_freeze_days"] }} days.{% endif %} However, the bug still {{ extra[bugid]["reasons"] }}.
 
-{% if extra[bugid]["is_regression"] -%}
-:{{ nickname }}, should we ship with this regression or backout the regressor? Please coordinate with the release managers.
-{% else %}
-:{{ nickname }}, could you please find an assignee for this tracked bug? If you disagree with the decision, please talk with the release managers.
-{% endif %}
+:{{ nickname }}, could you please {{ extra[bugid]["solutions"] }} for this tracked bug?
+{%- if extra[bugid]["is_regression"] %} Given that it is a regression and we know the cause, we could also simply backout the regressor.
+{%- endif %} If you disagree with the decision, please talk with the release managers.
+
 
 {{ documentation }}

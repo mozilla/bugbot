@@ -116,13 +116,17 @@ class TrackedAttention(BzCleaner):
         assert tracking_statuses
 
         reasons = []
+        solutions = []
         if is_no_assignee:
             reasons.append("isn't assigned")
+            solutions.append("find an assignee")
         if bug["severity"] in LOW_SEVERITY:
             reasons.append("has low severity")
+            solutions.append("increase the severity")
         if bug["priority"] in LOW_PRIORITY:
             reasons.append("has low priority")
-        assert reasons
+            solutions.append("increase the priority")
+        assert reasons and solutions
 
         # We are using the regressed_by field to identify regression instead of
         # using the regression keyword because we want to suggesting backout. We
@@ -156,9 +160,11 @@ class TrackedAttention(BzCleaner):
                 },
             }
         else:
+            str_solutions = utils.english_list(solutions)
             self.extra_ni[bugid] = {
                 "tracking_statuses": str_tracking_statuses,
                 "reasons": str_reasons,
+                "solutions": str_solutions,
                 "is_regression": is_regression,
             }
 
