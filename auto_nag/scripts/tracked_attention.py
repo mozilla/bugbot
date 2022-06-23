@@ -125,12 +125,12 @@ class TrackedAttention(BzCleaner):
         if is_no_assignee:
             reasons.append("isn't assigned")
             solutions.append("find an assignee")
-        if bug["severity"] in LOW_SEVERITY:
-            reasons.append("has low severity")
-            solutions.append("increase the severity")
         if bug["priority"] in LOW_PRIORITY:
             reasons.append("has low priority")
             solutions.append("increase the priority")
+        if not is_reminder and bug["severity"] in LOW_SEVERITY:
+            reasons.append("has low severity")
+            solutions.append("increase the severity")
         assert reasons and solutions
 
         # We are using the regressed_by field to identify regression instead of
