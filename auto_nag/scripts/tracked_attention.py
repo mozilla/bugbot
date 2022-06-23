@@ -4,6 +4,7 @@
 
 from typing import Optional
 
+import humanize
 from libmozdata import utils as lmdutils
 from libmozdata.release_calendar import get_calendar
 
@@ -45,12 +46,17 @@ class TrackedAttention(BzCleaner):
 
         soft_freeze_date = get_calendar()[0]["soft freeze"]
         today = lmdutils.get_date_ymd("today")
-        self.soft_freeze_days = (soft_freeze_date - today).days
-        self.is_soft_freeze_soon = (
-            self.soft_freeze_days <= show_soft_freeze_days and self.soft_freeze_days > 1
+        soft_freeze_delta = soft_freeze_date - today
+        assert soft_freeze_delta.days >= 0
+
+        self.is_soft_freeze_soon = soft_freeze_delta.days <= show_soft_freeze_days
+        self.soft_freeze_delta = (
+            "today"
+            if soft_freeze_delta.days == 0
+            else f"in { humanize.naturaldelta(soft_freeze_delta)}"
         )
         self.extra_ni = {
-            "soft_freeze_days": self.soft_freeze_days,
+            "soft_freeze_delta": self.soft_freeze_delta,
         }
 
         # Determine the date to decide if a bug will receive a reminder comment
@@ -157,7 +163,7 @@ class TrackedAttention(BzCleaner):
                         f"(https://bugzilla.mozilla.org/show_bug.cgi?id={bugid}#{comment_num})!\n\n"
                         f"The bug is marked as { utils.english_list(tracking_statuses) }. "
                         "We have limited time to fix this, "
-                        f"the soft freeze is in { self.soft_freeze_days } days. "
+                        f"the soft freeze is { self.soft_freeze_delta }. "
                         f"However, the bug still { utils.english_list(reasons) }."
                     )
                 },
