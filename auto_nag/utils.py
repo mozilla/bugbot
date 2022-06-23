@@ -648,6 +648,29 @@ def get_sort_by_bug_importance_key(bug):
     )
 
 
+def get_mail_to_ni(bug: dict) -> Union[dict, None]:
+    """Get the person that should be needinfoed about the bug.
+
+    If the bug is assigned, the assignee will be selected. Otherwise, will
+    fallback to the triage owner.
+
+    Args:
+        bug: The bug that you need to send a needinfo request about.
+
+    Returns:
+        A dict with the nicname and the email of the person that should receive
+        the needinfo request. If not available will return None.
+
+    """
+
+    for field in ["assigned_to", "triage_owner"]:
+        person = bug.get(field, "")
+        if not is_no_assignee(person):
+            return {"mail": person, "nickname": bug[f"{field}_detail"]["nick"]}
+
+    return None
+
+
 def get_name_from_user_detail(detail: dict) -> str:
     """Get the name of the user from the detail object.
 

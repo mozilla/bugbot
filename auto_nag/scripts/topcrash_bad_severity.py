@@ -17,6 +17,9 @@ class TopcrashBadSeverity(BzCleaner):
     def ignore_date(self):
         return True
 
+    def ignore_meta(self):
+        return True
+
     def get_mail_to_auto_ni(self, bug):
         for field in ["assigned_to", "triage_owner"]:
             person = bug.get(field, "")
