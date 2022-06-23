@@ -5,7 +5,7 @@ import unittest
 
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag.scripts.severity_tracked import SeverityTracked
+from auto_nag.scripts.inactive_ni_pending import InactiveNeedinfoPending
 
 
 class TestBZClearner(unittest.TestCase):
@@ -37,19 +37,19 @@ class TestBZClearner(unittest.TestCase):
 
 class TestBZClearnerClass(unittest.TestCase):
     def test_description(self):
-        assert "Bugs with low severity" in SeverityTracked().description()
+        assert "Bugs with needinfo pending" in InactiveNeedinfoPending().description()
 
     def test_name(self):
-        assert SeverityTracked().name() == "severity_tracked"
+        assert InactiveNeedinfoPending().name() == "inactive_ni_pending"
 
     def test_template(self):
-        assert SeverityTracked().template() == "severity_tracked.html"
+        assert InactiveNeedinfoPending().template() == "inactive_ni_pending.html"
 
     def test_subject(self):
-        assert "Bugs with low severity" in SeverityTracked().subject()
+        assert "Bugs with needinfo pending" in InactiveNeedinfoPending().subject()
 
     def test_get_bz_params(self):
-        tool = SeverityTracked()
+        tool = InactiveNeedinfoPending()
         if not tool.has_enough_data():
             # we've non-following versions in product-details
             # so cheat on versions.
@@ -59,10 +59,10 @@ class TestBZClearnerClass(unittest.TestCase):
             )
             tool.flags_map = {}
 
-        p = tool.get_bz_params(None)
-        assert p["f1"] == "OP"
-        assert "cf_tracking_firefox" in p["f3"]
-        assert "enhancement" in p["bug_severity"]
+        p = tool.get_bz_params("today")
+        assert p["o1"] == "equals"
+        assert "flagtypes" in p["f1"]
+        assert "type" in p["include_fields"]
 
     def test_ignore_date(self):
-        self.assertFalse(SeverityTracked().ignore_date())
+        self.assertFalse(InactiveNeedinfoPending().ignore_date())

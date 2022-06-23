@@ -1,0 +1,8 @@
+The bug is marked as {{ extra[bugid]["tracking_statuses"] }}.{% if extra[bugid]["show_soft_freeze_comment"] %} We have limited time to fix this, the soft freeze is {{ extra["soft_freeze_delta"] }}.{% endif %} However, the bug still {{ extra[bugid]["reasons"] }}.
+
+:{{ nickname }}, could you please {{ extra[bugid]["solutions"] }} for this tracked bug?
+{%- if extra[bugid]["show_regression_comment"] %} Given that it is a regression and we know the cause, we could also simply backout the regressor.
+{%- endif %} If you disagree with the tracking decision, please talk with the release managers.
+
+
+{{ documentation }}
