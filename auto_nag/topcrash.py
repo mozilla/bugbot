@@ -203,8 +203,7 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = _formate_criteria_names(
 # Docs: https://crash-stats.mozilla.org/documentation/supersearch/#operators
 CRASH_SIGNATURE_BLOCK_PATTERNS = [
     "!^EMPTY: ",
-    "!^OOM | large | EMPTY: ",
-    "!=OOM | small",
+    "!^OOM ",
     "!=IPCError-browser | ShutDownKill",
     "!^java.lang.OutOfMemoryError",
 ]
