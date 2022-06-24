@@ -1,0 +1,18 @@
+<p>The following bugs with uplift requests for {{ extra['channel'] }} {{ extra['version'] }} had their status flags updated:
+<table {{ table_attrs }}>
+<thead>
+<tr>
+<th>Bug</th>
+<th>Summary</th>
+</tr>
+</thead>
+<tbody>
+{% for i, (bug, summary) in enumerate(data) %}
+<tr>
+<td><a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bug }}">{{ bug }}</a></td>
+<td>{{ summary | e }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</p>
