@@ -2,9 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 import humanize
+import pytz
 from dateutil import parser
 from libmozdata import utils as lmdutils
 
@@ -13,10 +14,23 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class PatchClosedBug(BzCleaner):
-    def __init__(self):
+    def __init__(self, days_count: int = 2, wait_time: int = 2):
+        """Constructor
+
+        Args:
+            days_count: represents the maximum number of days from the
+                submission date for an attachment to be considered.
+            wait_time: number of hours to wait after the attachment submission
+                before considering it. This time gap allow people to set missed
+                uplift flags, i.e., `approval-mozilla-*`.
+        """
         super(PatchClosedBug, self).__init__()
-        self.days_count = self.get_config("days_count", 2)
-        self.start_date = lmdutils.get_date_ymd("today") - timedelta(self.days_count)
+
+        self.days_count = days_count
+        self.start_date = lmdutils.get_date_ymd("today") - timedelta(days_count)
+        self.wait_time = pytz.utc.localize(
+            datetime.utcnow() - timedelta(hours=wait_time)
+        )
 
     def description(self):
         return "Bugs with recent patches after being closed"
@@ -37,6 +51,11 @@ class PatchClosedBug(BzCleaner):
             for attachment in bug["attachments"]
             if attachment["content_type"] == "text/x-phabricator-request"
             and not attachment["is_obsolete"]
+            and not any(
+                flag["name"].startswith("approval-mozilla-")
+                for flag in attachment["flags"]
+            )
+            and parser.parse(attachment["creation_time"]) < self.wait_time
         ]
         if len(patches) == 0:
             return
@@ -62,6 +81,7 @@ class PatchClosedBug(BzCleaner):
             "attachments.creation_time",
             "attachments.content_type",
             "attachments.is_obsolete",
+            "attachments.flags",
         ]
         params = {
             "include_fields": fields,
