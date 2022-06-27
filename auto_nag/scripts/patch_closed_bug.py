@@ -18,11 +18,11 @@ class PatchClosedBug(BzCleaner):
         """Constructor
 
         Args:
-            days_count: represents the maximum number of days from the
-                submission date for an attachment to be considered.
-            wait_time: number of hours to wait after the attachment submission
-                before considering it. This time gap allow people to set missed
-                uplift flags, i.e., `approval-mozilla-*`.
+            days_count: the maximum number of days from the submission date for
+                an attachment to be considered.
+            wait_time: the number of hours to wait after the attachment
+                submission before considering it. This time gap allows people to
+                set missed uplift flags, i.e., `approval-mozilla-*`.
         """
         super(PatchClosedBug, self).__init__()
 
