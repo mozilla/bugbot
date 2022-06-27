@@ -157,7 +157,7 @@ python -m auto_nag.scripts.inactive_ni_pending --production
 python -m auto_nag.scripts.crash_signature_confirm --production
 
 # Bugs with patches after being closed
-# python -m auto_nag.scripts.patch_closed_bug --production
+python -m auto_nag.scripts.patch_closed_bug --production
 
 # Confirm bugs with affected flags
 python -m auto_nag.scripts.affected_flag_confirm --production
