@@ -4,11 +4,13 @@
 
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
+from auto_nag.team_managers import TeamManagers
 
 
 class SecNoAssignee(BzCleaner):
     def __init__(self):
         super(SecNoAssignee, self).__init__()
+        self.team_managers = TeamManagers()
         self.ndays = self.get_config("ndays", 3)
 
     def description(self):
@@ -33,10 +35,20 @@ class SecNoAssignee(BzCleaner):
         return ["component", "id", "summary", "last_comment"]
 
     def get_mail_to_auto_ni(self, bug):
+        manager = self.team_managers.get_component_manager(bug["component"], False)
+        if manager and "bz_email" in manager:
+            return {
+                "mail": manager["bz_email"],
+                "nickname": manager["nick"],
+            }
 
-        mail = bug["triage_owner"]
-        nick = bug["triage_owner_detail"]["nick"]
-        return {"mail": mail, "nickname": nick}
+        if bug["triage_owner"]:
+            return {
+                "mail": bug["triage_owner"],
+                "nickname": bug["triage_owner_detail"]["nick"],
+            }
+
+        return None
 
     def get_bz_params(self, date):
         fields = ["triage_owner"]
