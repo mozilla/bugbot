@@ -42,7 +42,7 @@ class SecNoAssignee(BzCleaner):
 
         mail = bug["triage_owner"]
         nick = bug["triage_owner_detail"]["nick"]
-        return {"mail": mail, "nickname": nick, "cc": True}
+        return {"mail": mail, "nickname": nick}
 
     def get_bz_params(self, date):
         fields = ["triage_owner"]

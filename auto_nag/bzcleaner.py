@@ -234,7 +234,6 @@ class BzCleaner(object):
             self.auto_needinfo[ni_mail] = {
                 "nickname": data["nickname"],
                 "bugids": [str(bugid)],
-                "cc": data.get("cc", False),
             }
         return True
 
