@@ -4,20 +4,24 @@
 
 from libmozdata import utils as lmdutils
 
-from auto_nag import utils
+from auto_nag import logger, utils
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.escalation import Escalation
 from auto_nag.nag_me import Nag
 from auto_nag.round_robin import RoundRobin
+from auto_nag.round_robin_calendar import BadFallback, InvalidCalendar
 
 
 class ToTriage(BzCleaner, Nag):
     def __init__(self):
         super(ToTriage, self).__init__()
         self.escalation = Escalation(self.people, data=self.get_config("escalation"))
-        self.round_robin = RoundRobin(
-            people=self.people, teams=self.get_config("teams", [])
-        )
+        try:
+            self.round_robin = RoundRobin.get_instance(
+                teams=self.get_config("teams", [])
+            )
+        except (BadFallback, InvalidCalendar) as err:
+            logger.error(err)
         self.components = self.round_robin.get_components()
         for person in self.get_config("persons", []):
             self.components += utils.get_triage_owners()[person]
@@ -44,6 +48,10 @@ class ToTriage(BzCleaner, Nag):
         return self.columns()
 
     def handle_bug(self, bug, data):
+        # check if the product::component is in the list
+        if not utils.check_product_component(self.components, bug):
+            return None
+
         bugid = str(bug["id"])
         data[bugid] = {"type": bug["type"]}
         return bug
@@ -71,13 +79,21 @@ class ToTriage(BzCleaner, Nag):
             "include_fields": fields,
             "product": list(prods),
             "component": list(comps),
+            "keywords": "intermittent-failure",
+            "keywords_type": "nowords",
+            "email2": "wptsync@mozilla.bugs",
+            "emailreporter2": "1",
+            "emailtype2": "notequals",
             "resolution": "---",
-            "f1": "priority",
+            "f1": "bug_type",
             "o1": "equals",
-            "v1": "--",
+            "v1": "defect",
             "f2": "flagtypes.name",
-            "o2": "notequals",
+            "o2": "notsubstring",
             "v2": "needinfo?",
+            "f3": "bug_severity",
+            "o3": "anyexact",
+            "v3": "--, n/a",
         }
 
         return params

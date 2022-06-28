@@ -6,9 +6,6 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class Stalled(BzCleaner):
-    def __init__(self):
-        super(Stalled, self).__init__()
-
     def description(self):
         return "Closed bugs with stalled keyword"
 
@@ -30,7 +27,12 @@ class Stalled(BzCleaner):
         return params
 
     def get_autofix_change(self):
-        return {"keywords": {"remove": ["stalled"]}}
+        return {
+            "keywords": {"remove": ["stalled"]},
+            "comment": {
+                "body": f"Since the bug is closed, the stalled keyword is now meaningless.\n{self.get_documentation()}"
+            },
+        }
 
 
 if __name__ == "__main__":

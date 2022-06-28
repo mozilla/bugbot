@@ -11,7 +11,7 @@ from auto_nag.people import People
 class HasSTRNoRange(BzCleaner):
     def __init__(self):
         super(HasSTRNoRange, self).__init__()
-        self.people = People()
+        self.people = People.get_instance()
         self.autofix_reporters = {}
 
     def description(self):
@@ -49,7 +49,7 @@ class HasSTRNoRange(BzCleaner):
                 if bug["regression"]:
                     self.autofix_reporters[bugid] = {
                         "comment": {
-                            "body": ":{}, could you try to find a regression range in using for example [mozregression](https://wiki.mozilla.org/Auto-tools/Projects/Mozregression)?".format(
+                            "body": ":{}, could you try to find a regression range using for example [mozregression](https://wiki.mozilla.org/Auto-tools/Projects/Mozregression)?".format(
                                 bug["nick"]
                             )
                         }
@@ -61,7 +61,7 @@ class HasSTRNoRange(BzCleaner):
                 else:
                     self.autofix_reporters[bugid] = {
                         "comment": {
-                            "body": ":{}, if you think that's a regression, then could you try to find a regression range in using for example [mozregression](https://wiki.mozilla.org/Auto-tools/Projects/Mozregression)?".format(
+                            "body": ":{}, if you think that's a regression, could you try to find a regression range using for example [mozregression](https://wiki.mozilla.org/Auto-tools/Projects/Mozregression)?".format(
                                 bug["nick"]
                             )
                         }
@@ -93,11 +93,10 @@ class HasSTRNoRange(BzCleaner):
             "f1": "creation_ts",
             "o1": "greaterthan",
             "v1": start_date,
-            "f2": "cf_has_regression_range",
-            "o2": "equals",
-            "v2": "---",
+            "f2": "regressed_by",
+            "o2": "isempty",
             "n3": 1,
-            "f3": "cf_has_regression_range",
+            "f3": "regressed_by",
             "o3": "changedafter",
             "v3": start_date,
             "f4": "cf_has_str",
@@ -106,11 +105,11 @@ class HasSTRNoRange(BzCleaner):
             "n5": 1,
             "f5": "longdesc",
             "o5": "casesubstring",
-            "v5": "could you try to find a regression range in using for example [mozregression]",
+            "v5": "could you try to find a regression range using for example [mozregression]",
             "n6": 1,
             "f6": "reporter",
             "o6": "regexp",
-            "v6": r"^.*@softvision\.ro$",
+            "v6": r"^.*@softvision\.(ro|com)$",
         }
 
         return params

@@ -8,7 +8,6 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from os.path import basename
 
-import six
 from jinja2 import Environment, FileSystemLoader
 
 from . import logger, utils
@@ -60,8 +59,7 @@ def send_from_template(template_file, To, title, Cc=[], dryrun=False, **kwargs):
 def send(
     From, To, Subject, Body, Cc=[], Bcc=[], html=False, files=[], login={}, dryrun=False
 ):
-    """Send an email
-    """
+    """Send an email"""
 
     if utils.get_config("common", "test", False):
         # just to send a dryrun email
@@ -73,11 +71,11 @@ def send(
         To = ft["to"]
         Cc = []
 
-    if isinstance(To, six.string_types):
+    if isinstance(To, str):
         To = [To]
-    if isinstance(Cc, six.string_types):
+    if isinstance(Cc, str):
         Cc = [Cc]
-    if isinstance(Bcc, six.string_types):
+    if isinstance(Bcc, str):
         Bcc = [Bcc]
 
     Cc = clean_cc(Cc, To)
@@ -89,24 +87,24 @@ def send(
     message["Subject"] = Subject
     message["Cc"] = ", ".join(Cc)
     message["Bcc"] = ", ".join(Bcc)
+    message["X-Mailer"] = "relman-auto-nag"
 
     if subtype == "html":
         Body = replaceUnicode(Body)
     message.attach(MIMEText(Body, subtype))
 
-    for f in files:
-        with open(f, "rb") as In:
-            f = basename(f)
-            part = MIMEApplication(In.read(), Name=basename(f))
-            part["Content-Disposition"] = 'attachment; filename="%s"' % f
+    for file in files:
+        with open(file, "rb") as In:
+            file = basename(file)
+            part = MIMEApplication(In.read(), Name=basename(file))
+            part["Content-Disposition"] = 'attachment; filename="%s"' % file
             message.attach(part)
 
     sendMail(From, To + Cc + Bcc, message.as_string(), login=login, dryrun=dryrun)
 
 
 def sendMail(From, To, msg, login={}, dryrun=False):
-    """Send an email
-    """
+    """Send an email"""
     if dryrun:
         out = "\n****************************\n"
         out += "* DRYRUN: not sending mail *\n"

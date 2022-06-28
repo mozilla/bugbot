@@ -20,6 +20,7 @@ class MultiNaggers(object):
             assert isinstance(arg, Nag), "{} is not a Nag".format(type(arg))
             assert isinstance(arg, BzCleaner), "{} is not a BZCleaner".format(type(arg))
         self.naggers = list(args)
+        self.is_dryrun = True
 
     def description(self):
         return ""
@@ -31,11 +32,10 @@ class MultiNaggers(object):
         """Get the argumends from the command line"""
         parser = argparse.ArgumentParser(description=self.description())
         parser.add_argument(
-            "-d",
-            "--dryrun",
+            "--production",
             dest="dryrun",
-            action="store_true",
-            help="Just do the query, and print emails to console without emailing anyone",
+            action="store_false",
+            help="If the flag is not passed, just do the query, and print emails to console without emailing anyone",
         )
 
         parser.add_argument(
@@ -51,13 +51,14 @@ class MultiNaggers(object):
 
     def run(self):
         args = self.get_args_parser().parse_args()
+        self.is_dryrun = args.dryrun
         self.date = lmdutils.get_date_ymd(args.date)
         for nagger in self.naggers:
             nagger.send_nag_mail = False
             nagger.run()
-        self.gather(args.dryrun)
+        self.gather()
 
-    def gather(self, dryrun):
+    def gather(self):
         env = Environment(loader=FileSystemLoader("templates"))
         common = env.get_template("common.html")
         login_info = utils.get_login_info()
@@ -70,13 +71,18 @@ class MultiNaggers(object):
             for m in mails:
                 manager = m["manager"]
                 if manager not in all_mails:
-                    all_mails[manager] = {"to": m["to"], "body": m["body"]}
+                    all_mails[manager] = {
+                        "to": m["to"],
+                        "management_chain": m["management_chain"],
+                        "body": m["body"],
+                    }
                 else:
                     all_mails[manager]["to"] |= m["to"]
+                    all_mails[manager]["management_chain"] |= m["management_chain"]
                     all_mails[manager]["body"] += "\n" + m["body"]
 
         for manager, m in all_mails.items():
-            Cc = Default_Cc.copy()
+            Cc = Default_Cc | m["management_chain"]
             Cc.add(manager)
             body = common.render(message=m["body"], has_table=True)
             mail.send(
@@ -87,6 +93,6 @@ class MultiNaggers(object):
                 Cc=list(sorted(Cc)),
                 html=True,
                 login=login_info,
-                dryrun=dryrun,
+                dryrun=self.is_dryrun,
             )
             time.sleep(1)

@@ -28,7 +28,7 @@ class CodeFreezeWeek(BzCleaner):
         if not self.init_versions():
             return
 
-        self.people = People()
+        self.people = People.get_instance()
         self.nightly = self.versions["central"]
         self.beta = self.versions["beta"]
         self.release = self.versions["release"]
@@ -55,10 +55,10 @@ class CodeFreezeWeek(BzCleaner):
 
     def must_run(self, date):
         for c in get_calendar():
-            # if freeze is the 2019-03-11, then the tool must run the day after
-            # until 2019-03-2018 (a week after)
+            # run from the soft freeze date until merge day
             freeze = c["soft freeze"]
-            if freeze <= date <= freeze + relativedelta(days=6):
+            merge = c["merge"]
+            if freeze <= date < merge:
                 return True
         return False
 
@@ -158,7 +158,7 @@ class CodeFreezeWeek(BzCleaner):
                 # Calc changes additions & deletions
                 counts = [
                     (old is None and new is not None, new is None and old is not None)
-                    for old, new, _ in diff.changes
+                    for old, new, _, _ in diff.changes
                 ]
                 counts = list(zip(*counts))  # inverse zip
                 info["addlines"] += sum(counts[0])

@@ -2,16 +2,16 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from bugbug.models.component import ComponentModel
+from libmozdata.bugzilla import Bugzilla
 
 from auto_nag import logger
-from auto_nag.bugbug_utils import BugbugScript
-from auto_nag.utils import nice_round
+from auto_nag.bugbug_utils import get_bug_ids_classification
+from auto_nag.bzcleaner import BzCleaner
+from auto_nag.utils import get_config, nice_round
 
 
-class Component(BugbugScript):
+class Component(BzCleaner):
     def __init__(self):
-        self.model_class = ComponentModel
         super().__init__()
         self.autofix_component = {}
         self.frequency = "daily"
@@ -36,19 +36,26 @@ class Component(BugbugScript):
     def sort_columns(self):
         return lambda p: (-p[3], -int(p[0]))
 
+    def has_product_component(self):
+        # Inject product and components when calling BzCleaner.get_bugs
+        return True
+
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
 
+        bot = get_config("common", "bot_bz_mail")[0]
+
         return {
-            # Ignore bugs for which somebody has ever modified the product or the component.
+            "include_fields": ["id", "groups", "summary", "product", "component"],
+            # Ignore bugs for which we ever modified the product or the component.
             "n1": 1,
             "f1": "product",
-            "o1": "changedafter",
-            "v1": "1970-01-01",
+            "o1": "changedby",
+            "v1": bot,
             "n2": 1,
             "f2": "component",
-            "o2": "changedafter",
-            "v2": "1970-01-01",
+            "o2": "changedby",
+            "v2": bot,
             # Ignore closed bugs.
             "bug_status": "__open__",
             # Get recent General bugs, and all Untriaged bugs.
@@ -64,31 +71,50 @@ class Component(BugbugScript):
             "v6": start_date,
             "f7": "CP",
             "f8": "component",
-            "o8": "equals",
-            "v8": "Untriaged",
+            "o8": "anyexact",
+            "v8": "Untriaged,Foxfooding",
             "f9": "CP",
         }
 
     def get_bugs(self, date="today", bug_ids=[]):
-        # Retrieve bugs to analyze.
-        bugs, probs = super().get_bugs(date=date, bug_ids=bug_ids)
-        if len(bugs) == 0:
+        # Retrieve the bugs with the fields defined in get_bz_params
+        raw_bugs = super().get_bugs(date=date, bug_ids=bug_ids, chunk_size=7000)
+
+        if len(raw_bugs) == 0:
             return {}
 
-        # Get the encoded component.
-        indexes = probs.argmax(axis=-1)
-        # Apply inverse transformation to get the component name from the encoded value.
-        suggestions = self.model.clf._le.inverse_transform(indexes)
+        # Extract the bug ids
+        bug_ids = list(raw_bugs.keys())
+
+        # Classify those bugs
+        bugs = get_bug_ids_classification("component", bug_ids)
 
         results = {}
-        for bug, prob, index, suggestion in zip(bugs, probs, indexes, suggestions):
+
+        for bug_id in sorted(bugs.keys()):
+            bug_data = bugs[bug_id]
+
+            if not bug_data.get("available", True):
+                # The bug was not available, it was either removed or is a
+                # security bug
+                continue
+
+            if not {"prob", "index", "class", "extra_data"}.issubset(bug_data.keys()):
+                raise Exception(f"Invalid bug response {bug_id}: {bug_data!r}")
+
+            bug = raw_bugs[bug_id]
+            prob = bug_data["prob"]
+            index = bug_data["index"]
+            suggestion = bug_data["class"]
+            conflated_components_mapping = bug_data["extra_data"][
+                "conflated_components_mapping"
+            ]
+
             # Skip product-only suggestions that are not useful.
             if "::" not in suggestion and bug["product"] == suggestion:
                 continue
 
-            suggestion = self.model.CONFLATED_COMPONENTS_MAPPING.get(
-                suggestion, suggestion
-            )
+            suggestion = conflated_components_mapping.get(suggestion, suggestion)
 
             if "::" not in suggestion:
                 logger.error(
@@ -107,11 +133,18 @@ class Component(BugbugScript):
             }:
                 continue
 
-            bug_id = str(bug["id"])
+            # Don't move bugs from Firefox::General to Core::Internationalization.
+            if (
+                bug["product"] == "Firefox"
+                and bug["component"] == "General"
+                and suggested_product == "Core"
+                and suggested_component == "Internationalization"
+            ):
+                continue
 
             result = {
                 "id": bug_id,
-                "summary": self.get_summary(bug),
+                "summary": bug["summary"],
                 "component": suggestion,
                 "confidence": nice_round(prob[index]),
                 "autofixed": False,
@@ -139,12 +172,54 @@ class Component(BugbugScript):
                 if self.frequency == "hourly":
                     results[bug_id] = result
 
+        # Don't move bugs back into components they were moved out of.
+        # TODO: Use the component suggestion from the service with the second highest confidence instead.
+        def history_handler(bug):
+            bug_id = str(bug["id"])
+
+            previous_product_components = set()
+
+            current_product = raw_bugs[bug_id]["product"]
+            current_component = raw_bugs[bug_id]["component"]
+
+            for history in bug["history"]:
+                for change in history["changes"][::-1]:
+                    if change["field_name"] == "product":
+                        current_product = change["removed"]
+                    elif change["field_name"] == "component":
+                        current_component = change["removed"]
+
+                previous_product_components.add((current_product, current_component))
+
+            suggested_product = self.autofix_component[bug_id]["product"]
+            suggested_component = self.autofix_component[bug_id]["component"]
+
+            if (suggested_product, suggested_component) in previous_product_components:
+                results[bug_id]["autofixed"] = False
+                del self.autofix_component[bug_id]
+
+        bugids = list(self.autofix_component.keys())
+        Bugzilla(
+            bugids=bugids,
+            historyhandler=history_handler,
+        ).get_data().wait()
+
         return results
 
     def get_autofix_change(self):
-        cc = {"cc": {"add": self.get_config("cc")}}
+        cc = self.get_config("cc")
         return {
-            bug_id: (data.update(cc) or data)
+            bug_id: (
+                data.update(
+                    {
+                        "cc": {"add": cc},
+                        "comment": {
+                            "body": f"The [Bugbug](https://github.com/mozilla/bugbug/) bot thinks this bug should belong to the '{data['product']}::{data['component']}' component, and is moving the bug to that component. Please correct in case you think the bot is wrong."
+                        },
+                    }
+                )
+                or data
+            )
             for bug_id, data in self.autofix_component.items()
         }
 

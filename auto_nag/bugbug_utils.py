@@ -2,105 +2,59 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import copy
-import lzma
 import os
-import shutil
-from urllib.error import HTTPError
-from urllib.request import urlretrieve
+import time
 
 import requests
-from bugbug import bugzilla
-from libmozdata.bugzilla import Bugzilla
 
-from auto_nag import logger
-from auto_nag.bzcleaner import BzCleaner
+BUGBUG_HTTP_SERVER = os.environ.get(
+    "BUGBUG_HTTP_SERVER", "https://bugbug.herokuapp.com/"
+)
 
 
-class BugbugScript(BzCleaner):
-    def __init__(self):
-        super().__init__()
-        self.model = self.model_class.load(self.retrieve_model())
-        self.to_cache = set()
+def classification_http_request(url, bug_ids):
+    response = requests.post(
+        url, headers={"X-Api-Key": "autonag"}, json={"bugs": bug_ids}
+    )
 
-    def retrieve_model(self):
-        os.makedirs("models", exist_ok=True)
+    response.raise_for_status()
 
-        file_name = f"{self.name()}model"
-        file_path = os.path.join("models", file_name)
+    return response.json()
 
-        model_url = f"https://index.taskcluster.net/v1/task/project.relman.bugbug.train_{self.name()}.latest/artifacts/public/{file_name}.xz"
-        r = requests.head(model_url, allow_redirects=True)
-        new_etag = r.headers["ETag"]
 
-        try:
-            with open(f"{file_path}.etag", "r") as f:
-                old_etag = f.read()
-        except IOError:
-            old_etag = None
+def get_bug_ids_classification(model, bug_ids, retry_count=21, retry_sleep=7):
+    if len(bug_ids) == 0:
+        return {}
 
-        if old_etag != new_etag:
-            try:
-                urlretrieve(model_url, f"{file_path}.xz")
-            except HTTPError:
-                logger.exception("Tool {}".format(self.name()))
-                return file_path
+    url = f"{BUGBUG_HTTP_SERVER}/{model}/predict/batch"
 
-            with lzma.open(f"{file_path}.xz", "rb") as input_f:
-                with open(file_path, "wb") as output_f:
-                    shutil.copyfileobj(input_f, output_f)
+    # Copy the bug ids to avoid mutating it
+    bug_ids = set(map(int, bug_ids))
 
-            with open(f"{file_path}.etag", "w") as f:
-                f.write(new_etag)
+    json_response = {}
 
-        return file_path
+    for _ in range(retry_count):
+        response = classification_http_request(url, list(bug_ids))
 
-    def get_data(self):
-        return list()
+        # Check which bug ids are ready
+        for bug_id, bug_data in response["bugs"].items():
+            if not bug_data.get("ready", True):
+                continue
 
-    def amend_bzparams(self, params, bug_ids):
-        super().amend_bzparams(params, bug_ids)
-        params["include_fields"] = "id"
+            # The bug is ready, add it to the json_response and pop it
+            # up from the current batch
+            # The http service returns strings for backward compatibility reasons
+            bug_ids.remove(int(bug_id))
+            json_response[bug_id] = bug_data
 
-    def bughandler(self, bug, data):
-        bugid = bug["id"]
-        if bugid in self.cache:
-            return
-        data.append(bugid)
-
-    def remove_using_history(self, bugs):
-        return bugs
-
-    def failure_callback(self, bugid):
-        self.to_cache.remove(int(bugid))
-
-    def terminate(self):
-        self.add_to_cache(self.to_cache)
-
-    def get_bugs(self, date="today", bug_ids=[]):
-        # Retrieve bugs to analyze.
-        old_CHUNK_SIZE = Bugzilla.BUGZILLA_CHUNK_SIZE
-        try:
-            Bugzilla.BUGZILLA_CHUNK_SIZE = 7000
-            bug_ids = super().get_bugs(date=date, bug_ids=bug_ids)
-        finally:
-            Bugzilla.BUGZILLA_CHUNK_SIZE = old_CHUNK_SIZE
-
-        bugs = bugzilla.get(bug_ids)
-        bugs = list(bugs.values())
-
-        # Add bugs that we are classifying now to the cache.
-        # Normally it's called in bzcleaner::get_mails (with the results of get_bugs)
-        # but since some bugs (we don't want to analyze again) are removed thanks
-        # to their history, we must add_to_cache here.
-        self.to_cache = {bug["id"] for bug in bugs}
-
-        bugs = self.remove_using_history(bugs)
-
-        # Analyze bugs (make a copy as bugbug could change some properties of the objects).
-        if len(bug_ids) > 0:
-            probs = self.model.classify(copy.deepcopy(bugs), True)
+        if len(bug_ids) == 0:
+            break
         else:
-            probs = []
+            time.sleep(retry_sleep)
 
-        return bugs, probs
+    else:
+        total_sleep = retry_count * retry_sleep
+        msg = f"Couldn't get {len(bug_ids)} bug classifications in {total_sleep} seconds, aborting"
+        raise Exception(msg)
+
+    return json_response

@@ -14,16 +14,17 @@ from auto_nag.people import People
 class Nag(object):
     def __init__(self):
         super(Nag, self).__init__()
-        self.people = People()
+        self.people = People.get_instance()
         self.send_nag_mail = True
         self.data = {}
         self.nag_date = None
         self.white_list = []
         self.black_list = []
         self.escalation = Escalation(self.people)
-        self.triage_owners = {}
+        self.triage_owners_components = {}
         self.all_owners = None
         self.query_params = {}
+        self.round_robin = None
 
     @staticmethod
     def get_from():
@@ -117,25 +118,29 @@ class Nag(object):
         )
 
     def add_triage_owner(self, owners, real_owner):
+        if self.round_robin is None:
+            return
+
         if not isinstance(owners, list):
             owners = [owners]
         for owner in owners:
-            if owner not in self.triage_owners:
-                self.triage_owners[owner] = self.get_query_url_for_triage_owner(
-                    real_owner
+            person = self.people.get_moz_mail(owner)
+            if person not in self.triage_owners_components:
+                self.triage_owners_components[person] = set(
+                    self.round_robin.get_components_for_triager(owner)
                 )
+            else:
+                self.triage_owners_components[
+                    person
+                ] |= self.round_robin.get_components_for_triager(owner)
 
-    def get_query_url_for_triage_owner(self, owner):
-        if self.all_owners is None:
-            self.all_owners = utils.get_triage_owners()
+    def get_query_url_for_components(self, components):
         params = copy.deepcopy(self.query_params)
-        if "include_fields" in params:
-            del params["include_fields"]
+        for field in ["include_fields", "product", "component", "bug_id"]:
+            if field in params:
+                del params[field]
 
-        comps = self.all_owners[owner]
-        comps = set(comps)
-
-        params["component"] = sorted(comps)
+        utils.add_prod_comp_to_query(params, components)
         url = utils.get_bz_search_url(params)
 
         return url
@@ -162,7 +167,7 @@ class Nag(object):
         mails = self.prepare_mails()
 
         for m in mails:
-            Cc = Default_Cc.copy()
+            Cc = Default_Cc | m["management_chain"]
             if m["manager"]:
                 Cc.add(m["manager"])
             body = common.render(message=m["body"], query_url=None)
@@ -193,6 +198,10 @@ class Nag(object):
         if not template:
             return []
 
+        # If we escalating only to hierarchical mangers, we should always have a
+        # management chain.
+        fail_on_missing_mgmt_chain = self.escalation.is_hierarchical_escalation_only()
+
         extra = self.get_extra_for_nag_template()
         env = Environment(loader=FileSystemLoader("templates"))
         template = env.get_template(template)
@@ -204,6 +213,8 @@ class Nag(object):
 
             data = []
             To = sorted(info.keys())
+            components = set()
+            management_chain = set()
             for person in To:
                 data += [
                     bug_data
@@ -211,9 +222,15 @@ class Nag(object):
                     if bug_data["id"] not in added_bug_ids
                 ]
                 added_bug_ids.update(bug_data["id"] for bug_data in info[person])
+                if person in self.triage_owners_components:
+                    components |= self.triage_owners_components[person]
 
-            if len(To) == 1 and To[0] in self.triage_owners:
-                query_url = self.triage_owners[To[0]]
+                management_chain |= self.people.get_management_chain_mails(
+                    person, manager, fail_on_missing_mgmt_chain
+                )
+
+            if components:
+                query_url = self.get_query_url_for_components(sorted(components))
             else:
                 query_url = None
 
@@ -224,12 +241,17 @@ class Nag(object):
                 enumerate=enumerate,
                 data=self.organize_nag(data),
                 nag=True,
-                query_url_nag=query_url,
+                query_url_nag=utils.shorten_long_bz_url(query_url),
                 table_attrs=self.get_config("table_attrs"),
                 nag_preamble=self.nag_preamble(),
             )
 
-            m = {"manager": manager, "to": set(info.keys()), "body": body}
+            m = {
+                "manager": manager,
+                "management_chain": management_chain,
+                "to": set(To),
+                "body": body,
+            }
             mails.append(m)
 
         return mails

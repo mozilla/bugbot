@@ -6,9 +6,6 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class LeaveOpen(BzCleaner):
-    def __init__(self):
-        super(LeaveOpen, self).__init__()
-
     def description(self):
         return "Closed bugs with leave-open keyword"
 

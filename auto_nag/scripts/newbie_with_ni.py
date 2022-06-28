@@ -12,7 +12,7 @@ from auto_nag.people import People
 class NewbieWithNI(BzCleaner):
     def __init__(self):
         super(NewbieWithNI, self).__init__()
-        self.people = People()
+        self.people = People.get_instance()
         self.ndays = utils.get_config(self.name(), "number_of_days", 14)
         self.ncomments = utils.get_config(self.name(), "number_of_comments", 2)
         self.autofix_reporters = {}
@@ -42,8 +42,7 @@ class NewbieWithNI(BzCleaner):
             }
 
     def filter_interesting_bugs(self, bugs):
-        """Get the bugs with number of comments less than self.ncommments
-        """
+        """Get the bugs with number of comments less than self.ncommments"""
 
         def comment_handler(bug, bugid, data):
             if len(bug["comments"]) <= self.ncomments:

@@ -14,7 +14,7 @@ def send_mail(nag, dryrun=False):
             "round_robin_fallback_email.html",
             fb,
             "Triage owners need to be updated",
-            Cc=utils.get_config("common", "receivers"),
+            Cc=utils.get_receivers("common"),
             dryrun=dryrun,
             calendars=calendars,
             plural=utils.plural,
@@ -22,22 +22,20 @@ def send_mail(nag, dryrun=False):
 
 
 def check_people(date, dryrun=False):
-    rr = RoundRobin()
+    rr = RoundRobin.get_instance()
     # nag is a dict: persons -> list of persons
     #                team -> team name
     nag = rr.get_who_to_nag(date)
-    print(nag)
     send_mail(nag, dryrun=dryrun)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Check if next release date is ok")
     parser.add_argument(
-        "-d",
-        "--dryrun",
+        "--production",
         dest="dryrun",
-        action="store_true",
-        help="Just do the query, and print emails to console without emailing anyone",
+        action="store_false",
+        help="If the flag is not passed, just do the query, and print emails to console without emailing anyone",
     )
     parser.add_argument(
         "-D",

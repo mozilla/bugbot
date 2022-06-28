@@ -31,7 +31,7 @@ class Calendar(object):
     def __init__(self, cal, fallback, team_name, people=None):
         super(Calendar, self).__init__()
         self.cal = cal
-        self.people = People() if people is None else people
+        self.people = People.get_instance() if people is None else people
         self.fallback = fallback
         self.fb_bzmail = self.people.get_bzmail_from_name(self.fallback)
         self.fb_mozmail = self.people.get_moz_mail(self.fb_bzmail)
@@ -104,7 +104,9 @@ class Calendar(object):
 
                 return ICSCalendar(data, fallback, team_name, people=people)
             except ValueError:
-                raise InvalidCalendar("Cannot decode calendar: {}".format(url))
+                raise InvalidCalendar(
+                    f"Cannot decode calendar: {url} for team {team_name}"
+                )
 
     def __str__(self):
         return f"""Round robin calendar:
@@ -163,6 +165,10 @@ class JSONCalendar(Calendar):
 
 
 class ICSCalendar(Calendar):
+
+    # The summary can be "[Gfx Triage] Foo Bar" or just "Foo Bar"
+    SUM_PAT = re.compile(r"\s*(?:\[[^\]]*\])?\s*(.*)")
+
     def __init__(self, cal, fallback, team_name, people=None):
         super(ICSCalendar, self).__init__(cal, fallback, team_name, people=people)
         self.set_tz()
@@ -176,6 +182,13 @@ class ICSCalendar(Calendar):
         else:
             self.cal_tz = UTC
 
+    def get_person(self, p):
+        g = ICSCalendar.SUM_PAT.match(p)
+        if g:
+            p = g.group(1)
+            p = p.strip()
+        return p
+
     def get_persons(self, date):
         date = lmdutils.get_date_ymd(date)
         date += relativedelta(seconds=1)
@@ -184,8 +197,9 @@ class ICSCalendar(Calendar):
             return self.cache[date]
 
         res = parse_events(self.cal, start=date, end=date)
+        persons = [self.get_person(p.summary) for p in res]
         self.cache[date] = res = [
-            (p.summary, self.people.get_bzmail_from_name(p.summary)) for p in res
+            (person, self.people.get_bzmail_from_name(person)) for person in persons
         ]
 
         return res

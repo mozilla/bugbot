@@ -6,9 +6,6 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class DupeMe(BzCleaner):
-    def __init__(self):
-        super(DupeMe, self).__init__()
-
     def description(self):
         return "Closed bugs with dupeme keyword"
 

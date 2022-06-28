@@ -8,24 +8,20 @@ import json
 import os
 import random
 import re
+from typing import Union
+from urllib.parse import urlencode
 
 import dateutil.parser
 import humanize
 import pytz
 import requests
-import six
 from dateutil.relativedelta import relativedelta
 from libmozdata import release_calendar as rc
 from libmozdata import utils as lmdutils
 from libmozdata import versions as lmdversions
-from libmozdata.bugzilla import Bugzilla
+from libmozdata.bugzilla import Bugzilla, BugzillaShorten
 from libmozdata.hgmozilla import Mercurial
-
-try:
-    from urllib.parse import urlencode
-except ImportError:
-    from urllib import urlencode
-
+from requests.exceptions import HTTPError
 
 _CONFIG = None
 _CYCLE_SPAN = None
@@ -36,6 +32,19 @@ _CURRENT_VERSIONS = None
 _CONFIG_PATH = "./auto_nag/scripts/configs/"
 
 
+# TODO: should be moved when resolving https://github.com/mozilla/relman-auto-nag/issues/1384
+HIGH_PRIORITY = {"P1", "P2"}
+HIGH_SEVERITY = {"S1", "critical", "S2", "major"}
+OLD_SEVERITY_MAP = {
+    "critical": "S1",
+    "major": "S2",
+    "normal": "S3",
+    "minor": "S4",
+    "trivial": "S4",
+    "enhancement": "S4",
+}
+
+
 BZ_FIELD_PAT = re.compile(r"^[fovj]([0-9]+)$")
 PAR_PAT = re.compile(r"\([^\)]*\)")
 BRA_PAT = re.compile(r"\[[^\]]*\]")
@@ -44,6 +53,12 @@ UTC_PAT = re.compile(r"UTC\+[^ \t]*")
 COL_PAT = re.compile(":[^:]*")
 BACKOUT_PAT = re.compile("^back(s|(ed))?[ \t]*out", re.I)
 BUG_PAT = re.compile(r"^bug[s]?[ \t]*([0-9]+)", re.I)
+
+MAX_URL_LENGTH = 512
+
+
+def get_weekdays():
+    return {"Mon": 0, "Tue": 1, "Wed": 2, "Thu": 3, "Fri": 4, "Sat": 5, "Sun": 6}
 
 
 def _get_config():
@@ -66,6 +81,20 @@ def get_config(name, entry, default=None):
         return tool_conf[entry]
     tool_conf = conf["common"]
     return tool_conf.get(entry, default)
+
+
+def get_receivers(tool_name):
+    receiver_lists = get_config("common", "receiver_list", default={})
+
+    receivers = get_config(tool_name, "receivers", [])
+    if isinstance(receivers, str):
+        receivers = receiver_lists[receivers]
+
+    additional_receivers = get_config(tool_name, "additional_receivers", [])
+    if isinstance(additional_receivers, str):
+        additional_receivers = receiver_lists[additional_receivers]
+
+    return list(dict.fromkeys([*receivers, *additional_receivers]))
 
 
 def init_random():
@@ -135,7 +164,7 @@ def get_private():
 
 
 def plural(sword, data, pword=""):
-    if isinstance(data, six.integer_types):
+    if isinstance(data, int):
         p = data != 1
     else:
         p = len(data) != 1
@@ -144,6 +173,36 @@ def plural(sword, data, pword=""):
     if pword:
         return pword
     return sword + "s"
+
+
+def english_list(items):
+    assert len(items) > 0
+    if len(items) == 1:
+        return items[0]
+
+    return "{} and {}".format(", ".join(items[:-1]), items[-1])
+
+
+def shorten_long_bz_url(url):
+    if not url or len(url) <= MAX_URL_LENGTH:
+        return url
+
+    # the url can be very long and line length are limited in email protocol:
+    # https://datatracker.ietf.org/doc/html/rfc5322#section-2.1.1
+    # So we need to generate a short URL.
+
+    def url_handler(u, data):
+        data["url"] = u
+
+    data = {}
+    try:
+        BugzillaShorten(url, url_data=data, url_handler=url_handler).wait()
+    except HTTPError:  # workaround for https://github.com/mozilla/relman-auto-nag/issues/1402
+        return "\n".join(
+            [url[i : i + MAX_URL_LENGTH] for i in range(0, len(url), MAX_URL_LENGTH)]
+        )
+
+    return data["url"]
 
 
 def search_prev_merge(beta):
@@ -252,6 +311,29 @@ def get_last_field_num(params):
     return str(x)
 
 
+def add_prod_comp_to_query(params, prod_comp):
+    n = int(get_last_field_num(params))
+    params[f"j{n}"] = "OR"
+    params[f"f{n}"] = "OP"
+    n += 1
+    for pc in prod_comp:
+        prod, comp = pc.split("::")
+        params[f"j{n}"] = "AND"
+        params[f"f{n}"] = "OP"
+        n += 1
+        params[f"f{n}"] = "product"
+        params[f"o{n}"] = "equals"
+        params[f"v{n}"] = prod
+        n += 1
+        params[f"f{n}"] = "component"
+        params[f"o{n}"] = "equals"
+        params[f"v{n}"] = comp
+        n += 1
+        params[f"f{n}"] = "CP"
+        n += 1
+    params[f"f{n}"] = "CP"
+
+
 def get_bz_search_url(params):
     return "https://bugzilla.mozilla.org/buglist.cgi?" + urlencode(params, doseq=True)
 
@@ -276,21 +358,23 @@ def get_triage_owners():
     url = "https://bugzilla.mozilla.org/rest/product"
     params = {
         "type": "accessible",
-        "include_fields": ["components.name", "components.triage_owner"],
+        "include_fields": ["name", "components.name", "components.triage_owner"],
         "names": prods,
     }
     r = requests.get(url, params=params)
     products = r.json()["products"]
     _TRIAGE_OWNERS = {}
     for prod in products:
+        prod_name = prod["name"]
         for comp in prod["components"]:
             owner = comp["triage_owner"]
             if owner and not is_no_assignee(owner):
                 comp_name = comp["name"]
+                pc = f"{prod_name}::{comp_name}"
                 if owner not in _TRIAGE_OWNERS:
-                    _TRIAGE_OWNERS[owner] = [comp_name]
+                    _TRIAGE_OWNERS[owner] = [pc]
                 else:
-                    _TRIAGE_OWNERS[owner].append(comp_name)
+                    _TRIAGE_OWNERS[owner].append(pc)
     return _TRIAGE_OWNERS
 
 
@@ -510,7 +594,7 @@ def ireplace(old, repl, text):
 
 def get_human_lag(date):
     today = pytz.utc.localize(datetime.datetime.utcnow())
-    dt = dateutil.parser.parse(date)
+    dt = dateutil.parser.parse(date) if isinstance(date, str) else date
 
     return humanize.naturaldelta(today - dt)
 
@@ -533,3 +617,78 @@ def get_nightly_version_from_bz():
 
 def nice_round(val):
     return int(round(100 * val))
+
+
+def get_sort_by_bug_importance_key(bug):
+    """
+    We need bugs with high severity (S1 or S2) or high priority (P1 or P2) to be
+    first (do not need to be high in both). Next, bugs with higher priority and
+    severity are preferred. Finally, for bugs with the same severity and priority,
+    we favour recently changed or created bugs.
+    """
+
+    is_important = bug["priority"] in HIGH_PRIORITY or bug["severity"] in HIGH_SEVERITY
+    priority = bug["priority"] if bug["priority"].startswith("P") else "P10"
+    severity = (
+        bug["severity"]
+        if bug["severity"].startswith("S")
+        else OLD_SEVERITY_MAP.get(bug["severity"], "S10")
+    )
+    time_order = (
+        lmdutils.get_timestamp(bug["last_change_time"])
+        if "last_change_time" in bug
+        else int(bug["id"])  # Bug ID reflects the creation order
+    )
+
+    return (
+        not is_important,
+        severity,
+        priority,
+        time_order * -1,
+    )
+
+
+def get_mail_to_ni(bug: dict) -> Union[dict, None]:
+    """Get the person that should be needinfoed about the bug.
+
+    If the bug is assigned, the assignee will be selected. Otherwise, will
+    fallback to the triage owner.
+
+    Args:
+        bug: The bug that you need to send a needinfo request about.
+
+    Returns:
+        A dict with the nicname and the email of the person that should receive
+        the needinfo request. If not available will return None.
+
+    """
+
+    for field in ["assigned_to", "triage_owner"]:
+        person = bug.get(field, "")
+        if not is_no_assignee(person):
+            return {"mail": person, "nickname": bug[f"{field}_detail"]["nick"]}
+
+    return None
+
+
+def get_name_from_user_detail(detail: dict) -> str:
+    """Get the name of the user from the detail object.
+
+    Returns:
+        The name of the user or the email as a fallback.
+    """
+    name = detail["real_name"]
+    if is_no_assignee(detail["email"]):
+        name = "nobody"
+    if name.strip() == "":
+        name = detail["name"]
+        if name.strip() == "":
+            name = detail["email"]
+
+    return name
+
+
+def is_weekend(date: Union[datetime.datetime, str]) -> bool:
+    """Get if the provided date is a weekend day (Saturday or Sunday)"""
+    parsed_date = lmdutils.get_date_ymd(date)
+    return parsed_date.weekday() >= 5

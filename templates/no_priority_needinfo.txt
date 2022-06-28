@@ -1,4 +1,0 @@
-The priority flag is not set for this bug.
-:{{ nickname }}, could you have a look please?
-
-{{ documentation }}

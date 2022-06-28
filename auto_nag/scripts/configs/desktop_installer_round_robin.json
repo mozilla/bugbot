@@ -1,0 +1,11 @@
+{
+  "fallback": "Amir Habibi",
+  "components": {
+    "Firefox::Installer": "default",
+    "Toolkit::Application Update": "default",
+    "Firefox::Shell Integration": "default"
+  },
+  "default": {
+    "calendar": "private://Desktop Integrations"
+  }
+}

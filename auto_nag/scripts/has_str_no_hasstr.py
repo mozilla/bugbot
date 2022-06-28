@@ -14,9 +14,6 @@ STR = re.compile(r"^(?:Step[s]? to reproduce|STR|Step[s]?)[ \t]*:", re.I | re.MU
 
 
 class HasStrNoHasstr(BzCleaner):
-    def __init__(self):
-        super(HasStrNoHasstr, self).__init__()
-
     def description(self):
         return "Bugs with no has_str and STR in the first comment"
 

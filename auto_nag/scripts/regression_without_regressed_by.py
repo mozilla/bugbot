@@ -10,9 +10,6 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class RegressionWithoutRegressedBy(BzCleaner):
-    def __init__(self):
-        super(RegressionWithoutRegressedBy, self).__init__()
-
     def description(self):
         return "Regressions without regressed_by and some dependencies"
 
@@ -150,47 +147,50 @@ class RegressionWithoutRegressedBy(BzCleaner):
 
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
-        fields = ["blocks", "depends_on", "assigned_to", "creator", "creation_time"]
+        fields = [
+            "blocks",
+            "depends_on",
+            "assigned_to",
+            "creator",
+            "creation_time",
+        ]
         reporter_skiplist = self.get_config("reporter_skiplist", default=[])
         reporter_skiplist = ",".join(reporter_skiplist)
         params = {
             "include_fields": fields,
             "bug_status": "__open__",
-            "j1": "OR",
+            "j1": "AND",
             "f1": "OP",
             "f2": "keywords",
             "o2": "casesubstring",
             "v2": "regression",
-            "f3": "cf_has_regression_range",
-            "o3": "equals",
-            "v3": "yes",
-            "f4": "CP",
-            "f5": "regressed_by",
-            "o5": "isempty",
-            "n6": 1,
-            "f6": "regressed_by",
-            "o6": "changedafter",
-            "v6": "1970-01-01",
-            "j7": "OR",
-            "f7": "OP",
-            "f8": "blocked",
-            "o8": "isnotempty",
-            "f9": "dependson",
-            "o9": "isnotempty",
-            "f10": "CP",
-            "f11": "creation_ts",
-            "o11": "greaterthan",
-            "v11": start_date,
-            "f12": "keywords",
+            "j3": "OR",
+            "f3": "OP",
+            "f4": "blocked",
+            "o4": "isnotempty",
+            "f5": "dependson",
+            "o5": "isnotempty",
+            "f6": "CP",
+            "f7": "CP",
+            "f8": "regressed_by",
+            "o8": "isempty",
+            "n9": 1,
+            "f9": "regressed_by",
+            "o9": "changedafter",
+            "v9": "1970-01-01",
+            "f10": "creation_ts",
+            "o10": "greaterthan",
+            "v10": start_date,
+            "f11": "keywords",
+            "o11": "nowords",
+            "v11": "regressionwindow-wanted",
+            "f12": "reporter",
             "o12": "nowords",
-            "v12": "regressionwindow-wanted",
-            "f13": "reporter",
-            "o13": "nowords",
-            "v13": reporter_skiplist,
-            "n14": 1,
-            "f14": "longdesc",
-            "o14": "casesubstring",
-            "v14": "since this bug is a regression, could you fill (if possible) the regressed_by field",
+            "v12": reporter_skiplist,
+            "n13": 1,
+            "f13": "longdesc",
+            "o13": "casesubstring",
+            "v13": "since this bug is a regression, could you fill (if possible) the regressed_by field",
         }
 
         return params

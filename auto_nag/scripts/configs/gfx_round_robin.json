@@ -1,0 +1,17 @@
+{
+  "fallback": "Jessie Bonisteel",
+  "components": {
+    "Canvas::2D": "default",
+    "Canvas::WebGL": "default",
+    "GFX::Color:Management": "default",
+    "Graphics": "default",
+    "Graphics::Layers": "default",
+    "Graphics::Text": "default",
+    "Graphics::WebRender": "default",
+    "Image:Blocking": "default",
+    "ImageLib": "default"
+  },
+  "default": {
+    "calendar": "private://Gfx"
+  }
+}

@@ -3,18 +3,21 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import base64
+import random
 import re
 
-import requests
-from dateutil.relativedelta import relativedelta
 from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import Bugzilla, BugzillaUser
+from libmozdata.phabricator import (
+    PhabricatorAPI,
+    PhabricatorBzNotFoundException,
+    PhabricatorRevisionNotFoundException,
+)
 
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 
 PHAB_URL_PAT = re.compile(r"https://phabricator\.services\.mozilla\.com/D([0-9]+)")
-PHAB_API = "https://phabricator.services.mozilla.com/api/differential.revision.search"
 
 
 class NotLanded(BzCleaner):
@@ -22,7 +25,7 @@ class NotLanded(BzCleaner):
         super(NotLanded, self).__init__()
         self.nweeks = utils.get_config(self.name(), "number_of_weeks", 2)
         self.nyears = utils.get_config(self.name(), "number_of_years", 2)
-        self.phab_token = utils.get_login_info()["phab_api_key"]
+        self.phab = PhabricatorAPI(utils.get_login_info()["phab_api_key"])
         self.extra_ni = {}
 
     def description(self):
@@ -94,9 +97,8 @@ class NotLanded(BzCleaner):
 
         return bugs
 
-    def check_phab(self, attachment):
-        """Check if the patch in Phabricator has been r+
-        """
+    def check_phab(self, attachment, reviewers_phid):
+        """Check if the patch in Phabricator has been r+"""
         if attachment["is_obsolete"] == 1:
             return None
 
@@ -104,17 +106,12 @@ class NotLanded(BzCleaner):
 
         # extract the revision
         rev = PHAB_URL_PAT.search(phab_url).group(1)
-        r = requests.post(
-            PHAB_API,
-            data={
-                "api.token": self.phab_token,
-                "queryKey": "all",
-                "constraints[ids][0]": rev,
-                "attachments[reviewers]": 1,
-            },
-        )
-        r.raise_for_status()
-        data = r.json()["result"]["data"][0]
+        try:
+            data = self.phab.load_revision(
+                rev_id=int(rev), queryKey="all", attachments={"reviewers": 1}
+            )
+        except PhabricatorRevisionNotFoundException:
+            return None
 
         # this is a timestamp
         last_modified = data["fields"]["dateModified"]
@@ -124,12 +121,14 @@ class NotLanded(BzCleaner):
             return False
 
         reviewers = data["attachments"]["reviewers"]["reviewers"]
+
         if not reviewers:
             return False
 
         for reviewer in reviewers:
             if reviewer["status"] != "accepted":
                 return False
+            reviewers_phid.add(reviewer["reviewerPHID"])
 
         value = data["fields"]["status"].get("value", "")
         if value == "changes-planned":
@@ -142,43 +141,12 @@ class NotLanded(BzCleaner):
 
         return False
 
-    def check_splinter(self, attachment):
-        """Check if the patch in Splinter has been r+
-        """
-        if attachment["is_patch"] == 0 or attachment["is_obsolete"] == 1:
-            return None
-
-        data = base64.b64decode(attachment["data"]).decode("utf-8")
-        if data.startswith("https://github.com"):
-            return None
-
-        flags = attachment["flags"]
-        # no flags == no review
-        if not flags:
-            return False
-
-        # no flag called review == no review
-        if all(flag["name"] != "review" for flag in flags):
-            return False
-
-        # check the attachment flags
-        for flag in flags:
-            if flag["name"] == "review" and flag["status"] != "+":
-                return False
-
-        return True
-
     def handle_attachment(self, attachment, res):
         ct = attachment["content_type"]
         c = None
-        if ct == "text/plain":
-            if "splinter" not in res or res["splinter"]:
-                c = self.check_splinter(attachment)
-                if c is not None:
-                    res["splinter"] = c
-        elif ct == "text/x-phabricator-request":
+        if ct == "text/x-phabricator-request":
             if "phab" not in res or res["phab"]:
-                c = self.check_phab(attachment)
+                c = self.check_phab(attachment, res["reviewers_phid"])
                 if c is not None:
                     res["phab"] = c
 
@@ -198,74 +166,114 @@ class NotLanded(BzCleaner):
                 res["count"] = 1
 
     def get_patch_data(self, bugs):
-        """Get patch information in bugs
-        """
-        nightly_pats = Bugzilla.get_landing_patterns(channels=["nightly"])
+        """Get patch information in bugs"""
+        nightly_pat = Bugzilla.get_landing_patterns(channels=["nightly"])[0][0]
 
         def comment_handler(bug, bugid, data):
-            r = Bugzilla.get_landing_comments(bug["comments"], [], nightly_pats)
-            landed = bool(r)
-            if not landed:
-                for comment in bug["comments"]:
-                    comment = comment["text"].lower()
-                    if "backed out" in comment or "backout" in comment:
-                        landed = True
-                        break
+            # if a comment contains a backout: don't nag
+            for comment in bug["comments"]:
+                comment = comment["text"].lower()
+                if nightly_pat.match(comment) and (
+                    "backed out" in comment or "backout" in comment
+                ):
+                    data[bugid]["backout"] = True
 
-            data[bugid]["landed"] = landed
+        def attachment_id_handler(attachments, bugid, data):
+            for a in attachments:
+                if (
+                    a["content_type"] == "text/x-phabricator-request"
+                    and a["is_obsolete"] == 0
+                ):
+                    data.append(a["id"])
 
-        def attachment_handler(attachments, bugid, data):
-            res = {}
+        def attachment_handler(attachments, data):
+            for attachment in attachments:
+                bugid = str(attachment["bug_id"])
+                if bugid in data:
+                    data[bugid].append(attachment)
+                else:
+                    data[bugid] = [attachment]
+
+        bugids = list(bugs.keys())
+        data = {
+            bugid: {"backout": False, "author": None, "count": 0} for bugid in bugids
+        }
+
+        # Get the ids of the attachments of interest
+        # to avoid to download images, videos, ...
+        attachment_ids = []
+        Bugzilla(
+            bugids=bugids,
+            attachmenthandler=attachment_id_handler,
+            attachmentdata=attachment_ids,
+            attachment_include_fields=["is_obsolete", "content_type", "id"],
+        ).get_data().wait()
+
+        # Once we've the ids we can get the data
+        attachments_by_bug = {}
+        Bugzilla(
+            attachmentids=attachment_ids,
+            attachmenthandler=attachment_handler,
+            attachmentdata=attachments_by_bug,
+            attachment_include_fields=[
+                "bug_id",
+                "data",
+                "is_obsolete",
+                "content_type",
+                "id",
+                "creator",
+            ],
+        ).get_data().wait()
+
+        for bugid, attachments in attachments_by_bug.items():
+            res = {"reviewers_phid": set()}
             for attachment in attachments:
                 self.handle_attachment(attachment, res)
 
             if "phab" in res:
                 if res["phab"]:
-                    data[bugid]["patch"] = "phab"
+                    data[bugid]["reviewers_phid"] = res["reviewers_phid"]
                     data[bugid]["author"] = res["author"]
                     data[bugid]["count"] = res["count"]
-            elif "splinter" in res and res["splinter"]:
-                data[bugid]["patch"] = "splinter"
-                data[bugid]["author"] = res["author"]
-                data[bugid]["count"] = res["count"]
 
-        bugids = list(bugs.keys())
-        data = {
-            bugid: {"landed": False, "patch": None, "author": None, "count": 0}
-            for bugid in bugids
-        }
-        Bugzilla(
-            bugids=bugids,
-            attachmenthandler=attachment_handler,
-            attachmentdata=data,
-            attachment_include_fields=[
-                "bug_id",
-                "creator",
-                "data",
-                "is_obsolete",
-                "is_patch",
-                "content_type",
-                "flags",
-            ],
-        ).get_data().wait()
+        data = {bugid: v for bugid, v in data.items() if v["author"]}
 
-        data = {bugid: v for bugid, v in data.items() if v["patch"] is not None}
-        splinter_bugs = [bugid for bugid, v in data.items() if v["patch"] == "splinter"]
+        if not data:
+            return data
 
         Bugzilla(
-            bugids=splinter_bugs,
+            bugids=list(data.keys()),
             commenthandler=comment_handler,
             commentdata=data,
             comment_include_fields=["text"],
         ).get_data().wait()
 
-        data = {
-            bugid: {"authors": v["author"], "patch_count": v["count"]}
-            for bugid, v in data.items()
-            if v["patch"] == "phab" or not v["landed"]
-        }
+        data = {bugid: v for bugid, v in data.items() if not v["backout"]}
 
         return data
+
+    def get_bz_userid(self, phids):
+        if not phids:
+            return {}
+
+        try:
+            data = self.phab.load_bz_account(user_phids=list(phids))
+            users = {x["phid"]: x["id"] for x in data}
+        except PhabricatorBzNotFoundException:
+            return {}
+
+        def handler(user, data):
+            data[str(user["id"])] = user["name"]
+
+        data = {}
+        BugzillaUser(
+            user_names=list(users.values()),
+            include_fields=["id", "name"],
+            user_handler=handler,
+            user_data=data,
+        ).wait()
+
+        return {phid: data[id] for phid, id in users.items()}
 
     def get_nicks(self, nicknames):
         def handler(user, data):
@@ -288,7 +296,6 @@ class NotLanded(BzCleaner):
 
     def get_bz_params(self, date):
         self.date = lmdutils.get_date_ymd(date)
-        start_date = self.date - relativedelta(years=self.nyears)
         fields = ["flags", "depends_on"]
         params = {
             "include_fields": fields,
@@ -298,10 +305,10 @@ class NotLanded(BzCleaner):
             "f2": "attachments.isobsolete",
             "f3": "attachments.mimetype",
             "o3": "anywordssubstr",
-            "v3": "text/x-phabricator-request,text/plain",
+            "v3": "text/x-phabricator-request",
             "f4": "creation_ts",
             "o4": "greaterthan",
-            "v4": start_date,
+            "v4": f"-{self.nyears}y",
             "f5": "days_elapsed",
             "o5": "greaterthaneq",
             "v5": self.nweeks * 7,
@@ -318,21 +325,40 @@ class NotLanded(BzCleaner):
         bugs = self.filter_bugs(bugs)
         bugs_patch = self.get_patch_data(bugs)
         res = {}
+
+        reviewers_phid = set()
         nicknames = {}
         for bugid, data in bugs_patch.items():
+            reviewers_phid |= data["reviewers_phid"]
+            assignee = bugs[bugid]["assigned_to"]
+            if not assignee:
+                assignee = max(data["author"], key=data["author"].get)
+                nicknames[bugid] = assignee
+
+        bz_reviewers = self.get_bz_userid(reviewers_phid)
+        all_reviewers = set(bz_reviewers.keys())
+        nicknames = self.get_nicks(nicknames)
+
+        for bugid, data in bugs_patch.items():
             res[bugid] = d = bugs[bugid]
-            self.extra_ni[bugid] = data["patch_count"]
+            self.extra_ni[bugid] = data["count"]
             assignee = d["assigned_to"]
             nickname = d["nickname"]
-            if not assignee:
-                assignee = max(data["authors"], key=data["authors"].get)
-                nicknames[bugid] = assignee
-            else:
-                self.add_auto_ni(bugid, {"mail": assignee, "nickname": nickname})
 
-        nicknames = self.get_nicks(nicknames)
-        for bugid, (name, nick) in nicknames.items():
-            self.add_auto_ni(bugid, {"mail": name, "nickname": nick})
+            if not assignee:
+                assignee, nickname = nicknames[bugid]
+
+            if not assignee:
+                continue
+
+            self.add_auto_ni(bugid, {"mail": assignee, "nickname": nickname})
+
+            common = all_reviewers & data["reviewers_phid"]
+            if common:
+                reviewer = random.choice(list(common))
+                self.add_auto_ni(
+                    bugid, {"mail": bz_reviewers[reviewer], "nickname": None}
+                )
 
         return res
 

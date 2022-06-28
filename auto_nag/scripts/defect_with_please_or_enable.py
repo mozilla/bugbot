@@ -6,9 +6,6 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class DefectWithPlease(BzCleaner):
-    def __init__(self):
-        super(DefectWithPlease, self).__init__()
-
     def description(self):
         return (
             "Defect with description starting with 'Please', 'Enable', 'Disable', etc"

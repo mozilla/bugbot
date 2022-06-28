@@ -3,11 +3,12 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import argparse
-import inspect
 import os
+import sys
 import time
+from collections import defaultdict
+from datetime import datetime
 
-import six
 from dateutil.relativedelta import relativedelta
 from jinja2 import Environment, FileSystemLoader
 from libmozdata import utils as lmdutils
@@ -23,6 +24,8 @@ class BzCleaner(object):
         super(BzCleaner, self).__init__()
         self._set_tool_name()
         self.has_autofix = False
+        self.autofix_changes = {}
+        self.quota_actions = defaultdict(list)
         self.no_manager = set()
         self.auto_needinfo = {}
         self.has_flags = False
@@ -31,24 +34,12 @@ class BzCleaner(object):
         self.versions = None
         logger.info("Run tool {}".format(self.get_tool_path()))
 
-    def _is_a_bzcleaner_init(self, info):
-        if info[3] == "__init__":
-            frame = info[0]
-            args = inspect.getargvalues(frame)
-            if "self" in args.locals:
-                zelf = args.locals["self"]
-                return isinstance(zelf, BzCleaner)
-        return False
-
     def _set_tool_name(self):
-        stack = inspect.stack()
-        init = [s for s in stack if self._is_a_bzcleaner_init(s)]
-        last = init[-1]
-        info = inspect.getframeinfo(last[0])
+        module = sys.modules[self.__class__.__module__]
         base = os.path.dirname(__file__)
         scripts = os.path.join(base, "scripts")
-        self.__tool_path__ = os.path.relpath(info.filename, scripts)
-        name = os.path.basename(info.filename)
+        self.__tool_path__ = os.path.relpath(module.__file__, scripts)
+        name = os.path.basename(module.__file__)
         name = os.path.splitext(name)[0]
         self.__tool_name__ = name
 
@@ -100,7 +91,15 @@ class BzCleaner(object):
 
     def must_run(self, date):
         """Check if the tool must run for this date"""
-        return True
+        days = self.get_config("must_run", None)
+        if not days:
+            return True
+        weekday = date.weekday()
+        week = utils.get_weekdays()
+        for day in days:
+            if week[day] == weekday:
+                return True
+        return False
 
     def has_enough_data(self):
         """Check if the tool has enough data to run"""
@@ -130,6 +129,20 @@ class BzCleaner(object):
 
     def get_max_ni(self):
         return -1
+
+    def get_max_actions(self):
+        return -1
+
+    def exclude_no_action_bugs(self):
+        """
+        If `True`, then remove bugs that have no actions from the email (e.g.,
+        needinfo got ignored due to exceeding the limit). This is applied only
+        when using the `add_prioritized_action()` method.
+
+        Returning `False` could be useful if we want to list all actions the tool
+        would do if it had no limits.
+        """
+        return True
 
     def ignore_meta(self):
         return False
@@ -201,34 +214,102 @@ class BzCleaner(object):
         }
 
     def get_auto_ni_skiplist(self):
-        return set()
+        """Return a set of email addresses that should never be needinfoed"""
+        return set(self.get_config("needinfo_skiplist", default=[]))
 
     def add_auto_ni(self, bugid, data):
         if not data:
-            return
+            return False
 
         ni_mail = data["mail"]
-        if ni_mail in self.get_auto_ni_skiplist():
-            return
+        if ni_mail in self.get_auto_ni_skiplist() or utils.is_no_assignee(ni_mail):
+            return False
         if ni_mail in self.auto_needinfo:
             max_ni = self.get_max_ni()
             info = self.auto_needinfo[ni_mail]
-            if max_ni <= 0 or len(info["bugids"]) < max_ni:
-                info["bugids"].append(str(bugid))
+            if max_ni > 0 and len(info["bugids"]) >= max_ni:
+                return False
+            info["bugids"].append(str(bugid))
         else:
             self.auto_needinfo[ni_mail] = {
                 "nickname": data["nickname"],
                 "bugids": [str(bugid)],
                 "cc": data.get("cc", False),
             }
+        return True
 
-    def get_receivers(self):
-        receivers = self.get_config("receivers")
-        if isinstance(receivers, six.string_types):
-            receivers = utils.get_config("common", "receiver_list", default={})[
-                receivers
-            ]
-        return receivers
+    def add_prioritized_action(self, bug, quota_name, needinfo=None, autofix=None):
+        """
+        - `quota_name` is the key used to apply the limits, e.g., triage owner, team, or component
+        """
+        assert needinfo or autofix
+
+        # Avoid having more than one ni from our bot
+        if needinfo and self.has_bot_set_ni(bug):
+            needinfo = autofix = None
+
+        action = {
+            "bug": bug,
+            "needinfo": needinfo,
+            "autofix": autofix,
+        }
+
+        self.quota_actions[quota_name].append(action)
+
+    def get_bug_sort_key(self, bug):
+        return None
+
+    def _populate_prioritized_actions(self, bugs):
+        max_actions = self.get_max_actions()
+        max_ni = self.get_max_ni()
+        exclude_no_action_bugs = (
+            len(self.quota_actions) > 0 and self.exclude_no_action_bugs()
+        )
+        bugs_with_action = set()
+
+        for actions in self.quota_actions.values():
+            if len(actions) > max_ni or len(actions) > max_actions:
+                actions.sort(
+                    key=lambda action: (
+                        not action["needinfo"],
+                        self.get_bug_sort_key(action["bug"]),
+                    )
+                )
+
+            ni_count = 0
+            actions_count = 0
+            for action in actions:
+                bugid = str(action["bug"]["id"])
+                if max_actions > 0 and actions_count >= max_actions:
+                    break
+
+                if action["needinfo"]:
+                    if max_ni > 0 and ni_count >= max_ni:
+                        continue
+
+                    ok = self.add_auto_ni(bugid, action["needinfo"])
+                    if not ok:
+                        # If we can't needinfo, we do not add the autofix
+                        continue
+
+                    if "extra" in action["needinfo"]:
+                        self.extra_ni[bugid] = action["needinfo"]["extra"]
+
+                    bugs_with_action.add(bugid)
+                    ni_count += 1
+
+                if action["autofix"]:
+                    assert bugid not in self.autofix_changes
+                    self.autofix_changes[bugid] = action["autofix"]
+                    bugs_with_action.add(bugid)
+
+                if action["autofix"] or action["needinfo"]:
+                    actions_count += 1
+
+        if exclude_no_action_bugs:
+            bugs = {id: bug for id, bug in bugs.items() if id in bugs_with_action}
+
+        return bugs
 
     def bughandler(self, bug, data):
         """bug handler for the Bugzilla query"""
@@ -247,14 +328,7 @@ class BzCleaner(object):
         res["summary"] = self.get_summary(bug)
 
         if self.has_assignee():
-            real = bug["assigned_to_detail"]["real_name"]
-            if utils.is_no_assignee(bug["assigned_to"]):
-                real = "nobody"
-            if real.strip() == "":
-                real = bug["assigned_to_detail"]["name"]
-                if real.strip() == "":
-                    real = bug["assigned_to_detail"]["email"]
-            res["assignee"] = real
+            res["assignee"] = utils.get_name_from_user_detail(bug["assigned_to_detail"])
 
         if self.has_needinfo():
             s = set()
@@ -276,6 +350,9 @@ class BzCleaner(object):
         else:
             data[bugid] = res
 
+    def get_products(self):
+        return self.get_config("products") + self.get_config("additional_products", [])
+
     def amend_bzparams(self, params, bug_ids):
         """Amend the Bugzilla params"""
         if not self.all_include_fields():
@@ -284,7 +361,7 @@ class BzCleaner(object):
                 if isinstance(fields, list):
                     if "id" not in fields:
                         fields.append("id")
-                elif isinstance(fields, six.string_types):
+                elif isinstance(fields, str):
                     if fields != "id":
                         params["include_fields"] = [fields, "id"]
                 else:
@@ -329,14 +406,14 @@ class BzCleaner(object):
             n = utils.get_last_field_num(params)
             params.update(
                 {
-                    "f" + n: "creation_ts",
-                    "o" + n: "greaterthan",
-                    "v" + n: f"-{max_years}y",
+                    f"f{n}": "creation_ts",
+                    f"o{n}": "greaterthan",
+                    f"v{n}": f"-{max_years}y",
                 }
             )
 
         if self.has_default_products():
-            params["product"] = self.get_config("products")
+            params["product"] = self.get_products()
 
         if not self.has_access_to_sec_bugs():
             n = utils.get_last_field_num(params)
@@ -344,7 +421,7 @@ class BzCleaner(object):
 
         self.has_flags = "flags" in params.get("include_fields", [])
 
-    def get_bugs(self, date="today", bug_ids=[]):
+    def get_bugs(self, date="today", bug_ids=[], chunk_size=None):
         """Get the bugs"""
         bugs = self.get_data()
         params = self.get_bz_params(date)
@@ -352,14 +429,21 @@ class BzCleaner(object):
         self.query_url = utils.get_bz_search_url(params)
 
         if isinstance(self, Nag):
-            self.query_params = params
+            self.query_params: dict = params
 
-        Bugzilla(
-            params,
-            bughandler=self.bughandler,
-            bugdata=bugs,
-            timeout=self.get_config("bz_query_timeout"),
-        ).get_data().wait()
+        old_CHUNK_SIZE = Bugzilla.BUGZILLA_CHUNK_SIZE
+        try:
+            if chunk_size:
+                Bugzilla.BUGZILLA_CHUNK_SIZE = chunk_size
+
+            Bugzilla(
+                params,
+                bughandler=self.bughandler,
+                bugdata=bugs,
+                timeout=self.get_config("bz_query_timeout"),
+            ).get_data().wait()
+        finally:
+            Bugzilla.BUGZILLA_CHUNK_SIZE = old_CHUNK_SIZE
 
         self.get_comments(bugs)
 
@@ -419,16 +503,8 @@ class BzCleaner(object):
         for ni_mail, info in self.auto_needinfo.items():
             nick = info["nickname"]
             for bugid in info["bugids"]:
-                comment = template.render(
-                    nickname=nick,
-                    extra=self.get_extra_for_needinfo_template(),
-                    plural=utils.plural,
-                    bugid=bugid,
-                    documentation=doc,
-                )
-                comment = comment.strip() + "\n"
                 data = {
-                    "comment": {"body": comment},
+                    "comment": {"body": ""},
                     "flags": [
                         {
                             "name": "needinfo",
@@ -439,10 +515,24 @@ class BzCleaner(object):
                     ],
                 }
 
-                if info["cc"]:
-                    data["cc"] = {"add": ni_mail}
+                comment = None
+                if nick:
+                    comment = template.render(
+                        nickname=nick,
+                        extra=self.get_extra_for_needinfo_template(),
+                        plural=utils.plural,
+                        bugid=bugid,
+                        documentation=doc,
+                    )
+                    comment = comment.strip() + "\n"
+                    data["comment"]["body"] = comment
 
-                res[bugid] = data
+                if bugid not in res:
+                    res[bugid] = data
+                else:
+                    res[bugid]["flags"] += data["flags"]
+                    if comment:
+                        res[bugid]["comment"]["body"] = comment
 
         return res
 
@@ -451,12 +541,12 @@ class BzCleaner(object):
         # return True if all the keys are bug number
         # (which means that each bug has its own autofix)
         return changes and all(
-            isinstance(bugid, six.integer_types) or bugid.isdigit() for bugid in changes
+            isinstance(bugid, int) or bugid.isdigit() for bugid in changes
         )
 
     def get_autofix_change(self):
         """Get the change to do to autofix the bugs"""
-        return {}
+        return self.autofix_changes
 
     def autofix(self, bugs):
         """Autofix the bugs according to what is returned by get_autofix_change"""
@@ -530,19 +620,24 @@ class BzCleaner(object):
         else:
             self.cache.add(bugs)
 
-    def get_email(self, date, bug_ids=[]):
-        """Get title and body for the email"""
+    def get_email_data(self, date, bug_ids):
         bugs = self.get_bugs(date=date, bug_ids=bug_ids)
+        bugs = self._populate_prioritized_actions(bugs)
         bugs = self.autofix(bugs)
         self.add_to_cache(bugs)
         if bugs:
-            bugs = self.organize(bugs)
+            return self.organize(bugs)
+
+    def get_email(self, date, bug_ids=[]):
+        """Get title and body for the email"""
+        data = self.get_email_data(date, bug_ids)
+        if data:
             extra = self.get_extra_for_template()
             env = Environment(loader=FileSystemLoader("templates"))
             template = env.get_template(self.template())
             message = template.render(
                 date=date,
-                data=bugs,
+                data=data,
                 extra=extra,
                 str=str,
                 enumerate=enumerate,
@@ -552,7 +647,9 @@ class BzCleaner(object):
                 preamble=self.preamble(),
             )
             common = env.get_template("common.html")
-            body = common.render(message=message, query_url=self.query_url)
+            body = common.render(
+                message=message, query_url=utils.shorten_long_bz_url(self.query_url)
+            )
             return self.get_email_subject(date), body
         return None, None
 
@@ -562,7 +659,7 @@ class BzCleaner(object):
             date = lmdutils.get_date(date)
             d = lmdutils.get_date_ymd(date)
             if isinstance(self, Nag):
-                self.nag_date = d
+                self.nag_date: datetime = d
 
             if not self.must_run(d):
                 return
@@ -574,7 +671,7 @@ class BzCleaner(object):
         login_info = utils.get_login_info()
         title, body = self.get_email(date)
         if title:
-            receivers = self.get_receivers()
+            receivers = utils.get_receivers(self.name())
             status = "Success"
             try:
                 mail.send(
@@ -611,11 +708,10 @@ class BzCleaner(object):
         """Get the argumends from the command line"""
         parser = argparse.ArgumentParser(description=self.description())
         parser.add_argument(
-            "-d",
-            "--dryrun",
+            "--production",
             dest="dryrun",
-            action="store_true",
-            help="Just do the query, and print emails to console without emailing anyone",
+            action="store_false",
+            help="If the flag is not passed, just do the query, and print emails to console without emailing anyone",
         )
 
         if not self.ignore_date():

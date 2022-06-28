@@ -1,99 +1,80 @@
 {
-    "fallback": "Sean Voisen",
-    "components":
-    {
-        "Core::CSS Transitions and Animations": "animation",
-        "Core::CSS Parsing and Computation": "style-system",
-        "Core::DOM: CSS Object Model": "style-system",
-        "Core::Layout": "layout-general",
-        "Core::Layout: Block and Inline": "layout-block-inline",
-        "Core::Layout: Columns": "layout-columns",
-        "Core::Layout: Flexbox": "layout-flex",
-        "Core::Layout: Floats": "layout-floats",
-        "Core::Layout: Form Controls": "layout-form-controls",
-        "Core::Layout: Generated Content, Lists, and Counters": "layout-generated",
-        "Core::Layout: Grid": "layout-grid",
-        "Core::Layout: Images, Video, and HTML Frames": "layout-replaced",
-        "Core::Layout: Positioned": "layout-positioned",
-        "Core::Layout: Ruby": "layout-ruby",
-        "Core::Layout: Scrolling and Overflow": "layout-overflow",
-        "Core::Layout: Tables": "layout-tables",
-        "Core::Layout: Text and Fonts": "layout-text",
-        "Core::Print Preview": "printing",
-        "Core::Printing: Output": "printing",
-        "Core::Printing: Setup": "printing",
-        "Core::SVG": "svg"
-    },
-    "animation":
-    {
-        "calendar": "https://gecko.layout.team/triage/animation.json"
-    },
-    "style-system":
-    {
-        "calendar": "https://gecko.layout.team/triage/style-system.json"
-    },
-    "layout-general":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-general.json"
-    },
-    "layout-block-inline":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-block-inline.json"
-    },
-    "layout-columns":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-columns.json"
-    },
-    "layout-flex":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-flex.json"
-    },
-    "layout-floats":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-floats.json"
-    },
-    "layout-form-controls":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-form-controls.json"
-    },
-    "layout-generated":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-generated.json"
-    },
-    "layout-grid":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-grid.json"
-    },
-    "layout-replaced":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-replaced.json"
-    },
-    "layout-positioned":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-positioned.json"
-    },
-    "layout-ruby":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-ruby.json"
-    },
-    "layout-overflow":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-overflow.json"
-    },
-    "layout-tables":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-tables.json"
-    },
-    "layout-text":
-    {
-        "calendar": "https://gecko.layout.team/triage/layout-text.json"
-    },
-    "printing":
-    {
-        "calendar": "https://gecko.layout.team/triage/printing.json"
-    },
-    "svg":
-    {
-        "calendar": "https://gecko.layout.team/triage/svg.json"
-    }
+  "fallback": "Frank Griffith Jr.",
+  "components": {
+    "Core::CSS Transitions and Animations": "animation",
+    "Core::CSS Parsing and Computation": "style-system",
+    "Core::DOM: CSS Object Model": "style-system",
+    "Core::Layout": "layout-general",
+    "Core::Layout: Block and Inline": "layout-block-inline",
+    "Core::Layout: Columns": "layout-columns",
+    "Core::Layout: Flexbox": "layout-flex",
+    "Core::Layout: Floats": "layout-floats",
+    "Core::Layout: Form Controls": "layout-form-controls",
+    "Core::Layout: Generated Content, Lists, and Counters": "layout-generated",
+    "Core::Layout: Grid": "layout-grid",
+    "Core::Layout: Images, Video, and HTML Frames": "layout-replaced",
+    "Core::Layout: Positioned": "layout-positioned",
+    "Core::Layout: Ruby": "layout-ruby",
+    "Core::Layout: Scrolling and Overflow": "layout-overflow",
+    "Core::Layout: Tables": "layout-tables",
+    "Core::Layout: Text and Fonts": "layout-text",
+    "Core::Print Preview": "printing",
+    "Core::Printing: Output": "printing",
+    "Core::Printing: Setup": "printing",
+    "Core::SVG": "svg"
+  },
+  "animation": {
+    "calendar": "https://mozilla.github.io/layout-triage/animation.json"
+  },
+  "style-system": {
+    "calendar": "https://mozilla.github.io/layout-triage/style-system.json"
+  },
+  "layout-general": {
+    "calendar": "https://mozilla.github.io/layout-triage/layout-general.json"
+  },
+  "layout-block-inline": {
+    "calendar": "https://mozilla.github.io/layout-triage/layout-block-inline.json"
+  },
+  "layout-columns": {
+    "calendar": "https://mozilla.github.io/layout-triage/layout-columns.json"
+  },
+  "layout-flex": {
+    "calendar": "https://mozilla.github.io/layout-triage/layout-flex.json"
+  },
+  "layout-floats": {
+    "calendar": "https://mozilla.github.io/layout-triage/layout-floats.json"
+  },
+  "layout-form-controls": {
+    "calendar": "https://mozilla.github.io/layout-triage/layout-form-controls.json"
+  },
+  "layout-generated": {
+    "calendar": "https://mozilla.github.io/layout-triage/layout-generated.json"
+  },
+  "layout-grid": {
+    "calendar": "https://mozilla.github.io/layout-triage/layout-grid.json"
+  },
+  "layout-replaced": {
+    "calendar": "https://mozilla.github.io/layout-triage/layout-replaced.json"
+  },
+  "layout-positioned": {
+    "calendar": "https://mozilla.github.io/layout-triage/layout-positioned.json"
+  },
+  "layout-ruby": {
+    "calendar": "https://mozilla.github.io/layout-triage/layout-ruby.json"
+  },
+  "layout-overflow": {
+    "calendar": "https://mozilla.github.io/layout-triage/layout-overflow.json"
+  },
+  "layout-tables": {
+    "calendar": "https://mozilla.github.io/layout-triage/layout-tables.json"
+  },
+  "layout-text": {
+    "calendar": "https://mozilla.github.io/layout-triage/layout-text.json"
+  },
+  "printing": {
+    "calendar": "https://mozilla.github.io/layout-triage/printing.json"
+  },
+  "svg": {
+    "calendar": "https://mozilla.github.io/layout-triage/svg.json"
+  }
 }

@@ -6,9 +6,9 @@ import calendar
 import csv
 import json
 import os
+from typing import Any
 
 import dateutil.parser
-import six
 from filelock import FileLock
 from libmozdata import utils as lmdutils
 from sqlalchemy import Column, ForeignKey, Integer, String, create_engine
@@ -19,7 +19,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from auto_nag import logger, utils
 from auto_nag.history import History
 
-Base = declarative_base()
+Base: Any = declarative_base()
 lock_path = utils.get_config("common", "lock")
 db_url = utils.get_config("common", "database")
 engine = create_engine(db_url)
@@ -29,9 +29,9 @@ session = DBSession()
 
 
 def init():
-    hist = History().get()
+    history = History().get()
     logger.info("Put history in db: start...")
-    BugChange.import_from_dict(hist)
+    BugChange.import_from_dict(history)
     logger.info("Put history in db: end.")
 
 
@@ -43,10 +43,10 @@ def check(table_name):
 
 
 def get_ts(date, default=0):
-    if isinstance(date, six.integer_types):
+    if isinstance(date, int):
         return date
     if date:
-        if isinstance(date, six.string_types):
+        if isinstance(date, str):
             date = dateutil.parser.parse(date)
         date = int(calendar.timegm(date.timetuple()))
         return date
@@ -191,9 +191,9 @@ class BugChange(Base):
 
     @staticmethod
     def import_from_dict(data):
-        for x in data:
+        for bug in data:
             tool, date, bugid, extra = (
-                x[f] for f in ["tool", "date", "bugid", "extra"]
+                bug[field] for field in ["tool", "date", "bugid", "extra"]
             )
             session.add(BugChange(tool, date, bugid, extra))
         session.commit()
@@ -335,9 +335,9 @@ class Email(Base):
 
     @staticmethod
     def import_from_dict(data):
-        for x in data:
+        for email in data:
             tool, date, user, extra, result = (
-                x[f] for f in ["tool", "date", "user", "extra", "result"]
+                email[field] for field in ["tool", "date", "user", "extra", "result"]
             )
             session.add(Email(tool, date, user, extra, result))
         session.commit()

@@ -5,9 +5,9 @@
 import json
 import re
 from math import sqrt
+from typing import Set
 
 import numpy as np
-import six
 
 WORDS = re.compile(r"(\w+)")
 MAIL = re.compile(r"^([^@]+@[^ ]+)")
@@ -29,6 +29,9 @@ IM_NICK = re.compile(r"([\w\.@]+)")
 
 
 class People:
+
+    _instance = None
+
     def __init__(self, p=None):
         if p is None:
             with open("./auto_nag/scripts/configs/people.json", "r") as In:
@@ -48,6 +51,12 @@ class People:
         self.names = {}
         self._amend()
         self.matrix = None
+
+    @staticmethod
+    def get_instance():
+        if People._instance is None:
+            People._instance = People()
+        return People._instance
 
     def _get_name_parts(self, name):
         """Get names from name"""
@@ -275,19 +284,64 @@ class People:
             return None
 
         manager = person["manager"]
-        if manager:
-            return manager["dn"]
+        if not manager:
+            return None
 
-        return None
+        manager_mail = manager["dn"]
+        if manager_mail == mail:
+            return None
+
+        return manager_mail
 
     def get_nth_manager_mail(self, mail, rank):
-        """Get the manager of the person with this mail"""
+        """Get the nth manager of the person with this mail"""
         for _ in range(rank):
             prev = mail
             mail = self.get_manager_mail(mail)
             if not mail or mail == prev:
                 return prev
         return mail
+
+    def get_management_chain_mails(
+        self, person: str, superior: str, raise_on_missing: bool = True
+    ) -> Set[str]:
+        """Get the mails of people in the management chain between a person and
+        their superior.
+
+        Args:
+            person: the moz email of an employee.
+            superior: the moz email of one of the employee's superiors.
+            raise_on_missing: If True, an exception will be raised when the
+                superior is not in the management hierarchy of the employee. If
+                False, an empty set will be returned instead of raising an
+                exception.
+
+        Returns:
+            A set of moz emails for people in the management chain between
+            `person` and `superior`. Emails for `person` and `superior` will not
+            be returned with the result.
+        """
+        result: Set[str] = set()
+
+        assert person in self.people
+        assert superior in self.people
+        if person == superior:
+            return result
+
+        manager = self.get_manager_mail(person)
+        while manager != superior:
+            result.add(manager)
+            manager = self.get_manager_mail(manager)
+
+            if not manager:
+                if not raise_on_missing:
+                    return set()
+                raise Exception(f"Cannot identify {superior} as a superior of {person}")
+
+            if manager in result:
+                raise Exception("Circular management chain")
+
+        return result
 
     def get_director_mail(self, mail):
         """Get the director of the person with this mail"""
@@ -324,7 +378,7 @@ class People:
         im = person.get("im", "")
         if not im:
             return []
-        if isinstance(im, six.string_types):
+        if isinstance(im, str):
             return [im]
         return im
 
@@ -345,7 +399,7 @@ class People:
         aliases = person.get("emailalias", "")
         if not aliases:
             return []
-        if isinstance(aliases, six.string_types):
+        if isinstance(aliases, str):
             return [aliases]
         return aliases
 
@@ -360,15 +414,17 @@ class People:
         return person["mail"]
 
     def get_moz_mail(self, mail):
-        """Get the manager of the person with this mail"""
+        """Get the Mozilla email of the person with this Bugzilla email"""
         person = self._get_people_by_bzmail().get(mail, None)
         if person:
             return person["mail"]
         return mail
 
     def get_moz_name(self, mail):
-        """Get the manager of the person with this mail"""
+        """Get the name of the person with this Bugzilla email"""
         person = self._get_people_by_bzmail().get(mail, None)
+        if person is None:
+            return None
         return person["cn"]
 
     def get_info(self, mail):

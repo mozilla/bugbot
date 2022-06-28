@@ -10,7 +10,7 @@ from auto_nag.people import People
 class LeaveOpenNoActivity(BzCleaner):
     def __init__(self):
         super(LeaveOpenNoActivity, self).__init__()
-        self.people = People()
+        self.people = People.get_instance()
         self.nmonths = utils.get_config(self.name(), "months_lookup")
         self.max_ni = utils.get_config(self.name(), "max_ni")
         self.skiplist = set(utils.get_config(self.name(), "skiplist", []))
@@ -27,16 +27,16 @@ class LeaveOpenNoActivity(BzCleaner):
         return {"nmonths": self.nmonths}
 
     def get_auto_ni_skiplist(self):
-        return self.skiplist
+        return super().get_auto_ni_skiplist() | self.skiplist
 
     def get_max_ni(self):
         return self.max_ni
 
     def get_mail_to_auto_ni(self, bug):
-        for f in ["assigned_to", "triage_owner"]:
-            person = bug.get(f, "")
+        for field in ["assigned_to", "triage_owner"]:
+            person = bug.get(field, "")
             if person and self.people.is_mozilla(person):
-                return {"mail": person, "nickname": bug[f + "_detail"]["nick"]}
+                return {"mail": person, "nickname": bug[f"{field}_detail"]["nick"]}
 
         return None
 
@@ -49,8 +49,8 @@ class LeaveOpenNoActivity(BzCleaner):
             "o1": "casesubstring",
             "v1": "leave-open",
             "f2": "keywords",
-            "o2": "notsubstring",
-            "v2": "intermittent",
+            "o2": "nowordssubstr",
+            "v2": "intermittent,stalled,meta",
             "f3": "status_whiteboard",
             "o3": "notregexp",
             "v3": r"\[(test|stockwell) disabled.*\]",

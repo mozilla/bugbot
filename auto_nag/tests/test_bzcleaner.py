@@ -5,7 +5,7 @@ import unittest
 
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag.scripts.tracked_bad_severity import TrackedBadSeverity
+from auto_nag.scripts.inactive_ni_pending import InactiveNeedinfoPending
 
 
 class TestBZClearner(unittest.TestCase):
@@ -37,19 +37,19 @@ class TestBZClearner(unittest.TestCase):
 
 class TestBZClearnerClass(unittest.TestCase):
     def test_description(self):
-        assert "Bug tracked" in TrackedBadSeverity().description()
+        assert "Bugs with needinfo pending" in InactiveNeedinfoPending().description()
 
     def test_name(self):
-        assert TrackedBadSeverity().name() == "tracked_bad_severity"
+        assert InactiveNeedinfoPending().name() == "inactive_ni_pending"
 
     def test_template(self):
-        assert TrackedBadSeverity().template() == "tracked_bad_severity.html"
+        assert InactiveNeedinfoPending().template() == "inactive_ni_pending.html"
 
     def test_subject(self):
-        assert "Bug tracked" in TrackedBadSeverity().subject()
+        assert "Bugs with needinfo pending" in InactiveNeedinfoPending().subject()
 
     def test_get_bz_params(self):
-        tool = TrackedBadSeverity()
+        tool = InactiveNeedinfoPending()
         if not tool.has_enough_data():
             # we've non-following versions in product-details
             # so cheat on versions.
@@ -57,11 +57,12 @@ class TestBZClearnerClass(unittest.TestCase):
             tool.status_release = utils.get_flag(
                 tool.versions["release"], "status", "release"
             )
+            tool.flags_map = {}
 
-        p = tool.get_bz_params(None)
-        assert p["f1"] == "OP"
-        assert "cf_tracking_firefox" in p["f3"]
-        assert "enhancement" in p["bug_severity"]
+        p = tool.get_bz_params("today")
+        assert p["o1"] == "equals"
+        assert "flagtypes" in p["f1"]
+        assert "type" in p["include_fields"]
 
     def test_ignore_date(self):
-        self.assertTrue(TrackedBadSeverity().ignore_date())
+        self.assertFalse(InactiveNeedinfoPending().ignore_date())

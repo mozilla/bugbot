@@ -17,7 +17,7 @@ from . import logger, mail, utils
 def send_mail(next_date, bad_date_nrd, bad_date_ro, dryrun=False):
     mail.send_from_template(
         "next_release_email",
-        utils.get_config("next-release", "receivers"),
+        utils.get_receivers("next-release"),
         "Next release date is not up-to-date",
         dryrun=dryrun,
         next_date=next_date,
@@ -75,11 +75,10 @@ def check_dates(dryrun=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Check if next release date is ok")
     parser.add_argument(
-        "-d",
-        "--dryrun",
+        "--production",
         dest="dryrun",
-        action="store_true",
-        help="Just do the query, and print emails to console without emailing anyone",
+        action="store_false",
+        help="If the flag is not passed, just do the query, and print emails to console without emailing anyone",
     )
     args = parser.parse_args()
     try:

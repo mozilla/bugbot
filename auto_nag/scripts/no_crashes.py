@@ -59,13 +59,15 @@ class NoCrashes(BzCleaner):
 
     def chunkify(self, signatures):
         """Make some chunks with signatures,
-           the total length of each chunk must be <= 1536"""
+        the total length of each chunk must be <= 1536"""
         total = sum(len(s) for s in signatures)
         M = 1536
         n = total // M + 1
         res = [[M, []] for _ in range(n)]
         for s in signatures:
             L = len(s)
+            if L > M:
+                continue
             added = False
             for i in res:
                 if L < i[0]:
@@ -75,7 +77,7 @@ class NoCrashes(BzCleaner):
                     break
             if not added:
                 res.append([M - L, [s]])
-        res = [x for _, x in res]
+        res = [x for _, x in res if len(x)]
         return res, max(len(x) for x in res)
 
     def bughandler(self, bug, data):

@@ -22,7 +22,7 @@ class History(object):
         def bug_handler(bug, data):
             data.add(bug["id"])
 
-        fields = {
+        fields_map = {
             "changedby": [
                 "keywords",
                 "product",
@@ -50,9 +50,14 @@ class History(object):
 
         queries = []
         bugids = set()
-        for op, fs in fields.items():
-            for f in fs:
-                params = {"include_fields": "id", "f1": f, "o1": op, "v1": History.BOT}
+        for operator, fields in fields_map.items():
+            for field in fields:
+                params = {
+                    "include_fields": "id",
+                    "f1": field,
+                    "o1": operator,
+                    "v1": History.BOT,
+                }
                 queries.append(
                     Bugzilla(params, bughandler=bug_handler, bugdata=bugids, timeout=20)
                 )
@@ -178,22 +183,12 @@ class History(object):
                     ):
                         tool = "has_str_no_range"
                     elif (
-                        "as the bug is tracked by a release manager for the current nightly"
+                        "as the bug is tracked by a release manager for the current"
                         in c
                     ):
-                        tool = "mismatch_priority_tracking_nightly"
-                    elif (
-                        "as the bug is tracked by a release manager for the current beta"
-                        in c
-                    ):
-                        tool = "mismatch_priority_tracking_beta"
-                    elif (
-                        "as the bug is tracked by a release manager for the current release"
-                        in c
-                    ):
-                        tool = "mismatch_priority_tracking_release"
-                    elif c.startswith("The priority flag is not set for this bug.\n:"):
-                        tool = "no_priority"
+                        tool = "mismatch_priority_tracking"
+                    elif c.startswith("The severity flag is not set for this bug.\n:"):
+                        tool = "no_severity"
                     elif c.startswith(
                         "The priority flag is not set for this bug and there is no activity for"
                     ):
@@ -293,19 +288,6 @@ class History(object):
                             res.append(
                                 {
                                     "tool": "regression",
-                                    "date": date,
-                                    "bugid": bugid,
-                                    "extra": "",
-                                }
-                            )
-                            break
-                        elif (
-                            change.get("field_name") == "severity"
-                            and change.get("added") == "major"
-                        ):
-                            res.append(
-                                {
-                                    "tool": "tracked_bad_severity",
                                     "date": date,
                                     "bugid": bugid,
                                     "extra": "",
@@ -416,6 +398,6 @@ class History(object):
         bugids = self.get_bugs()
         bugs = self.get_bug_info(bugids)
         bugs = self.cleanup(bugs)
-        hist = self.guess_tool(bugs)
+        history = self.guess_tool(bugs)
 
-        return hist
+        return history

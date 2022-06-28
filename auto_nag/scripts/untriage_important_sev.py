@@ -6,16 +6,13 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class UntriagedWithImportantSev(BzCleaner):
-    def __init__(self):
-        super(UntriagedWithImportantSev, self).__init__()
-
     def description(self):
         return "Bugs in untriaged with an important severity"
 
     def get_bz_params(self, date):
         return {
             "resolution": ["---"],
-            "bug_severity": ["blocker", "critical", "major"],
+            "bug_severity": ["S1", "S2"],
             "component": "Untriaged",
         }
 

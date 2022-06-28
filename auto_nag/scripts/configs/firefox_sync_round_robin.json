@@ -1,0 +1,9 @@
+{
+  "fallback": "Mark Hammond",
+  "components": {
+    "Firefox::Sync": "default"
+  },
+  "default": {
+    "calendar": "private://Firefox::Sync"
+  }
+}

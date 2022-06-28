@@ -2,17 +2,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from bugbug.models.stepstoreproduce import StepsToReproduceModel
-
-from auto_nag.bugbug_utils import BugbugScript
+from auto_nag.bugbug_utils import get_bug_ids_classification
+from auto_nag.bzcleaner import BzCleaner
 from auto_nag.utils import nice_round
 
 
-class StepsToReproduce(BugbugScript):
-    def __init__(self):
-        self.model_class = StepsToReproduceModel
-        super().__init__()
-
+class StepsToReproduce(BzCleaner):
     def description(self):
         return "[Using ML] Bugs with missing steps to reproduce"
 
@@ -25,10 +20,8 @@ class StepsToReproduce(BugbugScript):
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
 
-        reporter_skiplist = self.get_config("reporter_skiplist", default=[])
-        reporter_skiplist = ",".join(reporter_skiplist)
-
         params = {
+            "include_fields": ["id", "groups", "summary"],
             "bug_type": "defect",
             "f1": "longdesc",
             "o1": "changedafter",
@@ -37,8 +30,8 @@ class StepsToReproduce(BugbugScript):
             "o2": "changedbefore",
             "v2": end_date,
             "f3": "reporter",
-            "o3": "nowords",
-            "v3": reporter_skiplist,
+            "o3": "notsubstring",
+            "v3": "%group.editbugs%",
             "f4": "cf_has_str",
             "o4": "equals",
             "v4": "---",
@@ -56,25 +49,44 @@ class StepsToReproduce(BugbugScript):
         return params
 
     def get_bugs(self, date="today", bug_ids=[]):
-        # Retrieve bugs to analyze.
-        bugs, probs = super().get_bugs(date=date, bug_ids=bug_ids)
-        if len(bugs) == 0:
+        # Retrieve the bugs with the fields defined in get_bz_params
+        raw_bugs = super().get_bugs(date=date, bug_ids=bug_ids, chunk_size=7000)
+
+        if len(raw_bugs) == 0:
             return {}
 
-        indexes = probs.argmax(axis=-1)
+        # Extract the bug ids
+        bug_ids = list(raw_bugs.keys())
 
-        result = {}
-        for bug, prob, index in zip(bugs, probs, indexes):
-            bug_id = str(bug["id"])
-            result[bug_id] = {
+        # Classify those bugs
+        bugs = get_bug_ids_classification("stepstoreproduce", bug_ids)
+
+        results = {}
+
+        for bug_id in sorted(bugs.keys()):
+            bug_data = bugs[bug_id]
+
+            if not bug_data.get("available", True):
+                # The bug was not available, it was either removed or is a
+                # security bug
+                continue
+
+            if not {"prob", "index"}.issubset(bug_data.keys()):
+                raise Exception(f"Invalid bug response {bug_id}: {bug_data!r}")
+
+            bug = raw_bugs[bug_id]
+            prob = bug_data["prob"]
+            index = bug_data["index"]
+
+            results[bug_id] = {
                 "id": bug_id,
-                "summary": self.get_summary(bug),
+                "summary": bug["summary"],
                 "has_str": "yes" if prob[1] > 0.5 else "no",
                 "confidence": nice_round(prob[index]),
                 "autofixed": False,
             }
 
-        return result
+        return results
 
     def get_autofix_change(self):
         return {}
