@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from auto_nag import db, utils
+from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 
 
@@ -10,10 +10,6 @@ class SecNoAssignee(BzCleaner):
     def __init__(self):
         super(SecNoAssignee, self).__init__()
         self.ndays = self.get_config("ndays", 3)
-        self.max_ni = self.get_config("max-needinfo", 1)
-        self.nag_count = {}
-        for r in db.BugChange.get(self.name()):
-            self.nag_count[r.bugid] = self.nag_count.get(r.bugid, 0) + 1
 
     def description(self):
         return "Security bugs, no assignee and older than {} days".format(self.ndays)
@@ -37,8 +33,6 @@ class SecNoAssignee(BzCleaner):
         return ["component", "id", "summary", "last_comment"]
 
     def get_mail_to_auto_ni(self, bug):
-        if self.nag_count.get(bug["id"], 0) >= self.max_ni:
-            return None
 
         mail = bug["triage_owner"]
         nick = bug["triage_owner_detail"]["nick"]
@@ -65,6 +59,10 @@ class SecNoAssignee(BzCleaner):
             "f5": "priority",
             "o5": "anyexact",
             "v5": "p1,p2",
+            "n6": 1,
+            "f6": "longdesc",
+            "o6": "casesubstring",
+            "v6": "There is no assignee and the security bug is opened for more than",
         }
 
         utils.get_empty_assignees(params)
