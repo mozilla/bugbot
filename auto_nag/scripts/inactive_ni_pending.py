@@ -267,7 +267,7 @@ class InactiveNeedinfoPending(BzCleaner):
             "priority": bug["priority"],
             "severity": bug["severity"],
             "creation_time": bug["creation_time"],
-            "last_change_time": bug["last_change_time"],
+            "last_change_time": utils.get_last_no_bot_comment_date(bug),
             "creator": bug["creator"],
             "type": bug["type"],
             "attachments": bug["attachments"],
@@ -290,7 +290,7 @@ class InactiveNeedinfoPending(BzCleaner):
             "priority",
             "severity",
             "creation_time",
-            "last_change_time",
+            "comments",
             "creator",
         ]
 
