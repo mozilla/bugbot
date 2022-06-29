@@ -625,7 +625,7 @@ def is_bot_email(email: str) -> bool:
     Args:
         email: the account login email.
     """
-    return email.endswith(".bugs") or email.endswith("@mozilla.tld") or "-bot@" in email
+    return email.endswith(".bugs") or email.endswith(".tld")
 
 
 def get_last_no_bot_comment_date(bug: dict) -> str:
