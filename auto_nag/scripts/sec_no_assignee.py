@@ -51,7 +51,9 @@ class SecNoAssignee(BzCleaner):
         return ["component", "id", "summary", "last_comment"]
 
     def get_mail_to_auto_ni(self, bug):
-        manager = self.team_managers.get_component_manager(bug["component"], False)
+        manager = self.team_managers.get_component_manager(
+            bug["product"], bug["component"], False
+        )
         if manager and "bz_email" in manager:
             return {
                 "mail": manager["bz_email"],
