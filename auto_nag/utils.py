@@ -619,6 +619,15 @@ def nice_round(val):
     return int(round(100 * val))
 
 
+def is_bot_email(email: str) -> bool:
+    """Check the email is belong to a bot account.
+
+    Args:
+        email: the account login email.
+    """
+    return email.endswith(".bugs") or email.endswith("@mozilla.tld") or "-bot@" in email
+
+
 def get_last_no_bot_comment_date(bug: dict) -> str:
     """Get the create date of the last comment by non bot account.
 
@@ -630,7 +639,7 @@ def get_last_no_bot_comment_date(bug: dict) -> str:
         the bug itself will be returned.
     """
     for comment in reversed(bug["comments"]):
-        if not comment["creator"].endswith(".bugs"):
+        if not is_bot_email(comment["creator"]):
             return comment["creation_time"]
 
     return bug["comments"][0]["creation_time"]
