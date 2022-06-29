@@ -20,6 +20,10 @@ python -m auto_nag.next_release --production
 # Daily
 python -m auto_nag.scripts.to_triage --production
 
+# Process reminders
+# Daily
+python -m auto_nag.scripts.reminder --production
+
 # Nag triage fallback to update calendar
 # Daily
 python -m auto_nag.round_robin_fallback --production

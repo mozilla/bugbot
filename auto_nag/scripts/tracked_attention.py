@@ -183,8 +183,8 @@ class TrackedAttention(BzCleaner):
     def get_bz_params(self, date):
         fields = [
             "regressed_by",
-            "component.team_name",
-            "components.team_name",
+            "product",
+            "component",
             "triage_owner",
             "assigned_to",
             "comments",
@@ -255,7 +255,9 @@ class TrackedAttention(BzCleaner):
         if bug["is_reminder"]:
             return None
 
-        manager = self.team_managers.get_component_manager(bug["component"], False)
+        manager = self.team_managers.get_component_manager(
+            bug["product"], bug["component"], False
+        )
         if manager and "bz_email" in manager:
             return {
                 "mail": manager["bz_email"],

@@ -195,12 +195,6 @@ class InactiveNeedinfoPending(BzCleaner):
 
     @staticmethod
     def _request_from_triage_owner(bug):
-        if (
-            len(bug["inactive_ni"]) == 1
-            and bug["inactive_ni"][0]["setter"] == bug["triage_owner"]
-        ):
-            return "could you please find another way to get the information or close the bug as `INCOMPLETE` if it is not actionable?"
-
         reasons = []
         if bug["priority"] in HIGH_PRIORITY:
             reasons.append("high priority")
@@ -212,7 +206,21 @@ class InactiveNeedinfoPending(BzCleaner):
         if len(reasons) == 0 and bug["severity"] == "--":
             return "since the bug doesn't have a severity set, could you please set the severity or close the bug?"
 
-        return f"since the bug has {utils.english_list(reasons)}, could you have a look please?"
+        comment = []
+        if reasons:
+            comment.append(f"since the bug has {utils.english_list(reasons)}")
+
+        if (
+            len(bug["inactive_ni"]) == 1
+            and bug["inactive_ni"][0]["setter"] == bug["triage_owner"]
+        ):
+            comment.append(
+                "could you please find another way to get the information or close the bug as `INCOMPLETE` if it is not actionable?"
+            )
+        else:
+            comment.append("could you have a look please?")
+
+        return ", ".join(comment)
 
     def add_action(self, bug):
         users_num = len(set([flag["requestee"] for flag in bug["inactive_ni"]]))
