@@ -6,18 +6,34 @@ from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.team_managers import TeamManagers
 
+DEFAULT_SEC_KEYWORDS = ("sec-moderate", "sec-high", "sec-critical")
+
 
 class SecNoAssignee(BzCleaner):
-    def __init__(self):
-        super(SecNoAssignee, self).__init__()
+    """Security bugs with no assignee"""
+
+    def __init__(self, wait_days: int = 3, sec_keywords: tuple = DEFAULT_SEC_KEYWORDS):
+        """Constructor
+
+        Args:
+            wait_days: the waiting period in days before sending a needinfo
+                request. The period will be calculated based on the bug creation
+                date.
+            sec_keywords: if a bug has any of these keywords, it will be
+                considered a security bug.
+        """
+        super().__init__()
         self.team_managers = TeamManagers()
-        self.ndays = self.get_config("ndays", 3)
+        self.wait_days = wait_days
+        self.sec_keywords = sec_keywords
 
     def description(self):
-        return "Security bugs, no assignee and older than {} days".format(self.ndays)
+        return "Security bugs, no assignee and older than {} days".format(
+            self.wait_days
+        )
 
     def get_extra_for_template(self):
-        return {"ndays": self.ndays}
+        return {"ndays": self.wait_days}
 
     def get_extra_for_needinfo_template(self):
         return self.get_extra_for_template()
@@ -57,20 +73,21 @@ class SecNoAssignee(BzCleaner):
             "include_fields": fields,
             "resolution": "---",
             "f1": "keywords",
-            "o1": "anywordssubstr",
-            "v1": ",".join(self.get_config("sec-types")),
+            "o1": "anyexact",
+            "v1": list(self.sec_keywords),
+            "n2": 1,
             "f2": "keywords",
-            "o2": "nowordssubstr",
-            "v2": "testcase-wanted,stalled",
+            "o2": "anyexact",
+            "v2": ["testcase-wanted", "stalled"],
             "f3": "creation_ts",
             "o3": "lessthaneq",
-            "v3": f"-{self.ndays}d",
+            "v3": f"-{self.wait_days}d",
             "f4": "flagtypes.name",
             "o4": "notequals",
             "v4": "needinfo?",
             "f5": "priority",
             "o5": "anyexact",
-            "v5": "p1,p2",
+            "v5": ["p1", "p2"],
             "n6": 1,
             "f6": "longdesc",
             "o6": "casesubstring",

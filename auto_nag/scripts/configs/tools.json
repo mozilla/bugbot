@@ -441,10 +441,7 @@
     ]
   },
   "sec_no_assignee": {
-    "sec-types": ["sec-moderate", "sec-high", "sec-critical"],
-    "max-years": 2,
-    "ndays": 3,
-    "max-needinfo": 3
+    "max-years": 2
   },
   "survey_sec_bugs": {
     "to_reach_out": [
