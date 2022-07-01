@@ -5,6 +5,8 @@
 
 from typing import List
 
+from libmozdata.bugzilla import BugzillaComponent
+
 from auto_nag import logger
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.component_triagers import ComponentTriagers, TriageOwner
@@ -29,9 +31,10 @@ class TriageOwnerRotations(BzCleaner):
                     change,
                 )
             else:
-                # TODO: waiting for https://github.com/mozilla/libmozdata/pull/201 to be merged
-                # TODO: retry
-                pass
+                BugzillaComponent(
+                    new_triager.product,
+                    new_triager.component,
+                ).put(change)
 
     def get_email_data(self, date: str, bug_ids: List[int]) -> List[tuple]:
         component_triagers = ComponentTriagers()
