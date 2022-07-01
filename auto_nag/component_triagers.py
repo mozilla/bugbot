@@ -16,6 +16,14 @@ class TriageOwner:
     component: str
     bugzilla_email: str
 
+    def get_pc(self) -> tuple:
+        """Get the product component name"""
+        return (self.product, self.component)
+
+    def get_pc_str(self) -> str:
+        """Get the string representation of product component name"""
+        return f"{self.product}::{self.component}"
+
 
 class ComponentTriagers:
     def __init__(self) -> None:
