@@ -4,6 +4,7 @@
 
 import json
 from random import randint
+from typing import Optional
 
 from dateutil.relativedelta import relativedelta
 from libmozdata import utils as lmdutils
@@ -86,6 +87,21 @@ class RoundRobin(object):
 
         for team in to_remove:
             del rr[team]
+
+    def get_component_calendar(
+        self, product: str, component: str
+    ) -> Optional[Calendar]:
+        """Get the calendar for specific component.
+
+        Args:
+            product: the name of the product.
+            component: the name of the component.
+
+        Returns:
+            The calendar as defined in the round robin configs.
+        """
+        pc = f"{product}::{component}"
+        return self.data[pc] if pc in self.data else None
 
     def get_components(self):
         return list(self.data.keys())

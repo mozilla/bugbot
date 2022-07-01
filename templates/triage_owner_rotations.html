@@ -1,0 +1,24 @@
+<p>The following triage {{ plural('owner', data) }} will be automatically assigned:
+    <table {{ table_attrs }}>
+      <thead>
+        <tr>
+          <th>Component</th><th>Old Triage Owner</th><th>New Triage Owner</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for i, (product, component, old_triage_owner, new_triage_owner) in enumerate(data) -%}
+        <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
+          <td>
+            {{ product }}::{{ component }}
+          </td>
+          <td>
+            {{ old_triage_owner }}
+          </td>
+          <td>
+            {{ new_triage_owner }}
+          </td>
+        </tr>
+        {% endfor -%}
+      </tbody>
+    </table>
+  </p>
