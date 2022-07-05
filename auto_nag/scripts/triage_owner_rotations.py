@@ -7,6 +7,13 @@ from typing import List
 
 from libmozdata.bugzilla import BugzillaComponent
 from requests import HTTPError
+from tenacity import (
+    RetryError,
+    retry,
+    retry_if_exception_message,
+    stop_after_attempt,
+    wait_exponential,
+)
 
 from auto_nag import logger
 from auto_nag.bzcleaner import BzCleaner
@@ -28,21 +35,17 @@ class TriageOwnerRotations(BzCleaner):
     def update_triage_owners(self, new_triage_owners: List[TriageOwner]) -> set:
         failures = set()
         for new_triager in new_triage_owners:
-            change = {"triage_owner": new_triager.bugzilla_email}
             if self.dryrun or self.test_mode:
                 logger.info(
-                    "The component %s::%s will be updated with:\n%s",
+                    "The triage owner for %s::%s will be: %s",
                     new_triager.product,
                     new_triager.component,
-                    change,
+                    new_triager.bugzilla_email,
                 )
             else:
                 try:
-                    BugzillaComponent(
-                        new_triager.product,
-                        new_triager.component,
-                    ).put(change)
-                except HTTPError as err:
+                    self._put_new_triage_owner(new_triager)
+                except (HTTPError, RetryError) as err:
                     failures.add((new_triager.product, new_triager.component))
                     logger.exception(
                         "Cannot update the triage owner for %s::%s to be %s: %s",
@@ -53,6 +56,18 @@ class TriageOwnerRotations(BzCleaner):
                     )
 
         return failures
+
+    @retry(
+        retry=retry_if_exception_message(match=r"^\d{3} Server Error"),
+        wait=wait_exponential(),
+        stop=stop_after_attempt(3),
+    )
+    def _put_new_triage_owner(self, new_triager: TriageOwner) -> None:
+        change = {"triage_owner": new_triager.bugzilla_email}
+        BugzillaComponent(
+            new_triager.product,
+            new_triager.component,
+        ).put(change)
 
     def get_email_data(self, date: str, bug_ids: List[int]) -> List[dict]:
         component_triagers = ComponentTriagers()
