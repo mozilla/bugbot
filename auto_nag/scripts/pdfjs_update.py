@@ -7,6 +7,7 @@ import re
 
 from libmozdata.bugzilla import Bugzilla
 
+from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 
 PDFJS_UPDATES_METABUG = 1626408
@@ -38,6 +39,10 @@ class PDFJSUpdate(BzCleaner):
             "f2": "creation_ts",
             "o2": "greaterthan",
             "v2": start_date,
+            "n3": 1,
+            "f3": "blocked",
+            "o3": "changedby",
+            "v3": utils.get_config("common", "bot_bz_mail")[0],
         }
 
     def set_autofix(self, bugs):
