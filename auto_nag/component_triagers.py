@@ -42,8 +42,8 @@ class ComponentTriagers:
         """Constructor
 
         Args:
-            excluded_components: list of components to excluded.
-            excluded_teams: list of teams to exclude all of their components
+            excluded_components: components to be excluded.
+            excluded_teams: teams to excluded all of their components.
         """
         self.round_robin: RoundRobin = RoundRobin.get_instance()
         self.triagers: Dict[ComponentName, str] = {}

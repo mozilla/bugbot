@@ -21,8 +21,21 @@ from auto_nag.component_triagers import ComponentName, ComponentTriagers, Triage
 
 
 class TriageOwnerRotations(BzCleaner):
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        excluded_components: List[str] = [],
+        excluded_teams: List[str] = [],
+    ) -> None:
+        """Constructor
+
+        Args:
+            excluded_components: components to be excluded from the triage owner
+                rotation.
+            excluded_teams: teams to excluded all of their components when
+                performing the triage owner rotation.
+        """
         super().__init__()
+        self.component_triagers = ComponentTriagers(excluded_components, excluded_teams)
         self.query_url = None
         self.has_put_errors = False
 
@@ -70,15 +83,14 @@ class TriageOwnerRotations(BzCleaner):
         ).put(change)
 
     def get_email_data(self, date: str, bug_ids: List[int]) -> List[dict]:
-        component_triagers = ComponentTriagers()
-        new_triagers = component_triagers.get_new_triage_owners()
+        new_triagers = self.component_triagers.get_new_triage_owners()
         failures = self._update_triage_owners(new_triagers)
         self.has_put_errors = len(failures) > 0
 
         return [
             {
                 "component": new_triager.component,
-                "old_triage_owner": component_triagers.get_current_triage_owner(
+                "old_triage_owner": self.component_triagers.get_current_triage_owner(
                     new_triager.component
                 ),
                 "new_triage_owner": new_triager.bugzilla_email,
