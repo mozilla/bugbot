@@ -20,6 +20,10 @@ python -m auto_nag.next_release --production
 # Daily
 python -m auto_nag.scripts.to_triage --production
 
+# Process reminders
+# Daily
+python -m auto_nag.scripts.reminder --production
+
 # Nag triage fallback to update calendar
 # Daily
 python -m auto_nag.round_robin_fallback --production
@@ -157,7 +161,7 @@ python -m auto_nag.scripts.inactive_ni_pending --production
 python -m auto_nag.scripts.crash_signature_confirm --production
 
 # Bugs with patches after being closed
-# python -m auto_nag.scripts.patch_closed_bug --production
+python -m auto_nag.scripts.patch_closed_bug --production
 
 # Confirm bugs with affected flags
 python -m auto_nag.scripts.affected_flag_confirm --production

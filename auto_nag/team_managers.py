@@ -15,7 +15,7 @@ DEFAULT_PATH = "./auto_nag/scripts/configs/team_managers.json"
 
 class TeamManagers:
     def __init__(self):
-        self.component_teams = {}
+        self.component_teams: Dict[tuple, str] = {}
         self._load_team_managers(DEFAULT_PATH)
 
     def _load_team_managers(self, filepath: str) -> None:
@@ -56,14 +56,14 @@ class TeamManagers:
         def handler(product, data):
             data.update(
                 {
-                    component["name"]: component["team_name"]
+                    (product["name"], component["name"]): component["team_name"]
                     for component in product["components"]
                 }
             )
 
         BugzillaProduct(
             product_types="accessible",
-            include_fields=["components.name", "components.team_name"],
+            include_fields=["name", "components.name", "components.team_name"],
             product_handler=handler,
             product_data=self.component_teams,
         ).wait()
@@ -99,11 +99,12 @@ class TeamManagers:
         ).wait()
 
     def get_component_manager(
-        self, component: str, fallback: bool = True
+        self, product: str, component: str, fallback: bool = True
     ) -> Optional[Dict[str, dict]]:
         """Get the manager of the team who owns the provided component.
 
         Args:
+            product: the name of the product.
             component: the name of the component.
             fallback: if True, will return the fallback manager when cannot find
                 the component manager; if False, will return None.
@@ -115,5 +116,5 @@ class TeamManagers:
             self._fetch_component_teams()
             self._fetch_managers_nicknames()
 
-        team_name = self.component_teams[component]
+        team_name = self.component_teams[(product, component)]
         return self.get_team_manager(team_name, fallback=fallback)

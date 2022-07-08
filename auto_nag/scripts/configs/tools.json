@@ -74,7 +74,6 @@
     "must_run": ["Mon"]
   },
   "patch_closed_bug": {
-    "days_count": 2,
     "additional_receivers": "rm"
   },
   "has_str_no_hasstr": {

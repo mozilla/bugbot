@@ -619,6 +619,32 @@ def nice_round(val):
     return int(round(100 * val))
 
 
+def is_bot_email(email: str) -> bool:
+    """Check the email is belong to a bot account.
+
+    Args:
+        email: the account login email.
+    """
+    return email.endswith(".bugs") or email.endswith(".tld")
+
+
+def get_last_no_bot_comment_date(bug: dict) -> str:
+    """Get the create date of the last comment by non bot account.
+
+    Args:
+        bug: the bug dictionary; it must has the comments list.
+
+    Returns:
+        If no comments or all comments are posted by bots, the creation date of
+        the bug itself will be returned.
+    """
+    for comment in reversed(bug["comments"]):
+        if not is_bot_email(comment["creator"]):
+            return comment["creation_time"]
+
+    return bug["comments"][0]["creation_time"]
+
+
 def get_sort_by_bug_importance_key(bug):
     """
     We need bugs with high severity (S1 or S2) or high priority (P1 or P2) to be
