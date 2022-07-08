@@ -3,11 +3,14 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Set, Tuple
 
 from libmozdata.bugzilla import BugzillaProduct
 
 from auto_nag.round_robin import RoundRobin
+
+# Component names will be formed as tuple of (PRODUCT, COMPONENT)
+ComponentName = Tuple[str, str]
 
 
 @dataclass
@@ -26,18 +29,35 @@ class TriageOwner:
 
 
 class ComponentTriagers:
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        excluded_components: List[ComponentName] = [],
+        excluded_teams: List[str] = [],
+    ) -> None:
+        """Constructor
+
+        Args:
+            excluded_components: list of components to excluded
+            excluded_teams: list of teams to exclude all of their components
+        """
         self.round_robin: RoundRobin = RoundRobin.get_instance()
         self.triagers: Dict[tuple, str] = {}
         products = [pc.split("::", 1)[0] for pc in self.round_robin.get_components()]
-        self._fetch_triagers(products)
+        self._fetch_triagers(products, set(excluded_components), set(excluded_teams))
 
-    def _fetch_triagers(self, products: List[str]) -> None:
+    def _fetch_triagers(
+        self,
+        products: List[str],
+        excluded_components: Set[ComponentName],
+        excluded_teams: Set[str],
+    ) -> None:
         def handler(product, data):
             data.update(
                 {
                     (product["name"], component["name"]): component["triage_owner"]
                     for component in product["components"]
+                    if component["team_name"] not in excluded_teams
+                    and (product["name"], component["name"]) not in excluded_components
                 }
             )
 
