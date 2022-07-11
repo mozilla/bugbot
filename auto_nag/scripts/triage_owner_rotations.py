@@ -24,7 +24,10 @@ class TriageOwnerRotations(BzCleaner):
     def __init__(
         self,
         excluded_components: List[str] = [],
-        excluded_teams: List[str] = [],
+        excluded_teams: List[str] = [
+            "DOM LWS",
+            "Layout",
+        ],
     ) -> None:
         """Constructor
 
