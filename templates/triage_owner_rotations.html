@@ -1,0 +1,24 @@
+<p>The following triage {{ plural('owner', data) }} will be automatically assigned{% if extra['has_put_errors'] %} (when the row is red, then it means that we had an error in updating the triage owner on Bugzilla){% endif %}:
+    <table {{ table_attrs }}>
+      <thead>
+        <tr>
+          <th>Component</th><th>Old Triage Owner</th><th>New Triage Owner</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for i, row in enumerate(data) -%}
+        <tr {%- if row['has_put_error'] %} bgcolor="#FFB8B8"{% elif i % 2 == 0 %} bgcolor="#E0E0E0"{% endif -%}>
+          <td>
+            {{ row['component'] }}
+          </td>
+          <td>
+            {{ row['old_triage_owner'] }}
+          </td>
+          <td>
+            {{ row['new_triage_owner'] }}
+          </td>
+        </tr>
+        {% endfor -%}
+      </tbody>
+    </table>
+  </p>
