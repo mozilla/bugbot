@@ -53,13 +53,13 @@ class TriageOwnerRotations(BzCleaner):
     ) -> Set[ComponentName]:
         failures = set()
         for new_triager in new_triage_owners:
-            if self.dryrun or self.test_mode:
-                logger.info(
-                    "The triage owner for '%s' will be: '%s'",
-                    new_triager.component,
-                    new_triager.bugzilla_email,
-                )
-            else:
+            logger.info(
+                "The triage owner for '%s' will be: '%s'",
+                new_triager.component,
+                new_triager.bugzilla_email,
+            )
+
+            if not self.dryrun and not self.test_mode:
                 try:
                     self._put_new_triage_owner(new_triager)
                 except (HTTPError, RetryError) as err:
