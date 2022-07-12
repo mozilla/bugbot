@@ -23,7 +23,6 @@ from auto_nag.component_triagers import ComponentName, ComponentTriagers, Triage
 class TriageOwnerRotations(BzCleaner):
     def __init__(
         self,
-        excluded_components: List[str] = [],
         excluded_teams: List[str] = [
             "DOM LWS",
             "Layout",
@@ -32,13 +31,11 @@ class TriageOwnerRotations(BzCleaner):
         """Constructor
 
         Args:
-            excluded_components: components to be excluded from the triage owner
-                rotation.
             excluded_teams: teams to excluded all of their components when
                 performing the triage owner rotation.
         """
         super().__init__()
-        self.component_triagers = ComponentTriagers(excluded_components, excluded_teams)
+        self.component_triagers = ComponentTriagers(excluded_teams=excluded_teams)
         self.query_url = None
         self.has_put_errors = False
 

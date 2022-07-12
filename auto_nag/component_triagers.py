@@ -36,13 +36,11 @@ class TriageOwner:
 class ComponentTriagers:
     def __init__(
         self,
-        excluded_components: List[str] = [],
         excluded_teams: List[str] = [],
     ) -> None:
         """Constructor
 
         Args:
-            excluded_components: components to be excluded.
             excluded_teams: teams to excluded all of their components.
         """
         self.round_robin: RoundRobin = RoundRobin.get_instance()
@@ -53,23 +51,18 @@ class ComponentTriagers:
         ]
         self._fetch_triagers(
             products,
-            set(ComponentName.from_str(pc) for pc in excluded_components),
             set(excluded_teams),
         )
 
     def _fetch_triagers(
         self,
         products: List[str],
-        excluded_components: Set[ComponentName],
         excluded_teams: Set[str],
     ) -> None:
         def handler(product, data):
             for component in product["components"]:
                 component_name = ComponentName(product["name"], component["name"])
-                if (
-                    component_name not in excluded_components
-                    and component["team_name"] not in excluded_teams
-                ):
+                if component["team_name"] not in excluded_teams:
                     data[component_name] = component["triage_owner"]
 
         BugzillaProduct(
