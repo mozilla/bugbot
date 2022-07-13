@@ -11,9 +11,11 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
+from auto_nag.history import History
 from auto_nag.user_activity import PHAB_CHUNK_SIZE, UserActivity, UserStatus
 
 PHAB_FILE_NAME_PAT = re.compile(r"phabricator-D([0-9]+)-url\.txt")
+PHAB_TABLE_PAT = re.compile(r"^\|\ \[D([0-9]+)\]\(h", flags=re.M)
 
 
 class InactiveReviewer(BzCleaner):
@@ -185,6 +187,20 @@ class InactiveReviewer(BzCleaner):
         if not rev_ids:
             return
 
+        # We should not comment about the same patch more than once.
+        rev_ids_with_ni = set()
+        for comment in bug["comments"]:
+            if comment["creator"] == History.BOT and comment["raw_text"].startswith(
+                "The following patch"
+            ):
+                rev_ids_with_ni.update(int(id) for id in PHAB_TABLE_PAT.findall())
+
+        if rev_ids_with_ni:
+            rev_ids = [id for id in rev_ids if id not in rev_ids_with_ni]
+
+        if not rev_ids:
+            return
+
         # It will be nicer to show a sorted list of patches
         rev_ids.sort()
 
@@ -196,6 +212,8 @@ class InactiveReviewer(BzCleaner):
 
     def get_bz_params(self, date):
         fields = [
+            "comments.raw_text",
+            "comments.creator",
             "attachments.file_name",
             "attachments.content_type",
             "attachments.is_obsolete",

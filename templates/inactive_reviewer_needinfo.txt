@@ -1,4 +1,4 @@
-The bug has {{ plural('a patch that is', revisions, 'patches that are') }} waiting for review from an inactive reviewer:
+The following {{ plural('patch is', revisions, 'patches are') }} waiting for review from an inactive reviewer:
 
 | ID  | Title |  Author | Inactive Reviewer |
 | --- | :---- |  ------ | ----------------- |
