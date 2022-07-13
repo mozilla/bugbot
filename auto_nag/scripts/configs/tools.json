@@ -432,14 +432,6 @@
       "cdenizet@mozilla.com"
     ]
   },
-  "regressor": {
-    "max_days_in_cache": 7,
-    "cc": [
-      "sledru@mozilla.com",
-      "mcastelluccio@mozilla.com",
-      "cdenizet@mozilla.com"
-    ]
-  },
   "survey_sec_bugs": {
     "to_reach_out": [
       "continuation@gmail.com",
