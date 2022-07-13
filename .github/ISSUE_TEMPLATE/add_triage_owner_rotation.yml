@@ -1,0 +1,52 @@
+name: Configure Triage Owner Rotation
+description: Add new triage owner rotation configuration
+title: "[Round Robin]: <title>"
+labels: ["enhancement"]
+assignees:
+  - suhaibmujahid
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this form!
+
+        **Note:** information filled in this form will be publicly viewable.
+  - type: input
+    id: team_name
+    attributes:
+      label: Your Team Name
+      description: It must exactly match the team name on Bugzilla.
+      placeholder: e.g., CI and Quality Tools
+    validations:
+      required: true
+  - type: dropdown
+    id: coverage
+    attributes:
+      label: Rotation Coverage
+      options:
+        - All team components
+        - Only specific components
+    validations:
+      required: true
+  - type: textarea
+    id: components
+    attributes:
+      label: Covered Components
+      description: Leave empty if you want to cover all team components. If you need to enable the triage owner rotations only for specific components, please list each component in a separate line in the form of `product`::`component`.
+      placeholder: e.g., Firefox::PDF Viewer
+    validations:
+      required: false
+  - type: textarea
+    id: calendar
+    attributes:
+      label: Calendar URL
+      description: The URL for the calendar will be used for the triage owner rotations. If you have different calendars for different components, please list each component along with its calendar URL on a separate line.
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Anything else you want to mention?
+    validations:
+      required: false
