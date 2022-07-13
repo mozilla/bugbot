@@ -78,7 +78,7 @@ class TrackedAttention(BzCleaner):
         ]
 
     def description(self):
-        return "Tracked bugs with no assignee"
+        return "Tracked bugs that need attention"
 
     def get_extra_for_needinfo_template(self):
         return self.extra_ni
