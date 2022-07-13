@@ -1,0 +1,19 @@
+The bug has {{ plural('a patch that is', revisions, 'patches that are') }} waiting for review from an inactive reviewer:
+
+| ID  | Title |  Author | Inactive Reviewer |
+| --- | :---- |  ------ | ----------------- |
+{% for rev in revisions -%}
+{% for reviewer in rev['reviewers'] -%}
+{% if rev['reviewers'][0] == reviewer -%}
+| [D{{ rev['rev_id'] }}](https://phabricator.services.mozilla.com/D{{ rev['rev_id'] }}) |  {{ rev['title'] | e }} | [{{ rev['author']['nick'] }}](https://bugzilla.mozilla.org/user_profile?user_id={{ rev['author']['id'] }})  |
+{%- else -%}
+| | | |
+{%- endif -%}
+
+[{{ reviewer['phab_username'] }}](https://phabricator.services.mozilla.com/p/{{ reviewer['phab_username'] }}/) |
+{% endfor -%}
+{% endfor %}
+
+:{{ nicknames }}, could you please find an active reviewer?
+
+{{ documentation }}

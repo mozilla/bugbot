@@ -4,6 +4,7 @@
 
 from datetime import timedelta
 from enum import Enum, auto
+from typing import List
 
 from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import BugzillaUser
@@ -13,10 +14,6 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 
 from auto_nag import utils
 from auto_nag.people import People
-
-DEFAULT_ACTIVITY_WEEKS = 26
-DEFAULT_ABSENT_WEEKS = 26
-
 
 # The chunk size her should not be more than 100; which is the maximum number of
 # items that Phabricator could return in one response.
@@ -33,18 +30,36 @@ class UserStatus(Enum):
 
 
 class UserActivity:
+    """Check the user activity on Bugzilla and Phabricator"""
+
     def __init__(
         self,
-        activity_weeks_count=DEFAULT_ACTIVITY_WEEKS,
-        absent_weeks_count=DEFAULT_ABSENT_WEEKS,
-        include_fields=[],
+        activity_weeks_count: int = 26,
+        absent_weeks_count: int = 26,
         unavailable_max_days: int = 7,
+        include_fields: list = None,
+        phab: PhabricatorAPI = None,
     ) -> None:
+        """
+        Constructor
+
+        Args:
+            activity_weeks_count: the number of weeks since last made a change
+                to a bug before a user being considered as inactive.
+            absent_weeks_count: the number of weeks since last loaded any page
+                from Bugzilla before a user being considered as inactive.
+            unavailable_max_days: a user will be considered inactive if they
+                have more days left to be available than `unavailable_max_days`.
+            include_fields: the list of fields to include with the the Bugzilla
+                user object.
+            phab: if an instance of PhabricatorAPI is not provided, it will be
+                created when it is needed.
+        """
         self.activity_weeks_count = activity_weeks_count
         self.absent_weeks_count = absent_weeks_count
-        self.include_fields = include_fields
+        self.include_fields = include_fields or []
         self.people = People.get_instance()
-        self.phab = None
+        self.phab = phab
         self.availability_limit = (
             lmdutils.get_date_ymd("today") + timedelta(unavailable_max_days)
         ).timestamp()
@@ -58,9 +73,11 @@ class UserActivity:
 
         return self.phab
 
-    def check_users(self, user_emails) -> dict:
+    def check_users(self, user_emails: List[str]) -> dict:
+        """Check user activity using their Bugzilla emails"""
+
         # Employees will always be considered active
-        user_emails = self.get_not_employees(user_emails)
+        user_emails = self._get_not_employees(user_emails)
 
         user_statuses = {
             user_email: {"status": UserStatus.UNDEFINED}
@@ -78,40 +95,54 @@ class UserActivity:
 
         return user_statuses
 
-    def get_not_employees(self, user_emails):
+    def _get_not_employees(self, user_emails):
         return [
             user_email
             for user_email in user_emails
             if not self.people.is_mozilla(user_email)
         ]
 
-    def get_bz_users_with_status(
-        self, user_names: list, keep_active: bool = False
-    ) -> dict:
-        def handler(user, data):
-            if not user["can_login"]:
-                user["status"] = UserStatus.DISABLED
-            elif (
-                user["last_seen_date"] is None
-                or user["last_seen_date"] < self.seen_limit
-            ):
-                user["status"] = UserStatus.ABSENT
-            elif (
-                user["last_activity_time"] is None
-                or user["last_activity_time"] < self.activity_limit
-            ):
-                user["status"] = UserStatus.INACTIVE
-            elif keep_active:
-                user["status"] = UserStatus.ACTIVE
-            else:
-                return
+    def _get_status_from_bz_user(self, user: dict) -> UserStatus:
+        if not user["can_login"]:
+            return UserStatus.DISABLED
 
-            data[user["name"]] = user
+        if user["last_seen_date"] is None or user["last_seen_date"] < self.seen_limit:
+            return UserStatus.ABSENT
+
+        if (
+            user["last_activity_time"] is None
+            or user["last_activity_time"] < self.activity_limit
+        ):
+            return UserStatus.INACTIVE
+
+        return UserStatus.ACTIVE
+
+    def get_bz_users_with_status(
+        self, id_or_name: list, keep_active: bool = False
+    ) -> dict:
+        """Get Bugzilla users with their activity statuses.
+
+        Args:
+            id_or_name: An integer user ID or login name of the user on
+                bugzilla.
+            keep_active: whether the returned results should include the active
+                users.
+
+        Returns:
+            A dictionary where the key is the user login name and the value is
+            the user info with the status.
+        """
+
+        def handler(user, data):
+            status = self._get_status_from_bz_user(user)
+            if keep_active or status == UserStatus.ACTIVE:
+                user["status"] = status
+                data[user["name"]] = user
 
         users: dict = {}
         BugzillaUser(
             user_data=users,
-            user_names=user_names,
+            user_names=id_or_name,
             user_handler=handler,
             include_fields=[
                 "name",
@@ -124,7 +155,34 @@ class UserActivity:
 
         return users
 
-    def get_phab_users_with_status(self, user_phids: list, keep_active: bool = False):
+    def _get_status_from_phab_user(self, user: dict) -> UserStatus:
+        availability = user["attachments"]["availability"]
+        if availability["value"] != "available":
+            # We do not need to consider the user inactive they will be
+            # available again soon.
+            if (
+                not availability["until"]
+                or availability["until"] > self.availability_limit
+            ):
+                return UserStatus.UNAVAILABLE
+
+        return UserStatus.ACTIVE
+
+    def get_phab_users_with_status(
+        self, user_phids: List[str], keep_active: bool = False
+    ) -> dict:
+        """Get Phabricator users with their activity statuses.
+
+        Args:
+            user_phids: A list of user PHIDs.
+            keep_active: whether the returned results should include the active
+                users.
+
+        Returns:
+            A dictionary where the key is the user PHID and the value is
+            the user info with the status.
+        """
+
         bzid_to_phid = {
             int(user["id"]): user["phid"]
             for _user_phids in Connection.chunks(user_phids, PHAB_CHUNK_SIZE)
@@ -142,40 +200,33 @@ class UserActivity:
 
         # To cover cases where a person is temporary off (e.g., long PTO), we
         # will rely on the calendar from phab.
-        user_phids = [
-            phid for phid, user in users.items() if user["status"] == UserStatus.ACTIVE
-        ]
-
         for _user_phids in Connection.chunks(user_phids, PHAB_CHUNK_SIZE):
             for phab_user in self._fetch_phab_users(_user_phids):
-                availability = phab_user["attachments"]["availability"]
-                if availability["value"] != "available" and (
-                    not availability["until"]
-                    or availability["until"] > self.availability_limit
-                ):
-                    status = UserStatus.UNAVAILABLE
-                elif keep_active:
-                    status = UserStatus.ACTIVE
-                else:
+                user = users[phab_user["phid"]]
+                if user["status"] == UserStatus.ACTIVE:
+                    user["status"] = self._get_status_from_phab_user(phab_user)
+
+                if not keep_active and user["status"] == UserStatus.ACTIVE:
                     del users[phab_user["phid"]]
                     continue
 
-                user = users[phab_user["phid"]]
-                user["status"] = status
+                user["phab_username"] = phab_user["fields"]["username"]
 
         return users
 
     def get_string_status(self, status: UserStatus):
+        """Get a string representation of the user status."""
+
         if status == UserStatus.UNDEFINED:
             return "Not specified"
-        elif status == UserStatus.DISABLED:
+        if status == UserStatus.DISABLED:
             return "Account disabled"
-        elif status == UserStatus.INACTIVE:
+        if status == UserStatus.INACTIVE:
             return f"Inactive on Bugzilla in last {self.activity_weeks_count} weeks"
-        elif status == UserStatus.ABSENT:
+        if status == UserStatus.ABSENT:
             return f"Not seen on Bugzilla in last {self.absent_weeks_count} weeks"
-        else:
-            return status.name
+
+        return status.name
 
     @retry(
         wait=wait_exponential(min=4),
