@@ -16,6 +16,9 @@ python -m auto_nag.log --clean
 # Daily
 python -m auto_nag.next_release --production
 
+# Update the triage owners on Bugzilla
+python -m auto_nag.scripts.triage_owner_rotations --production
+
 # Send a todo list to set priority
 # Daily
 python -m auto_nag.scripts.to_triage --production
