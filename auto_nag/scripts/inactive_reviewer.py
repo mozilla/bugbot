@@ -97,6 +97,7 @@ class InactiveReviewer(BzCleaner):
                         "is_group": reviewer["reviewerPHID"].startswith("PHID-PROJ"),
                         "is_blocking": reviewer["isBlocking"],
                         "is_accepted": reviewer["status"] == "accepted",
+                        "is_resigned": reviewer["status"] == "resigned",
                     }
                     for reviewer in revision["attachments"]["reviewers"]["reviewers"]
                 ]
@@ -148,7 +149,10 @@ class InactiveReviewer(BzCleaner):
                     continue
 
                 reviewer_info = users[reviewer["phid"]]
-                if reviewer_info["status"] == UserStatus.ACTIVE:
+                if (
+                    not reviewer["is_resigned"]
+                    and reviewer_info["status"] == UserStatus.ACTIVE
+                ):
                     continue
 
                 reviewer["info"] = reviewer_info

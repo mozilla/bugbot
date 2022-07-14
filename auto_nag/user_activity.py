@@ -156,6 +156,9 @@ class UserActivity:
         return users
 
     def _get_status_from_phab_user(self, user: dict) -> UserStatus:
+        if "disabled" in user["fields"]["roles"]:
+            return UserStatus.DISABLED
+
         availability = user["attachments"]["availability"]
         if availability["value"] != "available":
             # We do not need to consider the user inactive they will be
