@@ -15,7 +15,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 from auto_nag import utils
 from auto_nag.people import People
 
-# The chunk size her should not be more than 100; which is the maximum number of
+# The chunk size here should not be more than 100; which is the maximum number of
 # items that Phabricator could return in one response.
 PHAB_CHUNK_SIZE = 100
 

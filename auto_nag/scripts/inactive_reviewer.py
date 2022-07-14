@@ -135,7 +135,7 @@ class InactiveReviewer(BzCleaner):
         result: Dict[int, dict] = {}
         for revision in revisions:
             # It is not useful to notify an inactive author about an inactive
-            # reviewer, thus we should exclude reversions with inactive authors.
+            # reviewer, thus we should exclude revisions with inactive authors.
             author_info = users[revision["author_phid"]]
             if author_info["status"] != UserStatus.ACTIVE:
                 continue
