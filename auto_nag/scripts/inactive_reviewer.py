@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import re
+from datetime import datetime
 from typing import Dict, List
 
 from dateutil.relativedelta import relativedelta
@@ -180,11 +181,34 @@ class InactiveReviewer(BzCleaner):
                 for reviewer in inactive_reviewers
             ):
                 revision["reviewers"] = [
-                    reviewer["info"] for reviewer in inactive_reviewers
+                    {
+                        "phab_username": reviewer["info"]["phab_username"],
+                        "status_note": self._get_reviewer_status_note(reviewer),
+                    }
+                    for reviewer in inactive_reviewers
                 ]
                 result[revision["rev_id"]] = revision
 
         return result
+
+    @staticmethod
+    def _get_reviewer_status_note(reviewer: dict) -> str:
+        if reviewer["is_resigned"]:
+            return "Resigned"
+
+        status = reviewer["info"]["status"]
+        if status == UserStatus.UNAVAILABLE:
+            until = reviewer["info"]["unavailable_until"]
+            if until:
+                return_date = datetime.fromtimestamp(until).strftime("%b %-d, %Y")
+                return f"Back {return_date}"
+
+            return "Unavailable"
+
+        if status == UserStatus.DISABLED:
+            return "Disabled"
+
+        return "Inactive"
 
     @retry(
         wait=wait_exponential(min=4),

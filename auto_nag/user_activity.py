@@ -214,6 +214,9 @@ class UserActivity:
                     continue
 
                 user["phab_username"] = phab_user["fields"]["username"]
+                user["unavailable_until"] = phab_user["attachments"]["availability"][
+                    "until"
+                ]
 
         return users
 

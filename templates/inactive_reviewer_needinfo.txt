@@ -1,7 +1,7 @@
 The following {{ plural('patch is', revisions, 'patches are') }} waiting for review from an inactive reviewer:
 
-| ID  | Title |  Author | Inactive Reviewer |
-| --- | :---- |  ------ | ----------------- |
+| ID  | Title |  Author | Reviewer Status |
+| --- | :---- |  ------ | --------------- |
 {% for rev in revisions -%}
 {% for reviewer in rev['reviewers'] -%}
 {% if rev['reviewers'][0] == reviewer -%}
@@ -10,7 +10,7 @@ The following {{ plural('patch is', revisions, 'patches are') }} waiting for rev
 | | | |
 {%- endif -%}
 
-[{{ reviewer['phab_username'] }}](https://phabricator.services.mozilla.com/p/{{ reviewer['phab_username'] }}/) |
+[{{ reviewer['phab_username'] }}](https://phabricator.services.mozilla.com/p/{{ reviewer['phab_username'] }}/): {{ reviewer["status_note"] }} |
 {% endfor -%}
 {% endfor %}
 
