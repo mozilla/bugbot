@@ -14,6 +14,6 @@ The following {{ plural('patch is', revisions, 'patches are') }} waiting for rev
 {% endfor -%}
 {% endfor %}
 
-:{{ nicknames }}, could you please find an active reviewer?
+:{{ nicknames }}, could you please find another reviewer or {% if has_old_patch -%} abandon the patch if it is no longer relevant {%- endif%}?
 
 {{ documentation }}

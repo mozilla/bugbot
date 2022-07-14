@@ -5,6 +5,8 @@
 import re
 from typing import Dict, List
 
+from dateutil.relativedelta import relativedelta
+from libmozdata import utils as lmdutils
 from libmozdata.connection import Connection
 from libmozdata.phabricator import PhabricatorAPI
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -21,11 +23,21 @@ PHAB_TABLE_PAT = re.compile(r"^\|\ \[D([0-9]+)\]\(h", flags=re.M)
 class InactiveReviewer(BzCleaner):
     """Bugs with patches that are waiting for review from inactive reviewers"""
 
-    def __init__(self):
+    def __init__(self, old_patch_months: int = 6):
+        """Constructor
+
+        Args:
+            old_patch_months: number of months since creation of the patch to be
+                considered old. If the bug has an old patch, we will mention
+                abandon the patch as an option.
+        """
         super(InactiveReviewer, self).__init__()
         self.phab = PhabricatorAPI(utils.get_login_info()["phab_api_key"])
         self.user_activity = UserActivity(include_fields=["nick"], phab=self.phab)
         self.ni_template = self.get_needinfo_template()
+        self.old_patch_limit = (
+            lmdutils.get_date_ymd("today") - relativedelta(months=old_patch_months)
+        ).timestamp()
 
     def description(self):
         return "Bugs with inactive patch reviewers"
@@ -60,9 +72,13 @@ class InactiveReviewer(BzCleaner):
         nicknames = utils.english_list(
             sorted({rev["author"]["nick"] for rev in inactive_revs})
         )
+        has_old_patch = any(
+            revision["created_at"] < self.old_patch_limit for revision in inactive_revs
+        )
         comment = self.ni_template.render(
             revisions=inactive_revs,
             nicknames=nicknames,
+            has_old_patch=has_old_patch,
             plural=utils.plural,
             documentation=self.get_documentation(),
         )
@@ -118,6 +134,7 @@ class InactiveReviewer(BzCleaner):
                     {
                         "rev_id": revision["id"],
                         "title": revision["fields"]["title"],
+                        "created_at": revision["fields"]["dateCreated"],
                         "author_phid": revision["fields"]["authorPHID"],
                         "reviewers": reviewers,
                     }
