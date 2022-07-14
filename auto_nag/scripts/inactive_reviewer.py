@@ -158,7 +158,7 @@ class InactiveReviewer(BzCleaner):
                 reviewer["info"] = reviewer_info
                 inactive_reviewers.append(reviewer)
 
-            if len(inactive_reviewers) == len(reviewers) or any(
+            if len(inactive_reviewers) == len(revision["reviewers"]) or any(
                 reviewer["is_blocking"] and not reviewer["is_accepted"]
                 for reviewer in inactive_reviewers
             ):
