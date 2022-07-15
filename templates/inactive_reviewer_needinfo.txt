@@ -1,7 +1,7 @@
 The following {{ plural('patch is', revisions, 'patches are') }} waiting for review from an inactive reviewer:
 
 | ID  | Title |  Author | Reviewer Status |
-| --- | :---- |  ------ | --------------- |
+| --- | :---- |  ------ | :-------------- |
 {% for rev in revisions -%}
 {% for reviewer in rev['reviewers'] -%}
 {% if rev['reviewers'][0] == reviewer -%}

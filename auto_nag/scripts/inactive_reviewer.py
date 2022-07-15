@@ -194,7 +194,7 @@ class InactiveReviewer(BzCleaner):
     @staticmethod
     def _get_reviewer_status_note(reviewer: dict) -> str:
         if reviewer["is_resigned"]:
-            return "Resigned"
+            return "Resigned from review"
 
         status = reviewer["info"]["status"]
         if status == UserStatus.UNAVAILABLE:
