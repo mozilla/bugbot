@@ -4,45 +4,41 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import json
 import unittest
+from typing import List
 from unittest.mock import patch
 
 from auto_nag.people import People
-from auto_nag.round_robin import RoundRobin
+from auto_nag.round_robin import RotationDefinitions, RoundRobin
 from auto_nag.round_robin_calendar import BadFallback
+
+
+class RotationDefinitionsMockup(RotationDefinitions):
+    def __init__(self, csv_lines: List[str]) -> None:
+        self.csv_lines = csv_lines
+
+    def _fetch_definitions_csv(self):
+        return self.csv_lines
 
 
 class TestRoundRobin(unittest.TestCase):
 
-    default = {
-        "duty-start-dates": {
-            "2019-02-14": "A B",
-            "2019-02-21": "C D",
-            "2019-02-28": "E F",
-        }
-    }
+    config = RotationDefinitionsMockup(
+        [
+            "Team Name,Calendar Scope,Fallback Triager,Calendar URL",
+            "team,P1::C1,G H,auto_nag/tests/calendar_default.json",
+            "team,P2::C2,G H,auto_nag/tests/calendar_default.json",
+            "team,P3::C3,G H,auto_nag/tests/calendar_special.json",
+        ]
+    )
 
-    special = {
-        "duty-start-dates": {
-            "2019-02-14": "E F",
-            "2019-02-21": "A B",
-            "2019-02-28": "C D",
-        }
-    }
-
-    config = {
-        "fallback": "G H",
-        "components": {"P1::C1": "default", "P2::C2": "default", "P3::C3": "special"},
-        "default": {"calendar": json.dumps(default)},
-        "special": {"calendar": json.dumps(special)},
-    }
-
-    config_ics = {
-        "fallback": "G H",
-        "components": {"P1::C1": "default", "P2::C2": "default"},
-        "default": {"calendar": "auto_nag/tests/calendar.ics"},
-    }
+    config_ics = RotationDefinitionsMockup(
+        [
+            "Team Name,Calendar Scope,Fallback Triager,Calendar URL",
+            "team,P1::C1,G H,auto_nag/tests/calendar.ics",
+            "team,P2::C2,G H,auto_nag/tests/calendar.ics",
+        ]
+    )
 
     people = People(
         [
@@ -72,7 +68,7 @@ class TestRoundRobin(unittest.TestCase):
     def test_get(self):
         with patch.object(RoundRobin, "get_nick", new=TestRoundRobin._get_nick):
             rr = RoundRobin(
-                rr={"team": TestRoundRobin.config}, people=TestRoundRobin.people
+                rotation_definitions=TestRoundRobin.config, people=TestRoundRobin.people
             )
 
             assert rr.get(self.mk_bug("P1::C1"), "2019-02-17") == (
@@ -148,7 +144,8 @@ class TestRoundRobin(unittest.TestCase):
     def test_get_ics(self):
         with patch.object(RoundRobin, "get_nick", new=TestRoundRobin._get_nick):
             rr = RoundRobin(
-                rr={"team": TestRoundRobin.config_ics}, people=TestRoundRobin.people
+                rotation_definitions=TestRoundRobin.config_ics,
+                people=TestRoundRobin.people,
             )
 
             assert rr.get(self.mk_bug("P1::C1"), "2019-02-17") == (
@@ -212,7 +209,7 @@ class TestRoundRobin(unittest.TestCase):
 
     def test_get_who_to_nag(self):
         rr = RoundRobin(
-            rr={"team": TestRoundRobin.config}, people=TestRoundRobin.people
+            rotation_definitions=TestRoundRobin.config, people=TestRoundRobin.people
         )
 
         empty = {"team": {"nobody": True, "persons": []}}
@@ -225,7 +222,7 @@ class TestRoundRobin(unittest.TestCase):
 
         with patch.object(People, "get_moz_mail", return_value=None):
             rr = RoundRobin(
-                rr={"team": TestRoundRobin.config}, people=TestRoundRobin.people
+                rotation_definitions=TestRoundRobin.config, people=TestRoundRobin.people
             )
 
             self.assertRaises(BadFallback, rr.get_who_to_nag, "2019-03-01")

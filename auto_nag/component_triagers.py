@@ -3,28 +3,12 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from dataclasses import dataclass
-from typing import Dict, List, NamedTuple, Set
+from typing import Dict, List, Set
 
 from libmozdata.bugzilla import BugzillaProduct
 
+from auto_nag.components import ComponentName
 from auto_nag.round_robin import RoundRobin
-
-
-class ComponentName(NamedTuple):
-    product: str
-    name: str
-
-    def __str__(self) -> str:
-        return f"{self.product}::{self.name}"
-
-    @classmethod
-    def from_str(cls, pc: str) -> "ComponentName":
-        splitted_name = pc.split("::", 1)
-        assert (
-            len(splitted_name) == 2
-        ), f"The component name should be formatted as `product::component`; got '{pc}'"
-
-        return cls(*splitted_name)
 
 
 @dataclass

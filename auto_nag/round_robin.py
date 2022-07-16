@@ -2,15 +2,23 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import json
+import csv
 from random import randint
-from typing import Optional
+from typing import Dict, Iterator, Optional
 
+import requests
 from dateutil.relativedelta import relativedelta
 from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import BugzillaUser
+from tenacity import (
+    retry,
+    retry_if_exception_message,
+    stop_after_attempt,
+    wait_exponential,
+)
 
 from auto_nag import logger, utils
+from auto_nag.components import Components
 from auto_nag.people import People
 from auto_nag.round_robin_calendar import BadFallback, Calendar, InvalidCalendar
 
@@ -19,11 +27,15 @@ class RoundRobin(object):
 
     _instances: dict = {}
 
-    def __init__(self, rr=None, people=None, teams=None):
+    def __init__(self, rotation_definitions=None, people=None, teams=None):
         self.people = People.get_instance() if people is None else people
-        self.components_by_triager = {}
-        self.all_calendars = []
-        self.feed(teams, rr=rr)
+        self.components_by_triager: Dict[str, list] = {}
+        self.rotation_definitions = (
+            RotationDefinitions()
+            if rotation_definitions is None
+            else rotation_definitions
+        )
+        self.feed(teams)
         self.nicks = {}
         self.erroneous_bzmail = {}
         utils.init_random()
@@ -35,58 +47,48 @@ class RoundRobin(object):
                 RoundRobin._instances[None] = RoundRobin()
             return RoundRobin._instances[None]
 
-        teams = tuple(teams)
+        teams = tuple(sorted(teams))
         if teams not in RoundRobin._instances:
             RoundRobin._instances[teams] = RoundRobin(teams=teams)
         return RoundRobin._instances[teams]
 
-    def get_calendar(self, team, data):
-        fallback = data["fallback"]
-        strategies = set(data["components"].values())
-        res = {}
-        for strategy in strategies:
-            url = data[strategy]["calendar"]
-            res[strategy] = Calendar.get(url, fallback, team, people=self.people)
-        return res
+    def feed(self, teams):
+        if teams is not None:
+            teams = set(teams)
 
-    def feed(self, teams, rr=None):
-        self.data = {}
-        filenames = {}
-        if rr is None:
-            rr = {}
-            for team, path in utils.get_config(
-                "round-robin", "teams", default={}
-            ).items():
-                if teams is not None and team not in teams:
-                    continue
-                with open("./auto_nag/scripts/configs/{}".format(path), "r") as In:
-                    rr[team] = json.load(In)
-                    filenames[team] = path
+        self.data = data = {}
+        cache = {}
 
-        # rr is dictionary:
-        # - doc -> documentation
-        # - components -> dictionary: Product::Component -> strategy name
-        # - strategies: dictionary: {calendar: url}
-
-        to_remove = []
-
-        # Get all the strategies for each team
-        for team, data in rr.items():
+        team_calendars = self.rotation_definitions.fetch_by_teams()
+        for team_name, components in team_calendars.items():
+            if teams is not None and team_name not in teams:
+                continue
             try:
-                calendars = self.get_calendar(team, data)
-                self.all_calendars += list(calendars.values())
+                for component_name, calendar_info in components.items():
+                    url = calendar_info["url"]
+                    if url not in cache:
+                        calendar = cache[url] = Calendar.get(
+                            url,
+                            calendar_info["fallback"],
+                            team_name,
+                            people=self.people,
+                        )
+                    else:
+                        calendar = cache[url]
+                        if calendar.get_fallback() != calendar_info["fallback"]:
+                            raise BadFallback(
+                                "Cannot have different fallback triagers for the same calendar"
+                            )
 
-                # finally self.data is a dictionary:
-                # - Product::Component -> dictionary {fallback: who to nag when we've nobody
-                #                                     calendar}
-                for pc, strategy in data["components"].items():
-                    self.data[pc] = calendars[strategy]
+                    data[component_name] = calendar
+
             except (BadFallback, InvalidCalendar) as err:
                 logger.error(err)
-                to_remove.append(team)
-
-        for team in to_remove:
-            del rr[team]
+                # If one the team's calendars failed, it is better to fail loud,
+                # and disable all team's calendars.
+                for component_name in components:
+                    if component_name in data:
+                        del data[component_name]
 
     def get_component_calendar(
         self, product: str, component: str
@@ -200,7 +202,7 @@ class RoundRobin(object):
         date = lmdutils.get_date_ymd(date)
         days = utils.get_config("round-robin", "days_to_nag", 7)
         next_date = date + relativedelta(days=days)
-        for cal in self.all_calendars:
+        for cal in set(self.data.values()):
             persons = cal.get_persons(next_date)
             if persons and all(p is not None for _, p in persons):
                 continue
@@ -220,3 +222,82 @@ class RoundRobin(object):
                 if people_names:
                     info["persons"] += people_names
         return fallbacks
+
+
+class RotationDefinitions:
+    def __init__(self) -> None:
+        self.definitions_url = utils.get_private()["round_robin_sheet"]
+        self.components = Components.get_instance()
+
+    def fetch_by_teams(
+        self,
+    ) -> Dict[str, Dict[str, Dict[str, str]]]:
+        """Fetch the triage owner rotation definitions and group them by team
+
+        Returns:
+            A dictionary that maps each component to its calendar and fallback
+            person. The components are groped by their teams. The following is
+            the shape of the returned dictionary:
+            {
+                team_name: {
+                    component_name:{
+                            "fallback": "the name of the fallback person",
+                            "calendar": "the URL for the rotation calendar"
+                    }
+                    ...
+                }
+                ...
+            }
+        """
+
+        teams: dict = {}
+        seen = set()
+        for row in csv.DictReader(self._fetch_definitions_csv()):
+            team_name = row["Team Name"]
+            scope = row["Calendar Scope"]
+            fallback_triager = row["Fallback Triager"]
+            calendar_url = row["Calendar URL"]
+
+            if (team_name, scope) in seen:
+                logger.error(
+                    "The triage owner rotation definitions show more than one "
+                    "entry for the %s team with the component scope '%s'",
+                    team_name,
+                    scope,
+                )
+            else:
+                seen.add((team_name, scope))
+
+            if team_name in teams:
+                component_calendar = teams[team_name]
+            else:
+                component_calendar = teams[team_name] = {}
+
+            if scope == "All Team's Components":
+                team_components = self.components.get_team_components(team_name)
+                components_to_add = [
+                    str(component_name)
+                    for component_name in team_components
+                    if str(component_name) not in component_calendar
+                ]
+            else:
+                components_to_add = [scope]
+
+            for component_name in components_to_add:
+                component_calendar[component_name] = {
+                    "fallback": fallback_triager,
+                    "url": calendar_url,
+                }
+
+        return teams
+
+    @retry(
+        retry=retry_if_exception_message(match=r"^\d{3} Server Error"),
+        wait=wait_exponential(min=4),
+        stop=stop_after_attempt(3),
+    )
+    def _fetch_definitions_csv(self) -> Iterator[str]:
+        resp = requests.get(self.definitions_url)
+        resp.raise_for_status()
+
+        return resp.iter_lines(decode_unicode=True)
