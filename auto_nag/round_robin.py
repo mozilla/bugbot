@@ -4,7 +4,7 @@
 
 import csv
 from random import randint
-from typing import Dict, Iterator, Literal, Optional, Set
+from typing import Dict, Iterator, Optional, Set
 
 import requests
 from dateutil.relativedelta import relativedelta
@@ -228,7 +228,7 @@ class RoundRobin(object):
         return fallbacks
 
 
-CalendarDef = Dict[Literal["fallback", "url"], str]
+CalendarDef = Dict[str, str]
 ComponentCalendarDefs = Dict[str, CalendarDef]
 TeamCalendarDefs = Dict[str, ComponentCalendarDefs]
 
