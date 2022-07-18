@@ -17,7 +17,7 @@ class RotationDefinitionsMockup(RotationDefinitions):
     def __init__(self, csv_lines: List[str]) -> None:
         self.csv_lines = csv_lines
 
-    def _fetch_definitions_csv(self):
+    def get_definitions_csv_lines(self):
         return self.csv_lines
 
 

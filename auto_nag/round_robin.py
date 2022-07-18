@@ -4,7 +4,7 @@
 
 import csv
 from random import randint
-from typing import Dict, Iterator, Optional
+from typing import Dict, Iterator, Literal, Optional, Set
 
 import requests
 from dateutil.relativedelta import relativedelta
@@ -35,7 +35,7 @@ class RoundRobin(object):
             if rotation_definitions is None
             else rotation_definitions
         )
-        self.feed(teams)
+        self.feed(None if teams is None else set(teams))
         self.nicks = {}
         self.erroneous_bzmail = {}
         utils.init_random()
@@ -52,11 +52,15 @@ class RoundRobin(object):
             RoundRobin._instances[teams] = RoundRobin(teams=teams)
         return RoundRobin._instances[teams]
 
-    def feed(self, teams):
-        if teams is not None:
-            teams = set(teams)
+    def feed(self, teams: Set[str] = None) -> None:
+        """Fetch the rotations calendars.
 
-        self.data = data = {}
+        Args:
+            teams: if provided, only calendars for the specified teams will be
+                fetched.
+        """
+
+        self.data = {}
         cache = {}
 
         team_calendars = self.rotation_definitions.fetch_by_teams()
@@ -80,15 +84,15 @@ class RoundRobin(object):
                                 "Cannot have different fallback triagers for the same calendar"
                             )
 
-                    data[component_name] = calendar
+                    self.data[component_name] = calendar
 
             except (BadFallback, InvalidCalendar) as err:
                 logger.error(err)
                 # If one the team's calendars failed, it is better to fail loud,
                 # and disable all team's calendars.
                 for component_name in components:
-                    if component_name in data:
-                        del data[component_name]
+                    if component_name in self.data:
+                        del self.data[component_name]
 
     def get_component_calendar(
         self, product: str, component: str
@@ -224,19 +228,24 @@ class RoundRobin(object):
         return fallbacks
 
 
+CalendarDef = Dict[Literal["fallback", "url"], str]
+ComponentCalendarDefs = Dict[str, CalendarDef]
+TeamCalendarDefs = Dict[str, ComponentCalendarDefs]
+
+
 class RotationDefinitions:
+    """Definitions for triage owner rotations"""
+
     def __init__(self) -> None:
         self.definitions_url = utils.get_private()["round_robin_sheet"]
         self.components = Components.get_instance()
 
-    def fetch_by_teams(
-        self,
-    ) -> Dict[str, Dict[str, Dict[str, str]]]:
+    def fetch_by_teams(self) -> TeamCalendarDefs:
         """Fetch the triage owner rotation definitions and group them by team
 
         Returns:
             A dictionary that maps each component to its calendar and fallback
-            person. The components are groped by their teams. The following is
+            person. The components are grouped by their teams. The following is
             the shape of the returned dictionary:
             {
                 team_name: {
@@ -250,9 +259,9 @@ class RotationDefinitions:
             }
         """
 
-        teams: dict = {}
+        teams: TeamCalendarDefs = {}
         seen = set()
-        for row in csv.DictReader(self._fetch_definitions_csv()):
+        for row in csv.DictReader(self.get_definitions_csv_lines()):
             team_name = row["Team Name"]
             scope = row["Calendar Scope"]
             fallback_triager = row["Fallback Triager"]
@@ -290,6 +299,19 @@ class RotationDefinitions:
                 }
 
         return teams
+
+    def get_definitions_csv_lines(self) -> Iterator[str]:
+        """Get the definitions for the triage owner rotations in CSV format.
+
+        Returns:
+            An iterator where each iteration should return a line from the CSV
+            file. The first line will be the headers::
+                - Team Name
+                - Calendar Scope
+                - Fallback Triager
+                - Calendar URL"
+        """
+        return self.get_definitions_csv_lines()
 
     @retry(
         retry=retry_if_exception_message(match=r"^\d{3} Server Error"),

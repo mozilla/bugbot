@@ -8,6 +8,8 @@ from libmozdata.bugzilla import BugzillaProduct
 
 
 class ComponentName(NamedTuple):
+    """A representation of a component name"""
+
     product: str
     name: str
 
@@ -16,6 +18,7 @@ class ComponentName(NamedTuple):
 
     @classmethod
     def from_str(cls, pc: str) -> "ComponentName":
+        """Parse the staring repression of the component name"""
         splitted_name = pc.split("::", 1)
         assert (
             len(splitted_name) == 2
@@ -25,6 +28,8 @@ class ComponentName(NamedTuple):
 
 
 class Components:
+    """Bugzilla components"""
+
     _instance = None
 
     def __init__(self) -> None:
@@ -64,10 +69,21 @@ class Components:
 
     @staticmethod
     def get_instance() -> "Components":
+        """Get an instance of the Components class; if the method has been
+        called before, a cached instance will be returned.
+        """
         if Components._instance is None:
             Components._instance = Components()
 
         return Components._instance
 
-    def get_team_components(self, team: str) -> List[ComponentName]:
-        return self.team_components[team]
+    def get_team_components(self, team_name: str) -> List[ComponentName]:
+        """Get all components owned by a team.
+
+        Args:
+            team_name: the name of the team.
+
+         Returns:
+            A list of all active components owned by the team.
+        """
+        return self.team_components[team_name]
