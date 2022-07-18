@@ -10,7 +10,7 @@ import libmozdata.socorro as socorro
 from libmozdata import utils as lmdutils
 
 
-def _formate_criteria_names(criteria: List[dict]):
+def _format_criteria_names(criteria: List[dict]):
     return [
         {
             **criterion,
@@ -24,7 +24,7 @@ def _formate_criteria_names(criteria: List[dict]):
 #
 # Wiki page: https://wiki.mozilla.org/CrashKill/Topcrash
 
-TOP_CRASH_IDENTIFICATION_CRITERIA = _formate_criteria_names(
+TOP_CRASH_IDENTIFICATION_CRITERIA = _format_criteria_names(
     [
         # -------
         # Firefox
