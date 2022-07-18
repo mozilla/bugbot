@@ -175,6 +175,9 @@ python -m auto_nag.scripts.vacant_team_manager --production
 # Notify about tracked bugs with no assignee, low severity, or low priority
 python -m auto_nag.scripts.tracked_attention --production
 
+# Needinfo patch authors to find active reviewers
+python -m auto_nag.scripts.inactive_reviewer --production
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
