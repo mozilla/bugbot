@@ -10,7 +10,7 @@ from collections import defaultdict
 from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, Template
 from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import Bugzilla
 
@@ -66,7 +66,7 @@ class BzCleaner(object):
         """Get the tool path"""
         return self.__tool_path__
 
-    def needinfo_template(self):
+    def needinfo_template_name(self):
         """Get the txt template filename"""
         return self.name() + "_needinfo.txt"
 
@@ -491,10 +491,7 @@ class BzCleaner(object):
         if not self.auto_needinfo:
             return {}
 
-        template_name = self.needinfo_template()
-        assert bool(template_name)
-        env = Environment(loader=FileSystemLoader("templates"))
-        template = env.get_template(template_name)
+        template = self.get_needinfo_template()
         res = {}
 
         doc = self.get_documentation()
@@ -534,6 +531,16 @@ class BzCleaner(object):
                         res[bugid]["comment"]["body"] = comment
 
         return res
+
+    def get_needinfo_template(self) -> Template:
+        """Get a template to render needinfo comment body"""
+
+        template_name = self.needinfo_template_name()
+        assert bool(template_name)
+        env = Environment(loader=FileSystemLoader("templates"))
+        template = env.get_template(template_name)
+
+        return template
 
     def has_individual_autofix(self, changes):
         # check if we have a dictionary with bug numbers as keys
