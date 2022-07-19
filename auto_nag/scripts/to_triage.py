@@ -79,7 +79,7 @@ class ToTriage(BzCleaner, Nag):
             "include_fields": fields,
             "product": list(prods),
             "component": list(comps),
-            "keywords": "intermittent-failure",
+            "keywords": ["intermittent-failure", "triaged"],
             "keywords_type": "nowords",
             "email2": "wptsync@mozilla.bugs",
             "emailreporter2": "1",
@@ -91,9 +91,6 @@ class ToTriage(BzCleaner, Nag):
             "f2": "flagtypes.name",
             "o2": "notsubstring",
             "v2": "needinfo?",
-            "f3": "bug_severity",
-            "o3": "anyexact",
-            "v3": "--, n/a",
         }
 
         return params

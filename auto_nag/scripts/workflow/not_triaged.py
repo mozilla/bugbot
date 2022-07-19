@@ -2,17 +2,48 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from datetime import datetime
+
 from libmozdata import utils as lmdutils
 
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
+from auto_nag.component_triagers import ComponentName
 from auto_nag.escalation import Escalation
 from auto_nag.nag_me import Nag
 from auto_nag.round_robin import RoundRobin
 
+ESCALATION_CONFIG = {
+    "first": {
+        "default": {
+            "[0;+∞[": {
+                "supervisor": "self",
+                "days": ["Mon", "Tue", "Wed", "Thu", "Fri"],
+            },
+        },
+    },
+    "second": {
+        "default": {
+            "[0;+∞[": {
+                "supervisor": "n+1",
+                "days": ["Mon", "Thu"],
+            },
+        },
+    },
+}
 
-class NoSeverity(BzCleaner, Nag):
-    def __init__(self, typ, inactivity_days: int = 3):
+
+class NotTriaged(BzCleaner, Nag):
+    """Bugs that are not triaged"""
+
+    def __init__(
+        self,
+        typ,
+        inactivity_days: int = 3,
+        oldest_bug_days: int = 360,
+        first_step_weeks: int = 2,
+        second_step_weeks: int = 4,
+    ):
         """Constructor
 
         Args:
@@ -20,36 +51,39 @@ class NoSeverity(BzCleaner, Nag):
                 emails will be sent only if `typ` is second.
             inactivity_days: number of days that a bug should be inactive before
                 being considered.
+            oldest_bug_days: the max number of days since the creation of a bug
+                to be considered.
+            first_step_weeks: number of weeks to consider the bug for the the
+                first step.
+            second_step_weeks number of weeks to consider the bug for the the
+                second step.
         """
-        super(NoSeverity, self).__init__()
-        assert typ in {"first", "second"}
+        super().__init__()
+        self.date: datetime
         self.typ = typ
-        self.lookup_first = utils.get_config(self.name(), "first-step", 2)
-        self.lookup_second = utils.get_config(self.name(), "second-step", 4)
+        self.oldest_bug_days = oldest_bug_days
+        self.lookup_first = first_step_weeks
+        self.lookup_second = second_step_weeks
         self.escalation = Escalation(
             self.people,
-            data=utils.get_config(self.name(), "escalation-{}".format(typ)),
+            data=ESCALATION_CONFIG[typ],
             skiplist=utils.get_config("workflow", "supervisor_skiplist", []),
         )
         self.round_robin = RoundRobin.get_instance()
-        self.components_skiplist = utils.get_config("workflow", "components_skiplist")
+        self.components_skiplist = {
+            ComponentName.from_str(pc)
+            for pc in utils.get_config("workflow", "components_skiplist")
+        }
         self.activity_date = lmdutils.get_date("today", inactivity_days)
 
     def description(self):
-        return "Bugs without a severity or statuses set"
+        return "Bugs that are not triaged"
 
     def nag_template(self):
         return self.template()
 
     def nag_preamble(self):
-        return """<p>
-  <ul>
-    <li><a href="https://firefox-source-docs.mozilla.org/bug-mgmt/policies/triage-bugzilla.html#why-triage">Why triage?</a></li>
-    <li><a href="https://firefox-source-docs.mozilla.org/bug-mgmt/policies/triage-bugzilla.html#what-do-you-triage">What do you triage?</a></li>
-    <li><a href="https://firefox-source-docs.mozilla.org/bug-mgmt/guides/priority.html">Priority definitions</a></li>
-    <li><a href="https://firefox-source-docs.mozilla.org/bug-mgmt/guides/severity.html">Severty definitions</a></li>
-  </ul>
-</p>"""
+        return True
 
     def get_extra_for_template(self):
         return {
@@ -73,8 +107,7 @@ class NoSeverity(BzCleaner, Nag):
 
     def handle_bug(self, bug, data):
         if (
-            # check if the product::component is in the list
-            utils.check_product_component(self.components_skiplist, bug)
+            ComponentName.from_bug(bug) in self.components_skiplist
             or utils.get_last_no_bot_comment_date(bug) > self.activity_date
         ):
             return None
@@ -115,21 +148,21 @@ class NoSeverity(BzCleaner, Nag):
         ]
         params = {
             "include_fields": fields,
-            "keywords": "intermittent-failure",
+            "keywords": ["intermittent-failure", "triaged"],
             "keywords_type": "nowords",
             "email2": "wptsync@mozilla.bugs",
             "emailreporter2": "1",
             "emailtype2": "notequals",
             "resolution": "---",
+            "f1": "creation_ts",
+            "o1": "greaterthan",
+            "v1": f"-{self.oldest_bug_days}d",
             "f21": "bug_type",
             "o21": "equals",
             "v21": "defect",
             "f22": "flagtypes.name",
-            "o22": "notsubstring",
+            "o22": "notequals",
             "v22": "needinfo?",
-            "f23": "bug_severity",
-            "o23": "anyexact",
-            "v23": "--, n/a",
         }
         self.date = lmdutils.get_date_ymd(date)
         first = f"-{self.lookup_first * 7}d"
@@ -144,9 +177,6 @@ class NoSeverity(BzCleaner, Nag):
             # ((second < creation < first) && pc never changed)
             params.update(
                 {
-                    "f2": "flagtypes.name",
-                    "o2": "notequals",
-                    "v2": "needinfo?",
                     "j3": "OR",
                     "f3": "OP",
                     "j4": "AND",
@@ -240,5 +270,5 @@ class NoSeverity(BzCleaner, Nag):
 
 
 if __name__ == "__main__":
-    NoSeverity("first").run()
-    NoSeverity("second").run()
+    NotTriaged("first").run()
+    NotTriaged("second").run()

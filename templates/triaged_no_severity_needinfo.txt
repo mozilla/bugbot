@@ -1,0 +1,4 @@
+The bug was triaged, but the severity field still is not set.
+:{{ nickname }}, could you have a look please?
+
+{{ documentation }}
