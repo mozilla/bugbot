@@ -1,9 +1,0 @@
-{
-  "fallback": "Thomas Elin",
-  "components": {
-    "Core::General": "default"
-  },
-  "default": {
-    "calendar": "private://Core::General"
-  }
-}

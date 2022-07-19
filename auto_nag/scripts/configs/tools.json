@@ -1,18 +1,6 @@
 {
   "round-robin": {
-    "days_to_nag": 7,
-    "teams": {
-      "necko": "necko_round_robin.json",
-      "Core::General": "core_general_round_robin.json",
-      "DOM:LWS": "dom_lws_round_robin.json",
-      "DOM:Core": "dom_core_round_robin.json",
-      "Core::Layout": "layout_round_robin.json",
-      "Media:audio": "media_audio_round_robin.json",
-      "Desktop Integrations": "desktop_installer_round_robin.json",
-      "FxPerfTest": "fxperftest_round_robin.json",
-      "Gfx": "gfx_round_robin.json",
-      "Firefox::Sync": "firefox_sync_round_robin.json"
-    }
+    "days_to_nag": 7
   },
   "no_assignee": {
     "days_lookup": 45,
@@ -412,7 +400,7 @@
         }
       }
     },
-    "teams": ["DOM:LWS", "DOM:Core", "Core::General", "Media:audio"],
+    "teams": ["DOM LWS", "DOM Core", "Other", "Media"],
     "persons": ["jdescottes@mozilla.com"]
   },
   "spambug": {
