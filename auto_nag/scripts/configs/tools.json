@@ -35,6 +35,7 @@
     },
     "products": [
       "Core",
+      "Developer Infrastructure",
       "DevTools",
       "External Software Affecting Firefox",
       "Fenix",
