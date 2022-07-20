@@ -103,7 +103,7 @@ class PatchClosedBug(BzCleaner):
     def get_autofix_change(self):
         return {
             "comment": {
-                "body": "A patch has been attached on this bug, which was already closed. If the patch doesn't change behavior (e.g. landing a test case, or fixing a typo), there's nothing to do. Otherwise, filing a separate bug will ensure better tracking. If this was not by mistake and further action is needed, please alert the appropriate party."
+                "body": "A patch has been attached on this bug, which was already closed. Filing a separate bug will ensure better tracking. If this was not by mistake and further action is needed, please alert the appropriate party. (Or: if the patch doesn't change behavior -- e.g. landing a test case, or fixing a typo -- then feel free to disregard this message)",
             },
         }
 
