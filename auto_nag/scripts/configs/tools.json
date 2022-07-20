@@ -61,7 +61,8 @@
       "Testing",
       "Toolkit",
       "Web Compatibility",
-      "WebExtensions"
+      "WebExtensions",
+      "Developer Infrastructure"
     ],
     "log": "/tmp/auto_nag_errors.txt",
     "receiver_list": {
