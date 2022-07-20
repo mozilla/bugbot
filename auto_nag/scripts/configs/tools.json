@@ -47,6 +47,7 @@
     },
     "products": [
       "Core",
+      "Developer Infrastructure",
       "DevTools",
       "External Software Affecting Firefox",
       "Fenix",
@@ -61,8 +62,7 @@
       "Testing",
       "Toolkit",
       "Web Compatibility",
-      "WebExtensions",
-      "Developer Infrastructure"
+      "WebExtensions"
     ],
     "log": "/tmp/auto_nag_errors.txt",
     "receiver_list": {
