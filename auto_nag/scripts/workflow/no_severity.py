@@ -12,7 +12,15 @@ from auto_nag.round_robin import RoundRobin
 
 
 class NoSeverity(BzCleaner, Nag):
-    def __init__(self, typ):
+    def __init__(self, typ, inactivity_days: int = 3):
+        """Constructor
+
+        Args:
+            typ: the mode that the tool should run with (first or second). Nag
+                emails will be sent only if `typ` is second.
+            inactivity_days: number of days that a bug should be inactive before
+                being considered.
+        """
         super(NoSeverity, self).__init__()
         assert typ in {"first", "second"}
         self.typ = typ
@@ -25,6 +33,7 @@ class NoSeverity(BzCleaner, Nag):
         )
         self.round_robin = RoundRobin.get_instance()
         self.components_skiplist = utils.get_config("workflow", "components_skiplist")
+        self.activity_date = lmdutils.get_date("today", inactivity_days)
 
     def description(self):
         return "Bugs without a severity or statuses set"
@@ -63,8 +72,11 @@ class NoSeverity(BzCleaner, Nag):
         return ["component", "id", "summary"]
 
     def handle_bug(self, bug, data):
-        # check if the product::component is in the list
-        if utils.check_product_component(self.components_skiplist, bug):
+        if (
+            # check if the product::component is in the list
+            utils.check_product_component(self.components_skiplist, bug)
+            or utils.get_last_no_bot_comment_date(bug) > self.activity_date
+        ):
             return None
         return bug
 
@@ -95,7 +107,12 @@ class NoSeverity(BzCleaner, Nag):
         return bug
 
     def get_bz_params(self, date):
-        fields = ["triage_owner", "flags"]
+        fields = [
+            "triage_owner",
+            "flags",
+            "comments.creator",
+            "comments.creation_time",
+        ]
         params = {
             "include_fields": fields,
             "keywords": "intermittent-failure",
