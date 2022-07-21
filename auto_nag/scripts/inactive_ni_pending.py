@@ -243,7 +243,12 @@ class InactiveNeedinfoPending(BzCleaner):
             autofix = {
                 "flags": self._clear_inactive_ni_flags(bug),
                 "comment": {
-                    "body": f'Clear { plural("a needinfo that is", bug["inactive_ni"], "needinfos that are") } pending on { plural("an inactive user", users_num, "inactive users") }.',
+                    "body": (
+                        f'Clear { plural("a needinfo that is", bug["inactive_ni"], "needinfos that are") } pending on { plural("an inactive user", users_num, "inactive users") }.'
+                        "\n\nInactive users most likely will not respond; "
+                        "if the missing information is essential and cannot be collected another way, "
+                        "the bug maybe should be closed as `INCOMPLETE`."
+                    ),
                 },
             }
 
