@@ -311,7 +311,7 @@ class RotationDefinitions:
                 - Fallback Triager
                 - Calendar URL"
         """
-        return self.get_definitions_csv_lines()
+        return self._fetch_definitions_csv()
 
     @retry(
         retry=retry_if_exception_message(match=r"^\d{3} Server Error"),
