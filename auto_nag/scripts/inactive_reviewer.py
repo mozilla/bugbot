@@ -76,9 +76,30 @@ class InactiveReviewer(BzCleaner):
         has_old_patch = any(
             revision["created_at"] < self.old_patch_limit for revision in inactive_revs
         )
+
+        reviewers = {
+            (reviewer["phab_username"], reviewer["status_note"])
+            for revision in inactive_revs
+            for reviewer in revision["reviewers"]
+        }
+
+        resigned_count = sum(1 for _, note in reviewers if note == "Resigned")
+
+        if len(reviewers) == 1:
+            if resigned_count == 0:
+                summary = "an inactive reviewer"
+            else:
+                summary = "a reviewer who resigned from the review"
+        else:
+            if resigned_count == 0:
+                summary = "inactive reviewers"
+            else:
+                summary = "reviewers who are inactive or resigned from the review"
+
         comment = self.ni_template.render(
             revisions=inactive_revs,
             nicknames=nicknames,
+            reviewers_status_summary=summary,
             has_old_patch=has_old_patch,
             plural=utils.plural,
             documentation=self.get_documentation(),
@@ -194,7 +215,7 @@ class InactiveReviewer(BzCleaner):
     @staticmethod
     def _get_reviewer_status_note(reviewer: dict) -> str:
         if reviewer["is_resigned"]:
-            return "Resigned from review"
+            return "Resigned"
 
         status = reviewer["info"]["status"]
         if status == UserStatus.UNAVAILABLE:
