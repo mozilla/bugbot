@@ -245,8 +245,8 @@ class InactiveNeedinfoPending(BzCleaner):
                 "comment": {
                     "body": (
                         f'Clear { plural("a needinfo that is", bug["inactive_ni"], "needinfos that are") } pending on { plural("an inactive user", users_num, "inactive users") }.'
-                        "\n\nSince inactive users most likely will not respond; "
-                        "if the missed information is essential and cannot be collected another way, "
+                        "\n\nInactive users most likely will not respond; "
+                        "if the missing information is essential and cannot be collected another way, "
                         "the bug maybe should be closed as `INCOMPLETE`."
                     ),
                 },
