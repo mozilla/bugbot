@@ -238,7 +238,9 @@ class InactiveReviewer(BzCleaner):
             if comment["creator"] == History.BOT and comment["raw_text"].startswith(
                 "The following patch"
             ):
-                rev_ids_with_ni.update(int(id) for id in PHAB_TABLE_PAT.findall())
+                rev_ids_with_ni.update(
+                    int(id) for id in PHAB_TABLE_PAT.findall(comment["raw_text"])
+                )
 
         if rev_ids_with_ni:
             rev_ids = [id for id in rev_ids if id not in rev_ids_with_ni]
