@@ -1,4 +1,4 @@
-The following {{ plural('patch is', revisions, 'patches are') }} waiting for review from an inactive reviewer:
+The following {{ plural('patch is', revisions, 'patches are') }} waiting for review from {{ reviewers_status_summary }}:
 
 | ID  | Title |  Author | Reviewer Status |
 | --- | :---- |  ------ | :-------------- |
