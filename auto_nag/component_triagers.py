@@ -61,25 +61,6 @@ class ComponentTriagers:
             product_data=self.triagers,
         ).wait()
 
-    def get_rotation_triage_owners(self, component: ComponentName) -> list:
-        """Get the triage owner in the rotation.
-
-        Args:
-            component: the name of the component.
-
-        Returns:
-            List of bugzilla emails for people defined to be triage owners as
-            today based on the rotations source. If component does not have a
-            rotation source, an empty list will be returned.
-        """
-        calendar = self.round_robin.get_component_calendar(
-            component.product, component.name
-        )
-        if not calendar:
-            return []
-
-        return [email for name, email in calendar.get_persons("today")]
-
     def get_current_triage_owner(self, component: ComponentName) -> str:
         """Get the current triage owner as defined on Bugzilla.
 
@@ -103,10 +84,17 @@ class ComponentTriagers:
         """
         triagers = []
         for component, current_triager in self.triagers.items():
-            new_triagers = self.get_rotation_triage_owners(component)
-            if new_triagers and not any(
-                new_triager == current_triager for new_triager in new_triagers
-            ):
-                triagers.append(TriageOwner(component, new_triagers[0]))
+            new_triager = self.round_robin.get(
+                {
+                    "product": component.product,
+                    "component": component.name,
+                    "triage_owner": current_triager,
+                },
+                "today",
+                only_one=True,
+                has_nick=False,
+            )
+            if new_triager and new_triager != current_triager:
+                triagers.append(TriageOwner(component, new_triager))
 
         return triagers
