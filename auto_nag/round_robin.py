@@ -3,7 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import csv
-from typing import Dict, Iterator, Optional, Set
+from typing import Dict, Iterator, Set
 
 import requests
 from dateutil.relativedelta import relativedelta
@@ -92,21 +92,6 @@ class RoundRobin(object):
                 for component_name in components:
                     if component_name in self.data:
                         del self.data[component_name]
-
-    def get_component_calendar(
-        self, product: str, component: str
-    ) -> Optional[Calendar]:
-        """Get the calendar for specific component.
-
-        Args:
-            product: the name of the product.
-            component: the name of the component.
-
-        Returns:
-            The calendar as defined in the round robin configs.
-        """
-        pc = f"{product}::{component}"
-        return self.data[pc] if pc in self.data else None
 
     def get_components(self):
         return list(self.data.keys())
