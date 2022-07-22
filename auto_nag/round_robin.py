@@ -3,7 +3,6 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import csv
-from random import randint
 from typing import Dict, Iterator, Optional, Set
 
 import requests
@@ -191,7 +190,7 @@ class RoundRobin(object):
         self.add_component_for_triager(pc, bzmails)
 
         if only_one:
-            bzmail = bzmails[randint(0, len(bzmails) - 1)]
+            bzmail = bzmails[0]
             if has_nick:
                 nick = self.get_nick(bzmail, pc, cal)
                 return bzmail, nick
