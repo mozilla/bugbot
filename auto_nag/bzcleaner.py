@@ -11,6 +11,7 @@ from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
 from jinja2 import Environment, FileSystemLoader, Template
+from libmozdata import config
 from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import Bugzilla
 
@@ -19,10 +20,17 @@ from auto_nag.cache import Cache
 from auto_nag.nag_me import Nag
 
 
+class SilentBugzilla(Bugzilla):
+    """Same as Bugzilla but using an account that does not trigger bugmail"""
+
+    TOKEN = config.get("Bugzilla", "nomail-token", "")
+
+
 class BzCleaner(object):
     def __init__(self):
         super(BzCleaner, self).__init__()
         self._set_tool_name()
+        self.no_bugmail = False
         self.has_autofix = False
         self.autofix_changes = {}
         self.quota_actions = defaultdict(list)
@@ -558,6 +566,7 @@ class BzCleaner(object):
         """Autofix the bugs according to what is returned by get_autofix_change"""
         ni_changes = self.set_needinfo()
         change = self.get_autofix_change()
+        put_cls = SilentBugzilla if self.no_bugmail else Bugzilla
 
         if not ni_changes and not change:
             return bugs
@@ -591,7 +600,7 @@ class BzCleaner(object):
             for bugid, ch in new_changes.items():
                 added = False
                 for _ in range(max_retries):
-                    failures = Bugzilla([str(bugid)]).put(ch)
+                    failures = put_cls([str(bugid)]).put(ch)
                     if failures:
                         time.sleep(1)
                     else:

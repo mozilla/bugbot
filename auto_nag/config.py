@@ -19,15 +19,17 @@ class MyConfig(config.Config):
         else:
             with open(MyConfig.PATH) as In:
                 self.conf = json.load(In)
-                if not self.conf.get("bz_api_key", None):
-                    raise Exception(
-                        "Your config.json file must contain a Bugzilla token"
-                    )
+            if "bz_api_key" not in self.conf:
+                raise Exception("Your config.json file must contain a Bugzilla token")
+            if "bz_api_key_nomail" not in self.conf:
+                self.conf["bz_api_key_nomail"] = self.conf["bz_api_key"]
 
     def get(self, section, option, default=None, type=str):
         if section == "Bugzilla":
             if option == "token":
                 return self.conf["bz_api_key"]
+            if option == "nomail-token":
+                return self.conf["bz_api_key_nomail"]
         elif section == "User-Agent":
             return "relman-auto-nag"
         return default
