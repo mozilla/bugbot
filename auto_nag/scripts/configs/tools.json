@@ -62,6 +62,9 @@
     "max_actions": 3,
     "must_run": ["Mon"]
   },
+  "fuzz_blockers": {
+    "must_run": ["Mon"]
+  },
   "patch_closed_bug": {
     "additional_receivers": "rm"
   },
