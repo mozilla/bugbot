@@ -114,5 +114,7 @@ This needs to run on a private server because it will have login for smtp and bu
 
 Cronjob::
 
-  00 14 * * 1-5 $HOME/run_autonags_daily.sh &> /tmp/autonag.log
-  15 */1 * * * $HOME/runauto_nag_hourly.sh &> /tmp/autonag-hour.log
+  00 17 * * 2 $HOME/relman-auto-nag/runauto_nag_tuesday.sh &> /tmp/autonag-tuesday.log
+  00 7 * * 2 $HOME/relman-auto-nag/update_people.sh &> /tmp/autonag-people.log
+  00 12 * * 1-5 $HOME/relman-auto-nag/run_autonags_daily.sh &> /tmp/autonag-day.log
+  30 */1 * * * $HOME/relman-auto-nag/runauto_nag_hourly.sh &> /tmp/autonag-hour.log

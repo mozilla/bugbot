@@ -12,6 +12,10 @@ pip install -r requirements.txt
 # Clean the log files
 python -m auto_nag.log --clean
 
+# Code freeze week information for release managers
+# Daily (but really runs during the soft freeze week)
+python -m auto_nag.scripts.code_freeze_week -D yesterday --production
+
 # Not up-to-date release date
 # Daily
 python -m auto_nag.next_release --production
