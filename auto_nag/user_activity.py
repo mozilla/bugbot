@@ -135,7 +135,7 @@ class UserActivity:
 
         def handler(user, data):
             status = self._get_status_from_bz_user(user)
-            if keep_active or status == UserStatus.ACTIVE:
+            if keep_active or status != UserStatus.ACTIVE:
                 user["status"] = status
                 data[user["name"]] = user
 
