@@ -12,6 +12,17 @@ LOW_SEVERITY = ["S3", "normal", "S4", "minor", "trivial", "enhancement"]
 
 
 class FuzzBlockers(BzCleaner, Nag):
+    def __init__(self, waiting_days: int = 3):
+        """Constructor
+
+        Args:
+            waiting_days: number of days to wait after the bug creation before
+                starting to nag.
+        """
+        super().__init__()
+
+        self.waiting_days = waiting_days
+
     def description(self):
         return "Bugs that prevent fuzzing from making progress"
 
@@ -57,6 +68,9 @@ class FuzzBlockers(BzCleaner, Nag):
             "f1": "status_whiteboard",
             "o1": "substring",
             "v1": "[fuzzblocker]",
+            "f2": "creation_ts",
+            "o2": "lessthaneq",
+            "v2": f"-{self.waiting_days}d",
         }
 
 
