@@ -6,6 +6,8 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class LeaveOpen(BzCleaner):
+    no_bugmail = True
+
     def description(self):
         return "Closed bugs with leave-open keyword"
 

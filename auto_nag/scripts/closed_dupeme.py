@@ -6,6 +6,8 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class DupeMe(BzCleaner):
+    no_bugmail = True
+
     def description(self):
         return "Closed bugs with dupeme keyword"
 
