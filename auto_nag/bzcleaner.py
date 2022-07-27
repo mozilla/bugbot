@@ -567,9 +567,9 @@ class BzCleaner(object):
         if not self.has_individual_autofix(change):
             bugids = self.get_list_bugs(bugs)
             for bugid in bugids:
-                new_changes[bugid] = utils.merge_bz_changes(
-                    change, ni_changes.get(bugid, {})
-                )
+                mrg = utils.merge_bz_changes(change, ni_changes.get(bugid, {}))
+                if mrg:
+                    new_changes[bugid] = mrg
         else:
             change = {str(k): v for k, v in change.items()}
             bugids = set(change.keys()) | set(ni_changes.keys())
