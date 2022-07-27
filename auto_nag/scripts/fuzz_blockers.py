@@ -2,8 +2,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
+from auto_nag.history import History
 from auto_nag.nag_me import Nag
+
+# TODO: should be moved when resolving https://github.com/mozilla/relman-auto-nag/issues/1384
+LOW_SEVERITY = ["S3", "normal", "S4", "minor", "trivial", "enhancement"]
 
 
 class FuzzBlockers(BzCleaner, Nag):
@@ -23,10 +28,28 @@ class FuzzBlockers(BzCleaner, Nag):
 
         return bug
 
+    def get_mail_to_auto_ni(self, bug):
+        if bug["severity"] in LOW_SEVERITY and not self._is_commented(bug):
+            return utils.get_mail_to_ni(bug)
+
+    @staticmethod
+    def _is_commented(bug: dict) -> bool:
+        """Get whether the bug has a previous comment by this tool"""
+        for comment in reversed(bug["comments"]):
+            if comment["creator"] == History.BOT and comment["raw_text"].startswith(
+                "This bug prevent fuzzing from making progress."
+            ):
+                return True
+
+        return False
+
     def get_bz_params(self, date):
         fields = [
             "triage_owner",
             "assigned_to",
+            "severity",
+            "comments.raw_text",
+            "comments.creator",
         ]
         return {
             "include_fields": fields,
