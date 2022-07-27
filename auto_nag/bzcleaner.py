@@ -27,10 +27,17 @@ class SilentBugzilla(Bugzilla):
 
 
 class BzCleaner(object):
+    """
+    Attributes:
+        no_bugmail: If `True`, a token for an account that does not trigger
+            bugmail will be used when performing `PUT` actions on Bugzilla.
+    """
+
+    no_bugmail: bool = False
+
     def __init__(self):
         super(BzCleaner, self).__init__()
         self._set_tool_name()
-        self.no_bugmail = False
         self.has_autofix = False
         self.autofix_changes = {}
         self.quota_actions = defaultdict(list)
