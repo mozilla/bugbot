@@ -566,7 +566,7 @@ class BzCleaner(object):
         """Autofix the bugs according to what is returned by get_autofix_change"""
         ni_changes = self.set_needinfo()
         change = self.get_autofix_change()
-        put_cls = SilentBugzilla if self.no_bugmail else Bugzilla
+        bugzilla_cls = SilentBugzilla if self.no_bugmail else Bugzilla
 
         if not ni_changes and not change:
             return bugs
@@ -600,7 +600,7 @@ class BzCleaner(object):
             for bugid, ch in new_changes.items():
                 added = False
                 for _ in range(max_retries):
-                    failures = put_cls([str(bugid)]).put(ch)
+                    failures = bugzilla_cls([str(bugid)]).put(ch)
                     if failures:
                         time.sleep(1)
                     else:
