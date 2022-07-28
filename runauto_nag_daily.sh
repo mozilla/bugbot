@@ -185,6 +185,9 @@ python -m auto_nag.scripts.tracked_attention --production
 # Needinfo patch authors to find active reviewers
 python -m auto_nag.scripts.inactive_reviewer --production
 
+# Nag on fuzz blocker bugs
+python -m auto_nag.scripts.fuzz_blockers --production
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
