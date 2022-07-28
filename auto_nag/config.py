@@ -15,7 +15,7 @@ class MyConfig(config.Config):
     def __init__(self):
         super(MyConfig, self).__init__()
         if not os.path.exists(MyConfig.PATH):
-            self.conf = {"bz_api_key": ""}
+            self.conf = {"bz_api_key": "", "bz_api_key_nomail": ""}
         else:
             with open(MyConfig.PATH) as In:
                 self.conf = json.load(In)
@@ -24,7 +24,9 @@ class MyConfig(config.Config):
             raise Exception("Your config.json file must contain a Bugzilla token")
 
         if "bz_api_key_nomail" not in self.conf:
-            self.conf["bz_api_key_nomail"] = self.conf["bz_api_key"]
+            raise Exception(
+                "Your config.json file must contain a Bugzilla token for account that doesn't trigger bugmail"
+            )
 
     def get(self, section, option, default=None, type=str):
         if section == "Bugzilla":
