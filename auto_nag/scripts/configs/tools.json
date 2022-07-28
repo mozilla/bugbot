@@ -410,7 +410,7 @@
   "spambug": {
     "max_days_in_cache": 7,
     "additional_receivers": ["glob@mozilla.com", "mhoye@mozilla.com"],
-    "days_lookup": 3,
+    "days_lookup": 7,
     "confidence_threshold": 0.95,
     "cc": []
   },
