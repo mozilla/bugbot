@@ -48,7 +48,7 @@ class FuzzBlockers(BzCleaner, Nag):
         """Get whether the bug has a previous comment by this tool"""
         for comment in reversed(bug["comments"]):
             if comment["creator"] == History.BOT and comment["raw_text"].startswith(
-                "This bug prevent fuzzing from making progress."
+                "This bug prevents fuzzing from making progress."
             ):
                 return True
 
