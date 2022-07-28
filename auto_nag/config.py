@@ -25,7 +25,7 @@ class MyConfig(config.Config):
 
         if "bz_api_key_nomail" not in self.conf:
             raise Exception(
-                "Your config.json file must contain a Bugzilla token for account that doesn't trigger bugmail"
+                "Your config.json file must contain a Bugzilla token for an account that doesn't trigger bugmail (for testing, you can use the same token as bz_api_key)"
             )
 
     def get(self, section, option, default=None, type=str):
