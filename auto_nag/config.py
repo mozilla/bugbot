@@ -15,19 +15,25 @@ class MyConfig(config.Config):
     def __init__(self):
         super(MyConfig, self).__init__()
         if not os.path.exists(MyConfig.PATH):
-            self.conf = {"bz_api_key": ""}
+            self.conf = {"bz_api_key": "", "bz_api_key_nomail": ""}
         else:
             with open(MyConfig.PATH) as In:
                 self.conf = json.load(In)
-                if not self.conf.get("bz_api_key", None):
-                    raise Exception(
-                        "Your config.json file must contain a Bugzilla token"
-                    )
+
+        if "bz_api_key" not in self.conf:
+            raise Exception("Your config.json file must contain a Bugzilla token")
+
+        if "bz_api_key_nomail" not in self.conf:
+            raise Exception(
+                "Your config.json file must contain a Bugzilla token for an account that doesn't trigger bugmail (for testing, you can use the same token as bz_api_key)"
+            )
 
     def get(self, section, option, default=None, type=str):
         if section == "Bugzilla":
             if option == "token":
                 return self.conf["bz_api_key"]
+            if option == "nomail-token":
+                return self.conf["bz_api_key_nomail"]
         elif section == "User-Agent":
             return "relman-auto-nag"
         return default
