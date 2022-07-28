@@ -114,10 +114,11 @@ This needs to run on a private server because it will have login for smtp and bu
 
 Cronjob::
 
-  00 17 * * 2 $HOME/relman-auto-nag/runauto_nag_tuesday.sh &> /tmp/autonag-tuesday.log
-  00 7 * * * $HOME/relman-auto-nag/update_people.sh &> /tmp/autonag-people.log
-  00 12 * * 1-5 $HOME/relman-auto-nag/run_autonags_daily.sh &> /tmp/autonag-day.log
-  30 */1 * * * $HOME/relman-auto-nag/runauto_nag_hourly.sh &> /tmp/autonag-hour.log
+    CRON_DIR=/path/to/repository
+    00 17  * * 2   cd $CRON_DIR ; ./runauto_nag_tuesday.sh &> /tmp/autonag-tuesday.log
+    00 7   * * *   cd $CRON_DIR ; ./update_people.sh       &> /tmp/autonag-people.log
+    00 12  * * 1-5 cd $CRON_DIR ; ./runauto_nag_daily.sh   &> /tmp/autonag-day.log
+    30 */1 * * *   cd $CRON_DIR ; ./runauto_nag_hourly.sh  &> /tmp/autonag-hour.log
 
 
 We run hourly jobs at minute 30 past every hour to avoid overlap with daily jobs.
