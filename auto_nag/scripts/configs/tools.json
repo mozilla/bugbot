@@ -273,27 +273,6 @@
     ],
     "supervisor_skiplist": ["dcamp@mozilla.com"]
   },
-  "no_severity": {
-    "max-years": 1,
-    "first-step": 2,
-    "second-step": 4,
-    "escalation-first": {
-      "default": {
-        "[0;+∞[": {
-          "supervisor": "self",
-          "days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
-        }
-      }
-    },
-    "escalation-second": {
-      "default": {
-        "[0;+∞[": {
-          "supervisor": "n+1",
-          "days": ["Mon", "Thu"]
-        }
-      }
-    }
-  },
   "p3_p4_p5": {
     "months_lookup": 6
   },

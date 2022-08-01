@@ -26,6 +26,19 @@ class ComponentName(NamedTuple):
 
         return cls(*splitted_name)
 
+    @classmethod
+    def from_bug(cls, bug: dict) -> "ComponentName":
+        """Create an instance from a bug dictionary.
+
+        Args:
+            bug: a dictionary that have product and component keys
+
+        Returns:
+            An instance from the ComponentName class based on the provided bug.
+        """
+
+        return cls(bug["product"], bug["component"])
+
 
 class Components:
     """Bugzilla components"""

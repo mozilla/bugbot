@@ -560,6 +560,7 @@ def bz_ignore_case(s):
 
 
 def check_product_component(data, bug):
+    """TODO: drop in favour of using ComponentName"""
     prod = bug["product"]
     comp = bug["component"]
     pc = prod + "::" + comp
@@ -643,6 +644,27 @@ def get_last_no_bot_comment_date(bug: dict) -> str:
             return comment["creation_time"]
 
     return bug["comments"][0]["creation_time"]
+
+
+def get_last_triaged_date(bug: dict) -> str:
+    """Get the date when the bug was last triaged.
+
+    Args:
+        bug: the bug dictionary; it must has the history list.
+
+    Returns:
+        The date when the triaged keyword was added. If the bug history does not
+        show the triaged keyword, an exception will be raised.
+    """
+    for entry in reversed(bug["history"]):
+        for field in entry["changes"]:
+            if field["field_name"] == "whiteboard":
+                if "triaged" in field["added"] and "triaged" not in field["removed"]:
+                    return entry["when"]
+
+                break
+
+    raise Exception("The bug is not triaged")
 
 
 def get_sort_by_bug_importance_key(bug):
