@@ -71,6 +71,9 @@ class FuzzBlockers(BzCleaner, Nag):
             "f2": "creation_ts",
             "o2": "lessthaneq",
             "v2": f"-{self.waiting_days}d",
+            "f3": "creation_ts",
+            "o3": "greaterthan",
+            "v3": "2021-07-01",
         }
 
 
