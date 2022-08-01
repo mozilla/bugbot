@@ -395,7 +395,6 @@
   },
   "to_triage": {
     "cc": [],
-    "max-years": 1,
     "escalation": {
       "default": {
         "[0;+∞[": {
