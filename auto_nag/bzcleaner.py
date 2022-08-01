@@ -210,9 +210,6 @@ class BzCleaner(object):
     def get_product_component(self):
         return self.prod_comp
 
-    def get_max_years(self):
-        return self.get_config("max-years", -1)
-
     def has_access_to_sec_bugs(self):
         return self.get_config("sec", True)
 
@@ -413,18 +410,6 @@ class BzCleaner(object):
         if self.ignore_meta():
             n = utils.get_last_field_num(params)
             params.update({"f" + n: "keywords", "o" + n: "nowords", "v" + n: "meta"})
-
-        # Limit the checkers to X years. Unlimited if max_years = -1
-        max_years = self.get_max_years()
-        if max_years > 0:
-            n = utils.get_last_field_num(params)
-            params.update(
-                {
-                    f"f{n}": "creation_ts",
-                    f"o{n}": "greaterthan",
-                    f"v{n}": f"-{max_years}y",
-                }
-            )
 
         if self.has_default_products():
             params["product"] = self.get_products()
