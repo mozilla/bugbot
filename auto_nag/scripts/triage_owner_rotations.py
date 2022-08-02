@@ -26,6 +26,7 @@ class TriageOwnerRotations(BzCleaner):
         excluded_teams: List[str] = [
             "DOM LWS",
             "Layout",
+            "GFX",
         ],
     ) -> None:
         """Constructor
