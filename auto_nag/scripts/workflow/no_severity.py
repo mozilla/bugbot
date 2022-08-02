@@ -240,8 +240,8 @@ class NoSeverity(BzCleaner, Nag):
 
         # TODO: the following code can be removed in 2023.
         # https://github.com/mozilla/relman-auto-nag/issues/1592#issuecomment-1201893220
-        # Almost 500 old bugs has no severity set. The intent of the following
-        # is to have them triaged in patches where every week we include more
+        # Almost 500 old bugs have no severity set. The intent of the following
+        # is to have them triaged in batches where every week we include more
         # bugs. Once the list of old bugs are reduced, we could safely remove
         # the following code.
         passed_time = datetime.now() - datetime.fromisoformat("2022-08-01")
