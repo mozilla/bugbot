@@ -274,7 +274,6 @@
     "supervisor_skiplist": ["dcamp@mozilla.com"]
   },
   "no_severity": {
-    "max-years": 1,
     "first-step": 2,
     "second-step": 4,
     "escalation-first": {
