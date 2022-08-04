@@ -6,11 +6,12 @@ import re
 from typing import Dict
 
 import requests
-from libmozdata.bugzilla import Bugzilla, BugzillaUser
+from libmozdata.bugzilla import Bugzilla
 
 from auto_nag import logger, utils
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.people import People
+from auto_nag.user_activity import UserActivity, UserStatus
 
 PUSHLOG_PAT = re.compile(r"Pushlog: (.+)")
 BUG_PAT = re.compile(r"[\t ]*[Bb][Uu][Gg][\t ]*([0-9]+)")
@@ -50,7 +51,6 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
         super().__init__()
         self.people = People.get_instance()
         self.autofix_regressed_by: Dict[str, str] = {}
-        self.bzmail_to_nickname: Dict[str, str] = {}
 
     def description(self):
         return "Bugs with a fuzzing bisection and without regressed_by"
@@ -58,10 +58,8 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
         data[bugid] = {
-            "assigned_to_email": bug["assigned_to"],
-            "assigned_to_nickname": bug["assigned_to_detail"]["nick"],
+            "assigned_to": bug["assigned_to"],
         }
-        self.bzmail_to_nickname[bug["assigned_to"]] = bug["assigned_to_detail"]["nick"]
         return bug
 
     def set_autofix(self, bugs):
@@ -158,10 +156,8 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
                     if bzmail is None:
                         logger.warning(f"No bzmail for {author} in bug {bug_id}")
                         continue
-                    self.bzmail_to_nickname[bzmail] = ""
                     bugs[bug_id]["needinfo_target"] = {
                         "mail": bzmail,
-                        "nickname": "",
                     }
                     break
 
@@ -172,10 +168,9 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
     def find_regressor_or_needinfo_target(self, bugs: dict) -> dict:
         # Needinfo assignee when there is one.
         for bug in bugs.values():
-            if not utils.is_no_assignee(bug["assigned_to_email"]):
+            if not utils.is_no_assignee(bug["assigned_to"]):
                 bug["needinfo_target"] = {
-                    "mail": bug["assigned_to_email"],
-                    "nickname": bug["assigned_to_nickname"],
+                    "mail": bug["assigned_to"],
                 }
 
         Bugzilla(
@@ -185,26 +180,18 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
             comment_include_fields=["text"],
         ).get_data().wait()
 
-        def user_handler(user: dict) -> None:
-            self.bzmail_to_nickname[user["name"]] = user["nick"]
-
-        users = set(
-            bzmail
-            for bzmail, nickname in self.bzmail_to_nickname.items()
-            if not nickname
+        user_emails = list({bug["needinfo_target"]["mail"] for bug in bugs.values()})
+        users = UserActivity(include_fields=["nick"]).get_bz_users_with_status(
+            user_emails, keep_active=True
         )
-        if len(users) > 0:
-            BugzillaUser(
-                user_names=list(users),
-                user_handler=user_handler,
-                include_fields=["name", "nick"],
-            ).wait()
 
         for bug in bugs.values():
-            if "needinfo_target" in bug and not bug["needinfo_target"]["nickname"]:
-                bug["needinfo_target"]["nickname"] = self.bzmail_to_nickname[
-                    bug["needinfo_target"]["mail"]
-                ]
+            if "needinfo_target" in bug:
+                user = users[bug["needinfo_target"]["mail"]]
+                if user["status"] == UserStatus.ACTIVE:
+                    bug["needinfo_target"]["nickname"] = user["nick"]
+                else:
+                    del bug["needinfo_target"]
 
         # Exclude all bugs where we couldn't find a definite regressor bug ID or an applicable needinfo target.
         bugs = {
