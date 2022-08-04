@@ -24,7 +24,6 @@ class TriageOwnerRotations(BzCleaner):
     def __init__(
         self,
         excluded_teams: List[str] = [
-            "DOM LWS",
             "Layout",
             "GFX",
         ],
