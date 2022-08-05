@@ -47,10 +47,17 @@ def is_ignorable_path(path: str) -> bool:
 
 
 class FuzzingBisectionWithoutRegressedBy(BzCleaner):
-    def __init__(self) -> None:
+    def __init__(self, max_ni: int = 3) -> None:
+        """Constructor
+
+        Args:
+            max_ni: The maximum number of regression authors to needinfo. If the
+                number of authors exceeds the limit no one will be needinfo'ed.
+        """
         super().__init__()
         self.people = People.get_instance()
         self.autofix_regressed_by: Dict[str, str] = {}
+        self.max_ni = max_ni
 
     def description(self):
         return "Bugs with a fuzzing bisection and without regressed_by"
@@ -63,6 +70,9 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
         return bug
 
     def set_autofix(self, bugs):
+        ni_template = self.get_needinfo_template()
+        docs = self.get_documentation()
+
         for bug_id, bug in bugs.items():
             if "regressor_bug_id" in bug:
                 self.autofix_regressed_by[bug_id] = {
@@ -71,15 +81,30 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
                     },
                     "regressed_by": {"add": [bug["regressor_bug_id"]]},
                 }
-            elif "needinfo_target" in bug:
-                self.add_auto_ni(
-                    bug_id,
-                    bug["needinfo_target"],
+            elif "needinfo_targets" in bug:
+                nicknames = [":" + user["nickname"] for user in bug["needinfo_targets"]]
+                ni_comment = ni_template.render(
+                    nicknames=utils.english_list(nicknames),
+                    plural=utils.plural,
+                    documentation=docs,
                 )
+                ni_flags = [
+                    {
+                        "name": "needinfo",
+                        "requestee": user["mail"],
+                        "status": "?",
+                        "new": "true",
+                    }
+                    for user in bug["needinfo_targets"]
+                ]
+                self.autofix_regressed_by[bug_id] = {
+                    "flags": ni_flags,
+                    "comment": {"body": ni_comment},
+                }
             else:
-                assert (
-                    False
-                ), "If we are here, we should either have a regressor or a needinfo target"
+                raise Exception(
+                    "The bug should either has a regressor or a needinfo target"
+                )
 
     def get_autofix_change(self) -> dict:
         return self.autofix_regressed_by
@@ -145,21 +170,22 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
                 bugs[bug_id]["regressor_bug_id"] = regressor_bug_ids.pop()
                 break
 
-            if "needinfo_target" not in bugs[bug_id]:
+            if "needinfo_targets" not in bugs[bug_id]:
                 authors = set(changeset["author"] for changeset in changesets)
-                # TODO: also needinfo when there is more than one author, e.g. if there are up to three (where three should be a configurable number).
-                if len(authors) == 1:
-                    author = authors.pop()
-                    author_parts = author.split("<")
-                    author_email = author_parts[1][:-1]
-                    bzmail = self.people.get_bzmail_from_name(author_email)
-                    if bzmail is None:
-                        logger.warning(f"No bzmail for {author} in bug {bug_id}")
-                        continue
-                    bugs[bug_id]["needinfo_target"] = {
-                        "mail": bzmail,
-                    }
-                    break
+                if authors and len(authors) <= self.max_ni:
+                    needinfo_targets = []
+                    for author in authors:
+                        author_parts = author.split("<")
+                        author_email = author_parts[1][:-1]
+                        bzmail = self.people.get_bzmail_from_name(author_email)
+                        if not bzmail:
+                            logger.warning(f"No bzmail for {author} in bug {bug_id}")
+                            continue
+                        needinfo_targets.append(bzmail)
+
+                    if needinfo_targets:
+                        bugs[bug_id]["needinfo_targets"] = needinfo_targets
+                        break
 
         # Exclude bugs that do not have a range found by BugMon.
         if not range_found:
@@ -169,9 +195,7 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
         # Needinfo assignee when there is one.
         for bug in bugs.values():
             if not utils.is_no_assignee(bug["assigned_to"]):
-                bug["needinfo_target"] = {
-                    "mail": bug["assigned_to"],
-                }
+                bug["needinfo_targets"] = [bug["assigned_to"]]
 
         Bugzilla(
             bugids=self.get_list_bugs(bugs),
@@ -180,24 +204,41 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
             comment_include_fields=["text"],
         ).get_data().wait()
 
-        user_emails = list({bug["needinfo_target"]["mail"] for bug in bugs.values()})
+        bzemails = list(
+            {
+                bzemail
+                for bug in bugs.values()
+                if "needinfo_targets" in bug
+                for bzemail in bug["needinfo_targets"]
+            }
+        )
         users = UserActivity(include_fields=["nick"]).get_bz_users_with_status(
-            user_emails, keep_active=True
+            bzemails, keep_active=True
         )
 
         for bug in bugs.values():
-            if "needinfo_target" in bug:
-                user = users[bug["needinfo_target"]["mail"]]
-                if user["status"] == UserStatus.ACTIVE:
-                    bug["needinfo_target"]["nickname"] = user["nick"]
+            if "needinfo_targets" in bug:
+                needinfo_targets = []
+                for bzemail in bug["needinfo_targets"]:
+                    user = users[bzemail]
+                    if user["status"] == UserStatus.ACTIVE:
+                        needinfo_targets.append(
+                            {
+                                "mail": bzemail,
+                                "nickname": user["nick"],
+                            }
+                        )
+
+                if needinfo_targets:
+                    bug["needinfo_targets"] = needinfo_targets
                 else:
-                    del bug["needinfo_target"]
+                    del bug["needinfo_targets"]
 
         # Exclude all bugs where we couldn't find a definite regressor bug ID or an applicable needinfo target.
         bugs = {
             bug_id: bug
             for bug_id, bug in bugs.items()
-            if "regressor_bug_id" in bug or "needinfo_target" in bug
+            if "regressor_bug_id" in bug or "needinfo_targets" in bug
         }
 
         return bugs
