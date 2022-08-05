@@ -85,6 +85,8 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
                 nicknames = [":" + user["nickname"] for user in bug["needinfo_targets"]]
                 ni_comment = ni_template.render(
                     nicknames=utils.english_list(nicknames),
+                    authors_count=len(nicknames),
+                    is_assignee=not utils.is_no_assignee(bug["assigned_to"]),
                     plural=utils.plural,
                     documentation=docs,
                 )
