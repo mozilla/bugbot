@@ -1,3 +1,5 @@
-{{ nicknames }}, since this bug contains a bisection range, could you fill (if possible) the regressed_by field?
+This bug contains a bisection range, and the `Regressed by` field is still not filled.
+
+{{ nicknames }}, {% if not is_assignee -%} since you are the {{ plural("author", authors_count) }} of the changes in the range, {% endif -%} if possible, could you fill the `Regressed by` field and investigate this regression?
 
 {{ documentation }}
