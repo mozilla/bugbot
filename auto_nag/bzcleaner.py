@@ -600,7 +600,6 @@ class BzCleaner(object):
                         db.BugChange.add(self.name(), bugid, extra=extra.get(bugid, ""))
                         break
                 if not added:
-                    self.failure_callback(bugid)
                     logger.error(
                         "{}: Cannot put data for bug {} (change => {}).".format(
                             self.name(), bugid, ch
@@ -608,10 +607,6 @@ class BzCleaner(object):
                     )
 
         return bugs
-
-    def failure_callback(self, bugid):
-        """Called on Bugzilla.put failures"""
-        return
 
     def terminate(self):
         """Called when everything is done"""
