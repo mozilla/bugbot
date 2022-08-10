@@ -11,7 +11,7 @@ from auto_nag.bzcleaner import BzCleaner
 from auto_nag.user_activity import UserActivity
 
 
-class RegressionSetStatusFlags(BzCleaner):
+class NeedinfoRegressionAuthor(BzCleaner):
     def __init__(self):
         super().__init__()
         self.extra_ni = {}
@@ -152,4 +152,4 @@ class RegressionSetStatusFlags(BzCleaner):
 
 
 if __name__ == "__main__":
-    RegressionSetStatusFlags().run()
+    NeedinfoRegressionAuthor().run()
