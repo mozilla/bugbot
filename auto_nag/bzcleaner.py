@@ -8,6 +8,7 @@ import sys
 import time
 from collections import defaultdict
 from datetime import datetime
+from typing import Dict
 
 from dateutil.relativedelta import relativedelta
 from jinja2 import Environment, FileSystemLoader, Template
@@ -558,7 +559,6 @@ class BzCleaner(object):
         """Autofix the bugs according to what is returned by get_autofix_change"""
         ni_changes = self.set_needinfo()
         change = self.get_autofix_change()
-        bugzilla_cls = SilentBugzilla if self.no_bugmail else Bugzilla
 
         if not ni_changes and not change:
             return bugs
@@ -581,32 +581,67 @@ class BzCleaner(object):
                 if mrg:
                     new_changes[bugid] = mrg
 
-        if self.dryrun or self.test_mode:
-            for bugid, ch in new_changes.items():
-                logger.info(
-                    "The bugs: {}\n will be autofixed with:\n{}".format(bugid, ch)
-                )
-        else:
-            extra = self.get_db_extra()
-            max_retries = utils.get_config("common", "bugzilla_max_retries", 3)
-            for bugid, ch in new_changes.items():
-                added = False
-                for _ in range(max_retries):
-                    failures = bugzilla_cls([str(bugid)]).put(ch)
-                    if failures:
-                        time.sleep(1)
-                    else:
-                        added = True
-                        db.BugChange.add(self.name(), bugid, extra=extra.get(bugid, ""))
-                        break
-                if not added:
-                    logger.error(
-                        "{}: Cannot put data for bug {} (change => {}).".format(
-                            self.name(), bugid, ch
-                        )
-                    )
+        extra = self.get_db_extra()
+        self.apply_changes_on_bugzilla(
+            self.name(),
+            new_changes,
+            self.no_bugmail,
+            self.dryrun or self.test_mode,
+            extra,
+        )
 
         return bugs
+
+    @staticmethod
+    def apply_changes_on_bugzilla(
+        tool_name: str,
+        new_changes: Dict[str, dict],
+        no_bugmail: bool = False,
+        is_dryrun: bool = True,
+        db_extra: Dict[str, str] = None,
+    ) -> None:
+        """Apply changes on Bugzilla
+
+        Args:
+            tool_name: the name of the tool that is performing the changes.
+            new_changes: the changes that will be performed. The dictionary key
+                should be the bug ID.
+            no_bugmail: If True, an account that doesn't trigger bugmail will be
+                used to apply the changes.
+            is_dryrun: If True, no changes will be applied. Instead, the
+                proposed changes will be logged.
+            db_extra: extra data to be passed to the DB. The dictionary key
+                should be the bug ID.
+        """
+        if is_dryrun:
+            for bugid, ch in new_changes.items():
+                logger.info("The bugs: %s\n will be autofixed with:\n%s", bugid, ch)
+            return None
+
+        if db_extra is None:
+            db_extra = {}
+
+        max_retries = utils.get_config("common", "bugzilla_max_retries", 3)
+        bugzilla_cls = SilentBugzilla if no_bugmail else Bugzilla
+
+        for bugid, ch in new_changes.items():
+            added = False
+            for _ in range(max_retries):
+                failures = bugzilla_cls([str(bugid)]).put(ch)
+                if failures:
+                    time.sleep(1)
+                else:
+                    added = True
+                    db.BugChange.add(tool_name, bugid, extra=db_extra.get(bugid, ""))
+                    break
+            if not added:
+                logger.error(
+                    "%s: Cannot put data for bug %s (change => %s): %s",
+                    tool_name,
+                    bugid,
+                    ch,
+                    failures,
+                )
 
     def terminate(self):
         """Called when everything is done"""
