@@ -56,9 +56,6 @@ python -m auto_nag.scripts.has_str_no_range --production
 # Pretty common
 python -m auto_nag.scripts.copy_duplicate_info --production
 
-# Enhancement or task with the "regression" keyword
-python -m auto_nag.scripts.regression_but_type_enhancement_task --production
-
 # Move dupeme from whiteboard to keyword
 # Pretty rare
 python -m auto_nag.scripts.dupeme_whiteboard_keyword --production
@@ -77,10 +74,8 @@ python -m auto_nag.scripts.component --frequency hourly --production
 # Reset the priority if the product::component changed after the priority has been set
 python -m auto_nag.scripts.prod_comp_changed_with_priority --production
 
-# Update status flags for regressions based on their regressor
-python -m auto_nag.scripts.regression_set_status_flags --production
-
-python -m auto_nag.scripts.needinfo_regression_author --production
+# Run regression related tools
+python -m auto_nag.scripts.multifix_regression --production
 
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND

@@ -39,6 +39,7 @@ class BzCleaner(object):
     def __init__(self):
         super(BzCleaner, self).__init__()
         self._set_tool_name()
+        self.apply_autofix = True
         self.has_autofix = False
         self.autofix_changes = {}
         self.quota_actions = defaultdict(list)
@@ -580,6 +581,10 @@ class BzCleaner(object):
                 )
                 if mrg:
                     new_changes[bugid] = mrg
+
+        if not self.apply_autofix:
+            self.autofix_changes = new_changes
+            return bugs
 
         extra = self.get_db_extra()
         self.apply_changes_on_bugzilla(
