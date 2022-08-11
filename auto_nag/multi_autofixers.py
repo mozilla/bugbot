@@ -82,7 +82,7 @@ class MultiAutoFixers:
         return utils.english_list([tool.name() for tool in self.tools])
 
     def get_args_parser(self):
-        """Get the argumends from the command line"""
+        """Get the arguments from the command line"""
         parser = argparse.ArgumentParser()
         parser.add_argument(
             "--production",

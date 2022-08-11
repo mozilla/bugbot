@@ -747,7 +747,7 @@ class BzCleaner(object):
         pass
 
     def get_args_parser(self):
-        """Get the argumends from the command line"""
+        """Get the arguments from the command line"""
         parser = argparse.ArgumentParser(description=self.description())
         parser.add_argument(
             "--production",
