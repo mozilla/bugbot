@@ -8,7 +8,7 @@ from libmozdata.bugzilla import Bugzilla
 
 from auto_nag import logger, utils
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag.user_activity import UserActivity
+from auto_nag.user_activity import UserActivity, UserStatus
 
 
 class NeedinfoRegressionAuthor(BzCleaner):
@@ -27,6 +27,7 @@ class NeedinfoRegressionAuthor(BzCleaner):
         data[str(bug["id"])] = {
             "creator": bug["creator"],
             "regressor_id": bug["regressed_by"][0],
+            "severity": bug["severity"],
         }
 
         return bug
@@ -36,7 +37,10 @@ class NeedinfoRegressionAuthor(BzCleaner):
 
     def set_autofix(self, bugs):
         for bugid, info in bugs.items():
-            self.extra_ni[bugid] = {"regressor_id": str(info["regressor_id"])}
+            self.extra_ni[bugid] = {
+                "regressor_id": str(info["regressor_id"]),
+                "suggest_set_severity": info["suggest_set_severity"],
+            }
             self.add_auto_ni(
                 bugid,
                 {
@@ -48,11 +52,18 @@ class NeedinfoRegressionAuthor(BzCleaner):
     def get_bz_params(self, date):
         start_date, _ = self.get_dates(date)
 
+        fields = [
+            "id",
+            "creator",
+            "regressed_by",
+            "assigned_to",
+            "severity",
+        ]
+
         # Find all bugs with regressed_by information which were open after start_date or
         # whose regressed_by field was set after start_date.
-
         params = {
-            "include_fields": ["id", "creator", "regressed_by", "assigned_to"],
+            "include_fields": fields,
             "f1": "OP",
             "j1": "OR",
             "f2": "creation_ts",
@@ -125,15 +136,20 @@ class NeedinfoRegressionAuthor(BzCleaner):
 
         # Exclude bugs where the regressor author is inactive.
         # TODO: We can drop this when https://github.com/mozilla/relman-auto-nag/issues/1465 is implemented.
-        user_activity = UserActivity()
-        inactive_users = user_activity.check_users(
-            set(bug["regressor_author_email"] for bug in bugs.values())
+        users_info = UserActivity(include_fields=["groups"]).check_users(
+            set(bug["regressor_author_email"] for bug in bugs.values()),
+            keep_active=True,
         )
-        bugs = {
-            bug_id: bug
-            for bug_id, bug in bugs.items()
-            if bug["regressor_author_email"] not in inactive_users
-        }
+
+        for bug_id, bug in list(bugs.items()):
+            user_info = users_info[bug["regressor_author_email"]]
+            if user_info["status"] != UserStatus.ACTIVE:
+                del bugs[bug_id]
+            else:
+                bug["suggest_set_severity"] = bug["severity"] in (
+                    "--",
+                    "n/a",
+                ) and self._has_editbugs_group(user_info)
 
         Bugzilla(
             bugids=self.get_list_bugs(bugs),
@@ -142,6 +158,16 @@ class NeedinfoRegressionAuthor(BzCleaner):
         ).get_data().wait()
 
         return bugs
+
+    @staticmethod
+    def _has_editbugs_group(user_info: dict) -> bool:
+        """Check if the user has the editbugs group permissions"""
+
+        # All employees have edit bugs permissions
+        if user_info.get("is_employee"):
+            return True
+
+        return any(group["name"] == "editbugs" for group in user_info["groups"])
 
     def get_bugs(self, *args, **kwargs):
         bugs = super().get_bugs(*args, **kwargs)

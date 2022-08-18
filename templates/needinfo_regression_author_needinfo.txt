@@ -1,2 +1,4 @@
 :{{ nickname }}, since you are the author of the regressor, bug {{ extra[bugid]["regressor_id"] }}, could you take a look?
+{%- if extra[bugid]["suggest_set_severity"] %} Also, could you set the severity field? {%- endif %}
+
 {{ documentation }}
