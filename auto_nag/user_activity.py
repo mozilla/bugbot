@@ -39,6 +39,7 @@ class UserActivity:
         unavailable_max_days: int = 7,
         include_fields: list = None,
         phab: PhabricatorAPI = None,
+        people: People = None,
     ) -> None:
         """
         Constructor
@@ -54,11 +55,13 @@ class UserActivity:
                 user object.
             phab: if an instance of PhabricatorAPI is not provided, it will be
                 created when it is needed.
+            people: if an instance of People is not provided, the global
+                instance will be used.
         """
         self.activity_weeks_count = activity_weeks_count
         self.absent_weeks_count = absent_weeks_count
         self.include_fields = include_fields or []
-        self.people = People.get_instance()
+        self.people = people if people is not None else People.get_instance()
         self.phab = phab
         self.availability_limit = (
             lmdutils.get_date_ymd("today") + timedelta(unavailable_max_days)
@@ -73,34 +76,51 @@ class UserActivity:
 
         return self.phab
 
-    def check_users(self, user_emails: List[str]) -> dict:
-        """Check user activity using their Bugzilla emails"""
+    def check_users(self, user_emails: List[str], keep_active: bool = False) -> dict:
+        """Check user activity using their emails
 
-        # Employees will always be considered active
-        user_emails = self._get_not_employees(user_emails)
+        Args:
+            user_emails: the email addresses of the users.
+            keep_active: whether the returned results should include the active
+                users.
+
+        Returns:
+            A dictionary where the key is the user email and the value is the
+                user info with the status.
+        """
 
         user_statuses = {
-            user_email: {"status": UserStatus.UNDEFINED}
+            user_email: {
+                "status": (
+                    UserStatus.UNDEFINED
+                    if utils.is_no_assignee(user_email)
+                    else UserStatus.ACTIVE
+                ),
+                "is_employee": self.people.is_mozilla(user_email),
+            }
             for user_email in user_emails
-            if utils.is_no_assignee(user_email)
         }
-        if len(user_emails) == len(user_statuses):
-            return user_statuses
 
+        # Employees will always be considered active
         user_emails = [
-            user_email for user_email in user_emails if user_email not in user_statuses
+            user_email
+            for user_email, info in user_statuses.items()
+            if not info["is_employee"] and info["status"] == UserStatus.ACTIVE
         ]
 
-        user_statuses.update(self.get_bz_users_with_status(user_emails))
+        if not keep_active:
+            user_statuses = {
+                user_email: info
+                for user_email, info in user_statuses.items()
+                if info["status"] != UserStatus.ACTIVE
+            }
+
+        if user_emails:
+            user_statuses.update(
+                self.get_bz_users_with_status(user_emails, keep_active)
+            )
 
         return user_statuses
-
-    def _get_not_employees(self, user_emails):
-        return [
-            user_email
-            for user_email in user_emails
-            if not self.people.is_mozilla(user_email)
-        ]
 
     def _get_status_from_bz_user(self, user: dict) -> UserStatus:
         if not user["can_login"]:
@@ -118,7 +138,7 @@ class UserActivity:
         return UserStatus.ACTIVE
 
     def get_bz_users_with_status(
-        self, id_or_name: list, keep_active: bool = False
+        self, id_or_name: list, keep_active: bool = True
     ) -> dict:
         """Get Bugzilla users with their activity statuses.
 
