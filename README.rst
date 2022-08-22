@@ -118,6 +118,7 @@ Cronjob::
     00 17  * * 2   cd $CRON_DIR ; ./runauto_nag_tuesday.sh  &> /tmp/autonag-tuesday.log
     00 7   * * *   cd $CRON_DIR ; ./update_people.sh        &> /tmp/autonag-people.log
     00 12  * * 1-5 cd $CRON_DIR ; ./runauto_nag_weekdays.sh &> /tmp/autonag-day.log
+    00 8   * * *   cd $CRON_DIR ; ./runauto_nag_daily.sh    &> /tmp/autonag-day.log
     30 */1 * * *   cd $CRON_DIR ; ./runauto_nag_hourly.sh   &> /tmp/autonag-hour.log
 
 
