@@ -4,10 +4,9 @@
 #
 # This file was originally copied from https://github.com/mozilla/libmozdata/blob/v0.1.82/tests/auto_mock.py
 
-import gzip
 import hashlib
+import json
 import os
-import pickle
 import re
 import unittest
 from typing import List
@@ -49,18 +48,16 @@ class MockTestCase(unittest.TestCase):
         if os.path.exists(path):
             # Load local file
             logger.info("Using mock file %s", path)
-            with gzip.open(path, "rb") as file:
-                response = pickle.load(file)
+            with open(path, "r") as file:
+                response = json.load(file)
         else:
             # Build from actual request
             logger.info("Building mock file %s", path)
             response = self._real_request(request)
 
             # Save in local file for future use
-            with gzip.open(path, "wb") as file:
-                # Use old pickle ascii protocol (default)
-                # to be compatible with Python 2
-                file.write(pickle.dumps(response, protocol=2))
+            with open(path, "w") as file:
+                file.write(json.dumps(response))
 
         return (response["status"], response["headers"], response["body"])
 
@@ -83,7 +80,7 @@ class MockTestCase(unittest.TestCase):
         if len(query_str) > 150:
             hashed_query = hashlib.md5(query_str.encode("utf-8")).hexdigest()
             query_str = f"{query_str[0:100]}_{hashed_query}"
-        filename = f"{method}_{query_str}.gz"
+        filename = f"{method}_{query_str}.json"
 
         # Build directory
         if not os.path.isdir(directory):
