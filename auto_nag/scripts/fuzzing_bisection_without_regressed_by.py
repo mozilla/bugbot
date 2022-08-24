@@ -122,7 +122,7 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
             "n3": 1,
             "f3": "longdesc",
             "o3": "casesubstring",
-            "v3": "since this bug contains a bisection range, could you fill (if possible) the regressed_by field",
+            "v3": "his bug contains a bisection range, ",
             # TODO: Nag in the duplicate target instead, making sure it doesn't already have regressed_by.
             "f4": "resolution",
             "o4": "notequals",
