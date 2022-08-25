@@ -214,27 +214,29 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
                 for bzemail in bug["needinfo_targets"]
             }
         )
-        users = UserActivity(include_fields=["nick"]).get_bz_users_with_status(
-            bzemails, keep_active=True
-        )
 
-        for bug in bugs.values():
-            if "needinfo_targets" in bug:
-                needinfo_targets = []
-                for bzemail in bug["needinfo_targets"]:
-                    user = users[bzemail]
-                    if user["status"] == UserStatus.ACTIVE:
-                        needinfo_targets.append(
-                            {
-                                "mail": bzemail,
-                                "nickname": user["nick"],
-                            }
-                        )
+        if bzemails:
+            users = UserActivity(include_fields=["nick"]).get_bz_users_with_status(
+                bzemails, keep_active=True
+            )
 
-                if needinfo_targets:
-                    bug["needinfo_targets"] = needinfo_targets
-                else:
-                    del bug["needinfo_targets"]
+            for bug in bugs.values():
+                if "needinfo_targets" in bug:
+                    needinfo_targets = []
+                    for bzemail in bug["needinfo_targets"]:
+                        user = users[bzemail]
+                        if user["status"] == UserStatus.ACTIVE:
+                            needinfo_targets.append(
+                                {
+                                    "mail": bzemail,
+                                    "nickname": user["nick"],
+                                }
+                            )
+
+                    if needinfo_targets:
+                        bug["needinfo_targets"] = needinfo_targets
+                    else:
+                        del bug["needinfo_targets"]
 
         # Exclude all bugs where we couldn't find a definite regressor bug ID or an applicable needinfo target.
         bugs = {
