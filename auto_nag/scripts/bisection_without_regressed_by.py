@@ -168,15 +168,6 @@ class BisectionWithoutRegressedBy(BzCleaner):
             in comment_text
         )
 
-    @staticmethod
-    def is_bugmon_cannot_reproduce(comment_text: str):
-        """Check if the comment reports that the regression can't be reproduced by bugmon."""
-        return (
-            "Unable to reproduce" in comment_text
-            and "Removing bugmon keyword as no further action possible. Please review the bug and re-add the keyword for further analysis."
-            in comment_text
-        )
-
     def comment_handler(self, bug, bug_id, bugs):
         analysis_comment_number = None
         # We start from the last comment just in case bugmon has updated the range.
@@ -188,11 +179,6 @@ class BisectionWithoutRegressedBy(BzCleaner):
             # inaccurate comment number.
             if "(In reply to " in comment["text"]:
                 continue
-
-            # There is no point in checking older comments if BugMon is not able
-            # to reproduce the bug in a newer comment.
-            if self.is_bugmon_cannot_reproduce(comment["text"]):
-                break
 
             # We target comments that have pushlog from BugMon or mozregresion.
             if self.is_bugmon_analysis(comment["text"]):
