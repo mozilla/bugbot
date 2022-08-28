@@ -157,7 +157,13 @@ class BisectionWithoutRegressedBy(BzCleaner):
     @staticmethod
     def is_mozregression_analysis(comment_text: str):
         """Check if the comment has a regression range from mozregression."""
-        return "ozregression" in comment_text and "pushloghtml" in comment_text
+        return (
+            "ozregression" in comment_text
+            and "pushloghtml" in comment_text
+            and "find-fix" not in comment_text
+            and "First good revision" not in comment_text
+            and "Last bad revision" not in comment_text
+        )
 
     @staticmethod
     def is_bugmon_analysis(comment_text: str):
