@@ -180,7 +180,7 @@ class BisectionWithoutRegressedBy(BzCleaner):
     def comment_handler(self, bug, bug_id, bugs):
         analysis_comment_number = None
         # We start from the last comment just in case bugmon has updated the range.
-        for comment in reversed(bug["comments"]):
+        for comment in bug["comments"][::-1]:
             if comment["creation_time"] < self.oldest_comment_date:
                 break
 
