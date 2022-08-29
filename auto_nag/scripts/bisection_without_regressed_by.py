@@ -72,6 +72,7 @@ class BisectionWithoutRegressedBy(BzCleaner):
         bugid = str(bug["id"])
         data[bugid] = {
             "assigned_to": bug["assigned_to"],
+            "creation_time": bug["creation_time"],
         }
         return bug
 
@@ -126,7 +127,7 @@ class BisectionWithoutRegressedBy(BzCleaner):
 
     def get_bz_params(self, date):
         return {
-            "include_fields": ["assigned_to"],
+            "include_fields": ["assigned_to", "creation_time"],
             "f1": "regressed_by",
             "o1": "isempty",
             "n2": 1,
@@ -198,8 +199,6 @@ class BisectionWithoutRegressedBy(BzCleaner):
             if len(pushlog_match) != 1:
                 continue
 
-            analysis_comment_number = comment["count"]
-
             # Try to parse the regression range to find the regressor or at least somebody good to needinfo.
             url = (
                 pushlog_match[0].replace("pushloghtml", "json-pushes")
@@ -208,13 +207,19 @@ class BisectionWithoutRegressedBy(BzCleaner):
             r = requests.get(url)
             r.raise_for_status()
 
+            creation_time = lmdutils.get_timestamp(bugs[bug_id]["creation_time"])
             changesets = [
                 changeset
                 for push in r.json()["pushes"].values()
+                if creation_time > push["date"]
                 for changeset in push["changesets"]
                 if any(not is_ignorable_path(path) for path in changeset["files"])
             ]
 
+            if not changesets:
+                continue
+
+            analysis_comment_number = comment["count"]
             regressor_bug_ids = set()
             for changeset in changesets:
                 bug_match = BUG_PAT.search(changeset["desc"])
