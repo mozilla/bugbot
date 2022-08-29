@@ -187,7 +187,7 @@ class BisectionWithoutRegressedBy(BzCleaner):
             if "(In reply to " in comment["text"]:
                 continue
 
-            # We target comments that have pushlog from BugMon or mozregresion.
+            # We target comments that have pushlog from BugMon or mozregression.
             if self.is_bugmon_analysis(comment["text"]):
                 pushlog_source = "bugmon"
             elif self.is_mozregression_analysis(comment["text"]):
