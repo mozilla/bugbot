@@ -6,6 +6,7 @@ import re
 from typing import Dict
 
 import requests
+from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import Bugzilla
 
 from auto_nag import logger, utils
@@ -13,7 +14,9 @@ from auto_nag.bzcleaner import BzCleaner
 from auto_nag.people import People
 from auto_nag.user_activity import UserActivity, UserStatus
 
-PUSHLOG_PAT = re.compile(r"Pushlog: (.+)")
+PUSHLOG_PAT = re.compile(
+    r"https:\/\/hg\.mozilla\.org\/[a-z0-9-/]*\/pushloghtml\?[a-z0-9=&]*[a-z0-9]"
+)
 BUG_PAT = re.compile(r"[\t ]*[Bb][Uu][Gg][\t ]*([0-9]+)")
 
 
@@ -46,38 +49,47 @@ def is_ignorable_path(path: str) -> bool:
     return False
 
 
-class FuzzingBisectionWithoutRegressedBy(BzCleaner):
-    def __init__(self, max_ni: int = 3) -> None:
+class BisectionWithoutRegressedBy(BzCleaner):
+    def __init__(self, max_ni: int = 3, oldest_comment_weeks: int = 26) -> None:
         """Constructor
 
         Args:
             max_ni: The maximum number of regression authors to needinfo. If the
                 number of authors exceeds the limit no one will be needinfo'ed.
+            oldest_comment_weeks: the number of weeks to look back. We will
+                consider only comments posted in this period.
         """
         super().__init__()
         self.people = People.get_instance()
         self.autofix_regressed_by: Dict[str, str] = {}
         self.max_ni = max_ni
+        self.oldest_comment_date = lmdutils.get_date("today", oldest_comment_weeks * 7)
 
     def description(self):
-        return "Bugs with a fuzzing bisection and without regressed_by"
+        return "Bugs with a bisection analysis and without regressed_by"
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
         data[bugid] = {
             "assigned_to": bug["assigned_to"],
+            "creation_time": bug["creation_time"],
         }
         return bug
+
+    def columns(self):
+        return ["id", "summary", "pushlog_source", "comment_number"]
 
     def set_autofix(self, bugs):
         ni_template = self.get_needinfo_template()
         docs = self.get_documentation()
 
         for bug_id, bug in bugs.items():
+            comment_number = bug["comment_number"]
+            pushlog_source = bug["pushlog_source"]
             if "regressor_bug_id" in bug:
                 self.autofix_regressed_by[bug_id] = {
                     "comment": {
-                        "body": "Setting regressed_by field after analyzing regression range found by bugmon."
+                        "body": f"Setting `Regressed by` field after analyzing regression range found by {pushlog_source} in [comment #{comment_number}](#c{comment_number})."
                     },
                     "regressed_by": {"add": [bug["regressor_bug_id"]]},
                 }
@@ -87,6 +99,8 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
                     nicknames=utils.english_list(nicknames),
                     authors_count=len(nicknames),
                     is_assignee=not utils.is_no_assignee(bug["assigned_to"]),
+                    comment_number=comment_number,
+                    pushlog_source=pushlog_source,
                     plural=utils.plural,
                     documentation=docs,
                 )
@@ -113,7 +127,7 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
 
     def get_bz_params(self, date):
         return {
-            "include_fields": ["assigned_to"],
+            "include_fields": ["assigned_to", "creation_time"],
             "f1": "regressed_by",
             "o1": "isempty",
             "n2": 1,
@@ -121,46 +135,91 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
             "o2": "everchanged",
             "n3": 1,
             "f3": "longdesc",
-            "o3": "casesubstring",
-            "v3": "his bug contains a bisection range, ",
+            "o3": "substring",
+            "v3": " this bug contains a bisection range",
             # TODO: Nag in the duplicate target instead, making sure it doesn't already have regressed_by.
             "f4": "resolution",
             "o4": "notequals",
             "v4": "DUPLICATE",
-            "emaillongdesc1": "1",
-            "emailtype1": "exact",
-            "email1": "bugmon@mozilla.com",
+            "f5": "delta_ts",
+            "o5": "greaterthan",
+            "v5": self.oldest_comment_date,
+            "f6": "OP",
+            "j6": "OR",
+            "f7": "commenter",
+            "o7": "equals",
+            "v7": "bugmon@mozilla.com",
+            "f8": "longdesc",
+            "o8": "substring",
+            "v8": "mozregression",
+            "f9": "CP",
         }
 
+    @staticmethod
+    def is_mozregression_analysis(comment_text: str):
+        """Check if the comment has a regression range from mozregression."""
+        return (
+            "ozregression" in comment_text
+            and "pushloghtml" in comment_text
+            and "find-fix" not in comment_text
+            and "First good revision" not in comment_text
+            and "Last bad revision" not in comment_text
+        )
+
+    @staticmethod
+    def is_bugmon_analysis(comment_text: str):
+        """Check if the comment has a regression range from bugmon."""
+        return (
+            "BugMon: Reduced build range" in comment_text
+            or "The bug appears to have been introduced in the following build range"
+            in comment_text
+        )
+
     def comment_handler(self, bug, bug_id, bugs):
-        range_found = False
+        analysis_comment_number = None
         # We start from the last comment just in case bugmon has updated the range.
         for comment in bug["comments"][::-1]:
-            if (
-                "BugMon: Reduced build range" not in comment["text"]
-                and "The bug appears to have been introduced in the following build range"
-                not in comment["text"]
-            ):
+            if comment["creation_time"] < self.oldest_comment_date:
+                break
+
+            # Using comments that quote other comments will lead to report an
+            # inaccurate comment number.
+            if "(In reply to " in comment["text"]:
                 continue
 
-            range_found = True
+            # We target comments that have pushlog from BugMon or mozregression.
+            if self.is_bugmon_analysis(comment["text"]):
+                pushlog_source = "bugmon"
+            elif self.is_mozregression_analysis(comment["text"]):
+                pushlog_source = "mozregression"
+            else:
+                continue
+
+            pushlog_match = PUSHLOG_PAT.findall(comment["text"])
+            if len(pushlog_match) != 1:
+                continue
 
             # Try to parse the regression range to find the regressor or at least somebody good to needinfo.
-            pushlog_match = PUSHLOG_PAT.search(comment["text"])
             url = (
-                pushlog_match.group(1).replace("pushloghtml", "json-pushes")
+                pushlog_match[0].replace("pushloghtml", "json-pushes")
                 + "&full=1&version=2"
             )
             r = requests.get(url)
             r.raise_for_status()
 
+            creation_time = lmdutils.get_timestamp(bugs[bug_id]["creation_time"])
             changesets = [
                 changeset
                 for push in r.json()["pushes"].values()
+                if creation_time > push["date"]
                 for changeset in push["changesets"]
                 if any(not is_ignorable_path(path) for path in changeset["files"])
             ]
 
+            if not changesets:
+                continue
+
+            analysis_comment_number = comment["count"]
             regressor_bug_ids = set()
             for changeset in changesets:
                 bug_match = BUG_PAT.search(changeset["desc"])
@@ -189,8 +248,12 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
                         bugs[bug_id]["needinfo_targets"] = needinfo_targets
                         break
 
-        # Exclude bugs that do not have a range found by BugMon.
-        if not range_found:
+        # Exclude bugs that do not have a range found by BugMon or mozregression.
+        if analysis_comment_number is not None:
+            bug = bugs[bug_id]
+            bug["comment_number"] = analysis_comment_number
+            bug["pushlog_source"] = pushlog_source
+        else:
             del bugs[bug_id]
 
     def find_regressor_or_needinfo_target(self, bugs: dict) -> dict:
@@ -203,7 +266,7 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
             bugids=self.get_list_bugs(bugs),
             commenthandler=self.comment_handler,
             commentdata=bugs,
-            comment_include_fields=["text"],
+            comment_include_fields=["text", "creation_time", "count"],
         ).get_data().wait()
 
         bzemails = list(
@@ -214,27 +277,29 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
                 for bzemail in bug["needinfo_targets"]
             }
         )
-        users = UserActivity(include_fields=["nick"]).get_bz_users_with_status(
-            bzemails, keep_active=True
-        )
 
-        for bug in bugs.values():
-            if "needinfo_targets" in bug:
-                needinfo_targets = []
-                for bzemail in bug["needinfo_targets"]:
-                    user = users[bzemail]
-                    if user["status"] == UserStatus.ACTIVE:
-                        needinfo_targets.append(
-                            {
-                                "mail": bzemail,
-                                "nickname": user["nick"],
-                            }
-                        )
+        if bzemails:
+            users = UserActivity(include_fields=["nick"]).get_bz_users_with_status(
+                bzemails, keep_active=True
+            )
 
-                if needinfo_targets:
-                    bug["needinfo_targets"] = needinfo_targets
-                else:
-                    del bug["needinfo_targets"]
+            for bug in bugs.values():
+                if "needinfo_targets" in bug:
+                    needinfo_targets = []
+                    for bzemail in bug["needinfo_targets"]:
+                        user = users[bzemail]
+                        if user["status"] == UserStatus.ACTIVE:
+                            needinfo_targets.append(
+                                {
+                                    "mail": bzemail,
+                                    "nickname": user["nick"],
+                                }
+                            )
+
+                    if needinfo_targets:
+                        bug["needinfo_targets"] = needinfo_targets
+                    else:
+                        del bug["needinfo_targets"]
 
         # Exclude all bugs where we couldn't find a definite regressor bug ID or an applicable needinfo target.
         bugs = {
@@ -246,9 +311,7 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
         return bugs
 
     def get_bugs(self, date="today", bug_ids=[]):
-        bugs = super(FuzzingBisectionWithoutRegressedBy, self).get_bugs(
-            date=date, bug_ids=bug_ids
-        )
+        bugs = super().get_bugs(date=date, bug_ids=bug_ids)
         bugs = self.find_regressor_or_needinfo_target(bugs)
         self.set_autofix(bugs)
 
@@ -256,4 +319,4 @@ class FuzzingBisectionWithoutRegressedBy(BzCleaner):
 
 
 if __name__ == "__main__":
-    FuzzingBisectionWithoutRegressedBy().run()
+    BisectionWithoutRegressedBy().run()

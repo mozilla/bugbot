@@ -1,4 +1,4 @@
-This bug contains a bisection range, and the `Regressed by` field is still not filled.
+Based on [comment #{{ comment_number }}](#c{{ comment_number }}), this bug contains a bisection range found by {{ pushlog_source }}. However, the `Regressed by` field is still not filled.
 
 {{ nicknames }}, {% if not is_assignee -%} since you are the {{ plural("author", authors_count) }} of the changes in the range, {% endif -%} if possible, could you fill the `Regressed by` field and investigate this regression?
 

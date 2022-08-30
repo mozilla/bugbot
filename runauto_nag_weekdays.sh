@@ -113,7 +113,7 @@ python -m auto_nag.scripts.defect_with_please_or_enable --production
 python -m auto_nag.scripts.regression_without_regressed_by --production
 
 # Bugs with a fuzzing bisection but without regressed_by
-python -m auto_nag.scripts.fuzzing_bisection_without_regressed_by --production
+python -m auto_nag.scripts.bisection_without_regressed_by --production
 
 # Suggest components for untriaged bugs (daily, full list without confidence threshold)
 python -m auto_nag.scripts.component --frequency daily --production
