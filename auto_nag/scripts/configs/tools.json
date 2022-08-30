@@ -445,9 +445,6 @@
     "additional_receivers": ["jcristau@mozilla.com"],
     "component_exception": ["Testing::geckodriver"]
   },
-  "bisection_without_regressed_by": {
-    "additional_receivers": ["jkratzer@mozilla.com"]
-  },
   "good_first_bug_unassign_inactive": {
     "months_lookup": 2
   },
