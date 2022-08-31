@@ -85,11 +85,17 @@ class BisectionWithoutRegressedBy(BzCleaner):
 
         for bug_id, bug in bugs.items():
             comment_number = bug["comment_number"]
+            comment_name = (
+                "the description"
+                if comment_number == 0
+                else f"comment #{comment_number}"
+            )
             pushlog_source = bug["pushlog_source"]
+
             if "regressor_bug_id" in bug:
                 self.autofix_regressed_by[bug_id] = {
                     "comment": {
-                        "body": f"Setting `Regressed by` field after analyzing regression range found by {pushlog_source} in [comment #{comment_number}](#c{comment_number})."
+                        "body": f"Setting `Regressed by` field after analyzing regression range found by {pushlog_source} in [{comment_name}](#c{comment_number})."
                     },
                     "regressed_by": {"add": [bug["regressor_bug_id"]]},
                 }
@@ -99,6 +105,7 @@ class BisectionWithoutRegressedBy(BzCleaner):
                     nicknames=utils.english_list(nicknames),
                     authors_count=len(nicknames),
                     is_assignee=not utils.is_no_assignee(bug["assigned_to"]),
+                    comment_name=comment_name,
                     comment_number=comment_number,
                     pushlog_source=pushlog_source,
                     plural=utils.plural,
