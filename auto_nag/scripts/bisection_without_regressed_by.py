@@ -89,7 +89,7 @@ class BisectionWithoutRegressedBy(BzCleaner):
             if "regressor_bug_id" in bug:
                 autofix = {
                     "comment": {
-                        "body": f"Setting `Regressed by` field after analyzing regression range found by {pushlog_source} in [comment #{comment_number}](#c{comment_number})."
+                        "body": f"Setting `Regressed by` field after analyzing regression range found by {pushlog_source} in comment #{comment_number}."
                     },
                     "regressed_by": {"add": [bug["regressor_bug_id"]]},
                 }
