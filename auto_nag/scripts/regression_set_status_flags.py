@@ -47,6 +47,8 @@ class RegressionSetStatusFlags(BzCleaner):
             "o6": "nowords",
             "v6": "fixed,verified",
             "resolution": ["---", "FIXED"],
+            "bug_status_type": "notequals",
+            "bug_status": "UNCONFIRMED",
         }
 
     def get_extra_for_template(self):
