@@ -87,7 +87,7 @@ class BisectionWithoutRegressedBy(BzCleaner):
             comment_number = bug["comment_number"]
             pushlog_source = bug["pushlog_source"]
             if "regressor_bug_id" in bug:
-                self.autofix_regressed_by[bug_id] = {
+                autofix = {
                     "comment": {
                         "body": f"Setting `Regressed by` field after analyzing regression range found by {pushlog_source} in [comment #{comment_number}](#c{comment_number})."
                     },
@@ -113,7 +113,7 @@ class BisectionWithoutRegressedBy(BzCleaner):
                     }
                     for user in bug["needinfo_targets"]
                 ]
-                self.autofix_regressed_by[bug_id] = {
+                autofix = {
                     "flags": ni_flags,
                     "comment": {"body": ni_comment},
                 }
@@ -121,6 +121,14 @@ class BisectionWithoutRegressedBy(BzCleaner):
                 raise Exception(
                     "The bug should either has a regressor or a needinfo target"
                 )
+
+            autofix.update(
+                {
+                    "keywords": {"add": ["regression"]},
+                }
+            )
+
+            self.autofix_regressed_by[bug_id] = autofix
 
     def get_autofix_change(self) -> dict:
         return self.autofix_regressed_by
