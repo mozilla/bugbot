@@ -168,12 +168,12 @@ class RegressionSetStatusFlags(BzCleaner):
             regressor = bugs[bugid]["regressed_by"]
             self.status_changes[bugid]["comment"] = {
                 "body": f"{self.description()} {regressor}",
-                "keywords": {"add": ["regression"]},
                 # if the regressing bug is private (security or otherwise
                 # confidential), don't leak its number through our comment (the
                 # regressed_by field is not public in that case)
                 "is_private": bool(data[regressor].get("groups")),
             }
+            self.status_changes[bugid]["keywords"] = {"add": ["regression"]}
 
         return filtered_bugs
 
