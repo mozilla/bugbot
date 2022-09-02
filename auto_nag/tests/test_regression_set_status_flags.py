@@ -104,6 +104,14 @@ class TestSetStatusFlags(unittest.TestCase):
                 "cf_status_firefox_esr2",
                 "cf_status_firefox_esr3",
                 "comment",
+                "keywords",
+            ],
+        )
+        self.assertEqual(
+            sorted(r.status_changes["1111"]["comment"]),
+            [
+                "body",
+                "is_private",
             ],
         )
         self.assertEqual(r.status_changes["1111"]["cf_status_firefox2"], "unaffected")
