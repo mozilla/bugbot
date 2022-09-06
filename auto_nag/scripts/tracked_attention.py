@@ -159,8 +159,7 @@ class TrackedAttention(BzCleaner):
             self.autofix_changes[bugid] = {
                 "comment": {
                     "body": (
-                        f"This is a reminder regarding [comment #{comment_num}]"
-                        f"(https://bugzilla.mozilla.org/show_bug.cgi?id={bugid}#{comment_num})!\n\n"
+                        f"This is a reminder regarding comment #{comment_num}!\n\n"
                         f"The bug is marked as { utils.english_list(tracking_statuses) }. "
                         "We have limited time to fix this, "
                         f"the soft freeze is { self.soft_freeze_delta }. "
