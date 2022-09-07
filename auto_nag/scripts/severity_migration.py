@@ -3,6 +3,8 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
+from collections import defaultdict
+
 from libmozdata.bugzilla import BugzillaProduct
 
 from auto_nag.bzcleaner import BzCleaner
@@ -18,7 +20,6 @@ class SeverityMigration(BzCleaner):
 
     def __init__(self):
         super().__init__()
-        self.team_bugs_count = {}
         self.component_team = self._get_component_team_mapping()
 
     def description(self):
@@ -55,20 +56,28 @@ class SeverityMigration(BzCleaner):
     def handle_bug(self, bug, data):
         component_name = ComponentName(bug["product"], bug["component"])
         team_name = self.component_team[component_name]
-        bugs_count = self.team_bugs_count.get(team_name, 0)
-        if bugs_count >= 10:
-            return None
-
-        self.team_bugs_count[team_name] = bugs_count + 1
 
         bugid = str(bug["id"])
         data[bugid] = {
-            "id": bug["id"],
-            "summary": bug["summary"],
             "team_name": team_name,
         }
 
         return bug
+
+    def get_bugs(self, date="today", bug_ids=..., chunk_size=None):
+        bugs = super().get_bugs(date, bug_ids, chunk_size)
+
+        team_bugs = defaultdict(list)
+        for bug in bugs.values():
+            team_bugs[bug["team_name"]].append(bug)
+
+        bugs = {
+            bug["id"]: bug
+            for _bugs in team_bugs.values()
+            for bug in sorted(_bugs, key=lambda x: x["id"], reverse=True)[:10]
+        }
+
+        return bugs
 
     def get_autofix_change(self):
         return {
