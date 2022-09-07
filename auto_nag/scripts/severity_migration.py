@@ -81,6 +81,18 @@ class SeverityMigration(BzCleaner):
             },
         }
 
+    def filter_no_nag_keyword(self):
+        return False
+
+    def ignore_meta(self):
+        return False
+
+    def has_default_products(self):
+        return False
+
+    def has_access_to_sec_bugs(self):
+        return True
+
     def get_bz_params(self, date):
         params = {
             "include_fields": ["product", "component"],
