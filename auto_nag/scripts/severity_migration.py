@@ -16,8 +16,6 @@ class SeverityMigration(BzCleaner):
     are dropped.
     """
 
-    no_bugmail = True
-
     def __init__(self):
         super().__init__()
         self.team_bugs_count = {}
