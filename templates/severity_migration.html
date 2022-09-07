@@ -1,0 +1,24 @@
+<p>The following {{ plural('bug was', data, pword='bugs were') }} using the old severity system. The severity now is dropped to let teams retriage them:
+    <table {{ table_attrs }}>
+      <thead>
+        <tr>
+            <th>Team Name</th><th>Bug</th><th>Summary</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for i, (team_name, bugid, summary) in enumerate(data) -%}
+        <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
+            <td>
+              {{ team_name | e }}
+            </td>
+          <td>
+            <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+           </td>
+          <td>
+            {{ summary | e }}
+          </td>
+        </tr>
+        {% endfor -%}
+      </tbody>
+    </table>
+</p>

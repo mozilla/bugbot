@@ -184,6 +184,9 @@ python -m auto_nag.scripts.inactive_reviewer --production
 # Nag on fuzz blocker bugs
 python -m auto_nag.scripts.fuzz_blockers --production
 
+# Drop old severities
+python -m auto_nag.scripts.severity_migration --production
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
