@@ -94,9 +94,6 @@ class SeverityMigration(BzCleaner):
     def ignore_meta(self):
         return False
 
-    def has_default_products(self):
-        return False
-
     def has_access_to_sec_bugs(self):
         return True
 
