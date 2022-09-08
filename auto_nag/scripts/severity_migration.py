@@ -104,6 +104,9 @@ class SeverityMigration(BzCleaner):
             "bug_severity": {"blocker", "critical", "major"},
             "f1": "cf_crash_signature",
             "o1": "isempty",
+            "f2": "product",
+            "o2": "notequals",
+            "v2": "Testing",
         }
 
         return params
