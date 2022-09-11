@@ -4,7 +4,7 @@
 
 from collections import defaultdict
 from datetime import datetime
-from typing import Dict, List, Optional, Set, Union
+from typing import Dict, Iterable, List, Optional, Set, Union
 
 import libmozdata.socorro as socorro
 from libmozdata import utils as lmdutils
@@ -212,24 +212,38 @@ CRASH_SIGNATURE_BLOCK_PATTERNS = [
 class Topcrash:
     def __init__(
         self,
+        date: Optional[Union[str, datetime]] = "today",
+        duration: Optional[int] = 7,
         minimum_crashes: Optional[int] = 5,
         signature_block_patterns: list = CRASH_SIGNATURE_BLOCK_PATTERNS,
+        criteria: Iterable[dict] = TOP_CRASH_IDENTIFICATION_CRITERIA,
     ) -> None:
         """Constructor
 
         Args:
+            date: the final date. If not provided, the value will be today.
+            duration: the number of days to retrieve the crash data.
             minimum_crashes: the minimum number of crashes to consider a
                 signature in the top crashes.
             signature_block_list: a list of crash signature to be ignored.
+            criteria: the list of criteria to be used to query the top crashes.
         """
         self.minimum_crashes = minimum_crashes
         self.signature_block_patterns = signature_block_patterns
+        self.criteria = criteria
 
-    def _fetch_signatures_from_patters(self, patterns, date_range) -> Set[str]:
+        start_date = lmdutils.get_date(date, duration)
+        end_date = lmdutils.get_date(date)
+        self.date_range = socorro.SuperSearch.get_search_date(start_date, end_date)
+
+        self._blocked_signatures: Optional[Set[str]] = None
+
+    def _fetch_signatures_from_patters(self, patterns) -> Set[str]:
         MAX_SIGNATURES_IN_REQUEST = 1000
+
         signatures: Set[str] = set()
         params = {
-            "date": date_range,
+            "date": self.date_range,
             "signature": [
                 pattern if pattern[0] != "!" else pattern[1:] for pattern in patterns
             ],
@@ -256,40 +270,36 @@ class Topcrash:
 
         return signatures
 
+    def get_blocked_signatures(self) -> Set[str]:
+        """Return the list of signatures to be ignored."""
+        if self._blocked_signatures is None:
+            self._blocked_signatures = self._fetch_signatures_from_patters(
+                self.signature_block_patterns
+            )
+
+        return self._blocked_signatures
+
     def get_signatures(
         self,
-        date: Union[str, datetime],
-        duration: Optional[int] = 7,
     ) -> Dict[str, List[dict]]:
         """Fetch the top crashes from socorro.
 
         Top crashes will be queried twice for each release channel, one that
         targets startup crashes and another that targets all crashes.
 
-        Args:
-            date: the final date
-            duration: the number of days to retrieve the crash data
-
         Returns:
             A dictionary where the keys are crash signatures, and the values are
             list of criteria that the crash signature matches.
         """
 
-        start_date = lmdutils.get_date(date, duration)
-        end_date = lmdutils.get_date(date)
-        date_range = socorro.SuperSearch.get_search_date(start_date, end_date)
-        self.blocked_signatures = self._fetch_signatures_from_patters(
-            self.signature_block_patterns, date_range
-        )
-
         data: dict = defaultdict(dict)
         searches = [
             socorro.SuperSearch(
-                params=self.__get_params_from_criterion(date_range, criterion),
+                params=self.__get_params_from_criterion(criterion),
                 handler=self.__signatures_handler(criterion),
                 handlerdata=data[criterion["name"]],
             )
-            for criterion in TOP_CRASH_IDENTIFICATION_CRITERIA
+            for criterion in self.criteria
         ]
 
         for search in searches:
@@ -306,14 +316,14 @@ class Topcrash:
 
         return result
 
-    def __get_params_from_criterion(self, date_range: list, criterion: dict):
+    def __get_params_from_criterion(self, criterion: dict):
         params = {
             "product": criterion["product"],
             "release_channel": criterion["channel"],
             "process_type": criterion.get("process_type"),
             "cpu_arch": criterion.get("cpu_arch"),
             "platform": criterion.get("platform"),
-            "date": date_range,
+            "date": self.date_range,
             "_aggs.signature": [
                 "_cardinality.install_time",
                 "startup_crash",
@@ -325,7 +335,7 @@ class Topcrash:
                 # we cannot ignore the generic signatures in the Socorro side, thus we ignore them
                 # in the client side. We add here the maximum number of signatures that could be
                 # ignored to stay in the safe side.
-                + len(self.blocked_signatures)
+                + len(self.get_blocked_signatures())
             ),
         }
         return params
@@ -345,6 +355,8 @@ class Topcrash:
             and up to `tc_startup_limit`.
             """
 
+            blocked_signatures = self.get_blocked_signatures()
+
             signatures = search_resp["facets"]["signature"]
             tc_limit = criterion["tc_limit"]
             tc_startup_limit = criterion.get("tc_startup_limit", tc_limit)
@@ -361,10 +373,7 @@ class Topcrash:
 
                 name = signature["term"]
                 installations = signature["facets"]["cardinality_install_time"]["value"]
-                if (
-                    installations < minimum_installations
-                    or name in self.blocked_signatures
-                ):
+                if installations < minimum_installations or name in blocked_signatures:
                     continue
 
                 is_startup = self.__is_startup_crash(signature)

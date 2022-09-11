@@ -151,7 +151,7 @@ class TopcrashAddKeyword(BzCleaner):
         return bugs
 
     def get_bz_params_list(self, date):
-        self.topcrashes = Topcrash().get_signatures(date)
+        self.topcrashes = Topcrash(date).get_signatures()
 
         fields = [
             "triage_owner",
