@@ -9,6 +9,12 @@ from typing import Dict, Iterable, List, Optional, Set, Union
 import libmozdata.socorro as socorro
 from libmozdata import utils as lmdutils
 
+from auto_nag.scripts.no_crashes import NoCrashes
+
+
+class SocorroError(Exception):
+    pass
+
 
 def _format_criteria_names(criteria: List[dict]):
     return [
@@ -269,6 +275,50 @@ class Topcrash:
         ), "the patterns match more signatures than what the request could return, consider to increase the threshold"
 
         return signatures
+
+    def fetch_signature_volume(
+        self,
+        signatures: Iterable[str],
+    ) -> dict:
+        """Fetch the volume of crashes for each crash signature.
+
+        Returns:
+            A dictionary with the crash signature as key and the volume as value.
+        """
+
+        def handler(search_resp: dict, data: dict):
+            if search_resp["errors"]:
+                raise SocorroError(search_resp["errors"])
+
+            data.update(
+                {
+                    signature["term"]: signature["count"]
+                    for signature in search_resp["facets"]["signature"]
+                }
+            )
+
+        signatures = ["=" + signature for signature in signatures]
+        chunks, size = NoCrashes.chunkify(signatures)
+        signature_volume: dict = {signature: 0 for signature in signatures}
+        searches = [
+            socorro.SuperSearch(
+                params={
+                    "date": self.date_range,
+                    "signature": _signatures,
+                    "_facets": "signature",
+                    "_results_number": 0,
+                    "_facets_size": size,
+                },
+                handler=handler,
+                handlerdata=signature_volume,
+            )
+            for _signatures in chunks
+        ]
+
+        for search in searches:
+            search.wait()
+
+        return signature_volume
 
     def get_blocked_signatures(self) -> Set[str]:
         """Return the list of signatures to be ignored."""

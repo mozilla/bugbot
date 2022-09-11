@@ -187,6 +187,9 @@ python -m auto_nag.scripts.fuzz_blockers --production
 # Drop old severities
 python -m auto_nag.scripts.severity_migration --production
 
+# Detect bugs with small crash volume
+python -m auto_nag.scripts.crash_samll_volume --production
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send

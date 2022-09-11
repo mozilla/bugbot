@@ -57,7 +57,8 @@ class NoCrashes(BzCleaner):
 
         return params
 
-    def chunkify(self, signatures):
+    @staticmethod
+    def chunkify(signatures):
         """Make some chunks with signatures,
         the total length of each chunk must be <= 1536"""
         total = sum(len(s) for s in signatures)
