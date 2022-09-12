@@ -51,6 +51,10 @@ class CrashSmallVolume(BzCleaner):
 
         signatures = utils.get_signatures(bug["cf_crash_signature"])
 
+        if any(signature in self.blocked_signatures for signature in signatures):
+            # Ignore those bugs as we can't be sure.
+            return None
+
         top_crash_signatures = [
             signature
             for signature in signatures
@@ -137,7 +141,6 @@ class CrashSmallVolume(BzCleaner):
                 and bug["severity"] in HIGH_SEVERITY
                 and all(
                     signature in low_volume_signatures
-                    or signature in self.blocked_signatures
                     for signature in bug["signatures"]
                 )
             ):
