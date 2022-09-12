@@ -49,12 +49,6 @@ class CrashSmallVolume(BzCleaner):
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
 
-        existing_keywords = {
-            keyword
-            for keyword in ("topcrash", "topcrash-startup")
-            if keyword in bug["keywords"]
-        }
-
         signatures = utils.get_signatures(bug["cf_crash_signature"])
 
         top_crash_signatures = [
@@ -73,9 +67,9 @@ class CrashSmallVolume(BzCleaner):
 
         keywords_to_remove = None
         if not top_crash_signatures:
-            keywords_to_remove = existing_keywords & {"topcrash", "topcrash-startup"}
+            keywords_to_remove = set(bug["keywords"]) & {"topcrash", "topcrash-startup"}
         elif not keep_topcrash_startup:
-            keywords_to_remove = existing_keywords & {"topcrash-startup"}
+            keywords_to_remove = set(bug["keywords"]) & {"topcrash-startup"}
         else:
             return None
 
