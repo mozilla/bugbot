@@ -13,9 +13,16 @@ MAX_SIGNATURES_PER_QUERY = 30
 
 
 class CrashSmallVolume(BzCleaner):
-    def __init__(self):
+    def __init__(self, min_crash_volume: int = 5):
+        """Constructor.
+
+        Args:
+            min_crash_volume: the minimum number of crashes per week for a
+                signature to not be considered low volume.
+        """
         super().__init__()
 
+        self.min_crash_volume = min_crash_volume
         topcrash = Topcrash(
             criteria=self._adjust_topcrash_criteria(TOP_CRASH_IDENTIFICATION_CRITERIA)
         )
@@ -101,7 +108,9 @@ class CrashSmallVolume(BzCleaner):
         signature_volume = Topcrash().fetch_signature_volume(signatures)
 
         low_volume_signatures = {
-            signature for signature, volume in signature_volume.items() if volume < 5
+            signature
+            for signature, volume in signature_volume.items()
+            if volume < self.min_crash_volume
         }
 
         return low_volume_signatures
@@ -145,7 +154,8 @@ class CrashSmallVolume(BzCleaner):
                 )
             ):
                 reasons.append(
-                    "Since the crash volume is very low, the severity is downgraded to `S3`. "
+                    f"Since the crash volume is low (less than {self.min_crash_volume} per week), "
+                    "the severity is downgraded to `S3`. "
                     "Feel free to change it back if you think the bug is still critical."
                 )
                 autofix["severity"] = "S3"
