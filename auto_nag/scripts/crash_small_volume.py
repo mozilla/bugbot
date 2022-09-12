@@ -207,6 +207,9 @@ class CrashSmallVolume(BzCleaner):
             "o6": "isnotempty",
             "f7": "CP",
             "f8": "CP",
+            "f9": "creation_ts",
+            "o9": "lessthan",
+            "v9": "-1w",
         }
 
         return params
