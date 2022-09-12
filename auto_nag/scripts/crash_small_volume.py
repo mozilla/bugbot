@@ -4,6 +4,7 @@
 
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
+from auto_nag.history import History
 from auto_nag.topcrash import TOP_CRASH_IDENTIFICATION_CRITERIA, Topcrash
 
 # TODO: should be moved when resolving https://github.com/mozilla/relman-auto-nag/issues/1384
@@ -84,13 +85,14 @@ class CrashSmallVolume(BzCleaner):
         else:
             return None
 
-        is_security = bug["groups"] == "security" or any(
-            keyword.startswith("sec-") for keyword in bug["keywords"]
-        )
-
         data[bugid] = {
             "severity": bug["severity"],
-            "is_security": is_security,
+            "ignore_severity": (
+                bug["severity"] not in HIGH_SEVERITY
+                or bug["groups"] == "security"
+                or any(keyword.startswith("sec-") for keyword in bug["keywords"])
+                or self._has_severity_downgrade_comment(bug)
+            ),
             "keywords_to_remove": keywords_to_remove,
             "signatures": signatures,
         }
@@ -101,7 +103,7 @@ class CrashSmallVolume(BzCleaner):
         signatures = {
             signature
             for bug in bugs.values()
-            if not bug["is_security"] and bug["severity"] in HIGH_SEVERITY
+            if not bug["ignore_severity"]
             for signature in bug["signatures"]
         }
 
@@ -145,13 +147,8 @@ class CrashSmallVolume(BzCleaner):
                 )
                 autofix["keywords"] = {"remove": list(bug["keywords_to_remove"])}
 
-            if (
-                not bug["is_security"]
-                and bug["severity"] in HIGH_SEVERITY
-                and all(
-                    signature in low_volume_signatures
-                    for signature in bug["signatures"]
-                )
+            if not bug["ignore_severity"] and all(
+                signature in low_volume_signatures for signature in bug["signatures"]
             ):
                 reasons.append(
                     f"Since the crash volume is low (less than {self.min_crash_volume} per week), "
@@ -162,7 +159,6 @@ class CrashSmallVolume(BzCleaner):
                 bug["severity"] += " → " + autofix["severity"]
 
             if autofix:
-
                 bug["deleted_keywords_count"] = (
                     len(bug["keywords_to_remove"]) if bug["keywords_to_remove"] else "-"
                 )
@@ -172,11 +168,23 @@ class CrashSmallVolume(BzCleaner):
                 }
                 self.autofix_changes[bugid] = autofix
 
+    @staticmethod
+    def _has_severity_downgrade_comment(bug):
+        for comment in reversed(bug["comments"]):
+            if (
+                comment["creator"] == History.BOT
+                and "the severity is downgraded to" in comment["raw_text"]
+            ):
+                return True
+        return False
+
     def get_bz_params(self, date):
         fields = [
             "severity",
             "keywords",
             "cf_crash_signature",
+            "comments.raw_text",
+            "comments.creator",
         ]
         params = {
             "include_fields": fields,
