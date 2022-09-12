@@ -79,8 +79,13 @@ class CrashSmallVolume(BzCleaner):
         else:
             return None
 
+        is_security = bug["groups"] == "security" or any(
+            keyword.startswith("sec-") for keyword in bug["keywords"]
+        )
+
         data[bugid] = {
             "severity": bug["severity"],
+            "is_security": is_security,
             "keywords_to_remove": keywords_to_remove,
             "signatures": signatures,
         }
@@ -91,7 +96,7 @@ class CrashSmallVolume(BzCleaner):
         signatures = {
             signature
             for bug in bugs.values()
-            if bug["severity"] in HIGH_SEVERITY
+            if not bug["is_security"] and bug["severity"] in HIGH_SEVERITY
             for signature in bug["signatures"]
         }
 
@@ -133,10 +138,14 @@ class CrashSmallVolume(BzCleaner):
                 )
                 autofix["keywords"] = {"remove": list(bug["keywords_to_remove"])}
 
-            if bug["severity"] in HIGH_SEVERITY and all(
-                signature in low_volume_signatures
-                or signature in self.blocked_signatures
-                for signature in bug["signatures"]
+            if (
+                not bug["is_security"]
+                and bug["severity"] in HIGH_SEVERITY
+                and all(
+                    signature in low_volume_signatures
+                    or signature in self.blocked_signatures
+                    for signature in bug["signatures"]
+                )
             ):
                 reasons.append(
                     "Since the crash volume is very low, the severity is downgraded to `S3`. "
