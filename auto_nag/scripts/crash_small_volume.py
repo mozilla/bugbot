@@ -76,10 +76,11 @@ class CrashSmallVolume(BzCleaner):
             keywords_to_remove = existing_keywords & {"topcrash", "topcrash-startup"}
         elif not keep_topcrash_startup:
             keywords_to_remove = existing_keywords & {"topcrash-startup"}
+        else:
+            return None
 
         data[bugid] = {
             "severity": bug["severity"],
-            "keep_topcrash": bool(top_crash_signatures),
             "keywords_to_remove": keywords_to_remove,
             "signatures": signatures,
         }
@@ -90,7 +91,7 @@ class CrashSmallVolume(BzCleaner):
         signatures = {
             signature
             for bug in bugs.values()
-            if not bug["keep_topcrash"] and bug["severity"] in HIGH_SEVERITY
+            if bug["severity"] in HIGH_SEVERITY
             for signature in bug["signatures"]
         }
 
