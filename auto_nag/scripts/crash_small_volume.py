@@ -124,9 +124,12 @@ class CrashSmallVolume(BzCleaner):
             reasons = []
             if bug["keywords_to_remove"]:
                 reasons.append(
-                    "The crash signature linked to this bug is not a topcrash signature anymore."
-                    if len(bug["signatures"]) == 1
-                    else "The crash signatures linked to this bug are not in the topcrash signatures anymore."
+                    "Based on the [topcrash criteria](https://wiki.mozilla.org/CrashKill/Topcrash), the crash "
+                    + (
+                        "signature linked to this bug is not a topcrash signature anymore."
+                        if len(bug["signatures"]) == 1
+                        else "signatures linked to this bug are not in the topcrash signatures anymore."
+                    )
                 )
                 autofix["keywords"] = {"remove": list(bug["keywords_to_remove"])}
 
