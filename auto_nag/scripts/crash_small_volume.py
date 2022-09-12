@@ -73,9 +73,9 @@ class CrashSmallVolume(BzCleaner):
 
         keywords_to_remove = None
         if not top_crash_signatures:
-            keywords_to_remove = existing_keywords - {"topcrash", "topcrash-startup"}
+            keywords_to_remove = existing_keywords & {"topcrash", "topcrash-startup"}
         elif not keep_topcrash_startup:
-            keywords_to_remove = existing_keywords - {"topcrash-startup"}
+            keywords_to_remove = existing_keywords & {"topcrash-startup"}
 
         data[bugid] = {
             "severity": bug["severity"],
