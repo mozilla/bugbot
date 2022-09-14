@@ -107,6 +107,9 @@ class SeverityMigration(BzCleaner):
             "f2": "product",
             "o2": "notequals",
             "v2": "Testing",
+            "f3": "keywords",
+            "o3": "nowords",
+            "v3": "crash",
         }
 
         return params
