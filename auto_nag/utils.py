@@ -23,6 +23,8 @@ from libmozdata.bugzilla import Bugzilla, BugzillaShorten
 from libmozdata.hgmozilla import Mercurial
 from requests.exceptions import HTTPError
 
+from auto_nag.constants import HIGH_PRIORITY, HIGH_SEVERITY, OLD_SEVERITY_MAP
+
 _CONFIG = None
 _CYCLE_SPAN = None
 _MERGE_DAY = None
@@ -30,19 +32,6 @@ _TRIAGE_OWNERS = None
 _DEFAULT_ASSIGNEES = None
 _CURRENT_VERSIONS = None
 _CONFIG_PATH = "./auto_nag/scripts/configs/"
-
-
-# TODO: should be moved when resolving https://github.com/mozilla/relman-auto-nag/issues/1384
-HIGH_PRIORITY = {"P1", "P2"}
-HIGH_SEVERITY = {"S1", "critical", "S2", "major"}
-OLD_SEVERITY_MAP = {
-    "critical": "S1",
-    "major": "S2",
-    "normal": "S3",
-    "minor": "S4",
-    "trivial": "S4",
-    "enhancement": "S4",
-}
 
 
 BZ_FIELD_PAT = re.compile(r"^[fovj]([0-9]+)$")

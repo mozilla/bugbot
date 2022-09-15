@@ -4,9 +4,7 @@
 
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
-
-# TODO: should be moved when resolving https://github.com/mozilla/relman-auto-nag/issues/1384
-LOW_SEVERITY = ["S3", "normal", "S4", "minor", "trivial", "enhancement"]
+from auto_nag.constants import LOW_SEVERITY
 
 
 class SeverityHighCompatPriority(BzCleaner):
@@ -44,7 +42,7 @@ class SeverityHighCompatPriority(BzCleaner):
             "resolution": "---",
             "bug_type": "defect",
             "cf_webcompat_priority": "P1",
-            "bug_severity": LOW_SEVERITY,
+            "bug_severity": list(LOW_SEVERITY),
             "n1": 1,
             "f1": "longdesc",
             "o1": "casesubstring",
