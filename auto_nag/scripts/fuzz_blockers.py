@@ -4,11 +4,9 @@
 
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
+from auto_nag.constants import LOW_SEVERITY
 from auto_nag.history import History
 from auto_nag.nag_me import Nag
-
-# TODO: should be moved when resolving https://github.com/mozilla/relman-auto-nag/issues/1384
-LOW_SEVERITY = ["S3", "normal", "S4", "minor", "trivial", "enhancement"]
 
 
 class FuzzBlockers(BzCleaner, Nag):

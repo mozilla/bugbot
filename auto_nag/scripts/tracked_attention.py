@@ -10,12 +10,9 @@ from libmozdata.release_calendar import get_calendar
 
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
+from auto_nag.constants import LOW_PRIORITY, LOW_SEVERITY
 from auto_nag.history import History
 from auto_nag.team_managers import TeamManagers
-
-# TODO: should be moved when resolving https://github.com/mozilla/relman-auto-nag/issues/1384
-LOW_SEVERITY = ["S3", "normal", "S4", "minor", "trivial", "enhancement"]
-LOW_PRIORITY = ["P3", "P4", "P5"]
 
 
 class TrackedAttention(BzCleaner):
@@ -209,10 +206,10 @@ class TrackedAttention(BzCleaner):
             "f4": "OP",
             "f5": "bug_severity",
             "o5": "anyexact",
-            "v5": LOW_SEVERITY,
+            "v5": list(LOW_SEVERITY),
             "f6": "priority",
             "o6": "anyexact",
-            "v6": LOW_PRIORITY,
+            "v6": list(LOW_PRIORITY),
         }
         utils.get_empty_assignees(params)
         n = utils.get_last_field_num(params)

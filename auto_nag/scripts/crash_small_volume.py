@@ -4,11 +4,9 @@
 
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
+from auto_nag.constants import HIGH_SEVERITY
 from auto_nag.history import History
 from auto_nag.topcrash import TOP_CRASH_IDENTIFICATION_CRITERIA, Topcrash
-
-# TODO: should be moved when resolving https://github.com/mozilla/relman-auto-nag/issues/1384
-HIGH_SEVERITY = {"S1", "critical", "S2", "major"}
 
 MAX_SIGNATURES_PER_QUERY = 30
 
