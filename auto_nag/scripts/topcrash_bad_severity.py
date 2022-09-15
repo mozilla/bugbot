@@ -56,14 +56,11 @@ class TopcrashBadSeverity(BzCleaner):
                 "trivial",
                 "enhancement",
             ],
-            "keywords": "topcrash",
+            "keywords": ["topcrash", "topcrash-startup"],
             "n1": 1,
             "f1": "longdesc",
             "o1": "casesubstring",
             "v1": "could you consider increasing the severity of this top-crash bug?",
-            "f2": "keywords",
-            "o2": "nowords",
-            "v2": "thunderbird",
         }
 
 
