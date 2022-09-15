@@ -244,7 +244,7 @@ class Topcrash:
 
         self._blocked_signatures: Optional[Set[str]] = None
 
-    def _fetch_signatures_from_patters(self, patterns) -> Set[str]:
+    def _fetch_signatures_from_patterns(self, patterns) -> Set[str]:
         MAX_SIGNATURES_IN_REQUEST = 1000
 
         signatures: Set[str] = set()
@@ -323,7 +323,7 @@ class Topcrash:
     def get_blocked_signatures(self) -> Set[str]:
         """Return the list of signatures to be ignored."""
         if self._blocked_signatures is None:
-            self._blocked_signatures = self._fetch_signatures_from_patters(
+            self._blocked_signatures = self._fetch_signatures_from_patterns(
                 self.signature_block_patterns
             )
 
