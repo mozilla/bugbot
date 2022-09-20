@@ -35,6 +35,11 @@ class NeedinfoRegressionAuthor(BzCleaner):
     def get_extra_for_needinfo_template(self):
         return self.extra_ni
 
+    def get_autofix_change(self):
+        return {
+            "keywords": {"add": ["regression"]},
+        }
+
     def set_autofix(self, bugs):
         for bugid, info in bugs.items():
             self.extra_ni[bugid] = {
