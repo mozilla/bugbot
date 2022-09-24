@@ -1,9 +1,15 @@
-import unittest
+import responses
+from libmozdata.socorro import Socorro
 
+from auto_nag.auto_mock import MockTestCase
 from auto_nag.topcrash import Topcrash
 
 
-class TestTopcrash(unittest.TestCase):
+class TestTopcrash(MockTestCase):
+
+    mock_urls = [Socorro.API_URL]
+
+    @responses.activate
     def test_get_blocked_signatures(self):
         crash_signature_block_patterns = [
             "!^EMPTY: ",
@@ -16,4 +22,4 @@ class TestTopcrash(unittest.TestCase):
 
         assert "OOM | small" in signatures
         assert "IPCError-browser | ShutDownKill" in signatures
-        assert "EMPTY: no crashing thread identified; EmptyMinidump" in signatures
+        assert "EMPTY: no frame data available; StreamSizeMismatch" in signatures
