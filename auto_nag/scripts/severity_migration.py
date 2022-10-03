@@ -97,11 +97,6 @@ class SeverityMigration(BzCleaner):
     def has_access_to_sec_bugs(self):
         return True
 
-    def get_products(self):
-        products = super().get_products()
-        products += ["Thunderbird", "Calendar", "Chat Core", "Mailnews Core"]
-        return products
-
     def get_bz_params(self, date):
         params = {
             "include_fields": ["product", "component"],
