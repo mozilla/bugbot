@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from collections import defaultdict
+
 from auto_nag.multi_autofixers import (
     MultiAutoFixers,
     ToolsChanges,
@@ -23,6 +25,7 @@ class MultiFixRegressed(MultiAutoFixers):
             RegressionSetStatusFlags(),
             NeedinfoRegressionAuthor(),
             comment=self.__merge_comment,
+            keywords=self.__merge_keywords,
         )
 
     @staticmethod
@@ -38,6 +41,23 @@ class MultiFixRegressed(MultiAutoFixers):
             }
 
         raise UnexpectedToolsError(list(tools))
+
+    @staticmethod
+    def __merge_keywords(tools: ToolsChanges) -> dict:
+        merged_changes = defaultdict(set)
+        for changes in tools.values():
+            if "keywords" in changes:
+                for action, value in changes["keywords"].items():
+                    if isinstance(value, str):
+                        value = [value]
+
+                    merged_changes[action].update(value)
+
+        return {
+            "keywords": {
+                action: list(values) for action, values in merged_changes.items()
+            }
+        }
 
 
 if __name__ == "__main__":
