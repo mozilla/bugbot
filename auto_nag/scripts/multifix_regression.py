@@ -46,12 +46,14 @@ class MultiFixRegressed(MultiAutoFixers):
     def __merge_keywords(tools: ToolsChanges) -> dict:
         merged_changes = defaultdict(set)
         for changes in tools.values():
-            if "keywords" in changes:
-                for action, value in changes["keywords"].items():
-                    if isinstance(value, str):
-                        value = [value]
+            if "keywords" not in changes:
+                continue
 
-                    merged_changes[action].update(value)
+            for action, value in changes["keywords"].items():
+                if isinstance(value, str):
+                    value = [value]
+
+                merged_changes[action].update(value)
 
         return {
             "keywords": {
