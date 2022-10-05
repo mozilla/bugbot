@@ -55,11 +55,7 @@ class MultiFixRegressed(MultiAutoFixers):
 
                 merged_changes[action].update(value)
 
-        return {
-            "keywords": {
-                action: list(values) for action, values in merged_changes.items()
-            }
-        }
+        return {action: list(values) for action, values in merged_changes.items()}
 
 
 if __name__ == "__main__":
