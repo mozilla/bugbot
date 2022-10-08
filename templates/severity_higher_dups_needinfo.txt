@@ -1,0 +1,8 @@
+The severity field for this bug is set to `{{ extra[bugid]["severity"] }}`. However, the following {{ plural("bug duplicate has", extra[bugid]["duplicates"], "bug duplicates have") }} higher severity:
+{% for bug in extra[bugid]["duplicates"] -%}
+- Bug {{ bug["id"] }}: {{ bug["severity"] }}
+{% endfor %}
+
+:{{ nickname }}, could you consider increasing the severity of this bug to `{{ extra[bugid]["suggested_severity"] }}`?
+
+{{ documentation }}
