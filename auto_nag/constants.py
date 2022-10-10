@@ -6,11 +6,12 @@
 HIGH_PRIORITY = {"P1", "P2"}
 LOW_PRIORITY = {"P3", "P4", "P5"}
 
-HIGH_SEVERITY = {"S1", "critical", "S2", "major"}
+HIGH_SEVERITY = {"S1", "critical", "S2", "major", "blocker"}
 LOW_SEVERITY = {"S3", "normal", "S4", "minor", "trivial", "enhancement"}
 OLD_SEVERITY_MAP = {
     "critical": "S1",
     "major": "S2",
+    "blocker": "S2",
     "normal": "S3",
     "minor": "S4",
     "trivial": "S4",
