@@ -2,11 +2,11 @@
   <table {{ table_attrs }}>
     <thead>
       <tr>
-        <th>Bug</th><th>Summary</th><th>Severity</th><th>Suggested Security</th>
+        <th>Bug</th><th>Summary</th><th>Severity</th><th>Suggested Severity</th>
       </tr>
     </thead>
     <tbody>
-      {% for i, (bugid, summary, severity, suggested_security) in enumerate(data) -%}
+      {% for i, (bugid, summary, severity, suggested_severity) in enumerate(data) -%}
       <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
         <td>
           <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
@@ -18,7 +18,7 @@
           {{ severity }}
         </td>
         <td>
-          {{ suggested_security }}
+          {{ suggested_severity }}
         </td>
       </tr>
       {% endfor -%}
