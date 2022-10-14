@@ -9,7 +9,8 @@ class Severity:
     This class is to be used to compare bug severity values.
     """
 
-    ACCEPTED_VALUES = {"S1", "S2", "S3", "S4", "--", "N/A"}
+    SEVERITY_LEVELS = {"S1", "S2", "S3", "S4"}
+    ACCEPTED_VALUES = SEVERITY_LEVELS | {"--", "N/A"}
 
     def __init__(self, severity):
         """Constructor
