@@ -122,7 +122,7 @@ class ClosedComment(BzCleaner):
             "v2": "Please file a new bug",
             "f3": "longdesc",
             "o3": "changedafter",
-            "v3": "-4d",
+            "v3": "-1d",
         }
 
         return params

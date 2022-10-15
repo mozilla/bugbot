@@ -67,6 +67,9 @@ python -m auto_nag.scripts.closed_dupeme --production
 # Detect spam bugs using bugbug
 python -m auto_nag.scripts.spambug --production
 
+# Suggest opening a new bug when commenting on a closed bug
+python -m auto_nag.scripts.closed_comment --production
+
 # Suggest components for untriaged bugs (hourly, list only bugs on which we acted)
 python -m auto_nag.scripts.component --frequency hourly --production
 
