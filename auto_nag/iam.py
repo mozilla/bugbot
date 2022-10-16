@@ -5,8 +5,10 @@
 import argparse
 import json
 import os
+from typing import Dict
 
 import requests
+from libmozdata.bugzilla import BugzillaUser
 
 from . import logger, utils
 
@@ -142,10 +144,12 @@ def get_phonebook_dump(output_dir=""):
         isdirector = person["staff_information"]["director"]["value"]
         cn = "{} {}".format(person["first_name"]["value"], person["last_name"]["value"])
         bugzillaEmail = ""
+        bugzillaID = None
         if "bugzilla_mozilla_org_primary_email" in person["identities"]:
             bugzillaEmail = person["identities"]["bugzilla_mozilla_org_primary_email"][
                 "value"
             ]
+            bugzillaID = person["identities"]["bugzilla_mozilla_org_id"]["value"]
 
         im = None
 
@@ -173,6 +177,7 @@ def get_phonebook_dump(output_dir=""):
             "cn": cn,
             "dn": dn,
             "bugzillaEmail": bugzillaEmail,
+            "bugzillaID": bugzillaID,
             "title": title,
         }
 
@@ -196,10 +201,72 @@ def get_phonebook_dump(output_dir=""):
     for mail in to_remove:
         del new_data[mail]
 
+    update_bugzilla_emails(new_data)
     new_data = list(new_data.values())
 
     with open("./auto_nag/scripts/configs/people.json", "w") as Out:
         json.dump(new_data, Out, sort_keys=True, indent=4, separators=(",", ": "))
+
+
+def update_bugzilla_emails(data: Dict[str, dict]) -> None:
+    """Update the bugzilla emails based on the Bugzilla ID and the Mozilla LDAP email.
+
+    Args:
+        data: The data to update.
+    """
+
+    users_to_check = [
+        person["bugzillaID"] or person["mail"] for person in data.values()
+    ]
+    users_by_bugzilla_id = {
+        int(person["bugzillaID"]): person
+        for person in data.values()
+        if person["bugzillaID"]
+    }
+    users_by_bugzilla_email = {}
+    for person in data.values():
+        if (
+            not person["bugzillaID"]
+            and person["bugzillaEmail"]
+            and person["bugzillaEmail"] != person["mail"]
+        ):
+            users_by_bugzilla_email[person["bugzillaEmail"]] = person
+            users_to_check.append(person["bugzillaEmail"])
+
+    def handler(bz_user, data):
+        if bz_user["id"] in users_by_bugzilla_id:
+            person = users_by_bugzilla_id[bz_user["id"]]
+        elif bz_user["name"] in data:
+            person = data[bz_user["name"]]
+        elif bz_user["name"] in users_by_bugzilla_email:
+            person = users_by_bugzilla_email[bz_user["name"]]
+        else:
+            raise Exception(f"Can't find {bz_user['name']} in the data")
+
+        if person["bugzillaEmail"] != bz_user["name"]:
+            logger.info(
+                "Update bugzilla email for %s from '%s' to '%s'",
+                person["cn"],
+                person["bugzillaEmail"],
+                bz_user["name"],
+            )
+            person["bugzillaEmail"] = bz_user["name"]
+            person["found_on_bugzilla"] = True
+
+    def fault_user_handler(bz_user, data):
+        logger.debug("Can't find %s on bugzilla", bz_user["name"])
+
+    BugzillaUser(
+        users_to_check,
+        include_fields=["id", "name"],
+        user_handler=handler,
+        user_data=data,
+        fault_user_handler=fault_user_handler,
+    ).wait()
+
+    for person in data.values():
+        if "found_on_bugzilla" not in person:
+            person["found_on_bugzilla"] = False
 
 
 if __name__ == "__main__":
