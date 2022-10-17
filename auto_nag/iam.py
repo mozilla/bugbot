@@ -215,9 +215,17 @@ def update_bugzilla_emails(data: Dict[str, dict]) -> None:
         data: The data to update.
     """
 
+    # Currently employees can have permissions if they use their Mozilla email
+    # without the need to link their Bugzilla accounts to PMO. Thus we check here
+    # if employees already have a Bugzilla account using their Mozilla emails.
+    #
+    # Once BMO and PMO are fully integrated (plan in progress), this will be
+    # changed and employees will not have permissions unless they link their
+    # Bugzilla account to PMO.
     users_to_check = [
         person["bugzillaID"] or person["mail"] for person in data.values()
     ]
+
     users_by_bugzilla_id = {
         int(person["bugzillaID"]): person
         for person in data.values()
