@@ -52,7 +52,7 @@ class SeverityHigherDuplicates(BzCleaner):
             else:
                 del bugs[bug_id]
 
-        # Exclude duplicate bugs that was linked before downgrading the severity
+        # Exclude duplicate bugs that were linked before downgrading the severity
         Bugzilla(
             bugs.keys(),
             include_fields=["id", "triage_owner", "assigned_to", "history"],
