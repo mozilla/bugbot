@@ -297,9 +297,8 @@ class Topcrash:
                 }
             )
 
-        signatures = ["=" + signature for signature in signatures]
-        chunks, size = NoCrashes.chunkify(signatures)
         signature_volume: dict = {signature: 0 for signature in signatures}
+        chunks, size = NoCrashes.chunkify(["=" + signature for signature in signatures])
         searches = [
             socorro.SuperSearch(
                 params={
