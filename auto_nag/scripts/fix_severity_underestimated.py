@@ -1057,7 +1057,7 @@ class FixSeverityUnderestimated(BzCleaner):
 
         assert len(bot_needinfo_today) == 1, f"Unexpected needinfo count for {bugid}"
 
-        if bug["creation_time"] > "2020" and len("duplicates") > 0:
+        if bug["creation_time"] > "2019" and len("duplicates") > 0:
             bug["summary"] = "keep needinfo"
         else:
             self.autofix_changes[bugid] = {
