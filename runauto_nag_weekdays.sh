@@ -149,7 +149,7 @@ python -m auto_nag.scripts.assignee_no_login --production
 python -m auto_nag.scripts.severity_inconsistency --production
 
 # Needinfo for bugs with underestimated severity levels
-python -m auto_nag.scripts.severity_underestimated --production
+# python -m auto_nag.scripts.severity_underestimated --production
 
 # Needinfo for bugs with high security keywords whose set to low severity
 python -m auto_nag.scripts.severity_high_security --production
