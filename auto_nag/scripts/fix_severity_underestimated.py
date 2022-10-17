@@ -1067,7 +1067,10 @@ class FixSeverityUnderestimated(BzCleaner):
                         "status": "X",
                     }
                     for flag in bot_needinfo_today
-                ]
+                ],
+                "comment": {
+                    "body": "The last needinfo from me was triggered in error by recent activity on the bug. I'm clearing the needinfo since this is a very old bug and I don't know if it's still relevant.",
+                },
             }
             bug["summary"] = "clear needinfo"
 
