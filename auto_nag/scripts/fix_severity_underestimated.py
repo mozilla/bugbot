@@ -1057,16 +1057,19 @@ class FixSeverityUnderestimated(BzCleaner):
 
         assert len(bot_needinfo_today) == 1, f"Unexpected needinfo count for {bugid}"
 
-        self.autofix_changes[bugid] = {
-            "flags": [
-                {
-                    "id": flag["id"],
-                    "status": "X",
-                }
-                for flag in bot_needinfo_today
-            ]
-        }
-        bug["summary"] = "fixed"
+        if bug["creation_time"] > "2020" and len("duplicates") > 0:
+            bug["summary"] = "keep needinfo"
+        else:
+            self.autofix_changes[bugid] = {
+                "flags": [
+                    {
+                        "id": flag["id"],
+                        "status": "X",
+                    }
+                    for flag in bot_needinfo_today
+                ]
+            }
+            bug["summary"] = "clear needinfo"
 
         return bug
 
@@ -1075,12 +1078,12 @@ class FixSeverityUnderestimated(BzCleaner):
 
         for bugid in AFFECTED_BUG_IDS:
             if bugid not in bugs:
-                bugs[bugid] = {"id": bugid, "summary": "--"}
+                bugs[bugid] = {"id": bugid, "summary": "no needinfo"}
 
         return bugs
 
     def get_bz_params(self, date):
-        fields = ["flags", "assigned_to"]
+        fields = ["flags", "creation_time", "duplicates"]
         return {
             "include_fields": fields,
             "f1": "setters.login_name",
