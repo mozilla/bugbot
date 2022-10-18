@@ -215,6 +215,12 @@ def update_bugzilla_emails(data: Dict[str, dict]) -> None:
         data: The data to update.
     """
 
+    users_by_bugzilla_id = {
+        int(person["bugzillaID"]): person
+        for person in data.values()
+        if person["bugzillaID"]
+    }
+
     # Currently employees can have permissions if they use their Mozilla email
     # without the need to link their Bugzilla accounts to PMO. Thus we check here
     # if employees already have a Bugzilla account using their Mozilla emails.
@@ -222,34 +228,23 @@ def update_bugzilla_emails(data: Dict[str, dict]) -> None:
     # Once BMO and PMO are fully integrated (plan in progress), this will be
     # changed and employees will not have permissions unless they link their
     # Bugzilla account to PMO.
-    users_to_check = [
-        person["bugzillaID"] or person["mail"] for person in data.values()
-    ]
-
-    users_by_bugzilla_id = {
-        int(person["bugzillaID"]): person
-        for person in data.values()
-        if person["bugzillaID"]
-    }
-    users_by_bugzilla_email = {}
-    for person in data.values():
-        if (
-            not person["bugzillaID"]
-            and person["bugzillaEmail"]
-            and person["bugzillaEmail"] != person["mail"]
-        ):
-            users_by_bugzilla_email[person["bugzillaEmail"]] = person
-            users_to_check.append(person["bugzillaEmail"])
+    users_to_check = [*data, *users_by_bugzilla_id]
 
     def handler(bz_user, data):
         if bz_user["id"] in users_by_bugzilla_id:
             person = users_by_bugzilla_id[bz_user["id"]]
         elif bz_user["name"] in data:
             person = data[bz_user["name"]]
-        elif bz_user["name"] in users_by_bugzilla_email:
-            person = users_by_bugzilla_email[bz_user["name"]]
         else:
             raise Exception(f"Can't find {bz_user['name']} in the data")
+
+        if (
+            person.get("found_on_bugzilla")
+            and str(bz_user["id"]) != person["bugzillaID"]
+        ):
+            # If the linked Bugzilla account is still active, we should not
+            # overwrite use the other account.
+            return
 
         if person["bugzillaEmail"] != bz_user["name"]:
             logger.info(
