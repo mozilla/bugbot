@@ -161,6 +161,9 @@ class BisectionWithoutRegressedBy(BzCleaner):
             "o8": "substring",
             "v8": "mozregression",
             "f9": "CP",
+            "f10": "keywords",
+            "o10": "nowords",
+            "v10": "regressionwindow-wanted",
         }
 
     @staticmethod
