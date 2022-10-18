@@ -6,6 +6,8 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class MetaSummaryMissing(BzCleaner):
+    no_bugmail = True
+
     def __init__(self):
         super(MetaSummaryMissing, self).__init__()
         self.autofix_meta = {}
