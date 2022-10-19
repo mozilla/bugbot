@@ -243,7 +243,7 @@ def update_bugzilla_emails(data: Dict[str, dict]) -> None:
             and str(bz_user["id"]) != person["bugzillaID"]
         ):
             # If the linked Bugzilla account is still active, we should not
-            # overwrite use the other account.
+            # overwrite the other account.
             return
 
         if person["bugzillaEmail"] != bz_user["name"]:
