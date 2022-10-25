@@ -1,0 +1,23 @@
+name: Documentation on the wiki page
+
+on:
+  push:
+    branches:
+      - "master"
+
+permissions:
+  contents: read
+
+jobs:
+  check-wiki:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.9
+
+      - name: Check tools on the wiki page
+        run: python -m autonag.check_tools_on_wiki -ci
