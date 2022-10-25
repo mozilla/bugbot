@@ -4,11 +4,14 @@
 
 import os
 import re
+from os import path
 
 import requests
 
 
 class CheckWikiPage:
+    tools_path = "auto_nag/scripts/"
+
     def get_tools_on_wiki_page(self):
         """Get the list of tools on the wiki page."""
         url = "https://wiki.mozilla.org/Release_Management/autonag"
@@ -23,10 +26,10 @@ class CheckWikiPage:
 
     def get_tools_in_the_tree(self):
         """Get the list of tools in the tree."""
-        tools_path = "auto_nag/scripts/"
+
         tools = {
-            os.path.join(root, file)[len(tools_path) :].strip()
-            for root, dirs, files in os.walk(tools_path)
+            os.path.join(root, file)[len(self.tools_path) :].strip()
+            for root, dirs, files in os.walk(self.tools_path)
             for file in files
             if file.endswith(".py") and file != "__init__.py"
         }
@@ -38,8 +41,15 @@ class CheckWikiPage:
         tools_in_the_tree = self.get_tools_in_the_tree()
         tools_on_wiki_page = self.get_tools_on_wiki_page()
 
-        missed_wiki = tools_in_the_tree - tools_on_wiki_page
-        missed_tree = tools_on_wiki_page - tools_in_the_tree
+        missed_wiki = sorted(tools_in_the_tree - tools_on_wiki_page)
+        missed_tree = sorted(
+            tool
+            for tool in tools_on_wiki_page
+            if tool not in tools_in_the_tree
+            and not (
+                tool.startswith("..") and path.exists(path.join(self.tools_path, tool))
+            )
+        )
 
         return missed_wiki, missed_tree
 
