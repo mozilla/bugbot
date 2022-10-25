@@ -23,7 +23,7 @@ class CrashSmallVolume(BzCleaner):
             min_crash_volume: the minimum number of crashes per week for a
                 signature to not be considered low volume.
             oldest_severity_change_days: if the bug severity has been changed by
-                a human or autoang in the last X days, we will not downgrade the
+                a human or autonag in the last X days, we will not downgrade the
                 severity to `S3`.
         """
         super().__init__()
