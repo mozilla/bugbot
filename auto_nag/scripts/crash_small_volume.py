@@ -199,9 +199,8 @@ class CrashSmallVolume(BzCleaner):
             ):
                 continue
 
-            for change in entry["changes"]:
-                if change["field_name"] == "severity":
-                    return True
+            if any(change["field_name"] == "severity" for change in entry["changes"]):
+                return True
 
         return False
 
