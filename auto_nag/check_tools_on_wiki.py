@@ -53,15 +53,24 @@ class CheckWikiPage:
 
         return missed_wiki, missed_tree
 
+    def check_with_markdown_output(self):
+        """Check if the tools on the wiki page are up-to-date and return a markdown output."""
+        missed_wiki, missed_tree = self.check()
+        if missed_wiki:
+            print("## The following tools are not on the wiki page:")
+            for tool in missed_wiki:
+                print(
+                    f"- [{tool}](https://github.com/mozilla/relman-auto-nag/blob/master/auto_nag/scripts/{tool})"
+                )
+
+        if missed_tree:
+            print("## The following tools are not in the tree:")
+            for tool in missed_tree:
+                wiki_id = tool.replace("/", ".2F")
+                print(
+                    f"- [{tool}](https://wiki.mozilla.org/Release_Management/autonag#{wiki_id})"
+                )
+
 
 if __name__ == "__main__":
-    missed_wiki, missed_tree = CheckWikiPage().check()
-    if missed_wiki:
-        print("\nThe following tools are not on the wiki page:")
-        for tool in missed_wiki:
-            print(f"\t- {tool}")
-
-    if missed_tree:
-        print("\nThe following tools are not in the tree:")
-        for tool in missed_tree:
-            print(f"\t- {tool}")
+    CheckWikiPage().check_with_markdown_output()
