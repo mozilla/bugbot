@@ -3,7 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import re
-from typing import Dict
+from typing import Dict, List
 
 import requests
 from libmozdata import utils as lmdutils
@@ -54,7 +54,7 @@ class BisectionWithoutRegressedBy(BzCleaner):
         self,
         max_ni: int = 3,
         oldest_comment_weeks: int = 26,
-        components_skiplist: list[str] = ["Testing::mozregression"],
+        components_skiplist: List[str] = ["Testing::mozregression"],
     ) -> None:
         """Constructor
 
