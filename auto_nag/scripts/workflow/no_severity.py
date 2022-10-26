@@ -15,7 +15,7 @@ from auto_nag.round_robin import RoundRobin
 
 
 class NoSeverity(BzCleaner, Nag):
-    def __init__(self, typ, inactivity_days: int = 3):
+    def __init__(self, typ, inactivity_days: int = 4):
         """Constructor
 
         Args:
