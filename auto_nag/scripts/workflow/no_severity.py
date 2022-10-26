@@ -4,6 +4,7 @@
 
 from datetime import datetime
 
+import numpy
 from libmozdata import utils as lmdutils
 
 from auto_nag import utils
@@ -35,7 +36,9 @@ class NoSeverity(BzCleaner, Nag):
         )
         self.round_robin = RoundRobin.get_instance()
         self.components_skiplist = utils.get_config("workflow", "components_skiplist")
-        self.activity_date = lmdutils.get_date("today", inactivity_days)
+        self.activity_date = str(
+            numpy.busday_offset(lmdutils.get_date("today"), -inactivity_days)
+        )
 
     def description(self):
         return "Bugs without a severity or statuses set"
