@@ -50,7 +50,12 @@ def is_ignorable_path(path: str) -> bool:
 
 
 class BisectionWithoutRegressedBy(BzCleaner):
-    def __init__(self, max_ni: int = 3, oldest_comment_weeks: int = 26) -> None:
+    def __init__(
+        self,
+        max_ni: int = 3,
+        oldest_comment_weeks: int = 26,
+        components_skiplist: list[str] = ["Testing::mozregression"],
+    ) -> None:
         """Constructor
 
         Args:
@@ -58,17 +63,26 @@ class BisectionWithoutRegressedBy(BzCleaner):
                 number of authors exceeds the limit no one will be needinfo'ed.
             oldest_comment_weeks: the number of weeks to look back. We will
                 consider only comments posted in this period.
+            components_skiplist: product/components to skip.
         """
         super().__init__()
         self.people = People.get_instance()
         self.autofix_regressed_by: Dict[str, str] = {}
         self.max_ni = max_ni
         self.oldest_comment_date = lmdutils.get_date("today", oldest_comment_weeks * 7)
+        self.components_skiplist = components_skiplist
 
     def description(self):
         return "Bugs with a bisection analysis and without regressed_by"
 
+    def has_product_component(self):
+        return True
+
     def handle_bug(self, bug, data):
+        # check if the product::component is in the list
+        if utils.check_product_component(self.components_skiplist, bug):
+            return None
+
         bugid = str(bug["id"])
         data[bugid] = {
             "assigned_to": bug["assigned_to"],
