@@ -39,6 +39,7 @@ class NoCrashes(BzCleaner):
         params = {
             "include_fields": fields,
             "resolution": "---",
+            "status": ["UNCONFIRMED", "NEW", "ASSIGNED"],
             "f1": "cf_crash_signature",
             "o1": "isnotempty",
             "f2": "creation_ts",
