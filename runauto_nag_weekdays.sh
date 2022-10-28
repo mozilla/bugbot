@@ -193,6 +193,9 @@ python -m auto_nag.scripts.severity_migration --production
 # Detect bugs with small crash volume
 python -m auto_nag.scripts.crash_small_volume --production
 
+# Detect outdated triage owner rotation definitions
+python -m auto_nag.scripts.triage_rotations_outdated --production
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
