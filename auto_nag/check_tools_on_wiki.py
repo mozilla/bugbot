@@ -19,6 +19,12 @@ class CheckWikiPage:
         "https://github.com/mozilla/relman-auto-nag/blob/master/auto_nag/scripts/"
     )
     tools_path = "auto_nag/scripts/"
+
+    deleted_tools = {
+        "fuzzing_bisection_without_regressed_by.py"  # replaced with `bisection_without_regressed_by.py`
+        "severity_tracked.py"  # dropped in favor of `tracked_attention.py`
+    }
+
     skipped_tools = {
         "multi_nag.py",
         "multifix_regression.py",
@@ -75,6 +81,7 @@ class CheckWikiPage:
             tool
             for tool in tools_on_wiki_page
             if tool not in tools_in_the_tree
+            and tool not in self.deleted_tools
             and not (
                 tool.startswith("..") and path.exists(path.join(self.tools_path, tool))
             )
