@@ -14,6 +14,10 @@ import requests
 class CheckWikiPage:
     """Check if the tools on the wiki page are up-to-date."""
 
+    wiki_page_url = "https://wiki.mozilla.org/Release_Management/autonag"
+    github_tree_address = (
+        "https://github.com/mozilla/relman-auto-nag/blob/master/auto_nag/scripts/"
+    )
     tools_path = "auto_nag/scripts/"
     skipped_tools = {
         "multi_nag.py",
@@ -31,13 +35,14 @@ class CheckWikiPage:
 
     def get_tools_on_wiki_page(self) -> set:
         """Get the list of tools on the wiki page."""
-        url = "https://wiki.mozilla.org/Release_Management/autonag"
-        tools_address = (
-            "https://github.com/mozilla/relman-auto-nag/blob/master/auto_nag/scripts/"
-        )
-        pat = re.compile(rf"""['"]{re.escape(tools_address)}(.*)['"]""")
-        page = requests.get(url).text
-        tools = pat.findall(page)
+        resp = requests.get(self.wiki_page_url)
+        resp.raise_for_status()
+
+        pat = re.compile(rf"""['"]{re.escape(self.github_tree_address)}(.*)['"]""")
+        tools = pat.findall(resp.text)
+
+        if not tools:
+            raise Exception(f"No tools found on the wiki page {self.wiki_page_url}")
 
         return set(tools)
 
@@ -50,6 +55,9 @@ class CheckWikiPage:
             for file in files
             if file.endswith(".py") and file != "__init__.py"
         }
+
+        if not tools:
+            raise Exception(f"No tools found in the tree {self.tools_path}")
 
         return tools
 
