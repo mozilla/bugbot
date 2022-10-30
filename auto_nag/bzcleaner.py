@@ -8,7 +8,7 @@ import sys
 import time
 from collections import defaultdict
 from datetime import datetime
-from typing import Dict
+from typing import Dict, List
 
 from dateutil.relativedelta import relativedelta
 from jinja2 import Environment, FileSystemLoader, Template
@@ -67,9 +67,6 @@ class BzCleaner(object):
     def max_days_in_cache(self):
         """Get the max number of days the data must be kept in cache"""
         return self.get_config("max_days_in_cache", -1)
-
-    def preamble(self):
-        return None
 
     def description(self):
         """Get the description for the help"""
@@ -662,38 +659,39 @@ class BzCleaner(object):
         else:
             self.cache.add(bugs)
 
-    def get_email_data(self, date, bug_ids):
-        bugs = self.get_bugs(date=date, bug_ids=bug_ids)
+    def get_email_data(self, date: str) -> List[dict]:
+        bugs = self.get_bugs(date=date)
         bugs = self._populate_prioritized_actions(bugs)
         bugs = self.autofix(bugs)
         self.add_to_cache(bugs)
-        if bugs:
-            return self.organize(bugs)
+        if not bugs:
+            return []
 
-    def get_email(self, date, bug_ids=[]):
+        return self.organize(bugs)
+
+    def get_email(self, date: str, data: dict, preamble: str = None):
         """Get title and body for the email"""
-        data = self.get_email_data(date, bug_ids)
-        if data:
-            extra = self.get_extra_for_template()
-            env = Environment(loader=FileSystemLoader("templates"))
-            template = env.get_template(self.template())
-            message = template.render(
-                date=date,
-                data=data,
-                extra=extra,
-                str=str,
-                enumerate=enumerate,
-                plural=utils.plural,
-                no_manager=self.no_manager,
-                table_attrs=self.get_config("table_attrs"),
-                preamble=self.preamble(),
-            )
-            common = env.get_template("common.html")
-            body = common.render(
-                message=message, query_url=utils.shorten_long_bz_url(self.query_url)
-            )
-            return self.get_email_subject(date), body
-        return None, None
+        assert data, "No data to send"
+
+        extra = self.get_extra_for_template()
+        env = Environment(loader=FileSystemLoader("templates"))
+        template = env.get_template(self.template())
+        message = template.render(
+            date=date,
+            data=data,
+            extra=extra,
+            str=str,
+            enumerate=enumerate,
+            plural=utils.plural,
+            no_manager=self.no_manager,
+            table_attrs=self.get_config("table_attrs"),
+            preamble=preamble,
+        )
+        common = env.get_template("common.html")
+        body = common.render(
+            message=message, query_url=utils.shorten_long_bz_url(self.query_url)
+        )
+        return self.get_email_subject(date), body
 
     def send_email(self, date="today"):
         """Send the email"""
@@ -711,8 +709,9 @@ class BzCleaner(object):
             return
 
         login_info = utils.get_login_info()
-        title, body = self.get_email(date)
-        if title:
+        data = self.get_email_data(date)
+        if data:
+            title, body = self.get_email(date, data)
             receivers = utils.get_receivers(self.name())
             status = "Success"
             try:

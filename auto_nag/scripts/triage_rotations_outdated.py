@@ -22,7 +22,7 @@ class TriageRotationsOutdated(BzCleaner):
     def description(self) -> str:
         return "Outdated triage rotation definitions"
 
-    def get_email_data(self, date: str, bug_ids: List[int]) -> List[dict]:
+    def get_email_data(self, date: str) -> List[dict]:
         active_components = {
             component: team_name
             for team_name, team_components in Components.get_instance().team_components.items()

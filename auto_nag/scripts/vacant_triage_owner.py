@@ -148,7 +148,7 @@ class TriageOwnerVacant(BzCleaner, Nag):
         for query in queries:
             query.wait()
 
-    def get_email_data(self, date, bug_ids) -> List[dict]:
+    def get_email_data(self, date: str) -> List[dict]:
         components = self.identify_vacant_components()
         self.populate_num_untriaged_bugs(components)
         return components
