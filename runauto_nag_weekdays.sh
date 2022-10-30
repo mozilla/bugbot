@@ -196,6 +196,9 @@ python -m auto_nag.scripts.crash_small_volume --production
 # Detect outdated triage owner rotation definitions
 python -m auto_nag.scripts.triage_rotations_outdated --production
 
+# Set nightly status to affected on newly filed regressions
+python -m auto_nag.scripts.regression_new_set_nightly_affected --production
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
