@@ -48,7 +48,7 @@ class RegressionNewSetNightlyAffected(BzCleaner):
         )
         return {
             "comment": {
-                "body": "This bug has been marked as a regression. Setting affected flag for nightly."
+                "body": "This bug has been marked as a regression. Setting status flag for Nightly to `affected`."
             },
             nightly_status_flag: "affected",
         }
