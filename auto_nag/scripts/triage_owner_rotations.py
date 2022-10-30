@@ -82,7 +82,7 @@ class TriageOwnerRotations(BzCleaner):
             new_triager.component.name,
         ).put(change)
 
-    def get_email_data(self, date: str, bug_ids: List[int]) -> List[dict]:
+    def get_email_data(self, date: str) -> List[dict]:
         new_triagers = self.component_triagers.get_new_triage_owners()
         failures = self._update_triage_owners(new_triagers)
         self.has_put_errors = len(failures) > 0
