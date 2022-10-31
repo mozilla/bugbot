@@ -49,14 +49,25 @@ class Intermittents(BzCleaner):
 
         return params
 
-    def get_autofix_change(self):
-        return {
+    def handle_bug(self, bug, data):
+        bugid = str(bug["id"])
+
+        status_flags = {
+            field: "wontfix"
+            for field, value in bug.items()
+            if field.startswith("cf_status_") and value in ("affected", "fix-optional")
+        }
+
+        self.autofix_changes[bugid] = {
+            **status_flags,
             "status": "RESOLVED",
             "resolution": "INCOMPLETE",
             "comment": {
                 "body": f"https://wiki.mozilla.org/Bug_Triage#Intermittent_Test_Failure_Cleanup\n{self.get_documentation()}"
             },
         }
+
+        return bug
 
 
 if __name__ == "__main__":
