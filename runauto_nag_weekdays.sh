@@ -97,10 +97,6 @@ python -m auto_nag.scripts.lot_of_cc --production
 # Bugs with a lot of votes
 python -m auto_nag.scripts.lot_of_votes --production
 
-# reporter has a needinfo and no activity for the last X weeks
-# Pretty common
-python -m auto_nag.scripts.newbie_with_ni
-
 # Bug caused several regressions recently reported
 # Pretty rare
 python -m auto_nag.scripts.warn_regressed_by --production
@@ -149,7 +145,7 @@ python -m auto_nag.scripts.assignee_no_login --production
 python -m auto_nag.scripts.severity_inconsistency --production
 
 # Needinfo for bugs with underestimated severity levels
-python -m auto_nag.scripts.severity_underestimated --production
+# python -m auto_nag.scripts.severity_underestimated --production
 
 # Needinfo for bugs with high security keywords whose set to low severity
 python -m auto_nag.scripts.severity_high_security --production
@@ -195,6 +191,12 @@ python -m auto_nag.scripts.crash_small_volume --production
 
 # Suggest increasing the severity when duplicate bugs have higher severity
 python -m auto_nag.scripts.severity_higher_dups --production
+
+# Detect outdated triage owner rotation definitions
+python -m auto_nag.scripts.triage_rotations_outdated --production
+
+# Set nightly status to affected on newly filed regressions
+python -m auto_nag.scripts.regression_new_set_nightly_affected --production
 
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND

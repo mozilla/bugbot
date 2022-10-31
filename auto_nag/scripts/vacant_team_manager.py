@@ -75,7 +75,7 @@ class TeamManagerVacant(BzCleaner):
 
         return vacant_teams
 
-    def get_email_data(self, date: str, bug_ids: List[int]) -> List[dict]:
+    def get_email_data(self, date: str) -> List[dict]:
         return self.identify_vacant_teams()
 
 

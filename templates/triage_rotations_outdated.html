@@ -1,0 +1,31 @@
+<p>The following definitions for triage owner rotations are outdated:</p>
+    <table {{ table_attrs }}>
+      <thead>
+        <tr>
+          <th>Team Name</th><th>Calendar Scope</th><th>Fallback Triager</th><th>Problems</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for i, row in enumerate(data) -%}
+        <tr {%- if row['has_put_error'] %} bgcolor="#FFB8B8"{% elif i % 2 == 0 %} bgcolor="#E0E0E0"{% endif -%}>
+          <td>
+            {{ row['team_name'] }}
+          </td>
+          <td>
+            {{ row['scope'] }}
+          </td>
+          <td>
+            {{ row['fallback_triager'] }}
+          </td>
+          <td>
+            <ul>
+            {% for problem in row['problems'] -%}
+              <li>{{ problem }}</li>
+            {% endfor -%}
+            </ul>
+          </td>
+        </tr>
+        {% endfor -%}
+      </tbody>
+    </table>
+  </p>

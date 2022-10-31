@@ -72,7 +72,7 @@ class Component(BzCleaner):
             "f7": "CP",
             "f8": "component",
             "o8": "anyexact",
-            "v8": "Untriaged",
+            "v8": "Untriaged,Foxfooding",
             "f9": "CP",
         }
 

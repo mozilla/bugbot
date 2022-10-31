@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from libmozdata import utils as lmdutils
+
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.constants import HIGH_SEVERITY
@@ -12,12 +14,17 @@ MAX_SIGNATURES_PER_QUERY = 30
 
 
 class CrashSmallVolume(BzCleaner):
-    def __init__(self, min_crash_volume: int = 5):
+    def __init__(
+        self, min_crash_volume: int = 5, oldest_severity_change_days: int = 30
+    ):
         """Constructor.
 
         Args:
             min_crash_volume: the minimum number of crashes per week for a
                 signature to not be considered low volume.
+            oldest_severity_change_days: if the bug severity has been changed by
+                a human or autonag in the last X days, we will not downgrade the
+                severity to `S3`.
         """
         super().__init__()
 
@@ -27,6 +34,9 @@ class CrashSmallVolume(BzCleaner):
         )
         self.topcrash_signatures = topcrash.get_signatures()
         self.blocked_signatures = topcrash.get_blocked_signatures()
+        self.oldest_severity_change_date = lmdutils.get_date(
+            "today", oldest_severity_change_days
+        )
 
     def description(self):
         return "Bugs with small crash volume"
@@ -89,6 +99,7 @@ class CrashSmallVolume(BzCleaner):
                 bug["severity"] not in HIGH_SEVERITY
                 or bug["groups"] == "security"
                 or any(keyword.startswith("sec-") for keyword in bug["keywords"])
+                or self._is_severity_recently_changed_by_human_or_autonag(bug)
                 or self._has_severity_downgrade_comment(bug)
             ),
             "keywords_to_remove": keywords_to_remove,
@@ -176,6 +187,23 @@ class CrashSmallVolume(BzCleaner):
                 return True
         return False
 
+    def _is_severity_recently_changed_by_human_or_autonag(self, bug):
+        for entry in reversed(bug["history"]):
+            if entry["when"] < self.oldest_severity_change_date:
+                break
+
+            # We ignore bot changes except for autonag
+            if utils.is_bot_email(entry["who"]) and entry["who"] not in (
+                "autonag-nomail-bot@mozilla.tld",
+                "release-mgmt-account-bot@mozilla.tld",
+            ):
+                continue
+
+            if any(change["field_name"] == "severity" for change in entry["changes"]):
+                return True
+
+        return False
+
     def get_bz_params(self, date):
         fields = [
             "severity",
@@ -183,6 +211,7 @@ class CrashSmallVolume(BzCleaner):
             "cf_crash_signature",
             "comments.raw_text",
             "comments.creator",
+            "history",
         ]
         params = {
             "include_fields": fields,
@@ -197,10 +226,6 @@ class CrashSmallVolume(BzCleaner):
             "f4": "bug_severity",
             "o4": "anyexact",
             "v4": list(HIGH_SEVERITY),
-            "n5": "1",
-            "f5": "bug_severity",
-            "o5": "changedafter",
-            "v5": "-30d",
             "f6": "cf_crash_signature",
             "o6": "isnotempty",
             "f7": "CP",

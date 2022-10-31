@@ -297,9 +297,10 @@ class Topcrash:
                 }
             )
 
-        signatures = ["=" + signature for signature in signatures]
-        chunks, size = NoCrashes.chunkify(signatures)
         signature_volume: dict = {signature: 0 for signature in signatures}
+        chunks, size = NoCrashes.chunkify(
+            ["=" + signature for signature in signature_volume]
+        )
         searches = [
             socorro.SuperSearch(
                 params={
@@ -410,7 +411,7 @@ class Topcrash:
             signatures = search_resp["facets"]["signature"]
             tc_limit = criterion["tc_limit"]
             tc_startup_limit = criterion.get("tc_startup_limit", tc_limit)
-            minimum_installations = criterion.get("minimum_installations", 0)
+            minimum_installations = criterion.get("minimum_installations", 3)
             assert tc_startup_limit >= tc_limit
 
             rank = 0
