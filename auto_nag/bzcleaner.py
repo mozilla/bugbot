@@ -21,6 +21,16 @@ from auto_nag.cache import Cache
 from auto_nag.nag_me import Nag
 
 
+class TooManyChangesError(Exception):
+    """Exception raised when the tool is trying to apply too many changes"""
+
+    def __init__(self, bugs, changes, max_changes):
+        message = f"The tool has been aborted because it was attempting to apply changes on {len(changes)} bugs. Max is {max_changes}."
+        super().__init__(message)
+        self.bugs = bugs
+        self.changes = changes
+
+
 class SilentBugzilla(Bugzilla):
     """Same as Bugzilla but using an account that does not trigger bugmail"""
 
@@ -32,9 +42,12 @@ class BzCleaner(object):
     Attributes:
         no_bugmail: If `True`, a token for an account that does not trigger
             bugmail will be used when performing `PUT` actions on Bugzilla.
+        normal_changes_max: The maximum number of changes that could be made in
+            a normal situation. If exceeded, the tool will fail.
     """
 
     no_bugmail: bool = False
+    normal_changes_max: int = 50
 
     def __init__(self):
         super(BzCleaner, self).__init__()
@@ -584,6 +597,10 @@ class BzCleaner(object):
             return bugs
 
         extra = self.get_db_extra()
+
+        if self.is_limited and len(new_changes) > self.normal_changes_max:
+            raise TooManyChangesError(bugs, new_changes, self.normal_changes_max)
+
         self.apply_changes_on_bugzilla(
             self.name(),
             new_changes,
@@ -685,13 +702,45 @@ class BzCleaner(object):
             plural=utils.plural,
             no_manager=self.no_manager,
             table_attrs=self.get_config("table_attrs"),
-            preamble=preamble,
         )
         common = env.get_template("common.html")
         body = common.render(
-            message=message, query_url=utils.shorten_long_bz_url(self.query_url)
+            preamble=preamble,
+            message=message,
+            query_url=utils.shorten_long_bz_url(self.query_url),
         )
         return self.get_email_subject(date), body
+
+    def _send_alert_about_too_many_changes(self, err: TooManyChangesError):
+        """Send an alert email when there are too many changes to apply"""
+
+        env = Environment(loader=FileSystemLoader("templates"))
+        template = env.get_template("aborted_preamble.html")
+        preamble = template.render(
+            changes=err.changes.items(),
+            changes_size=len(err.changes),
+            normal_changes_max=self.normal_changes_max,
+            tool_name=self.name(),
+            enumerate=enumerate,
+            table_attrs=self.get_config("table_attrs"),
+        )
+
+        login_info = utils.get_login_info()
+        receivers = utils.get_config("common", "receivers")
+        date = lmdutils.get_date("today")
+        data = self.organize(err.bugs)
+        title, body = self.get_email(date, data, preamble)
+        title = f"Aborted: {title}"
+
+        mail.send(
+            login_info["ldap_username"],
+            receivers,
+            title,
+            body,
+            html=True,
+            login=login_info,
+            dryrun=self.dryrun,
+        )
 
     def send_email(self, date="today"):
         """Send the email"""
@@ -755,6 +804,14 @@ class BzCleaner(object):
             help="If the flag is not passed, just do the query, and print emails to console without emailing anyone",
         )
 
+        parser.add_argument(
+            "--no-limit",
+            dest="is_limited",
+            action="store_false",
+            default=True,
+            help=f"If the flag is not passed, the tool will be limited to touch a maximum of {self.normal_changes_max} bugs",
+        )
+
         if not self.ignore_date():
             parser.add_argument(
                 "-D",
@@ -775,10 +832,14 @@ class BzCleaner(object):
         self.parse_custom_arguments(args)
         date = "" if self.ignore_date() else args.date
         self.dryrun = args.dryrun
+        self.is_limited = args.is_limited
         self.cache.set_dry_run(self.dryrun)
         try:
             self.send_email(date=date)
             self.terminate()
             logger.info("Tool {} has finished.".format(self.get_tool_path()))
+        except TooManyChangesError as err:
+            self._send_alert_about_too_many_changes(err)
+            logger.exception("Tool %s", self.name())
         except Exception:
             logger.exception("Tool {}".format(self.name()))
