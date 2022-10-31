@@ -97,10 +97,6 @@ python -m auto_nag.scripts.lot_of_cc --production
 # Bugs with a lot of votes
 python -m auto_nag.scripts.lot_of_votes --production
 
-# reporter has a needinfo and no activity for the last X weeks
-# Pretty common
-python -m auto_nag.scripts.newbie_with_ni
-
 # Bug caused several regressions recently reported
 # Pretty rare
 python -m auto_nag.scripts.warn_regressed_by --production
