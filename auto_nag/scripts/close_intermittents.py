@@ -11,6 +11,7 @@ class Intermittents(BzCleaner):
 
     def get_bz_params(self, date):
         params = {
+            "include_fields": ["_custom"],
             "n1": "1",
             "f1": "longdescs.count",
             "o1": "changedafter",
