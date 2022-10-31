@@ -189,6 +189,9 @@ python -m auto_nag.scripts.severity_migration --production
 # Detect bugs with small crash volume
 python -m auto_nag.scripts.crash_small_volume --production
 
+# Suggest increasing the severity when duplicate bugs have higher severity
+python -m auto_nag.scripts.severity_higher_dups --production
+
 # Detect outdated triage owner rotation definitions
 python -m auto_nag.scripts.triage_rotations_outdated --production
 
