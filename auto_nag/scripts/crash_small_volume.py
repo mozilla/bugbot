@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from typing import Dict
+
 from libmozdata import utils as lmdutils
 
 from auto_nag import utils
@@ -108,13 +110,20 @@ class CrashSmallVolume(BzCleaner):
 
         return bug
 
-    def _get_low_volume_crash_signatures(self, bugs):
+    def _get_low_volume_crash_signatures(self, bugs: Dict[str, dict]) -> set:
+        """From the provided bugs, return the list of signatures that have a
+        low crash volume.
+        """
+
         signatures = {
             signature
             for bug in bugs.values()
             if not bug["ignore_severity"]
             for signature in bug["signatures"]
         }
+
+        if not signatures:
+            return set()
 
         signature_volume = Topcrash().fetch_signature_volume(signatures)
 
