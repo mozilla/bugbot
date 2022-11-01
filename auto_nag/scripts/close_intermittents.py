@@ -6,6 +6,8 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class Intermittents(BzCleaner):
+    normal_changes_max: int = 300
+
     def description(self):
         return "Intermittent test failure bugs unchanged in 21 days"
 
