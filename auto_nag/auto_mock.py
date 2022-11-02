@@ -73,7 +73,7 @@ class MockTestCase(unittest.TestCase):
 
         # Build sorted query filename
         query = sorted(parse_qsl(out.query))
-        query = [f"""{k}={v.replace("/", "_")}""" for k, v in query]
+        query = [f"""{k}={v.replace("/", "_")}""" for k, v in query if k != "date"]
         query_str = "_".join(query)
 
         # Use hashes to avoid too long names
