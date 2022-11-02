@@ -298,6 +298,8 @@ class Topcrash:
             )
 
         signature_volume: dict = {signature: 0 for signature in signatures}
+        assert len(signature_volume) > 0, "no signatures provided"
+
         chunks, size = NoCrashes.chunkify(
             ["=" + signature for signature in signature_volume]
         )
