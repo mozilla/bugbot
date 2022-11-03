@@ -87,6 +87,7 @@ class BisectionWithoutRegressedBy(BzCleaner):
         data[bugid] = {
             "assigned_to": bug["assigned_to"],
             "creation_time": bug["creation_time"],
+            "is_open": bug["is_open"],
         }
         return bug
 
@@ -113,6 +114,7 @@ class BisectionWithoutRegressedBy(BzCleaner):
                     nicknames=utils.english_list(nicknames),
                     authors_count=len(nicknames),
                     is_assignee=not utils.is_no_assignee(bug["assigned_to"]),
+                    is_open=bug["is_open"],
                     comment_number=comment_number,
                     pushlog_source=pushlog_source,
                     plural=utils.plural,
@@ -149,7 +151,7 @@ class BisectionWithoutRegressedBy(BzCleaner):
 
     def get_bz_params(self, date):
         return {
-            "include_fields": ["assigned_to", "creation_time"],
+            "include_fields": ["assigned_to", "creation_time", "is_open"],
             "f1": "regressed_by",
             "o1": "isempty",
             "n2": 1,
