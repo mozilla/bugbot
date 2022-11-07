@@ -243,9 +243,10 @@ def update_bugzilla_emails(data: Dict[str, dict]) -> None:
             and str(bz_user["id"]) != person["bugzillaID"]
         ):
             # If the linked Bugzilla account is still active, we should not
-            # overwrite the other account.
+            # overwrite it with the other account.
             return
 
+        person["found_on_bugzilla"] = True
         if person["bugzillaEmail"] != bz_user["name"]:
             logger.info(
                 "Update bugzilla email for %s from '%s' to '%s'",
@@ -254,7 +255,6 @@ def update_bugzilla_emails(data: Dict[str, dict]) -> None:
                 bz_user["name"],
             )
             person["bugzillaEmail"] = bz_user["name"]
-            person["found_on_bugzilla"] = True
 
     def fault_user_handler(bz_user, data):
         logger.debug("Can't find %s on bugzilla", bz_user["name"])
