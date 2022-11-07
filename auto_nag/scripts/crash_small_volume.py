@@ -17,7 +17,10 @@ MAX_SIGNATURES_PER_QUERY = 30
 
 class CrashSmallVolume(BzCleaner):
     def __init__(
-        self, min_crash_volume: int = 5, oldest_severity_change_days: int = 30
+        self,
+        min_crash_volume: int = 5,
+        oldest_severity_change_days: int = 30,
+        oldest_topcrash_added_days: int = 21,
     ):
         """Constructor.
 
@@ -27,6 +30,8 @@ class CrashSmallVolume(BzCleaner):
             oldest_severity_change_days: if the bug severity has been changed by
                 a human or autonag in the last X days, we will not downgrade the
                 severity to `S3`.
+            oldest_topcrash_added_days: if the bug has been marked as topcrash
+                in the last X days, we will ignore it.
         """
         super().__init__()
 
@@ -38,6 +43,9 @@ class CrashSmallVolume(BzCleaner):
         self.blocked_signatures = topcrash.get_blocked_signatures()
         self.oldest_severity_change_date = lmdutils.get_date(
             "today", oldest_severity_change_days
+        )
+        self.oldest_topcrash_added_date = lmdutils.get_date(
+            "today", oldest_topcrash_added_days
         )
 
     def description(self):
@@ -66,6 +74,9 @@ class CrashSmallVolume(BzCleaner):
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
+
+        if self._is_topcrash_recently_added(bug):
+            return None
 
         signatures = utils.get_signatures(bug["cf_crash_signature"])
 
@@ -194,6 +205,19 @@ class CrashSmallVolume(BzCleaner):
                 and "the severity is downgraded to" in comment["raw_text"]
             ):
                 return True
+        return False
+
+    def _is_topcrash_recently_added(self, bug: dict):
+        """Return True if the topcrash keyword was added recently."""
+
+        for entry in reversed(bug["history"]):
+            if entry["when"] < self.oldest_topcrash_added_date:
+                break
+
+            for change in entry["changes"]:
+                if change["field_name"] == "keywords" and "topcrash" in change["added"]:
+                    return True
+
         return False
 
     def _is_severity_recently_changed_by_human_or_autonag(self, bug):
