@@ -135,7 +135,7 @@ class CrashSmallVolume(BzCleaner):
 
         return low_volume_signatures
 
-    def get_bugs(self, date="today", bug_ids=..., chunk_size=None):
+    def get_bugs(self, date="today", bug_ids=[], chunk_size=None):
         bugs = super().get_bugs(date, bug_ids, chunk_size)
         self.set_autofix(bugs)
 
