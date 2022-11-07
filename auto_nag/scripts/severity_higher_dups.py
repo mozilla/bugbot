@@ -26,7 +26,7 @@ class SeverityHigherDuplicates(BzCleaner):
 
         return bug
 
-    def get_bugs(self, date="today", bug_ids=..., chunk_size=None):
+    def get_bugs(self, date="today", bug_ids=[], chunk_size=None):
         bugs = super().get_bugs(date, bug_ids, chunk_size)
 
         dup_bug_ids = {bug_id for bug in bugs.values() for bug_id in bug["duplicates"]}

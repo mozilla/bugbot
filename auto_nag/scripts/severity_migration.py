@@ -64,7 +64,7 @@ class SeverityMigration(BzCleaner):
 
         return bug
 
-    def get_bugs(self, date="today", bug_ids=..., chunk_size=None):
+    def get_bugs(self, date="today", bug_ids=[], chunk_size=None):
         bugs = super().get_bugs(date, bug_ids, chunk_size)
 
         team_bugs = defaultdict(list)
