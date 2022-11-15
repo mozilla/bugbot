@@ -112,6 +112,7 @@ class CrashSmallVolume(BzCleaner):
                 bug["severity"] not in HIGH_SEVERITY
                 or bug["groups"] == "security"
                 or any(keyword.startswith("sec-") for keyword in bug["keywords"])
+                or "[fuzzblocker]" in bug["whiteboard"]
                 or self._is_severity_recently_changed_by_human_or_autonag(bug)
                 or self._has_severity_downgrade_comment(bug)
             ),
@@ -241,6 +242,7 @@ class CrashSmallVolume(BzCleaner):
         fields = [
             "severity",
             "keywords",
+            "whiteboard",
             "cf_crash_signature",
             "comments.raw_text",
             "comments.creator",
