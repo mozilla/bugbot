@@ -42,6 +42,7 @@ UTC_PAT = re.compile(r"UTC\+[^ \t]*")
 COL_PAT = re.compile(":[^:]*")
 BACKOUT_PAT = re.compile("^back(s|(ed))?[ \t]*out", re.I)
 BUG_PAT = re.compile(r"^bug[s]?[ \t]*([0-9]+)", re.I)
+WHITEBOARD_ACCESS_PAT = re.compile(r"\[access\-s\d\]")
 
 MAX_URL_LENGTH = 512
 
@@ -707,3 +708,19 @@ def is_weekend(date: Union[datetime.datetime, str]) -> bool:
     """Get if the provided date is a weekend day (Saturday or Sunday)"""
     parsed_date = lmdutils.get_date_ymd(date)
     return parsed_date.weekday() >= 5
+
+
+def get_whiteboard_access_rating(whiteboard: str) -> str:
+    """Get the access rating tag from the whiteboard.
+
+    Args:
+        whiteboard: a whiteboard string that contains an access rating tag.
+
+    Returns:
+        An access rating tag.
+    """
+
+    access_tags = WHITEBOARD_ACCESS_PAT.findall(whiteboard)
+    assert len(access_tags) == 1, "Should have only one access tag"
+
+    return access_tags[0]

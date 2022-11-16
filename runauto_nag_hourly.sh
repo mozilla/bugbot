@@ -77,6 +77,9 @@ python -m auto_nag.scripts.prod_comp_changed_with_priority --production
 # Run regression related tools
 python -m auto_nag.scripts.multifix_regression --production
 
+# Copy metadata from duplicates
+python -m auto_nag.scripts.duplicate_copy_metadata --production
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
