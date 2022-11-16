@@ -85,7 +85,9 @@ class RegressionSetStatusFlags(BzCleaner):
         versions_status = sorted(
             (int(flag[len("cf_status_firefox") :]), status)
             for flag, status in bug.items()
-            if flag.startswith("cf_status_firefox") and "esr" not in flag
+            if status != "---"
+            and flag.startswith("cf_status_firefox")
+            and "esr" not in flag
         )
 
         if not versions_status:
