@@ -36,13 +36,19 @@ class DuplicateCopyMetadata(BzCleaner):
                 "keywords",
                 "duplicates",
                 "comments",
+                "is_open",
             ],
             bughandler=self.handle_bug,
             bugdata=original_bugs,
         ).wait()
 
+        assert len(original_bug_ids) == len(original_bugs)
+
         results = {}
         for bug_id, bug in original_bugs.items():
+            if not bug["is_open"]:
+                continue
+
             copied_fields = {}
             for dup_bug_id in bug["duplicates"]:
                 dup_bug = dup_bugs.get(str(dup_bug_id))

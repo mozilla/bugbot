@@ -8,10 +8,8 @@ from libmozdata import utils as lmdutils
 
 from auto_nag import people, utils
 from auto_nag.bzcleaner import BzCleaner
+from auto_nag.constants import HIGH_PRIORITY, HIGH_SEVERITY
 from auto_nag.user_activity import UserActivity
-
-HIGH_PRIORITY = {"P1", "P2"}
-HIGH_SEVERITY = {"S1", "critical", "S2", "major"}
 
 
 class AssigneeNoLogin(BzCleaner):
@@ -103,7 +101,7 @@ class AssigneeNoLogin(BzCleaner):
         if (
             bug["priority"] not in HIGH_PRIORITY
             and bug["severity"] not in HIGH_SEVERITY
-        ):
+        ) or "stalled" in bug["keywords"]:
             needinfo = None
             autofix["comment"] = {
                 "body": "The bug assignee is inactive on Bugzilla, so the assignee is being reset."
@@ -149,6 +147,7 @@ class AssigneeNoLogin(BzCleaner):
             "flags",
             "priority",
             "severity",
+            "keywords",
         ]
         params = {
             "include_fields": fields,
