@@ -126,7 +126,7 @@ class DuplicateCopyMetadata(BzCleaner):
         # reflected in the `get_previously_copied_fields` method.
         comment = (
             f"The following {utils.plural('field has', copied_fields, 'fields have')} been copied "
-            f"from {utils.plural('a duplicate bug', duplicates, 'duplicate bugs')}:\n"
+            f"from {utils.plural('a duplicate bug', duplicates, 'duplicate bugs')}:\n\n"
             "| Field | Value | Source |\n"
             "| ----- | ----- | ------ |\n"
         )
@@ -163,13 +163,16 @@ class DuplicateCopyMetadata(BzCleaner):
                 continue
 
             lines = comment["text"].splitlines()
-            if len(lines) < 4 or lines[1] != "| Field | Value | Source |":
+            try:
+                table_first_line = lines.index("| Field | Value | Source |")
+            except ValueError:
                 continue
 
-            for line in lines[3:]:
-                if line.startswith("|"):
-                    field = line.split("|")[1].strip().lower()
-                    previously_copied_fields.add(field)
+            for line in lines[table_first_line + 2 :]:
+                if not line.startswith("|"):
+                    break
+                field = line.split("|")[1].strip().lower()
+                previously_copied_fields.add(field)
 
         return previously_copied_fields
 
