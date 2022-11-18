@@ -8,10 +8,8 @@ from libmozdata import utils as lmdutils
 
 from auto_nag import people, utils
 from auto_nag.bzcleaner import BzCleaner
+from auto_nag.constants import HIGH_PRIORITY, HIGH_SEVERITY
 from auto_nag.user_activity import UserActivity
-
-HIGH_PRIORITY = {"P1", "P2"}
-HIGH_SEVERITY = {"S1", "critical", "S2", "major"}
 
 
 class AssigneeNoLogin(BzCleaner):
