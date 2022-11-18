@@ -2,12 +2,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from typing import List
+from typing import List, Set
 
 from libmozdata.bugzilla import Bugzilla
 
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
+from auto_nag.history import History
 
 
 class DuplicateCopyMetadata(BzCleaner):
@@ -27,16 +28,14 @@ class DuplicateCopyMetadata(BzCleaner):
         original_bugs = {}
 
         Bugzilla(
-            {
-                "id": original_bug_ids,
-                "bug_status": "__open__",
-            },
+            original_bug_ids,
             include_fields=[
                 "id",
                 "summary",
                 "whiteboard",
                 "keywords",
                 "duplicates",
+                "comments",
             ],
             bughandler=self.handle_bug,
             bugdata=original_bugs,
@@ -80,18 +79,20 @@ class DuplicateCopyMetadata(BzCleaner):
                     elif new_access_tag == copied_fields["whiteboard"]["value"]:
                         copied_fields["whiteboard"]["from"].append(dup_bug["id"])
 
-            if copied_fields:
-                copied_fields = sorted(
-                    (
-                        field,
-                        change["value"],
-                        utils.english_list(
-                            sorted(f"bug {bug_id}" for bug_id in change["from"])
-                        ),
-                    )
-                    for field, change in copied_fields.items()
+            previously_copied_fields = self.get_previously_copied_fields(bug)
+            copied_fields = sorted(
+                (
+                    field,
+                    change["value"],
+                    utils.english_list(
+                        sorted(f"bug {bug_id}" for bug_id in change["from"])
+                    ),
                 )
+                for field, change in copied_fields.items()
+                if field not in previously_copied_fields
+            )
 
+            if copied_fields:
                 results[bug_id] = {
                     "id": bug_id,
                     "summary": bug["summary"],
@@ -114,6 +115,9 @@ class DuplicateCopyMetadata(BzCleaner):
         autofix = {}
 
         duplicates = {source for _, _, source in copied_fields}
+
+        # NOTE: modifying the following comment template should also be
+        # reflected in the `get_previously_copied_fields` method.
         comment = (
             f"The following {utils.plural('field has', copied_fields, 'fields have')} been copied "
             f"from {utils.plural('a duplicate bug', duplicates, 'duplicate bugs')}:\n"
@@ -134,6 +138,34 @@ class DuplicateCopyMetadata(BzCleaner):
         comment += "\n\n" + self.get_documentation()
         autofix["comment"] = {"body": comment}
         self.autofix_changes[bug_id] = autofix
+
+    def get_previously_copied_fields(self, bug: dict) -> Set[str]:
+        """Get the fields that have been copied from a bug's duplicates in the past.
+
+        Args:
+            bug: The bug to get the previously copied fields for.
+
+        Returns:
+            A set of previously copied fields.
+        """
+        previously_copied_fields = set()
+
+        for comment in bug["comments"]:
+            if comment["author"] != History.BOT or not comment["text"].startswith(
+                "The following field"
+            ):
+                continue
+
+            lines = comment["text"].splitlines()
+            if len(lines) < 4 or lines[1] != "| Field | Value | Source |":
+                continue
+
+            for line in lines[3:]:
+                if line.startswith("|"):
+                    field = line.split("|")[1].strip().lower()
+                    previously_copied_fields.add(field)
+
+        return previously_copied_fields
 
     def columns(self):
         return ["id", "summary", "copied_fields"]
