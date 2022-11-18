@@ -3,7 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-HIGH_PRIORITY = {"P1", "P2"}
+HIGH_PRIORITY = {"P1"}
 LOW_PRIORITY = {"P3", "P4", "P5"}
 
 HIGH_SEVERITY = {"S1", "critical", "S2", "major", "blocker"}
