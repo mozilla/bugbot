@@ -8,6 +8,7 @@ from libmozdata.bugzilla import Bugzilla
 
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
+from auto_nag.severity import Severity
 
 
 class DuplicateCopyMetadata(BzCleaner):
@@ -31,6 +32,7 @@ class DuplicateCopyMetadata(BzCleaner):
             include_fields=[
                 "id",
                 "summary",
+                "severity",
                 "whiteboard",
                 "keywords",
                 "duplicates",
@@ -83,6 +85,23 @@ class DuplicateCopyMetadata(BzCleaner):
                     elif new_access_tag == copied_fields["whiteboard"]["value"]:
                         copied_fields["whiteboard"]["from"].append(dup_bug["id"])
 
+                # Severity: if it is not set, copy it from duplicates
+                if (
+                    bug["severity"] == "--"
+                    and dup_bug["severity"] in Severity.SEVERITY_LEVELS
+                ):
+                    new_severity = dup_bug["severity"]
+                    if (
+                        "severity" not in copied_fields
+                        or new_severity < copied_fields["severity"]["value"]
+                    ):
+                        copied_fields["severity"] = {
+                            "from": [dup_bug["id"]],
+                            "value": dup_bug["severity"],
+                        }
+                    elif new_severity == copied_fields["severity"]["value"]:
+                        copied_fields["severity"]["from"].append(dup_bug["id"])
+
             if copied_fields:
                 copied_fields = sorted(
                     (
@@ -129,6 +148,8 @@ class DuplicateCopyMetadata(BzCleaner):
                 autofix["keywords"] = {"add": value}
             elif field == "whiteboard":
                 autofix["whiteboard"] = bug["whiteboard"] + value
+            elif field == "severity":
+                autofix["severity"] = value
             else:
                 raise ValueError(f"Unsupported field: {field}")
 
@@ -143,6 +164,7 @@ class DuplicateCopyMetadata(BzCleaner):
 
     def get_bz_params(self, date):
         fields = [
+            "severity",
             "whiteboard",
             "keywords",
             "dupe_of",
@@ -155,10 +177,14 @@ class DuplicateCopyMetadata(BzCleaner):
             "chfield": [
                 "resolution",
                 "keywords",
+                "bug_severity",
                 "status_whiteboard",
             ],
             "j1": "OR",
             "f1": "OP",
+            "f2": "bug_severity",
+            "o2": "anyexact",
+            "v2": list(Severity.SEVERITY_LEVELS),
             "f3": "status_whiteboard",
             "o3": "anywordssubstr",
             "v3": "[access-s",
