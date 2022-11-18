@@ -4,6 +4,7 @@
 
 
 HIGH_PRIORITY = {"P1"}
+MEDIUM_PRIORITY = {"P2"}
 LOW_PRIORITY = {"P3", "P4", "P5"}
 
 HIGH_SEVERITY = {"S1", "critical", "S2", "major", "blocker"}
