@@ -48,8 +48,7 @@ class SpamBug(BzCleaner):
 
         return {
             "include_fields": ["id", "groups", "summary", "creator"],
-            # Ignore closed bugs.
-            "bug_status": "__open__",
+            "bug_status": "UNCONFIRMED",
             "f1": "reporter",
             "v1": "%group.editbugs%",
             "o1": "notsubstring",
