@@ -35,6 +35,7 @@ class DuplicateCopyMetadata(BzCleaner):
                 "whiteboard",
                 "keywords",
                 "duplicates",
+                "cf_performance_impact",
                 "comments",
                 "is_open",
             ],
@@ -54,6 +55,19 @@ class DuplicateCopyMetadata(BzCleaner):
                 dup_bug = dup_bugs.get(str(dup_bug_id))
                 if not dup_bug:
                     continue
+
+                # Performance Impact: copy the assessment result from duplicates
+                if bug.get("cf_performance_impact") == "---" and dup_bug[
+                    "cf_performance_impact"
+                ] not in ("---", "?"):
+                    field_label = "Performance Impact"
+                    if field_label not in copied_fields:
+                        copied_fields[field_label] = {
+                            "from": [dup_bug["id"]],
+                            "value": dup_bug["cf_performance_impact"],
+                        }
+                    else:
+                        copied_fields[field_label]["from"].append(dup_bug["id"])
 
                 # Keywords: copy the `access` keyword from duplicates
                 if "access" not in bug["keywords"] and "access" in dup_bug["keywords"]:
@@ -137,6 +151,8 @@ class DuplicateCopyMetadata(BzCleaner):
                 autofix["keywords"] = {"add": value}
             elif field_label == "Whiteboard":
                 autofix["whiteboard"] = bug["whiteboard"] + value
+            elif field_label == "Performance Impact":
+                autofix["cf_performance_impact"] = value
             else:
                 raise ValueError(f"Unsupported field: {field_label}")
 
@@ -184,6 +200,7 @@ class DuplicateCopyMetadata(BzCleaner):
         fields = [
             "whiteboard",
             "keywords",
+            "cf_performance_impact",
             "dupe_of",
         ]
 
@@ -195,6 +212,7 @@ class DuplicateCopyMetadata(BzCleaner):
                 "resolution",
                 "keywords",
                 "status_whiteboard",
+                "cf_performance_impact",
             ],
             "j1": "OR",
             "f1": "OP",
@@ -204,7 +222,11 @@ class DuplicateCopyMetadata(BzCleaner):
             "f4": "keywords",
             "o4": "equals",
             "v4": "access",
-            "f5": "CP",
+            "n5": "1",
+            "f5": "cf_performance_impact",
+            "o5": "anyexact",
+            "v5": ["---", "?"],
+            "f6": "CP",
         }
 
         return params
