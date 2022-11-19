@@ -14,7 +14,7 @@ from auto_nag.constants import HIGH_PRIORITY, HIGH_SEVERITY
 from auto_nag.user_activity import UserActivity, UserStatus
 from auto_nag.utils import plural
 
-RECENT_BUG_LIMIT = lmdutils.get_date("today", timedelta(weeks=26).days)
+RECENT_BUG_LIMIT = lmdutils.get_date("today", timedelta(weeks=5).days)
 RECENT_NEEDINFO_LIMIT = lmdutils.get_date("today", timedelta(weeks=2).days)
 
 
