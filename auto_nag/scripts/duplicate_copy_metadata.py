@@ -57,33 +57,34 @@ class DuplicateCopyMetadata(BzCleaner):
 
                 # Keywords: copy the `access` keyword from duplicates
                 if "access" not in bug["keywords"] and "access" in dup_bug["keywords"]:
-                    if "keywords" not in copied_fields:
-                        copied_fields["keywords"] = {
+                    field_label = "Keywords"
+                    if field_label not in copied_fields:
+                        copied_fields[field_label] = {
                             "from": [dup_bug["id"]],
                             "value": "access",
                         }
                     else:
-                        copied_fields["keywords"]["from"].append(dup_bug["id"])
+                        copied_fields[field_label]["from"].append(dup_bug["id"])
 
                 # Whiteboard: copy the `access-s*` whiteboard rating from duplicates
                 if (
                     "access-s" not in bug["whiteboard"]
                     and "access-s" in dup_bug["whiteboard"]
                 ):
+                    field_label = "Whiteboard"
                     new_access_tag = utils.get_whiteboard_access_rating(
                         dup_bug["whiteboard"]
                     )
-
                     if (
-                        "whiteboard" not in copied_fields
-                        or new_access_tag < copied_fields["whiteboard"]["value"]
+                        field_label not in copied_fields
+                        or new_access_tag < copied_fields[field_label]["value"]
                     ):
-                        copied_fields["whiteboard"] = {
+                        copied_fields[field_label] = {
                             "from": [dup_bug["id"]],
                             "value": new_access_tag,
                         }
-                    elif new_access_tag == copied_fields["whiteboard"]["value"]:
-                        copied_fields["whiteboard"]["from"].append(dup_bug["id"])
+                    elif new_access_tag == copied_fields[field_label]["value"]:
+                        copied_fields[field_label]["from"].append(dup_bug["id"])
 
             previously_copied_fields = self.get_previously_copied_fields(bug)
             copied_fields = sorted(
@@ -131,15 +132,15 @@ class DuplicateCopyMetadata(BzCleaner):
             "| ----- | ----- | ------ |\n"
         )
 
-        for field, value, source in copied_fields:
-            if field == "keywords":
+        for field_label, value, source in copied_fields:
+            if field_label == "Keywords":
                 autofix["keywords"] = {"add": value}
-            elif field == "whiteboard":
+            elif field_label == "Whiteboard":
                 autofix["whiteboard"] = bug["whiteboard"] + value
             else:
-                raise ValueError(f"Unsupported field: {field}")
+                raise ValueError(f"Unsupported field: {field_label}")
 
-            comment += f"| {field.capitalize()} | {value} | {source} |\n"
+            comment += f"| {field_label} | {value} | {source} |\n"
 
         comment += "\n\n" + self.get_documentation()
         autofix["comment"] = {"body": comment}
@@ -171,7 +172,7 @@ class DuplicateCopyMetadata(BzCleaner):
             for line in lines[table_first_line + 2 :]:
                 if not line.startswith("|"):
                     break
-                field = line.split("|")[1].strip().lower()
+                field = line.split("|")[1].strip()
                 previously_copied_fields.add(field)
 
         return previously_copied_fields
