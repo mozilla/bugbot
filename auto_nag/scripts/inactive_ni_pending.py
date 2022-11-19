@@ -153,7 +153,6 @@ class InactiveNeedinfoPending(BzCleaner):
         if (
             len(bug["needinfo_flags"]) == 1
             and bug["type"] == "defect"
-            and bug["severity"] in ("--", "normal", "minor", "trivial")
             and inactive_ni[0]["requestee"] == bug["creator"]
             and not inactive_ni[0]["requestee_canconfirm"]
             and not any(
