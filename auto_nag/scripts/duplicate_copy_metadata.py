@@ -10,6 +10,15 @@ from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.history import History
 
+FIELD_NAME_TO_LABEL = {
+    "keywords": "Keywords",
+    "severity": "Severity",
+    "whiteboard": "Whiteboard",
+    "cf_performance_impact": "Performance Impact",
+}
+
+FIELD_LABEL_TO_NAME = {label: name for name, label in FIELD_NAME_TO_LABEL.items()}
+
 
 class DuplicateCopyMetadata(BzCleaner):
     def description(self):
@@ -156,7 +165,7 @@ class DuplicateCopyMetadata(BzCleaner):
             else:
                 raise ValueError(f"Unsupported field: {field}")
 
-            comment += f"| {field.capitalize()} | {value} | {source} |\n"
+            comment += f"| {FIELD_NAME_TO_LABEL[field]} | {value} | {source} |\n"
 
         comment += "\n\n" + self.get_documentation()
         autofix["comment"] = {"body": comment}
@@ -188,8 +197,9 @@ class DuplicateCopyMetadata(BzCleaner):
             for line in lines[table_first_line + 2 :]:
                 if not line.startswith("|"):
                     break
-                field = line.split("|")[1].strip().lower()
-                previously_copied_fields.add(field)
+                field_label = line.split("|")[1].strip()
+                field_name = FIELD_LABEL_TO_NAME[field_label]
+                previously_copied_fields.add(field_name)
 
         return previously_copied_fields
 
