@@ -16,8 +16,8 @@
         </td>
         <td>
           <ul>
-            {% for field_label, value, _ in copied_fields -%}
-            <li>{{ field_label }}: {{value}}</li>
+            {% for field, value, _ in copied_fields -%}
+            <li>{{ field.capitalize() }}: {{value}}</li>
             {% endfor -%}
           </ul>
         </td>
