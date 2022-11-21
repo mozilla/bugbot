@@ -10,6 +10,15 @@ from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.history import History
 
+FIELD_NAME_TO_LABEL = {
+    "keywords": "Keywords",
+    "severity": "Severity",
+    "whiteboard": "Whiteboard",
+    "cf_performance_impact": "Performance Impact",
+}
+
+FIELD_LABEL_TO_NAME = {label: name for name, label in FIELD_NAME_TO_LABEL.items()}
+
 
 class DuplicateCopyMetadata(BzCleaner):
     def description(self):
@@ -35,6 +44,7 @@ class DuplicateCopyMetadata(BzCleaner):
                 "whiteboard",
                 "keywords",
                 "duplicates",
+                "cf_performance_impact",
                 "comments",
                 "is_open",
             ],
@@ -54,6 +64,20 @@ class DuplicateCopyMetadata(BzCleaner):
                 dup_bug = dup_bugs.get(str(dup_bug_id))
                 if not dup_bug:
                     continue
+
+                # Performance Impact: copy the assessment result from duplicates
+                if bug.get("cf_performance_impact") == "---" and dup_bug[
+                    "cf_performance_impact"
+                ] not in ("---", "?"):
+                    if "cf_performance_impact" not in copied_fields:
+                        copied_fields["cf_performance_impact"] = {
+                            "from": [dup_bug["id"]],
+                            "value": dup_bug["cf_performance_impact"],
+                        }
+                    else:
+                        copied_fields["cf_performance_impact"]["from"].append(
+                            dup_bug["id"]
+                        )
 
                 # Keywords: copy the `access` keyword from duplicates
                 if "access" not in bug["keywords"] and "access" in dup_bug["keywords"]:
@@ -136,10 +160,12 @@ class DuplicateCopyMetadata(BzCleaner):
                 autofix["keywords"] = {"add": value}
             elif field == "whiteboard":
                 autofix["whiteboard"] = bug["whiteboard"] + value
+            elif field == "cf_performance_impact":
+                autofix["cf_performance_impact"] = value
             else:
                 raise ValueError(f"Unsupported field: {field}")
 
-            comment += f"| {field.capitalize()} | {value} | {source} |\n"
+            comment += f"| {FIELD_NAME_TO_LABEL[field]} | {value} | {source} |\n"
 
         comment += "\n\n" + self.get_documentation()
         autofix["comment"] = {"body": comment}
@@ -171,8 +197,9 @@ class DuplicateCopyMetadata(BzCleaner):
             for line in lines[table_first_line + 2 :]:
                 if not line.startswith("|"):
                     break
-                field = line.split("|")[1].strip().lower()
-                previously_copied_fields.add(field)
+                field_label = line.split("|")[1].strip()
+                field_name = FIELD_LABEL_TO_NAME[field_label]
+                previously_copied_fields.add(field_name)
 
         return previously_copied_fields
 
@@ -183,6 +210,7 @@ class DuplicateCopyMetadata(BzCleaner):
         fields = [
             "whiteboard",
             "keywords",
+            "cf_performance_impact",
             "dupe_of",
         ]
 
@@ -194,6 +222,7 @@ class DuplicateCopyMetadata(BzCleaner):
                 "resolution",
                 "keywords",
                 "status_whiteboard",
+                "cf_performance_impact",
             ],
             "j1": "OR",
             "f1": "OP",
@@ -203,7 +232,11 @@ class DuplicateCopyMetadata(BzCleaner):
             "f4": "keywords",
             "o4": "equals",
             "v4": "access",
-            "f5": "CP",
+            "n5": "1",
+            "f5": "cf_performance_impact",
+            "o5": "anyexact",
+            "v5": ["---", "?"],
+            "f6": "CP",
         }
 
         return params
