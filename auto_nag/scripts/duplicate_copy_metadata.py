@@ -66,9 +66,9 @@ class DuplicateCopyMetadata(BzCleaner):
                     continue
 
                 # Performance Impact: copy the assessment result from duplicates
-                if bug.get("cf_performance_impact") == "---" and dup_bug[
+                if bug.get("cf_performance_impact") == "---" and dup_bug.get(
                     "cf_performance_impact"
-                ] not in ("---", "?"):
+                ) not in ("---", "?", None):
                     if "cf_performance_impact" not in copied_fields:
                         copied_fields["cf_performance_impact"] = {
                             "from": [dup_bug["id"]],
@@ -224,19 +224,6 @@ class DuplicateCopyMetadata(BzCleaner):
                 "status_whiteboard",
                 "cf_performance_impact",
             ],
-            "j1": "OR",
-            "f1": "OP",
-            "f3": "status_whiteboard",
-            "o3": "anywordssubstr",
-            "v3": "[access-s",
-            "f4": "keywords",
-            "o4": "equals",
-            "v4": "access",
-            "n5": "1",
-            "f5": "cf_performance_impact",
-            "o5": "anyexact",
-            "v5": ["---", "?"],
-            "f6": "CP",
         }
 
         return params
