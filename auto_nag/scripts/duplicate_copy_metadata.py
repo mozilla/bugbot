@@ -121,6 +121,7 @@ class DuplicateCopyMetadata(BzCleaner):
                         regression_bug_id
                         for regression_bug_id in dup_bug["regressed_by"]
                         if regression_bug_id not in added_regressed_by
+                        and regression_bug_id < int(bug_id)
                     }
                     if new_regressed_by:
                         if "regressed_by" not in copied_fields:
