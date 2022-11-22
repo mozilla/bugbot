@@ -184,20 +184,6 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = _format_criteria_names(
             "cpu_arch": ["arm64", "arm"],
             "tc_limit": 10,
         },
-        {
-            "name": "AMD64 and x86 crashes",
-            "product": "Fenix",
-            "channel": "beta",
-            "cpu_arch": ["amd64", "x86"],
-            "tc_limit": 5,
-        },
-        {
-            "name": "AMD64 and x86 crashes",
-            "product": "Fenix",
-            "channel": "release",
-            "cpu_arch": ["amd64", "x86"],
-            "tc_limit": 5,
-        },
     ]
 )
 
