@@ -242,13 +242,17 @@ class DuplicateCopyMetadata(BzCleaner):
         Returns:
             A set of ids for previously added regressors.
         """
-        return {
+        added_regressors = {
             int(bug_id)
             for entry in bug["history"]
             for change in entry["changes"]
             if change["field_name"] == "regressed_by"
-            for bug_id in change["added"].split(",")
+            for bug_id in change["removed"].split(",")
+            if bug_id
         }
+        added_regressors.update(bug["regressed_by"])
+
+        return added_regressors
 
     def columns(self):
         return ["id", "summary", "copied_fields"]
