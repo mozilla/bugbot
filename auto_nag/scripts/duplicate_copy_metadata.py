@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from typing import List, Set
+from typing import Any, Dict, List, Set
 
 from libmozdata.bugzilla import Bugzilla
 
@@ -167,7 +167,7 @@ class DuplicateCopyMetadata(BzCleaner):
                 bugs they were copied from (field, value, source).
         """
         bug_id = str(bug["id"])
-        autofix = {}
+        autofix: Dict[str, Any] = {}
 
         duplicates = {id for _, _, source in copied_fields for id in source}
 
@@ -182,7 +182,7 @@ class DuplicateCopyMetadata(BzCleaner):
 
         for field, value, source in copied_fields:
             if field == "keywords":
-                autofix["keywords"] = {"add": value}
+                autofix["keywords"] = {"add": [value]}
             elif field == "whiteboard":
                 autofix["whiteboard"] = bug["whiteboard"] + value
             elif field == "cf_performance_impact":
@@ -199,6 +199,14 @@ class DuplicateCopyMetadata(BzCleaner):
 
         comment += "\n\n" + self.get_documentation()
         autofix["comment"] = {"body": comment}
+        # The following is to reduce noise by having the bot to comme later to
+        # add the `regression` keyword.
+        if "regressed_by" in autofix and "regression" not in bug["keywords"]:
+            if "keywords" not in autofix:
+                autofix["keywords"] = {"add": ["regression"]}
+            else:
+                autofix["keywords"]["add"].append("regression")
+
         self.autofix_changes[bug_id] = autofix
 
     def get_previously_copied_fields(self, bug: dict) -> Set[str]:
