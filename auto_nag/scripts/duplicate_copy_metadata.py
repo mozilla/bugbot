@@ -47,6 +47,7 @@ class DuplicateCopyMetadata(BzCleaner):
                 "duplicates",
                 "cf_performance_impact",
                 "comments",
+                "history",
                 "regressed_by",
                 "is_open",
             ],
@@ -117,38 +118,25 @@ class DuplicateCopyMetadata(BzCleaner):
 
                 # Regressed by: move the regressed_by field to the duplicate of
                 if dup_bug["regressed_by"]:
-                    # We always want to remove regressed_by from duplicate bugs
-                    assert (
-                        dup_bug_id not in self.autofix_changes
-                    ), "Cannot set autofix twice"
-                    self.autofix_changes[dup_bug_id] = {
-                        "regressed_by": {"remove": dup_bug["regressed_by"]},
-                        "comment": {
-                            "body": (
-                                "Since this bug was closed as `DUPLICATE`,"
-                                f"moving the `Regressed by` field to bug {bug_id}."
-                            )
-                        },
-                    }
-                    regressed_by = {
+                    added_regressed_by = self.get_previously_added_regressors(bug)
+                    new_regressed_by = {
                         regression_bug_id
                         for regression_bug_id in dup_bug["regressed_by"]
-                        if regression_bug_id not in bug["regressed_by"]
+                        if regression_bug_id not in added_regressed_by
                     }
-                    if regressed_by:
+                    if new_regressed_by:
                         if "regressed_by" not in copied_fields:
                             copied_fields["regressed_by"] = {
                                 "from": [dup_bug["id"]],
-                                "value": regressed_by,
+                                "value": new_regressed_by,
                             }
                         else:
                             copied_fields["regressed_by"]["from"].append(dup_bug["id"])
-                            copied_fields["regressed_by"]["value"] |= regressed_by
+                            copied_fields["regressed_by"]["value"] |= new_regressed_by
 
             previously_copied_fields = self.get_previously_copied_fields(bug)
-            # We do not need to ignore the `regressed_by` field because it will
-            # be moved, not copied. Therefore, there is no risk of having the
-            # bot overwriting the engineers.
+            # We do not need to ignore the `regressed_by` field because we
+            # already check the history to avoid overwriting the engineers.
             previously_copied_fields.discard("regressed_by")
             copied_fields = sorted(
                 (
@@ -180,7 +168,6 @@ class DuplicateCopyMetadata(BzCleaner):
                 bugs they were copied from (field, value, source).
         """
         bug_id = str(bug["id"])
-        assert bug_id not in self.autofix_changes, "Cannot set autofix twice"
         autofix = {}
 
         duplicates = {id for _, _, source in copied_fields for id in source}
@@ -246,6 +233,24 @@ class DuplicateCopyMetadata(BzCleaner):
                 previously_copied_fields.add(field_name)
 
         return previously_copied_fields
+
+    def get_previously_added_regressors(self, bug: dict) -> Set[int]:
+        """Get the bug ids for regressors that have been added to a bug in the
+        past.
+
+        Args:
+            bug: The bug to get the previously added regressors for.
+
+        Returns:
+            A set of ids for previously added regressors.
+        """
+        return {
+            int(bug_id)
+            for entry in bug["history"]
+            for change in entry["changes"]
+            if change["field_name"] == "regressed_by"
+            for bug_id in change["added"].split(",")
+        }
 
     def columns(self):
         return ["id", "summary", "copied_fields"]
