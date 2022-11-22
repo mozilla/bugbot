@@ -244,7 +244,6 @@
       "Core::Widget: Gtk",
       "Firefox::Untriaged",
       "Core::JavaScript Engine",
-      "Core::Document Navigation",
       "Core::XPCOM",
       "DevTools::Accessibility Tools",
       "Core::Performance",
