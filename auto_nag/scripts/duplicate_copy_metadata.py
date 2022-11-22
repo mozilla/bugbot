@@ -55,8 +55,6 @@ class DuplicateCopyMetadata(BzCleaner):
             bugdata=original_bugs,
         ).wait()
 
-        assert len(original_bug_ids) == len(original_bugs)
-
         results = {}
         for bug_id, bug in original_bugs.items():
             if not bug["is_open"]:
