@@ -15,7 +15,7 @@
           {{ summary | e }}
         </td>
         <td>
-          <ul>
+          <ul style="padding: 0; margin: 0">
             {% for ni in needinfos -%}
             <li><a href="mailto:{{ ni }}">{{ ni | e }}</a></li>
             {% endfor -%}
