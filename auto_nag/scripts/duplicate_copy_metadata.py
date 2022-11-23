@@ -16,6 +16,7 @@ FIELD_NAME_TO_LABEL = {
     "whiteboard": "Whiteboard",
     "cf_performance_impact": "Performance Impact",
     "regressed_by": "Regressed by",
+    "status": "Status",
 }
 
 FIELD_LABEL_TO_NAME = {label: name for name, label in FIELD_NAME_TO_LABEL.items()}
@@ -48,6 +49,7 @@ class DuplicateCopyMetadata(BzCleaner):
                 "cf_performance_impact",
                 "comments",
                 "history",
+                "status",
                 "regressed_by",
                 "is_open",
             ],
@@ -113,6 +115,15 @@ class DuplicateCopyMetadata(BzCleaner):
                         }
                     elif new_access_tag == copied_fields["whiteboard"]["value"]:
                         copied_fields["whiteboard"]["from"].append(dup_bug["id"])
+                # Status: confirm the bug if the duplicate was confirmed
+                if bug["status"] == "UNCONFIRMED" and self.was_confirmed(dup_bug):
+                    if "status" not in copied_fields:
+                        copied_fields["status"] = {
+                            "from": [dup_bug["id"]],
+                            "value": "NEW",
+                        }
+                    else:
+                        copied_fields["status"]["from"].append(dup_bug["id"])
 
                 # Regressed by: move the regressed_by field to the duplicate of
                 if dup_bug["regressed_by"]:
@@ -187,6 +198,8 @@ class DuplicateCopyMetadata(BzCleaner):
                 autofix["whiteboard"] = bug["whiteboard"] + value
             elif field == "cf_performance_impact":
                 autofix["cf_performance_impact"] = value
+            elif field == "status":
+                autofix["status"] = value
             elif field == "regressed_by":
                 autofix["regressed_by"] = {"add": list(value)}
                 value = utils.english_list(sorted(f"bug {id}" for id in value))
@@ -263,11 +276,26 @@ class DuplicateCopyMetadata(BzCleaner):
 
         return added_regressors
 
+    def was_confirmed(self, bug: dict) -> bool:
+        """Check if the bug was confirmed."""
+
+        for entry in reversed(bug["history"]):
+            for change in entry["changes"]:
+                if change["field_name"] == "status" and change["removed"] not in (
+                    "REOPENED",
+                    "CLOSED",
+                    "RESOLVED",
+                ):
+                    return change["removed"] != "UNCONFIRMED"
+
+        return False
+
     def columns(self):
         return ["id", "summary", "copied_fields"]
 
     def get_bz_params(self, date):
         fields = [
+            "history",
             "whiteboard",
             "keywords",
             "cf_performance_impact",
