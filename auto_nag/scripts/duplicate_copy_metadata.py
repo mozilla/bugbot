@@ -281,12 +281,17 @@ class DuplicateCopyMetadata(BzCleaner):
 
         for entry in reversed(bug["history"]):
             for change in entry["changes"]:
-                if change["field_name"] == "status" and change["removed"] not in (
+                if change["field_name"] != "status":
+                    continue
+
+                if change["removed"] in (
                     "REOPENED",
                     "CLOSED",
                     "RESOLVED",
                 ):
-                    return change["removed"] != "UNCONFIRMED"
+                    break
+
+                return change["removed"] != "UNCONFIRMED"
 
         return False
 
