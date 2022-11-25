@@ -1,0 +1,4 @@
+The severity field for this bug is set to {{ extra[bugid]["severity"] }}. However, the `Performance Impact` field flags this bug as having a high impact on the performance.
+:{{ nickname }}, could you consider increasing the severity of this performance-impacting bug?
+
+{{ documentation }}
