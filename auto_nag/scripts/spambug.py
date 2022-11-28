@@ -55,6 +55,10 @@ class SpamBug(BzCleaner):
             "f2": "creation_ts",
             "o2": "greaterthan",
             "v2": start_date,
+            "n3": 1,
+            "f3": "product",
+            "o3": "changedfrom",
+            "v3": "Invalid Bugs",
         }
 
     def get_bugs(self, date="today", bug_ids=[]):
