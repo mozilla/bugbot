@@ -724,3 +724,23 @@ def get_whiteboard_access_rating(whiteboard: str) -> str:
     assert len(access_tags) == 1, "Should have only one access tag"
 
     return access_tags[0]
+
+
+def create_bug(bug_data: dict) -> dict:
+    """Create a new bug.
+
+    Args:
+        bug_data: The bug data to create.
+
+    Returns:
+        A dictionary with the bug id of the newly created bug.
+    """
+    resp = requests.post(
+        url=Bugzilla.API_URL,
+        json=bug_data,
+        headers=Bugzilla([]).get_header(),
+        verify=True,
+        timeout=Bugzilla.TIMEOUT,
+    )
+    resp.raise_for_status()
+    return resp.json()

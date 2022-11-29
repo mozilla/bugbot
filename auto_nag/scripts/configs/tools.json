@@ -180,6 +180,24 @@
     "additional_receivers": "rm",
     "must_run": ["Mon"]
   },
+  "variant_expirations": {
+    "escalation": {
+      "default": {
+        "[7;20[": {
+          "supervisor": "n+1",
+          "days": ["Tue"]
+        },
+        "[20;30[": {
+          "supervisor": "n+2",
+          "days": ["Mon"]
+        },
+        "[30;+∞[": {
+          "supervisor": "director",
+          "days": ["Mon"]
+        }
+      }
+    }
+  },
   "vacant_triage_owner": {
     "must_run": ["Mon"]
   },

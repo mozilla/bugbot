@@ -1,0 +1,3 @@
+The variant has expired.
+
+:{{ nickname }}, could you please follow up on this?

@@ -1,0 +1,27 @@
+<p>The following {{ plural('variant has', data, 'variants have') }} expired:
+    <table {{ table_attrs }}>
+      <thead>
+        <tr>
+            <th>Bug</th><th>Component</th><th>Variant</th><th>Expiration</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for i, (bugid, product, component, variant_id, expiration, action) in enumerate(data) -%}
+        <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
+            <td>
+                <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+            </td>
+            <td>
+            {{ product }}::{{ component }}
+          </td>
+          <td>
+            {{ variant_id }}
+          </td>
+          <td>
+            {{ expiration }}
+          </td>
+        </tr>
+        {% endfor -%}
+      </tbody>
+    </table>
+  </p>
