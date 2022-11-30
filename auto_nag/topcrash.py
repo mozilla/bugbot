@@ -389,7 +389,7 @@ class Topcrash:
             last_release_date = lmdversions.getMajorDate(versions["release"])
 
             if last_release_date > self.start_date:
-                # If the release date newer than the start date in the query, we
+                # If the release date is newer than the start date in the query, we
                 # include an extra version to have enough data.
                 self.__version_constrains = {
                     "nightly": f""">={versions["nightly"]-1}""",
