@@ -195,6 +195,9 @@ python -m auto_nag.scripts.severity_higher_dups --production
 # Detect outdated triage owner rotation definitions
 python -m auto_nag.scripts.triage_rotations_outdated --production
 
+# Follow up on expiring variants
+python -m auto_nag.scripts.variant_expiration --production
+
 # Set nightly status to affected on newly filed regressions
 python -m auto_nag.scripts.regression_new_set_nightly_affected --production
 
