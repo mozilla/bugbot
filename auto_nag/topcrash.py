@@ -3,11 +3,12 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, Iterable, List, Optional, Set, Union
 
 import libmozdata.socorro as socorro
 from libmozdata import utils as lmdutils
+from libmozdata import versions as lmdversions
 
 from auto_nag.scripts.no_crashes import NoCrashes
 
@@ -224,11 +225,12 @@ class Topcrash:
         self.signature_block_patterns = signature_block_patterns
         self.criteria = criteria
 
-        start_date = lmdutils.get_date(date, duration)
-        end_date = lmdutils.get_date(date)
-        self.date_range = socorro.SuperSearch.get_search_date(start_date, end_date)
+        end_date = lmdutils.get_date_ymd(date)
+        self.start_date = lmdutils.get_date_ymd(end_date - timedelta(duration))
+        self.date_range = socorro.SuperSearch.get_search_date(self.start_date, end_date)
 
         self._blocked_signatures: Optional[Set[str]] = None
+        self.__version_constrains: Optional[Dict[str, str]] = None
 
     def _fetch_signatures_from_patterns(self, patterns) -> Set[str]:
         MAX_SIGNATURES_IN_REQUEST = 1000
@@ -359,6 +361,7 @@ class Topcrash:
         params = {
             "product": criterion["product"],
             "release_channel": criterion["channel"],
+            "major_version": self._get_major_version_constrain(criterion["channel"]),
             "process_type": criterion.get("process_type"),
             "cpu_arch": criterion.get("cpu_arch"),
             "platform": criterion.get("platform"),
@@ -378,6 +381,29 @@ class Topcrash:
             ),
         }
         return params
+
+    def _get_major_version_constrain(self, channel: str) -> str:
+        """Return the major version constrain for the given channel."""
+        if self.__version_constrains is None:
+            versions = lmdversions.get(base=True)
+            last_release_date = lmdversions.getMajorDate(versions["release"])
+
+            if last_release_date > self.start_date:
+                # If the release date newer than the start date in the query, we
+                # include an extra version to have enough data.
+                self.__version_constrains = {
+                    "nightly": f""">={versions["nightly"]-1}""",
+                    "beta": f""">={versions["beta"]-1}""",
+                    "release": f""">={versions["release"]-1}""",
+                }
+            else:
+                self.__version_constrains = {
+                    "nightly": f""">={versions["nightly"]}""",
+                    "beta": f""">={versions["beta"]}""",
+                    "release": f""">={versions["release"]}""",
+                }
+
+        return self.__version_constrains[channel]
 
     @staticmethod
     def __is_startup_crash(signature: dict):
