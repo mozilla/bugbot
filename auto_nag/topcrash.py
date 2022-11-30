@@ -204,9 +204,9 @@ CRASH_SIGNATURE_BLOCK_PATTERNS = [
 class Topcrash:
     def __init__(
         self,
-        date: Optional[Union[str, datetime]] = "today",
-        duration: Optional[int] = 7,
-        minimum_crashes: Optional[int] = 5,
+        date: Union[str, datetime] = "today",
+        duration: int = 7,
+        minimum_crashes: int = 5,
         signature_block_patterns: list = CRASH_SIGNATURE_BLOCK_PATTERNS,
         criteria: Iterable[dict] = TOP_CRASH_IDENTIFICATION_CRITERIA,
     ) -> None:
