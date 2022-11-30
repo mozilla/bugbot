@@ -207,7 +207,7 @@ class Topcrash:
         self,
         date: Union[str, datetime] = "today",
         duration: int = 7,
-        minimum_crashes: int = 5,
+        minimum_crashes: int = 15,
         signature_block_patterns: list = CRASH_SIGNATURE_BLOCK_PATTERNS,
         criteria: Iterable[dict] = TOP_CRASH_IDENTIFICATION_CRITERIA,
     ) -> None:

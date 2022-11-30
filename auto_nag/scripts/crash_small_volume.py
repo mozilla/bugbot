@@ -18,7 +18,7 @@ MAX_SIGNATURES_PER_QUERY = 30
 class CrashSmallVolume(BzCleaner):
     def __init__(
         self,
-        min_crash_volume: int = 5,
+        min_crash_volume: int = 15,
         oldest_severity_change_days: int = 30,
         oldest_topcrash_added_days: int = 21,
     ):
