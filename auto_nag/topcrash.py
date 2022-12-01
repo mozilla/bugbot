@@ -202,6 +202,7 @@ class Topcrash:
         date: Union[str, datetime] = "today",
         duration: int = 7,
         min_crashes: int = 15,
+        default_min_installations: int = 3,
         signature_block_patterns: list = CRASH_SIGNATURE_BLOCK_PATTERNS,
         criteria: Iterable[dict] = TOP_CRASH_IDENTIFICATION_CRITERIA,
     ) -> None:
@@ -212,10 +213,13 @@ class Topcrash:
             duration: the number of days to retrieve the crash data.
             min_crashes: the minimum number of crashes to consider a signature
                 in the top crashes.
+            default_min_installations: the minimum number of installations to
+                consider a signature in the top crashes.
             signature_block_list: a list of crash signature to be ignored.
             criteria: the list of criteria to be used to query the top crashes.
         """
         self.min_crashes = min_crashes
+        self.default_min_installations = default_min_installations
         self.signature_block_patterns = signature_block_patterns
         self.criteria = criteria
 
@@ -419,7 +423,9 @@ class Topcrash:
             signatures = search_resp["facets"]["signature"]
             tc_limit = criterion["tc_limit"]
             tc_startup_limit = criterion.get("tc_startup_limit", tc_limit)
-            min_installations = criterion.get("min_installations", 3)
+            min_installations = criterion.get(
+                "min_installations", self.default_min_installations
+            )
             assert tc_startup_limit >= tc_limit
 
             rank = 0
