@@ -39,6 +39,10 @@ class CrashSmallVolume(BzCleaner):
         topcrash = Topcrash(
             criteria=self._adjust_topcrash_criteria(TOP_CRASH_IDENTIFICATION_CRITERIA)
         )
+        assert (
+            topcrash.min_crashes >= min_crash_volume
+        ), "min_crash_volume should not be higher than the min_crashes used for the topcrash criteria"
+
         self.topcrash_signatures = topcrash.get_signatures()
         self.blocked_signatures = topcrash.get_blocked_signatures()
         self.oldest_severity_change_date = lmdutils.get_date(
