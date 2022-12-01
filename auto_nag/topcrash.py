@@ -118,7 +118,6 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = _format_criteria_names(
             "product": "Firefox",
             "channel": "beta",
             "platform": "Linux",
-            "minimum_installations": 3,
             "tc_limit": 5,
         },
         {
@@ -126,7 +125,6 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = _format_criteria_names(
             "product": "Firefox",
             "channel": "release",
             "platform": "Linux",
-            "minimum_installations": 3,
             "tc_limit": 5,
         },
         {
@@ -134,7 +132,6 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = _format_criteria_names(
             "product": "Firefox",
             "channel": "beta",
             "platform": "Mac OS X",
-            "minimum_installations": 3,
             "tc_limit": 5,
         },
         {
@@ -142,7 +139,6 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = _format_criteria_names(
             "product": "Firefox",
             "channel": "release",
             "platform": "Mac OS X",
-            "minimum_installations": 3,
             "tc_limit": 5,
         },
         {
@@ -150,7 +146,6 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = _format_criteria_names(
             "product": "Firefox",
             "channel": "beta",
             "platform": "Windows",
-            "minimum_installations": 3,
             "tc_limit": 5,
         },
         {
@@ -158,7 +153,6 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = _format_criteria_names(
             "product": "Firefox",
             "channel": "release",
             "platform": "Windows",
-            "minimum_installations": 3,
             "tc_limit": 5,
         },
         # -----
