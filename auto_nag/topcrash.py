@@ -54,7 +54,7 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = _format_criteria_names(
             "name": "desktop browser crashes",
             "product": "Firefox",
             "channel": "nightly",
-            "minimum_installations": 5,
+            "min_installations": 5,
             "tc_limit": 10,
         },
         {
@@ -201,7 +201,7 @@ class Topcrash:
         self,
         date: Union[str, datetime] = "today",
         duration: int = 7,
-        minimum_crashes: int = 15,
+        min_crashes: int = 15,
         signature_block_patterns: list = CRASH_SIGNATURE_BLOCK_PATTERNS,
         criteria: Iterable[dict] = TOP_CRASH_IDENTIFICATION_CRITERIA,
     ) -> None:
@@ -210,12 +210,12 @@ class Topcrash:
         Args:
             date: the final date. If not provided, the value will be today.
             duration: the number of days to retrieve the crash data.
-            minimum_crashes: the minimum number of crashes to consider a
-                signature in the top crashes.
+            min_crashes: the minimum number of crashes to consider a signature
+                in the top crashes.
             signature_block_list: a list of crash signature to be ignored.
             criteria: the list of criteria to be used to query the top crashes.
         """
-        self.minimum_crashes = minimum_crashes
+        self.min_crashes = min_crashes
         self.signature_block_patterns = signature_block_patterns
         self.criteria = criteria
 
@@ -243,7 +243,7 @@ class Topcrash:
             data.update(
                 signature["term"]
                 for signature in search_resp["facets"]["signature"]
-                if signature["count"] >= self.minimum_crashes
+                if signature["count"] >= self.min_crashes
             )
 
         socorro.SuperSearch(
@@ -419,20 +419,17 @@ class Topcrash:
             signatures = search_resp["facets"]["signature"]
             tc_limit = criterion["tc_limit"]
             tc_startup_limit = criterion.get("tc_startup_limit", tc_limit)
-            minimum_installations = criterion.get("minimum_installations", 3)
+            min_installations = criterion.get("min_installations", 3)
             assert tc_startup_limit >= tc_limit
 
             rank = 0
             for signature in signatures:
-                if (
-                    rank >= tc_startup_limit
-                    or signature["count"] < self.minimum_crashes
-                ):
+                if rank >= tc_startup_limit or signature["count"] < self.min_crashes:
                     return
 
                 name = signature["term"]
                 installations = signature["facets"]["cardinality_install_time"]["value"]
-                if installations < minimum_installations or name in blocked_signatures:
+                if installations < min_installations or name in blocked_signatures:
                     continue
 
                 is_startup = self.__is_startup_crash(signature)
