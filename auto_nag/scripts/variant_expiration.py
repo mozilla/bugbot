@@ -11,6 +11,7 @@ import requests
 import yaml
 from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import Bugzilla
+from requests.exceptions import HTTPError
 
 from auto_nag import logger, utils
 from auto_nag.bzcleaner import BzCleaner
@@ -159,7 +160,15 @@ class VariantExpiration(BzCleaner, Nag):
                     new_bug,
                 )
             else:
-                bug = utils.create_bug(new_bug)
+                try:
+                    bug = utils.create_bug(new_bug)
+                except HTTPError as error:
+                    logger.error(
+                        "Failed to create a bug for the variant `%s`",
+                        variant_name,
+                        exc_info=error,
+                    )
+                    continue
 
             bug_id = str(bug["id"])
             bugs[bug_id] = {
