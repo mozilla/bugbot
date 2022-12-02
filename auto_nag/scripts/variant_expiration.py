@@ -99,7 +99,7 @@ class VariantExpiration(BzCleaner, Nag):
         return True
 
     def columns(self):
-        return ["id", "product", "component", "variant_id", "expiration", "action"]
+        return ["id", "product", "component", "variant_name", "expiration", "action"]
 
     def sort_columns(self):
         # sort by expiration date
@@ -131,7 +131,7 @@ class VariantExpiration(BzCleaner, Nag):
         bugs = super().get_bugs(date, bug_ids, chunk_size)
 
         # Create bugs for variants that will be expired soon
-        for variant_id, variant_info in self.variants.items():
+        for variant_name, variant_info in self.variants.items():
             if (
                 variant_info.get("bug_id")
                 or variant_info["expiration"] >= self.open_bug_date
@@ -141,20 +141,22 @@ class VariantExpiration(BzCleaner, Nag):
             component = ComponentName.from_str(variant_info["component"])
             expiration = variant_info["expiration"].strftime("%Y-%m-%d")
             new_bug = {
-                "summary": f"The variant `{variant_id}` expiration is on {expiration}",
+                "summary": f"The variant `{variant_name}` expiration is on {expiration}",
                 "product": component.product,
                 "component": component.name,
                 "status_whiteboard": "[variant-expiration]",
                 "type": "task",
-                "see_also": self.get_related_bug_ids(variant_id),
+                "see_also": self.get_related_bug_ids(variant_name),
                 "cc": self.cc_on_bugs,
                 "description": BUG_DESCRIPTION,
             }
 
             if self.dryrun or self.test_mode:
-                bug = {"id": f"to be created for {variant_id}"}
+                bug = {"id": f"to be created for {variant_name}"}
                 logger.info(
-                    "A new bug for `%s` will be created with:\n%s", variant_id, new_bug
+                    "A new bug for `%s` will be created with:\n%s",
+                    variant_name,
+                    new_bug,
                 )
             else:
                 bug = utils.create_bug(new_bug)
@@ -165,13 +167,13 @@ class VariantExpiration(BzCleaner, Nag):
                 "product": component.product,
                 "component": component.name,
                 "expiration": expiration,
-                "variant_id": variant_id,
+                "variant_name": variant_name,
                 "action": ExpirationAction.FILE_NEW_BUG,
             }
 
         return bugs
 
-    def get_related_bug_ids(self, variant_id: str) -> list:
+    def get_related_bug_ids(self, variant_name: str) -> list:
         """Get the list of bug ids related to the variant"""
         data: list = []
 
@@ -185,7 +187,7 @@ class VariantExpiration(BzCleaner, Nag):
                 "email1": History.BOT,
                 "f1": "short_desc",
                 "o1": "casesubstring",
-                "v1": f"The variant `{variant_id}` expiration is on",
+                "v1": f"The variant `{variant_name}` expiration is on",
             },
             bugdata=data,
             bughandler=handler,
@@ -194,16 +196,16 @@ class VariantExpiration(BzCleaner, Nag):
         return data
 
     def get_followup_action(
-        self, bug: dict, variant_id: str, bug_expiration: datetime
+        self, bug: dict, variant_name: str, bug_expiration: datetime
     ) -> Optional[ExpirationAction]:
         """Get the follow up action for the bug
 
         Args:
             bug: The bug to handle
-            variant_id: The variant id
+            variant_name: The variant id
             bug_expiration: The expiration of the variant as appears in the bug
         """
-        variant = self.variants.get(variant_id)
+        variant = self.variants.get(variant_name)
         if variant is None:
             return ExpirationAction.CLOSE_DROPPED
 
@@ -229,16 +231,16 @@ class VariantExpiration(BzCleaner, Nag):
 
         summary_match = VARIANT_BUG_PAT.match(bug["summary"])
         assert summary_match, f"Bug {bugid} has invalid summary: {bug['summary']}"
-        variant_id, bug_expiration = summary_match.groups()
+        variant_name, bug_expiration = summary_match.groups()
         bug_expiration = lmdutils.get_date_ymd(bug_expiration)
 
-        action = self.get_followup_action(bug, variant_id, bug_expiration)
+        action = self.get_followup_action(bug, variant_name, bug_expiration)
         if not action:
             return None
 
         data[bugid] = {
             "action": action,
-            "variant_id": variant_id,
+            "variant_name": variant_name,
             "expiration": bug_expiration.strftime("%Y-%m-%d"),
         }
 
@@ -251,7 +253,7 @@ class VariantExpiration(BzCleaner, Nag):
                 },
             }
         elif action == ExpirationAction.CLOSE_EXTENDED:
-            new_date = self.variants[variant_id]["expiration"].strftime("%Y-%m-%d")
+            new_date = self.variants[variant_name]["expiration"].strftime("%Y-%m-%d")
             self.autofix_changes[bugid] = {
                 "status": "RESOLVED",
                 "resolution": "FIXED",

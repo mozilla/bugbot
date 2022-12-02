@@ -6,7 +6,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for i, (bugid, product, component, variant_id, expiration, action) in enumerate(data) -%}
+        {% for i, (bugid, product, component, variant_name, expiration, action) in enumerate(data) -%}
         <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
             <td>
                 <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
@@ -15,7 +15,7 @@
             {{ product }}::{{ component }}
           </td>
           <td>
-            {{ variant_id }}
+            {{ variant_name }}
           </td>
           <td>
             {{ expiration }}
