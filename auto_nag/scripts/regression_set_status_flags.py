@@ -168,6 +168,9 @@ class RegressionSetStatusFlags(BzCleaner):
             for v in esr_versions:
                 info.setdefault("esr", {})
                 flag = utils.get_flag(v, "status", "esr")
+                if flag not in info:
+                    info["esr"][f"esr{v}"] = "n/a"
+                    continue
                 info["esr"][f"esr{v}"] = info[flag]
                 if info[flag] != "---":
                     # XXX maybe check for consistency?
