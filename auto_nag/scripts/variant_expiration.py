@@ -110,7 +110,7 @@ class VariantExpiration(BzCleaner, Nag):
         self.ni_extra: Dict[str, dict] = {}
 
     def description(self) -> str:
-        return "Variants that need to be updated or dropped"
+        return "Variants that need to be dropped or extended"
 
     def has_default_products(self) -> bool:
         return False
@@ -293,7 +293,7 @@ class VariantExpiration(BzCleaner, Nag):
                 "status": "RESOLVED",
                 "resolution": "FIXED",
                 "comment": {
-                    "body": f"Expiration date is extended to {new_date}",
+                    "body": f"The variant expiration date got extended to {new_date}",
                 },
             }
         elif action == ExpirationAction.NEEDINFO_TRIAGER:

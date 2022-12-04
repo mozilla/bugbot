@@ -1,4 +1,4 @@
-The variant {{ extra[bugid]["expiration_str"] }}
+The variant {{ extra[bugid]["expiration_str"] }}.
 
 {% if not extra[bugid]["has_patch"] -%}
 
