@@ -322,7 +322,9 @@ class VariantExpiration(BzCleaner, Nag):
         elif action == ExpirationAction.SEND_REMINDER:
             # Escalate gradually
             if not self.add(
-                bug["triage_owner"], data[bugid], expiration_date=bug_expiration
+                bug["triage_owner"],
+                data[bugid],
+                expiration_date=bug_expiration,
             ):
                 data[bugid]["action"] = ExpirationAction.SKIP
 
