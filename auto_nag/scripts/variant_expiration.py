@@ -237,14 +237,29 @@ class VariantExpiration(BzCleaner, Nag):
         if variant is None:
             return ExpirationAction.CLOSE_DROPPED
 
-        assert "bug_id" not in variant, "Variant should not be linked to multiple bugs"
+        if "bug_id" in variant:
+            logger.error(
+                "The variant `%s` is linked to multiple bugs: %s and %s. Variants should be linked to only one open bug",
+                variant_name,
+                variant["bug_id"],
+                bug["id"],
+            )
+            return None
+
         variant["bug_id"] = bug["id"]
 
         if variant["expiration"] > bug_expiration:
             return ExpirationAction.CLOSE_EXTENDED
 
         if variant["expiration"] < bug_expiration:
-            raise Exception("Variant expiration should not be decreased")
+            logger.error(
+                "Variant expiration for the variant `%s` (bug %s) has been decreased from %s to %s",
+                variant_name,
+                bug["id"],
+                bug_expiration,
+                variant["expiration"],
+            )
+            return None
 
         if variant["expiration"] <= self.today:
             return ExpirationAction.SEND_REMINDER
