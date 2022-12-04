@@ -183,11 +183,11 @@
   "variant_expirations": {
     "escalation": {
       "default": {
-        "[7;20[": {
+        "[0;14[": {
           "supervisor": "n+1",
           "days": ["Tue"]
         },
-        "[20;30[": {
+        "[14;30[": {
           "supervisor": "n+2",
           "days": ["Mon"]
         },

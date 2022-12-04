@@ -5,8 +5,9 @@
 import re
 from datetime import datetime, timedelta
 from enum import IntEnum, auto
-from typing import Iterable, Optional
+from typing import Dict, Iterable, Optional
 
+import humanize
 import requests
 import yaml
 from libmozdata import utils as lmdutils
@@ -37,6 +38,10 @@ More information about variants can be found on [Firefox Source Docs](https://fi
 _Note: please do not edit the bug summery or close the bug, it could break the automation._
 """
 
+EXPIRED_VARIANT_COMMENT = f"""
+The variant has expired. Expired variants will not be scheduled for testing. Please remove the variant from the [variants.yml]({VARIANTS_SEARCHFOX_URL}) file.
+"""
+
 
 class ExpirationAction(IntEnum):
     """Actions to take on a variant expiration bug"""
@@ -55,10 +60,13 @@ class ExpirationAction(IntEnum):
 class VariantExpiration(BzCleaner, Nag):
     """Track variant expirations
 
-    The following is the actions:
-        - If the variant is expiring soon, create a bug in the corresponding component
-        - Set a needinfo flag on the triager when the variant becomes expired
-        - If the variant is still expired, escalate by sending emails
+    The following are the actions performed relatively to the variant expiration date:
+        - before 30 days: create a bug in the corresponding component
+        - before 14 days: needinfo the triage owner if there is no patch
+        - before 7 days:  needinfo the triage owner even if there is a patch
+        - when expired:
+            - comment on the bug
+            - send weekly escalation emails
         - If the variant extended or dropped, close the bug as FIXED
 
     Documentation: https://firefox-source-docs.mozilla.org/taskcluster/kinds/test.html#expired-variants
@@ -67,7 +75,8 @@ class VariantExpiration(BzCleaner, Nag):
     def __init__(
         self,
         open_bug_days: int = 30,
-        reminder_days: int = 0,
+        needinfo_no_patch_days: int = 14,
+        needinfo_with_patch_days: int = 7,
         cc_on_bugs: Iterable = (
             "jmaher@mozilla.com",
             "smujahid@mozilla.com",
@@ -78,17 +87,27 @@ class VariantExpiration(BzCleaner, Nag):
         Args:
             open_bug_days: number of days before the variant expiration date to
                 create a bug.
-            reminder_days: number of days after the variant expiration date to
-                start sending reminders.
+            needinfo_no_patch_days: number of days before the expiration date to
+                needinfo the triage owner if there is no patch.
+            needinfo_with_patch_days: number of days before the expiration date
+                to needinfo the triage owner even if there is a patch.
             cc_on_bugs: list of emails to cc on the bug.
         """
         super().__init__()
 
         self.variants = self.get_variants()
-        today = lmdutils.get_date_ymd("today")
-        self.open_bug_date = lmdutils.get_date_ymd(today + timedelta(open_bug_days))
-        self.reminder_date = lmdutils.get_date_ymd(today + timedelta(reminder_days))
+        self.today = lmdutils.get_date_ymd("today")
+        self.open_bug_date = lmdutils.get_date_ymd(
+            self.today + timedelta(open_bug_days)
+        )
+        self.needinfo_no_patch_date = lmdutils.get_date_ymd(
+            self.today + timedelta(needinfo_no_patch_days)
+        )
+        self.needinfo_with_patch_date = lmdutils.get_date_ymd(
+            self.today + timedelta(needinfo_with_patch_days)
+        )
         self.cc_on_bugs = list(cc_on_bugs)
+        self.ni_extra: Dict[str, dict] = {}
 
     def description(self) -> str:
         return "Variants that need to be updated or dropped"
@@ -108,7 +127,7 @@ class VariantExpiration(BzCleaner, Nag):
 
     def escalate(self, person, priority, **kwargs):
         # Escalate based on the number of days since the variant expiration date
-        days = (kwargs["expiration_date"] - self.nag_date).days
+        days = (self.today - kwargs["expiration_date"]).days
         return self.escalation.get_supervisor(priority, days, person, **kwargs)
 
     def get_variants(self) -> dict:
@@ -205,7 +224,7 @@ class VariantExpiration(BzCleaner, Nag):
         return data
 
     def get_followup_action(
-        self, bug: dict, variant_name: str, bug_expiration: datetime
+        self, bug: dict, variant_name: str, bug_expiration: datetime, has_patch: bool
     ) -> Optional[ExpirationAction]:
         """Get the follow up action for the bug
 
@@ -227,13 +246,19 @@ class VariantExpiration(BzCleaner, Nag):
         if variant["expiration"] < bug_expiration:
             raise Exception("Variant expiration should not be decreased")
 
-        if variant["expiration"] <= self.reminder_date:
-            if not self.is_needinfoed(bug):
-                return ExpirationAction.NEEDINFO_TRIAGER
-
+        if variant["expiration"] <= self.today:
             return ExpirationAction.SEND_REMINDER
 
+        if not self.is_needinfoed(bug):
+            if variant["expiration"] <= self.needinfo_with_patch_date or (
+                not has_patch and variant["expiration"] <= self.needinfo_no_patch_date
+            ):
+                return ExpirationAction.NEEDINFO_TRIAGER
+
         return None
+
+    def get_extra_for_needinfo_template(self):
+        return self.ni_extra
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
@@ -242,8 +267,9 @@ class VariantExpiration(BzCleaner, Nag):
         assert summary_match, f"Bug {bugid} has invalid summary: {bug['summary']}"
         variant_name, bug_expiration = summary_match.groups()
         bug_expiration = lmdutils.get_date_ymd(bug_expiration)
+        has_patch = self.is_with_patch(bug)
 
-        action = self.get_followup_action(bug, variant_name, bug_expiration)
+        action = self.get_followup_action(bug, variant_name, bug_expiration, has_patch)
         if not action:
             return None
 
@@ -271,6 +297,10 @@ class VariantExpiration(BzCleaner, Nag):
                 },
             }
         elif action == ExpirationAction.NEEDINFO_TRIAGER:
+            self.ni_extra[bugid] = {
+                "has_patch": has_patch,
+                "expiration_str": self.get_english_expiration_delta(bug_expiration),
+            }
             if not self.add_auto_ni(bugid, utils.get_mail_to_ni(bug)):
                 data[bugid]["action"] = ExpirationAction.SKIP
 
@@ -281,7 +311,31 @@ class VariantExpiration(BzCleaner, Nag):
             ):
                 data[bugid]["action"] = ExpirationAction.SKIP
 
+            if not self.has_expired_comment(bug):
+                self.autofix_changes[bugid] = {
+                    "comment": {
+                        "body": EXPIRED_VARIANT_COMMENT,
+                    },
+                }
+
         return bug
+
+    def is_with_patch(self, bug: dict) -> bool:
+        """Check if the bug has a patch"""
+        return any(
+            attachment["is_patch"]
+            and not attachment["is_obsolete"]
+            and attachment["content_type"] == "text/x-phabricator-request"
+            for attachment in bug["attachments"]
+        )
+
+    def has_expired_comment(self, bug: dict) -> bool:
+        """Check if the bug has the expired comment"""
+        return any(
+            "The variant has expired." in comment["raw_text"]
+            and comment["creator"] == History.BOT
+            for comment in bug["comments"]
+        )
 
     def is_needinfoed(self, bug) -> bool:
         """Check if the triager was already needinfo'ed"""
@@ -295,10 +349,41 @@ class VariantExpiration(BzCleaner, Nag):
             for change in history["changes"]
         )
 
+    def get_english_expiration_delta(self, expiration_date: datetime) -> str:
+        """Get the english delta between today and the expiration date
+
+        Args:
+            expiration_date: The expiration date to compare to today
+
+        Returns:
+            The english delta
+
+        Examples
+            - will expire in a month from now
+            - will expire in 14 days from now
+            - has expired today
+            - has expired a day ago
+            - has expired 14 days ago
+            - has expired a month ago
+        """
+        delta = self.today - expiration_date
+        if delta.days == 0:
+            return "has expired today"
+
+        if delta.days > 0:
+            return "has expired " + humanize.naturaltime(delta)
+
+        return "will expire in " + humanize.naturaltime(delta)
+
     def get_bz_params(self, date: str) -> dict:
         fields = [
             "triage_owner",
             "history",
+            "attachments.is_patch",
+            "attachments.is_obsolete",
+            "attachments.content_type",
+            "comments.raw_text",
+            "comments.creator",
         ]
         return {
             "include_fields": fields,

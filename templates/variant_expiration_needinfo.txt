@@ -1,3 +1,9 @@
-The variant has expired.
+The variant {{ extra[bugid]["expiration_str"] }}
+
+{% if not extra[bugid]["has_patch"] -%}
+
+A patch to drop the variant or extend its expiration date should be attached to this bug.
+
+{%- endif %}
 
 :{{ nickname }}, could you please follow up on this?
