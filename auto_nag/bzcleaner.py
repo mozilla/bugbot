@@ -721,6 +721,7 @@ class BzCleaner(object):
             changes_size=len(err.changes),
             normal_changes_max=self.normal_changes_max,
             tool_name=self.name(),
+            https_proxy=os.environ.get("https_proxy"),
             enumerate=enumerate,
             table_attrs=self.get_config("table_attrs"),
         )
