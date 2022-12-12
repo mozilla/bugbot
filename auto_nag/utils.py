@@ -610,11 +610,14 @@ def nice_round(val):
 
 
 def is_bot_email(email: str) -> bool:
-    """Check the email is belong to a bot account.
+    """Check if the email is belong to a bot or component-watching account.
 
     Args:
         email: the account login email.
     """
+    if email.endswith("@disabled.tld"):
+        return False
+
     return email.endswith(".bugs") or email.endswith(".tld")
 
 
