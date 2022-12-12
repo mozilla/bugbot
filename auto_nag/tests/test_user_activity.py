@@ -25,6 +25,12 @@ class UserActivityTest(MockTestCase):
 
     employees = {"abc@mozilla.com", "def@mozilla.com"}
 
+    bots = {
+        "sheriffs@mozilla.bugs",  # component watching account
+        "release-mgmt-account-bot@mozilla.tld",  # bot account
+        "orangefactor@bots.tld",  # bot account
+    }
+
     people = People([{"mail": email} for email in employees])
 
     @responses.activate
@@ -67,6 +73,29 @@ class UserActivityTest(MockTestCase):
             user = users_info[email]
             self.assertNotIn("is_employee", user)
             self.assertEqual(user["status"], UserStatus.DISABLED)
+
+    @responses.activate
+    def test_check_users_ignore_bots(self):
+        user_activity = UserActivity(people=self.people)
+        users_info = user_activity.check_users(
+            self.bots | self.disabled_users, ignore_bots=True, keep_active=True
+        )
+
+        for email in self.bots:
+            self.assertNotIn(email, users_info.keys())
+
+        for email in self.disabled_users:
+            self.assertIn(email, users_info.keys())
+
+        users_info = user_activity.check_users(
+            self.bots | self.disabled_users, ignore_bots=False, keep_active=True
+        )
+
+        for email in self.bots:
+            self.assertIn(email, users_info.keys())
+
+        for email in self.disabled_users:
+            self.assertIn(email, users_info.keys())
 
     @responses.activate
     def test_get_bz_users_with_status(self):

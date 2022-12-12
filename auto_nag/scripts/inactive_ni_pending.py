@@ -74,7 +74,9 @@ class InactiveNeedinfoPending(BzCleaner):
         user_activity = UserActivity(include_fields=["groups"])
         needinfo_requestees = set(requestee_bugs.keys())
         triage_owners = {bug["triage_owner"] for bug in bugs.values()}
-        inactive_users = user_activity.check_users(needinfo_requestees | triage_owners)
+        inactive_users = user_activity.check_users(
+            needinfo_requestees | triage_owners, ignore_bots=True
+        )
 
         inactive_requestee_bugs = {
             bugid

@@ -76,13 +76,20 @@ class UserActivity:
 
         return self.phab
 
-    def check_users(self, user_emails: List[str], keep_active: bool = False) -> dict:
+    def check_users(
+        self,
+        user_emails: List[str],
+        keep_active: bool = False,
+        ignore_bots: bool = False,
+    ) -> dict:
         """Check user activity using their emails
 
         Args:
             user_emails: the email addresses of the users.
             keep_active: whether the returned results should include the active
                 users.
+            ignore_bots: whether the returned results should include bot and
+            component-watching accounts.
 
         Returns:
             A dictionary where the key is the user email and the value is the
@@ -99,6 +106,7 @@ class UserActivity:
                 "is_employee": self.people.is_mozilla(user_email),
             }
             for user_email in user_emails
+            if not ignore_bots or not utils.is_bot_email(user_email)
         }
 
         # Employees will always be considered active
