@@ -1,1 +1,0 @@
-{"status": 200, "headers": {}, "body": "{\"users\":[{\"can_login\":true,\"name\":\"release-mgmt-account-bot@mozilla.tld\",\"last_seen_date\":\"2022-12-12T00:00:00Z\",\"last_activity_time\":\"2022-12-12T17:31:54Z\"},{\"last_activity_time\":\"2022-12-12T06:52:35Z\",\"last_seen_date\":\"2022-12-12T00:00:00Z\",\"name\":\"orangefactor@bots.tld\",\"can_login\":true}],\"faults\":[]}"}

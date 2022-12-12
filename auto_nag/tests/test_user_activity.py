@@ -74,6 +74,7 @@ class UserActivityTest(MockTestCase):
             self.assertNotIn("is_employee", user)
             self.assertEqual(user["status"], UserStatus.DISABLED)
 
+    @responses.activate
     def test_check_users_ignore_bots(self):
         user_activity = UserActivity(people=self.people)
         users_info = user_activity.check_users(
