@@ -182,6 +182,7 @@ class UserActivity:
                 "can_login",
                 "last_activity_time",
                 "last_seen_date",
+                "creation_time",
             ]
             + self.include_fields,
         ).wait()
