@@ -131,6 +131,8 @@ class UserActivity:
         return user_statuses
 
     def get_status_from_bz_user(self, user: dict) -> UserStatus:
+        """Get the user status from a Bugzilla user object."""
+
         if not user["can_login"]:
             return UserStatus.DISABLED
 
