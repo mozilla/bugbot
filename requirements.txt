@@ -2,7 +2,7 @@ alembic==1.8.1
 argparse==1.4.0
 filelock==3.8.2
 humanize>=0.5.1
-icalendar==4.1.0
+icalendar==5.0.3
 icalevents==0.1.24
 Jinja2==3.1.2
 libmozdata==0.1.83
