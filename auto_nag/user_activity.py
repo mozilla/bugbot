@@ -130,9 +130,14 @@ class UserActivity:
 
         return user_statuses
 
-    def _get_status_from_bz_user(self, user: dict) -> UserStatus:
+    def get_status_from_bz_user(self, user: dict) -> UserStatus:
+        """Get the user status from a Bugzilla user object."""
+
         if not user["can_login"]:
             return UserStatus.DISABLED
+
+        if user["creation_time"] > self.seen_limit:
+            return UserStatus.ACTIVE
 
         if user["last_seen_date"] is None or user["last_seen_date"] < self.seen_limit:
             return UserStatus.ABSENT
@@ -162,7 +167,7 @@ class UserActivity:
         """
 
         def handler(user, data):
-            status = self._get_status_from_bz_user(user)
+            status = self.get_status_from_bz_user(user)
             if keep_active or status != UserStatus.ACTIVE:
                 user["status"] = status
                 data[user["name"]] = user
@@ -177,6 +182,7 @@ class UserActivity:
                 "can_login",
                 "last_activity_time",
                 "last_seen_date",
+                "creation_time",
             ]
             + self.include_fields,
         ).wait()

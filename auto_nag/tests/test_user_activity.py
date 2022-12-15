@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import responses
+from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import BugzillaUser
 
 from auto_nag.auto_mock import MockTestCase
@@ -125,3 +126,26 @@ class UserActivityTest(MockTestCase):
         user = users_info["bdahl@mozilla.com"]
         self.assertEqual(user["id"], 425126)
         self.assertEqual(user["nick"], "bdahl")
+
+    def test_get_status_from_bz_user(self):
+        """Test the get_status_from_bz_user method"""
+
+        user_activity = UserActivity(people=self.people, include_fields=["nick", "id"])
+
+        new_user = {
+            "creation_time": lmdutils.get_date("yesterday"),
+            "last_activity_time": None,
+            "last_seen_date": None,
+            "can_login": True,
+        }
+        status = user_activity.get_status_from_bz_user(new_user)
+        self.assertEqual(status, UserStatus.ACTIVE)
+
+        old_user = {
+            "creation_time": "1970-09-14T11:33:10Z",
+            "last_activity_time": None,
+            "last_seen_date": None,
+            "can_login": True,
+        }
+        status = user_activity.get_status_from_bz_user(old_user)
+        self.assertEqual(status, UserStatus.ABSENT)
