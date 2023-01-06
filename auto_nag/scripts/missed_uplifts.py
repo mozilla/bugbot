@@ -49,7 +49,7 @@ class MissedUplifts(BzCleaner):
         bugid = str(bug["id"])
         beta = bug[self.status_beta]
         release = bug[self.status_release]
-        esr = bug[self.status_esr]
+        esr = bug.get(self.status_esr)
         affected = []
         if beta == "affected":
             affected.append(self.beta)
