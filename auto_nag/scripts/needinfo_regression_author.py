@@ -154,7 +154,7 @@ class NeedinfoRegressionAuthor(BzCleaner):
                 bug["suggest_set_severity"] = bug["severity"] in (
                     "--",
                     "n/a",
-                ) and self._has_editbugs_group(user_info)
+                ) and user_info.get("is_employee")
 
         Bugzilla(
             bugids=self.get_list_bugs(bugs),
@@ -163,16 +163,6 @@ class NeedinfoRegressionAuthor(BzCleaner):
         ).get_data().wait()
 
         return bugs
-
-    @staticmethod
-    def _has_editbugs_group(user_info: dict) -> bool:
-        """Check if the user has the editbugs group permissions"""
-
-        # All employees have edit bugs permissions
-        if user_info.get("is_employee"):
-            return True
-
-        return any(group["name"] == "editbugs" for group in user_info["groups"])
 
     def get_bugs(self, *args, **kwargs):
         bugs = super().get_bugs(*args, **kwargs)
