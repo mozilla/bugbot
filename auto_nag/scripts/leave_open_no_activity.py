@@ -57,6 +57,10 @@ class LeaveOpenNoActivity(BzCleaner):
             "f4": "days_elapsed",
             "o4": "greaterthan",
             "v4": self.nmonths * 30,
+            "n5": 1,
+            "f5": "longdesc",
+            "o5": "casesubstring",
+            "v5": "The leave-open keyword is there and there is no activity for",
         }
 
         return params
