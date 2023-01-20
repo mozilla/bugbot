@@ -36,7 +36,7 @@ class CheckWikiPage:
         # Temporary scripts:
         "survey_sec_bugs.py",  # not running by cron
         "severity_migration.py",
-        # None user-facing tools:
+        # Not user-facing tools:
         "stepstoreproduce.py",  # the autofix is currently disabled
         "triage_owner_rotations.py",
         "triage_rotations_outdated.py",
