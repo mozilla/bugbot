@@ -3,11 +3,12 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, Iterable, List, Optional, Set, Union
 
 import libmozdata.socorro as socorro
 from libmozdata import utils as lmdutils
+from libmozdata import versions as lmdversions
 
 from auto_nag.scripts.no_crashes import NoCrashes
 
@@ -53,7 +54,7 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = _format_criteria_names(
             "name": "desktop browser crashes",
             "product": "Firefox",
             "channel": "nightly",
-            "minimum_installations": 5,
+            "min_installations": 5,
             "tc_limit": 10,
         },
         {
@@ -117,7 +118,6 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = _format_criteria_names(
             "product": "Firefox",
             "channel": "beta",
             "platform": "Linux",
-            "minimum_installations": 3,
             "tc_limit": 5,
         },
         {
@@ -125,7 +125,6 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = _format_criteria_names(
             "product": "Firefox",
             "channel": "release",
             "platform": "Linux",
-            "minimum_installations": 3,
             "tc_limit": 5,
         },
         {
@@ -133,7 +132,6 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = _format_criteria_names(
             "product": "Firefox",
             "channel": "beta",
             "platform": "Mac OS X",
-            "minimum_installations": 3,
             "tc_limit": 5,
         },
         {
@@ -141,7 +139,6 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = _format_criteria_names(
             "product": "Firefox",
             "channel": "release",
             "platform": "Mac OS X",
-            "minimum_installations": 3,
             "tc_limit": 5,
         },
         {
@@ -149,7 +146,6 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = _format_criteria_names(
             "product": "Firefox",
             "channel": "beta",
             "platform": "Windows",
-            "minimum_installations": 3,
             "tc_limit": 5,
         },
         {
@@ -157,7 +153,6 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = _format_criteria_names(
             "product": "Firefox",
             "channel": "release",
             "platform": "Windows",
-            "minimum_installations": 3,
             "tc_limit": 5,
         },
         # -----
@@ -184,20 +179,6 @@ TOP_CRASH_IDENTIFICATION_CRITERIA = _format_criteria_names(
             "cpu_arch": ["arm64", "arm"],
             "tc_limit": 10,
         },
-        {
-            "name": "AMD64 and x86 crashes",
-            "product": "Fenix",
-            "channel": "beta",
-            "cpu_arch": ["amd64", "x86"],
-            "tc_limit": 5,
-        },
-        {
-            "name": "AMD64 and x86 crashes",
-            "product": "Fenix",
-            "channel": "release",
-            "cpu_arch": ["amd64", "x86"],
-            "tc_limit": 5,
-        },
     ]
 )
 
@@ -218,9 +199,10 @@ CRASH_SIGNATURE_BLOCK_PATTERNS = [
 class Topcrash:
     def __init__(
         self,
-        date: Optional[Union[str, datetime]] = "today",
-        duration: Optional[int] = 7,
-        minimum_crashes: Optional[int] = 5,
+        date: Union[str, datetime] = "today",
+        duration: int = 7,
+        min_crashes: int = 15,
+        default_min_installations: int = 3,
         signature_block_patterns: list = CRASH_SIGNATURE_BLOCK_PATTERNS,
         criteria: Iterable[dict] = TOP_CRASH_IDENTIFICATION_CRITERIA,
     ) -> None:
@@ -229,20 +211,24 @@ class Topcrash:
         Args:
             date: the final date. If not provided, the value will be today.
             duration: the number of days to retrieve the crash data.
-            minimum_crashes: the minimum number of crashes to consider a
-                signature in the top crashes.
+            min_crashes: the minimum number of crashes to consider a signature
+                in the top crashes.
+            default_min_installations: the minimum number of installations to
+                consider a signature in the top crashes.
             signature_block_list: a list of crash signature to be ignored.
             criteria: the list of criteria to be used to query the top crashes.
         """
-        self.minimum_crashes = minimum_crashes
+        self.min_crashes = min_crashes
+        self.default_min_installations = default_min_installations
         self.signature_block_patterns = signature_block_patterns
         self.criteria = criteria
 
-        start_date = lmdutils.get_date(date, duration)
-        end_date = lmdutils.get_date(date)
-        self.date_range = socorro.SuperSearch.get_search_date(start_date, end_date)
+        end_date = lmdutils.get_date_ymd(date)
+        self.start_date = lmdutils.get_date_ymd(end_date - timedelta(duration))
+        self.date_range = socorro.SuperSearch.get_search_date(self.start_date, end_date)
 
         self._blocked_signatures: Optional[Set[str]] = None
+        self.__version_constrains: Optional[Dict[str, str]] = None
 
     def _fetch_signatures_from_patterns(self, patterns) -> Set[str]:
         MAX_SIGNATURES_IN_REQUEST = 1000
@@ -261,7 +247,7 @@ class Topcrash:
             data.update(
                 signature["term"]
                 for signature in search_resp["facets"]["signature"]
-                if signature["count"] >= self.minimum_crashes
+                if signature["count"] >= self.min_crashes
             )
 
         socorro.SuperSearch(
@@ -298,6 +284,8 @@ class Topcrash:
             )
 
         signature_volume: dict = {signature: 0 for signature in signatures}
+        assert len(signature_volume) > 0, "no signatures provided"
+
         chunks, size = NoCrashes.chunkify(
             ["=" + signature for signature in signature_volume]
         )
@@ -371,6 +359,7 @@ class Topcrash:
         params = {
             "product": criterion["product"],
             "release_channel": criterion["channel"],
+            "major_version": self._get_major_version_constrain(criterion["channel"]),
             "process_type": criterion.get("process_type"),
             "cpu_arch": criterion.get("cpu_arch"),
             "platform": criterion.get("platform"),
@@ -390,6 +379,29 @@ class Topcrash:
             ),
         }
         return params
+
+    def _get_major_version_constrain(self, channel: str) -> str:
+        """Return the major version constrain for the given channel."""
+        if self.__version_constrains is None:
+            versions = lmdversions.get(base=True)
+            last_release_date = lmdversions.getMajorDate(versions["release"])
+
+            if last_release_date > self.start_date:
+                # If the release date is newer than the start date in the query, we
+                # include an extra version to have enough data.
+                self.__version_constrains = {
+                    "nightly": f""">={versions["nightly"]-1}""",
+                    "beta": f""">={versions["beta"]-1}""",
+                    "release": f""">={versions["release"]-1}""",
+                }
+            else:
+                self.__version_constrains = {
+                    "nightly": f""">={versions["nightly"]}""",
+                    "beta": f""">={versions["beta"]}""",
+                    "release": f""">={versions["release"]}""",
+                }
+
+        return self.__version_constrains[channel]
 
     @staticmethod
     def __is_startup_crash(signature: dict):
@@ -411,20 +423,19 @@ class Topcrash:
             signatures = search_resp["facets"]["signature"]
             tc_limit = criterion["tc_limit"]
             tc_startup_limit = criterion.get("tc_startup_limit", tc_limit)
-            minimum_installations = criterion.get("minimum_installations", 0)
+            min_installations = criterion.get(
+                "min_installations", self.default_min_installations
+            )
             assert tc_startup_limit >= tc_limit
 
             rank = 0
             for signature in signatures:
-                if (
-                    rank >= tc_startup_limit
-                    or signature["count"] < self.minimum_crashes
-                ):
+                if rank >= tc_startup_limit or signature["count"] < self.min_crashes:
                     return
 
                 name = signature["term"]
                 installations = signature["facets"]["cardinality_install_time"]["value"]
-                if installations < minimum_installations or name in blocked_signatures:
+                if installations < min_installations or name in blocked_signatures:
                     continue
 
                 is_startup = self.__is_startup_crash(signature)

@@ -15,14 +15,14 @@
             {{ summary | e }}
           </td>
           <td {% if is_regression %}bgcolor="#FFB8B8"{% endif %}>
-            <ul>
+            <ul style="padding: 0; margin: 0">
               {% for status in tracking_statuses -%}
               <li>{{ status }}</li>
               {% endfor -%}
             </ul>
           </td>
           <td>
-            <ul>
+            <ul style="padding: 0; margin: 0">
               {% for reason in reasons -%}
               <li>{{ reason }}</li>
               {% endfor -%}

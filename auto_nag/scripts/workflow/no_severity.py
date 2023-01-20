@@ -4,6 +4,7 @@
 
 from datetime import datetime
 
+import numpy
 from libmozdata import utils as lmdutils
 
 from auto_nag import utils
@@ -14,7 +15,7 @@ from auto_nag.round_robin import RoundRobin
 
 
 class NoSeverity(BzCleaner, Nag):
-    def __init__(self, typ, inactivity_days: int = 3):
+    def __init__(self, typ, inactivity_days: int = 4):
         """Constructor
 
         Args:
@@ -35,7 +36,9 @@ class NoSeverity(BzCleaner, Nag):
         )
         self.round_robin = RoundRobin.get_instance()
         self.components_skiplist = utils.get_config("workflow", "components_skiplist")
-        self.activity_date = lmdutils.get_date("today", inactivity_days)
+        self.activity_date = str(
+            numpy.busday_offset(lmdutils.get_date("today"), -inactivity_days)
+        )
 
     def description(self):
         return "Bugs without a severity or statuses set"
@@ -223,30 +226,38 @@ class NoSeverity(BzCleaner, Nag):
                     "f5": "product",
                     "o5": "changedafter",
                     "v5": second,
-                    "f6": "CP",
-                    "j7": "AND",
-                    "f7": "OP",
-                    "f8": "component",
-                    "o8": "changedbefore",
-                    "v8": second,
-                    "n9": 1,
+                    "n6": 1,
+                    "f6": "component",
+                    "o6": "changedafter",
+                    "v6": second,
+                    "f7": "CP",
+                    "j8": "AND",
+                    "f8": "OP",
                     "f9": "component",
-                    "o9": "changedafter",
+                    "o9": "changedbefore",
                     "v9": second,
-                    "f10": "CP",
-                    "j11": "AND",
-                    "f11": "OP",
-                    "f12": "creation_ts",
-                    "o12": "lessthaneq",
-                    "v12": second,
-                    "n13": 1,
-                    "f13": "product",
-                    "o13": "everchanged",
-                    "n14": 1,
-                    "f14": "component",
-                    "o14": "everchanged",
-                    "f15": "CP",
-                    "f16": "CP",
+                    "n10": 1,
+                    "f10": "product",
+                    "o10": "changedafter",
+                    "v10": second,
+                    "n11": 1,
+                    "f11": "component",
+                    "o11": "changedafter",
+                    "v11": second,
+                    "f12": "CP",
+                    "j13": "AND",
+                    "f13": "OP",
+                    "f14": "creation_ts",
+                    "o14": "lessthaneq",
+                    "v14": second,
+                    "n15": 1,
+                    "f15": "product",
+                    "o15": "everchanged",
+                    "n16": 1,
+                    "f16": "component",
+                    "o16": "everchanged",
+                    "f17": "CP",
+                    "f18": "CP",
                     "n20": 1,
                     "j20": "OR",
                     "f20": "OP",

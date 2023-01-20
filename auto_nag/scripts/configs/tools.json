@@ -42,6 +42,7 @@
       "Firefox",
       "Firefox for iOS",
       "Firefox Build System",
+      "Focus",
       "GeckoView",
       "JSS",
       "NSPR",
@@ -179,6 +180,24 @@
     "additional_receivers": "rm",
     "must_run": ["Mon"]
   },
+  "variant_expirations": {
+    "escalation": {
+      "default": {
+        "[0;14[": {
+          "supervisor": "n+1",
+          "days": ["Tue"]
+        },
+        "[14;30[": {
+          "supervisor": "n+2",
+          "days": ["Mon"]
+        },
+        "[30;+∞[": {
+          "supervisor": "director",
+          "days": ["Mon"]
+        }
+      }
+    }
+  },
   "vacant_triage_owner": {
     "must_run": ["Mon"]
   },
@@ -243,33 +262,20 @@
       "Core::Widget: Gtk",
       "Firefox::Untriaged",
       "Core::JavaScript Engine",
-      "Core::Document Navigation",
-      "Core::XPCOM",
       "DevTools::Accessibility Tools",
       "Core::Performance",
       "Core::Privacy: Anti-Tracking",
       "Firefox::Extension Compatibility",
-      "Core::DOM: Device Interfaces",
-      "Firefox Build System::Bootstrap Configuration",
-      "Firefox Build System::General",
-      "Firefox Build System::Task Configuration",
-      "Firefox Build System::Try",
-      "Firefox Build System::Toolchains",
-      "Firefox Build System::Generated Documentation",
-      "Firefox Build System::General: Unsupported Platforms",
       "Core::DOM: Bindings (WebIDL)",
       "Core::MathML",
       "Core::MFBT",
       "WebExtensions::Developer Outreach",
       "NSS::Tools",
-      "Core::X-remote",
       "NSS::Build",
       "Web Compatibility::Desktop",
       "Web Compatibility::Interventions",
       "Web Compatibility::Mobile",
-      "Web Compatibility::Tooling & Investigations",
-      "Fenix::Security: Android",
-      "Fenix::Stability"
+      "Web Compatibility::Tooling & Investigations"
     ],
     "supervisor_skiplist": ["dcamp@mozilla.com"]
   },

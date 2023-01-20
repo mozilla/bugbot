@@ -14,7 +14,7 @@ from auto_nag.constants import HIGH_PRIORITY, HIGH_SEVERITY
 from auto_nag.user_activity import UserActivity, UserStatus
 from auto_nag.utils import plural
 
-RECENT_BUG_LIMIT = lmdutils.get_date("today", timedelta(weeks=26).days)
+RECENT_BUG_LIMIT = lmdutils.get_date("today", timedelta(weeks=5).days)
 RECENT_NEEDINFO_LIMIT = lmdutils.get_date("today", timedelta(weeks=2).days)
 
 
@@ -74,7 +74,9 @@ class InactiveNeedinfoPending(BzCleaner):
         user_activity = UserActivity(include_fields=["groups"])
         needinfo_requestees = set(requestee_bugs.keys())
         triage_owners = {bug["triage_owner"] for bug in bugs.values()}
-        inactive_users = user_activity.check_users(needinfo_requestees | triage_owners)
+        inactive_users = user_activity.check_users(
+            needinfo_requestees | triage_owners, ignore_bots=True
+        )
 
         inactive_requestee_bugs = {
             bugid
@@ -153,7 +155,6 @@ class InactiveNeedinfoPending(BzCleaner):
         if (
             len(bug["needinfo_flags"]) == 1
             and bug["type"] == "defect"
-            and bug["severity"] in ("--", "normal", "minor", "trivial")
             and inactive_ni[0]["requestee"] == bug["creator"]
             and not inactive_ni[0]["requestee_canconfirm"]
             and not any(

@@ -3,7 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import re
-from typing import Dict
+from typing import Dict, List
 
 import requests
 from libmozdata import utils as lmdutils
@@ -50,7 +50,12 @@ def is_ignorable_path(path: str) -> bool:
 
 
 class BisectionWithoutRegressedBy(BzCleaner):
-    def __init__(self, max_ni: int = 3, oldest_comment_weeks: int = 26) -> None:
+    def __init__(
+        self,
+        max_ni: int = 3,
+        oldest_comment_weeks: int = 26,
+        components_skiplist: List[str] = ["Testing::mozregression"],
+    ) -> None:
         """Constructor
 
         Args:
@@ -58,21 +63,31 @@ class BisectionWithoutRegressedBy(BzCleaner):
                 number of authors exceeds the limit no one will be needinfo'ed.
             oldest_comment_weeks: the number of weeks to look back. We will
                 consider only comments posted in this period.
+            components_skiplist: product/components to skip.
         """
         super().__init__()
         self.people = People.get_instance()
         self.autofix_regressed_by: Dict[str, str] = {}
         self.max_ni = max_ni
         self.oldest_comment_date = lmdutils.get_date("today", oldest_comment_weeks * 7)
+        self.components_skiplist = components_skiplist
 
     def description(self):
         return "Bugs with a bisection analysis and without regressed_by"
 
+    def has_product_component(self):
+        return True
+
     def handle_bug(self, bug, data):
+        # check if the product::component is in the list
+        if utils.check_product_component(self.components_skiplist, bug):
+            return None
+
         bugid = str(bug["id"])
         data[bugid] = {
             "assigned_to": bug["assigned_to"],
             "creation_time": bug["creation_time"],
+            "is_open": bug["is_open"],
         }
         return bug
 
@@ -99,6 +114,7 @@ class BisectionWithoutRegressedBy(BzCleaner):
                     nicknames=utils.english_list(nicknames),
                     authors_count=len(nicknames),
                     is_assignee=not utils.is_no_assignee(bug["assigned_to"]),
+                    is_open=bug["is_open"],
                     comment_number=comment_number,
                     pushlog_source=pushlog_source,
                     plural=utils.plural,
@@ -135,7 +151,7 @@ class BisectionWithoutRegressedBy(BzCleaner):
 
     def get_bz_params(self, date):
         return {
-            "include_fields": ["assigned_to", "creation_time"],
+            "include_fields": ["assigned_to", "creation_time", "is_open"],
             "f1": "regressed_by",
             "o1": "isempty",
             "n2": 1,

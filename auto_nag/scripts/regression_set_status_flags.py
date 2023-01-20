@@ -79,6 +79,24 @@ class RegressionSetStatusFlags(BzCleaner):
 
         return data
 
+    @staticmethod
+    def _is_latest_status_flag_wontfix(bug: dict) -> bool:
+        """Check if the latest status flag is wontfix or fix-optional."""
+        versions_status = sorted(
+            (int(flag[len("cf_status_firefox") :]), status)
+            for flag, status in bug.items()
+            if status != "---"
+            and flag.startswith("cf_status_firefox")
+            and "esr" not in flag
+        )
+
+        if not versions_status:
+            return False
+
+        status = versions_status[-1][1]
+
+        return status in ("wontfix", "fix-optional")
+
     def get_status_changes(self, bugs):
         bugids = {info["regressed_by"] for info in bugs.values()}
         if not bugids:
@@ -121,6 +139,10 @@ class RegressionSetStatusFlags(BzCleaner):
                 else None
             )
 
+            # If the latest status flag is wontfix or fix-optional, we ignore
+            # setting flags with the status "affected".
+            is_latest_wontfix = self._is_latest_status_flag_wontfix(info)
+
             self.status_changes[bugid] = {}
             for channel in ("release", "beta", "central"):
                 v = int(self.versions[channel])
@@ -133,6 +155,8 @@ class RegressionSetStatusFlags(BzCleaner):
                     # Bug was fixed in an earlier version, don't set the flag
                     continue
                 if v >= regressed_version:
+                    if is_latest_wontfix:
+                        continue
                     self.status_changes[bugid][flag] = "affected"
                     info[channel] = "affected"
                 else:
@@ -144,6 +168,9 @@ class RegressionSetStatusFlags(BzCleaner):
             for v in esr_versions:
                 info.setdefault("esr", {})
                 flag = utils.get_flag(v, "status", "esr")
+                if flag not in info:
+                    info["esr"][f"esr{v}"] = "n/a"
+                    continue
                 info["esr"][f"esr{v}"] = info[flag]
                 if info[flag] != "---":
                     # XXX maybe check for consistency?
@@ -153,10 +180,14 @@ class RegressionSetStatusFlags(BzCleaner):
                     continue
                 if data[regressor].get(flag) in ("fixed", "verified"):
                     # regressor was uplifted, so the regression affects this branch
+                    if is_latest_wontfix:
+                        continue
                     self.status_changes[bugid][flag] = "affected"
                     info["esr"][f"esr{v}"] = "affected"
                 elif int(v) >= regressed_version:
                     # regression from before this branch, also affected
+                    if is_latest_wontfix:
+                        continue
                     self.status_changes[bugid][flag] = "affected"
                     info["esr"][f"esr{v}"] = "affected"
                 else:

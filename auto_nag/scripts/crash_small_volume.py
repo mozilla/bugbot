@@ -2,6 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from typing import Dict
+
+from libmozdata import utils as lmdutils
+
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.constants import HIGH_SEVERITY
@@ -12,12 +16,22 @@ MAX_SIGNATURES_PER_QUERY = 30
 
 
 class CrashSmallVolume(BzCleaner):
-    def __init__(self, min_crash_volume: int = 5):
+    def __init__(
+        self,
+        min_crash_volume: int = 15,
+        oldest_severity_change_days: int = 30,
+        oldest_topcrash_added_days: int = 21,
+    ):
         """Constructor.
 
         Args:
             min_crash_volume: the minimum number of crashes per week for a
                 signature to not be considered low volume.
+            oldest_severity_change_days: if the bug severity has been changed by
+                a human or autonag in the last X days, we will not downgrade the
+                severity to `S3`.
+            oldest_topcrash_added_days: if the bug has been marked as topcrash
+                in the last X days, we will ignore it.
         """
         super().__init__()
 
@@ -25,8 +39,18 @@ class CrashSmallVolume(BzCleaner):
         topcrash = Topcrash(
             criteria=self._adjust_topcrash_criteria(TOP_CRASH_IDENTIFICATION_CRITERIA)
         )
+        assert (
+            topcrash.min_crashes >= min_crash_volume
+        ), "min_crash_volume should not be higher than the min_crashes used for the topcrash criteria"
+
         self.topcrash_signatures = topcrash.get_signatures()
         self.blocked_signatures = topcrash.get_blocked_signatures()
+        self.oldest_severity_change_date = lmdutils.get_date(
+            "today", oldest_severity_change_days
+        )
+        self.oldest_topcrash_added_date = lmdutils.get_date(
+            "today", oldest_topcrash_added_days
+        )
 
     def description(self):
         return "Bugs with small crash volume"
@@ -54,6 +78,9 @@ class CrashSmallVolume(BzCleaner):
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
+
+        if self._is_topcrash_recently_added(bug):
+            return None
 
         signatures = utils.get_signatures(bug["cf_crash_signature"])
 
@@ -89,6 +116,8 @@ class CrashSmallVolume(BzCleaner):
                 bug["severity"] not in HIGH_SEVERITY
                 or bug["groups"] == "security"
                 or any(keyword.startswith("sec-") for keyword in bug["keywords"])
+                or "[fuzzblocker]" in bug["whiteboard"]
+                or self._is_severity_recently_changed_by_human_or_autonag(bug)
                 or self._has_severity_downgrade_comment(bug)
             ),
             "keywords_to_remove": keywords_to_remove,
@@ -97,13 +126,20 @@ class CrashSmallVolume(BzCleaner):
 
         return bug
 
-    def _get_low_volume_crash_signatures(self, bugs):
+    def _get_low_volume_crash_signatures(self, bugs: Dict[str, dict]) -> set:
+        """From the provided bugs, return the list of signatures that have a
+        low crash volume.
+        """
+
         signatures = {
             signature
             for bug in bugs.values()
             if not bug["ignore_severity"]
             for signature in bug["signatures"]
         }
+
+        if not signatures:
+            return set()
 
         signature_volume = Topcrash().fetch_signature_volume(signatures)
 
@@ -115,7 +151,7 @@ class CrashSmallVolume(BzCleaner):
 
         return low_volume_signatures
 
-    def get_bugs(self, date="today", bug_ids=..., chunk_size=None):
+    def get_bugs(self, date="today", bug_ids=[], chunk_size=None):
         bugs = super().get_bugs(date, bug_ids, chunk_size)
         self.set_autofix(bugs)
 
@@ -176,13 +212,45 @@ class CrashSmallVolume(BzCleaner):
                 return True
         return False
 
+    def _is_topcrash_recently_added(self, bug: dict):
+        """Return True if the topcrash keyword was added recently."""
+
+        for entry in reversed(bug["history"]):
+            if entry["when"] < self.oldest_topcrash_added_date:
+                break
+
+            for change in entry["changes"]:
+                if change["field_name"] == "keywords" and "topcrash" in change["added"]:
+                    return True
+
+        return False
+
+    def _is_severity_recently_changed_by_human_or_autonag(self, bug):
+        for entry in reversed(bug["history"]):
+            if entry["when"] < self.oldest_severity_change_date:
+                break
+
+            # We ignore bot changes except for autonag
+            if utils.is_bot_email(entry["who"]) and entry["who"] not in (
+                "autonag-nomail-bot@mozilla.tld",
+                "release-mgmt-account-bot@mozilla.tld",
+            ):
+                continue
+
+            if any(change["field_name"] == "severity" for change in entry["changes"]):
+                return True
+
+        return False
+
     def get_bz_params(self, date):
         fields = [
             "severity",
             "keywords",
+            "whiteboard",
             "cf_crash_signature",
             "comments.raw_text",
             "comments.creator",
+            "history",
         ]
         params = {
             "include_fields": fields,
@@ -197,10 +265,6 @@ class CrashSmallVolume(BzCleaner):
             "f4": "bug_severity",
             "o4": "anyexact",
             "v4": list(HIGH_SEVERITY),
-            "n5": "1",
-            "f5": "bug_severity",
-            "o5": "changedafter",
-            "v5": "-30d",
             "f6": "cf_crash_signature",
             "o6": "isnotempty",
             "f7": "CP",

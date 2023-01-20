@@ -48,14 +48,17 @@ class SpamBug(BzCleaner):
 
         return {
             "include_fields": ["id", "groups", "summary", "creator"],
-            # Ignore closed bugs.
-            "bug_status": "__open__",
+            "bug_status": "UNCONFIRMED",
             "f1": "reporter",
             "v1": "%group.editbugs%",
             "o1": "notsubstring",
             "f2": "creation_ts",
             "o2": "greaterthan",
             "v2": start_date,
+            "n3": 1,
+            "f3": "product",
+            "o3": "changedfrom",
+            "v3": "Invalid Bugs",
         }
 
     def get_bugs(self, date="today", bug_ids=[]):

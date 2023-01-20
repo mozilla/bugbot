@@ -4,7 +4,7 @@
 
 from datetime import timedelta
 from enum import Enum, auto
-from typing import List
+from typing import List, Optional
 
 from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import BugzillaUser
@@ -68,6 +68,7 @@ class UserActivity:
         ).timestamp()
 
         self.activity_limit = lmdutils.get_date("today", self.activity_weeks_count * 7)
+        self.activity_limit_ts = lmdutils.get_date_ymd(self.activity_limit).timestamp()
         self.seen_limit = lmdutils.get_date("today", self.absent_weeks_count * 7)
 
     def _get_phab(self):
@@ -76,13 +77,20 @@ class UserActivity:
 
         return self.phab
 
-    def check_users(self, user_emails: List[str], keep_active: bool = False) -> dict:
+    def check_users(
+        self,
+        user_emails: List[str],
+        keep_active: bool = False,
+        ignore_bots: bool = False,
+    ) -> dict:
         """Check user activity using their emails
 
         Args:
             user_emails: the email addresses of the users.
             keep_active: whether the returned results should include the active
                 users.
+            ignore_bots: whether the returned results should include bot and
+            component-watching accounts.
 
         Returns:
             A dictionary where the key is the user email and the value is the
@@ -99,6 +107,7 @@ class UserActivity:
                 "is_employee": self.people.is_mozilla(user_email),
             }
             for user_email in user_emails
+            if not ignore_bots or not utils.is_bot_email(user_email)
         }
 
         # Employees will always be considered active
@@ -122,9 +131,14 @@ class UserActivity:
 
         return user_statuses
 
-    def _get_status_from_bz_user(self, user: dict) -> UserStatus:
+    def get_status_from_bz_user(self, user: dict) -> UserStatus:
+        """Get the user status from a Bugzilla user object."""
+
         if not user["can_login"]:
             return UserStatus.DISABLED
+
+        if user["creation_time"] > self.seen_limit:
+            return UserStatus.ACTIVE
 
         if user["last_seen_date"] is None or user["last_seen_date"] < self.seen_limit:
             return UserStatus.ABSENT
@@ -154,7 +168,7 @@ class UserActivity:
         """
 
         def handler(user, data):
-            status = self._get_status_from_bz_user(user)
+            status = self.get_status_from_bz_user(user)
             if keep_active or status != UserStatus.ACTIVE:
                 user["status"] = status
                 data[user["name"]] = user
@@ -169,13 +183,14 @@ class UserActivity:
                 "can_login",
                 "last_activity_time",
                 "last_seen_date",
+                "creation_time",
             ]
             + self.include_fields,
         ).wait()
 
         return users
 
-    def _get_status_from_phab_user(self, user: dict) -> UserStatus:
+    def _get_status_from_phab_user(self, user: dict) -> Optional[UserStatus]:
         if "disabled" in user["fields"]["roles"]:
             return UserStatus.DISABLED
 
@@ -189,7 +204,7 @@ class UserActivity:
             ):
                 return UserStatus.UNAVAILABLE
 
-        return UserStatus.ACTIVE
+        return None
 
     def get_phab_users_with_status(
         self, user_phids: List[str], keep_active: bool = False
@@ -226,8 +241,15 @@ class UserActivity:
         for _user_phids in Connection.chunks(user_phids, PHAB_CHUNK_SIZE):
             for phab_user in self._fetch_phab_users(_user_phids):
                 user = users[phab_user["phid"]]
-                if user["status"] == UserStatus.ACTIVE:
-                    user["status"] = self._get_status_from_phab_user(phab_user)
+                phab_status = self._get_status_from_phab_user(phab_user)
+                if phab_status:
+                    user["status"] = phab_status
+
+                elif user["status"] in (
+                    UserStatus.ABSENT,
+                    UserStatus.INACTIVE,
+                ) and self.is_active_on_phab(phab_user["phid"]):
+                    user["status"] = UserStatus.ACTIVE
 
                 if not keep_active and user["status"] == UserStatus.ACTIVE:
                     del users[phab_user["phid"]]
@@ -239,6 +261,27 @@ class UserActivity:
                 ]
 
         return users
+
+    def is_active_on_phab(self, user_phid: str) -> bool:
+        """Check if the user has recent activities on Phabricator.
+
+        Args:
+            user_phid: The user PHID.
+
+        Returns:
+            True if the user is active on Phabricator, False otherwise.
+        """
+
+        feed = self._get_phab().request(
+            "feed.query",
+            filterPHIDs=[user_phid],
+            limit=1,
+        )
+        for story in feed.values():
+            if story["epoch"] >= self.activity_limit_ts:
+                return True
+
+        return False
 
     def get_string_status(self, status: UserStatus):
         """Get a string representation of the user status."""
