@@ -21,8 +21,10 @@ class CheckWikiPage:
     tools_path = "auto_nag/scripts/"
 
     deleted_tools = {
-        "fuzzing_bisection_without_regressed_by.py"  # replaced with `bisection_without_regressed_by.py`
-        "severity_tracked.py"  # dropped in favor of `tracked_attention.py`
+        "fuzzing_bisection_without_regressed_by.py",  # replaced with `bisection_without_regressed_by.py`
+        "severity_tracked.py",  # dropped in favor of `tracked_attention.py`
+        "tracked_bad_severity.py",  # dropped in favor of `tracked_attention.py`
+        "newbie_with_ni.py",
     }
 
     skipped_tools = {
