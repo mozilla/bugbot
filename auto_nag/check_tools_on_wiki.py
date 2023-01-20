@@ -26,6 +26,24 @@ class CheckWikiPage:
     }
 
     skipped_tools = {
+        # Disabled tools:
+        "workflow/p1.py",
+        "workflow/p2.py",
+        "workflow/p2_no_activity.py",
+        "workflow/p3_p4_p5.py",
+        # Temporary scripts:
+        "survey_sec_bugs.py",  # not running by cron
+        "severity_migration.py",
+        # None user-facing tools:
+        "stepstoreproduce.py",  # the autofix is currently disabled
+        "triage_owner_rotations.py",
+        "triage_rotations_outdated.py",
+        "vacant_team_manager.py",
+        "defect_with_please_or_enable.py",
+        "missed_landing_comment.py",
+        "meta_defect.py",
+        "feature_but_type_defect.py",
+        "workflow/multi_nag.py",
         "multi_nag.py",
         "multifix_regression.py",
         "several_dups.py",
@@ -33,6 +51,7 @@ class CheckWikiPage:
         "lot_of_cc.py",
         "pdfjs_tag_change.py",
         "pdfjs_update.py",
+        "leave_open_sec.py",
     }
 
     def __init__(self) -> None:
