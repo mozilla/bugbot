@@ -34,3 +34,15 @@ error = logging.FileHandler(path)
 error.setLevel(logging.ERROR)
 error.setFormatter(formatter)
 logger.addHandler(error)
+
+
+def _handle_uncaught_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+    else:
+        logger.critical(
+            "Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback)
+        )
+
+
+sys.excepthook = _handle_uncaught_exception
