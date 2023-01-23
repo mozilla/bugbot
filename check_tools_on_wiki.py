@@ -7,8 +7,7 @@ import os
 import re
 from os import path
 from typing import Optional
-
-import requests
+from urllib.request import Request, urlopen
 
 
 class CheckWikiPage:
@@ -62,11 +61,12 @@ class CheckWikiPage:
 
     def get_tools_on_wiki_page(self) -> set:
         """Get the list of tools on the wiki page."""
-        resp = requests.get(self.wiki_page_url)
-        resp.raise_for_status()
+        req = Request(self.wiki_page_url)
+        with urlopen(req) as resp:
+            wiki_page_content = resp.read().decode("utf-8")
 
         pat = re.compile(rf"""['"]{re.escape(self.github_tree_address)}(.*)['"]""")
-        tools = pat.findall(resp.text)
+        tools = pat.findall(wiki_page_content)
 
         if not tools:
             raise Exception(f"No tools found on the wiki page {self.wiki_page_url}")
