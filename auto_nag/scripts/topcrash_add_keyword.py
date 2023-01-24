@@ -138,7 +138,7 @@ class TopcrashAddKeyword(BzCleaner):
 
         introduction = (
             (
-                "Sorry for removing earlier but there is a recent "
+                "Sorry for removing the keyword earlier but there is a recent "
                 "change in the ranking, so the bug is again linked to "
                 if is_keywords_removed
                 else "The bug is linked to "
