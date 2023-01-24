@@ -23,8 +23,12 @@ from libmozdata.bugzilla import Bugzilla, BugzillaShorten
 from libmozdata.hgmozilla import Mercurial
 from requests.exceptions import HTTPError
 
-from auto_nag.constants import HIGH_PRIORITY, HIGH_SEVERITY, OLD_SEVERITY_MAP
-from auto_nag.history import History
+from auto_nag.constants import (
+    BOT_MAIN_ACCOUNT,
+    HIGH_PRIORITY,
+    HIGH_SEVERITY,
+    OLD_SEVERITY_MAP,
+)
 
 _CONFIG = None
 _CYCLE_SPAN = None
@@ -763,7 +767,7 @@ def is_keywords_removed_by_autonag(bug: dict, keywords: Iterable) -> bool:
     return any(
         keyword in change["removed"]
         for entry in bug["history"]
-        if entry["who"] == History.BOT
+        if entry["who"] == BOT_MAIN_ACCOUNT
         for change in entry["changes"]
         if change["field_name"] == "keywords"
         for keyword in keywords
