@@ -30,7 +30,11 @@ class MultiFixRegressed(MultiAutoFixers):
 
     @staticmethod
     def __merge_comment(tools: ToolsChanges) -> dict:
-        if tools.keys() == {RegressionSetStatusFlags, NeedinfoRegressionAuthor}:
+        if tools.keys() == {
+            RegressionSetStatusFlags,
+            NeedinfoRegressionAuthor,
+            RegressionButEnhancementTask,
+        }:
             return {
                 "body": "\n\n".join(
                     [
