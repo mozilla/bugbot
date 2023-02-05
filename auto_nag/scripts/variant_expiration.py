@@ -35,7 +35,7 @@ This bug will be closed automatically once the variant is dropped or the expirat
 
 More information about variants can be found on [Firefox Source Docs](https://firefox-source-docs.mozilla.org/taskcluster/kinds/test.html#variants).
 
-_Note: please do not edit the bug summery or close the bug, it could break the automation._
+_Note: please do not edit the bug summary or close the bug, it could break the automation._
 """
 
 EXPIRED_VARIANT_COMMENT = f"""
