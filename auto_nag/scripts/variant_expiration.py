@@ -183,8 +183,9 @@ class VariantExpiration(BzCleaner, Nag):
                     bug = utils.create_bug(new_bug)
                 except HTTPError as error:
                     logger.error(
-                        "Failed to create a bug for the variant `%s`",
+                        "Failed to create a bug for the variant `%s`:\n%s",
                         variant_name,
+                        error.response.text,
                         exc_info=error,
                     )
                     continue
