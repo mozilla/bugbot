@@ -169,6 +169,7 @@ class VariantExpiration(BzCleaner, Nag):
                 "see_also": self.get_related_bug_ids(variant_name),
                 "cc": self.cc_on_bugs,
                 "description": BUG_DESCRIPTION,
+                "version": "unspecified",
             }
 
             if self.dryrun or self.test_mode:
