@@ -28,7 +28,7 @@ class UnexpectedToolsError(Exception):
     def __str__(self):
         return (
             "Error: merge function does not support merge fields "
-            f"from '{utils.english_list(self.tools)}'"
+            f"from '{utils.english_list([tool.__name__ for tool in self.tools])}'"
         )
 
 
