@@ -9,6 +9,7 @@ from libmozdata.bugzilla import Bugzilla
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.history import History
+from auto_nag.webcompat_priority import WebcompatPriority
 
 FIELD_NAME_TO_LABEL = {
     "keywords": "Keywords",
@@ -17,6 +18,7 @@ FIELD_NAME_TO_LABEL = {
     "cf_performance_impact": "Performance Impact",
     "regressed_by": "Regressed by",
     "status": "Status",
+    "cf_webcompat_priority": "Webcompat Priority",
 }
 
 FIELD_LABEL_TO_NAME = {label: name for name, label in FIELD_NAME_TO_LABEL.items()}
@@ -52,6 +54,7 @@ class DuplicateCopyMetadata(BzCleaner):
                 "status",
                 "regressed_by",
                 "is_open",
+                "cf_webcompat_priority",
             ],
             bughandler=self.handle_bug,
             bugdata=original_bugs,
@@ -115,6 +118,39 @@ class DuplicateCopyMetadata(BzCleaner):
                         }
                     elif new_access_tag == copied_fields["whiteboard"]["value"]:
                         copied_fields["whiteboard"]["from"].append(dup_bug["id"])
+
+                # Webcompat Priority: copy the `cf_webcompat_priority` from duplicates
+                if (
+                    bug.get("cf_webcompat_priority") == "---"
+                    and dup_bug.get("cf_webcompat_priority")
+                    in WebcompatPriority.NOT_EMPTY_VALUES
+                ):
+                    new_priority = dup_bug["cf_webcompat_priority"]
+
+                    # Since the bug do not have a priority, it does not make
+                    # sense to set it to `revisit`. Instead, we set it to `?` to
+                    # request triage.
+                    if new_priority == "revisit":
+                        new_priority = "?"
+
+                    if (
+                        "cf_webcompat_priority" not in copied_fields
+                        or WebcompatPriority(new_priority)
+                        > WebcompatPriority(
+                            copied_fields["cf_webcompat_priority"]["value"]
+                        )
+                    ):
+                        copied_fields["cf_webcompat_priority"] = {
+                            "from": [dup_bug["id"]],
+                            "value": new_priority,
+                        }
+                    elif (
+                        new_priority == copied_fields["cf_webcompat_priority"]["value"]
+                    ):
+                        copied_fields["cf_webcompat_priority"]["from"].append(
+                            dup_bug["id"]
+                        )
+
                 # Status: confirm the bug if the duplicate was confirmed
                 if bug["status"] == "UNCONFIRMED" and self.was_confirmed(dup_bug):
                     if "status" not in copied_fields:
@@ -198,6 +234,8 @@ class DuplicateCopyMetadata(BzCleaner):
                 autofix["whiteboard"] = bug["whiteboard"] + value
             elif field == "cf_performance_impact":
                 autofix["cf_performance_impact"] = value
+            elif field == "cf_webcompat_priority":
+                autofix["cf_webcompat_priority"] = value
             elif field == "status":
                 autofix["status"] = value
             elif field == "regressed_by":
@@ -306,6 +344,7 @@ class DuplicateCopyMetadata(BzCleaner):
             "cf_performance_impact",
             "dupe_of",
             "regressed_by",
+            "cf_webcompat_priority",
         ]
 
         params = {
@@ -318,6 +357,7 @@ class DuplicateCopyMetadata(BzCleaner):
                 "status_whiteboard",
                 "cf_performance_impact",
                 "regressed_by",
+                "cf_webcompat_priority",
             ],
         }
 
