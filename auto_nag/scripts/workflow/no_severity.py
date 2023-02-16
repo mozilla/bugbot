@@ -135,6 +135,11 @@ class NoSeverity(BzCleaner, Nag):
             "f33": "bug_severity",
             "o33": "anyexact",
             "v33": "--, n/a",
+            # This is temporary, it should be removed, see: https://github.com/mozilla/relman-auto-nag/issues/1889
+            "n34": "1",
+            "f34": "longdesc",
+            "o34": "substring",
+            "v34": "Change performed by the [Move to Bugzilla add-on](https://addons.mozilla.org/en-US/firefox/addon/move-to-bugzilla/).",
         }
         self.date = lmdutils.get_date_ymd(date)
         first = f"-{self.lookup_first * 7}d"
