@@ -5,6 +5,7 @@
 import itertools
 import re
 from collections import defaultdict
+from typing import Dict, Iterable
 
 from libmozdata.bugzilla import Bugzilla
 from libmozdata.connection import Connection
@@ -12,12 +13,17 @@ from libmozdata.connection import Connection
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 from auto_nag.constants import HIGH_SEVERITY
-from auto_nag.topcrash import Topcrash
+from auto_nag.topcrash import TOP_CRASH_IDENTIFICATION_CRITERIA, Topcrash
 
 MAX_SIGNATURES_PER_QUERY = 30
 
 
 class TopcrashAddKeyword(BzCleaner):
+    def __init__(self):
+        super().__init__()
+        self.topcrashes = None
+        self.topcrashes_restrictive = None
+
     def description(self):
         return "Bugs with missing topcrash keywords"
 
@@ -62,12 +68,20 @@ class TopcrashAddKeyword(BzCleaner):
         if not keywords_to_add:
             return
 
+        is_keywords_removed = utils.is_keywords_removed_by_autonag(bug, keywords_to_add)
+        if is_keywords_removed and not self._is_matching_restrictive_criteria(
+            top_crash_signatures
+        ):
+            return
+
         autofix = {
             "keywords": {
                 "add": list(keywords_to_add),
             },
             "comment": {
-                "body": self.get_matching_criteria_comment(top_crash_signatures),
+                "body": self.get_matching_criteria_comment(
+                    top_crash_signatures, is_keywords_removed
+                ),
             },
         }
 
@@ -76,6 +90,7 @@ class TopcrashAddKeyword(BzCleaner):
             ni_person
             and bug["severity"] not in HIGH_SEVERITY
             and "meta" not in bug["keywords"]
+            and not is_keywords_removed
         ):
             autofix["flags"] = [
                 {
@@ -100,8 +115,21 @@ class TopcrashAddKeyword(BzCleaner):
 
         return bug
 
-    def get_matching_criteria_comment(self, signatures):
-        matching_criteria = defaultdict(bool)
+    def get_matching_criteria_comment(
+        self,
+        signatures: list,
+        is_keywords_removed: bool,
+    ) -> str:
+        """Generate a comment with the matching criteria for the given signatures.
+
+        Args:
+            signatures: The list of signatures to generate the comment for.
+            is_keywords_removed: Whether the topcrash keywords was removed earlier.
+
+        Returns:
+            The comment for the matching criteria.
+        """
+        matching_criteria: Dict[str, bool] = defaultdict(bool)
         for signature in signatures:
             for criterion in self.topcrashes[signature]:
                 matching_criteria[criterion["criterion_name"]] |= criterion[
@@ -109,7 +137,12 @@ class TopcrashAddKeyword(BzCleaner):
                 ]
 
         introduction = (
-            "The bug is linked to ",
+            (
+                "Sorry for removing the keyword earlier but there is a recent "
+                "change in the ranking, so the bug is again linked to "
+                if is_keywords_removed
+                else "The bug is linked to "
+            ),
             (
                 "a topcrash signature, which matches "
                 if len(signatures) == 1
@@ -148,6 +181,30 @@ class TopcrashAddKeyword(BzCleaner):
 
         return bugs
 
+    def _is_matching_restrictive_criteria(self, signatures: Iterable) -> bool:
+        topcrashes = self._get_restrictive_topcrash_signatures()
+        return any(signature in topcrashes for signature in signatures)
+
+    def _get_restrictive_topcrash_signatures(self) -> dict:
+        if self.topcrashes_restrictive is None:
+            restrictive_criteria = []
+            for criterion in TOP_CRASH_IDENTIFICATION_CRITERIA:
+                restrictive_criterion = {
+                    **criterion,
+                    "tc_limit": criterion["tc_limit"] // 2,
+                }
+
+                if "tc_limit_startup" in criterion:
+                    restrictive_criterion["tc_limit_startup"] //= 2
+
+                restrictive_criteria.append(restrictive_criterion)
+
+            self.topcrashes_restrictive = Topcrash(
+                criteria=restrictive_criteria
+            ).get_signatures()
+
+        return self.topcrashes_restrictive
+
     def get_bz_params_list(self, date):
         self.topcrashes = Topcrash(date).get_signatures()
 
@@ -157,6 +214,7 @@ class TopcrashAddKeyword(BzCleaner):
             "severity",
             "keywords",
             "cf_crash_signature",
+            "history",
         ]
         params_base = {
             "include_fields": fields,

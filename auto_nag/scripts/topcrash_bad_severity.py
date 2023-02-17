@@ -33,6 +33,10 @@ class TopcrashBadSeverity(BzCleaner):
         self.extra_ni[bugid] = {
             "severity": bug["severity"],
         }
+
+        if utils.is_keywords_removed_by_autonag(bug, ["topcrash", "topcrash-startup"]):
+            return None
+
         return bug
 
     def get_extra_for_needinfo_template(self):

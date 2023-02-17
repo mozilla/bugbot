@@ -8,7 +8,7 @@ import json
 import os
 import random
 import re
-from typing import Union
+from typing import Iterable, Union
 from urllib.parse import urlencode
 
 import dateutil.parser
@@ -23,7 +23,12 @@ from libmozdata.bugzilla import Bugzilla, BugzillaShorten
 from libmozdata.hgmozilla import Mercurial
 from requests.exceptions import HTTPError
 
-from auto_nag.constants import HIGH_PRIORITY, HIGH_SEVERITY, OLD_SEVERITY_MAP
+from auto_nag.constants import (
+    BOT_MAIN_ACCOUNT,
+    HIGH_PRIORITY,
+    HIGH_SEVERITY,
+    OLD_SEVERITY_MAP,
+)
 
 _CONFIG = None
 _CYCLE_SPAN = None
@@ -747,3 +752,23 @@ def create_bug(bug_data: dict) -> dict:
     )
     resp.raise_for_status()
     return resp.json()
+
+
+def is_keywords_removed_by_autonag(bug: dict, keywords: Iterable) -> bool:
+    """Check if the bug had any of the provided keywords removed by autonag.
+
+    Args:
+        bug: The bug to check.
+        keywords: The keywords to check.
+
+    Returns:
+        True if any of the keywords was removed by autonag, False otherwise.
+    """
+    return any(
+        keyword in change["removed"]
+        for entry in bug["history"]
+        if entry["who"] == BOT_MAIN_ACCOUNT
+        for change in entry["changes"]
+        if change["field_name"] == "keywords"
+        for keyword in keywords
+    )
