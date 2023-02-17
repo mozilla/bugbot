@@ -127,7 +127,7 @@ class DuplicateCopyMetadata(BzCleaner):
                 ):
                     new_priority = dup_bug["cf_webcompat_priority"]
 
-                    # Since the bug do not have a priority, it does not make
+                    # Since the bug does not have a priority, it does not make
                     # sense to set it to `revisit`. Instead, we set it to `?` to
                     # request triage.
                     if new_priority == "revisit":
