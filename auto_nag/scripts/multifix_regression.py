@@ -34,6 +34,9 @@ class MultiFixRegressed(MultiAutoFixers):
             RegressionButEnhancementTask,  # we can ignore the comment from this tool
         }
 
+        if len(tools_to_merge) == 1:
+            return tools[next(iter(tools_to_merge))]["comment"]
+
         if tools_to_merge == {
             RegressionSetStatusFlags,
             NeedinfoRegressionAuthor,
@@ -47,7 +50,7 @@ class MultiFixRegressed(MultiAutoFixers):
                 ),
             }
 
-        raise UnexpectedToolsError(list(tools))
+        raise UnexpectedToolsError(tools_to_merge)
 
     @staticmethod
     def __merge_keywords(tools: ToolsChanges) -> dict:

@@ -4,7 +4,7 @@
 
 import argparse
 from collections import ChainMap, defaultdict
-from typing import Any, Callable, Counter, Dict, List, Type
+from typing import Any, Callable, Counter, Dict, Iterable, Type
 
 from auto_nag import logger, utils
 from auto_nag.bzcleaner import BzCleaner
@@ -16,7 +16,7 @@ ToolsChanges = Dict[Type[BzCleaner], Any]
 class UnexpectedToolsError(Exception):
     """Unexpected tools appear in merge function"""
 
-    def __init__(self, tools: List[Type[BzCleaner]]) -> None:
+    def __init__(self, tools: Iterable[Type[BzCleaner]]) -> None:
         """Constructor
 
         Args:
