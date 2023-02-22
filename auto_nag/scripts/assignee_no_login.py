@@ -132,6 +132,7 @@ class AssigneeNoLogin(BzCleaner):
             "triage_owner_nick": bug["triage_owner_detail"]["nick"],
             "priority": bug["priority"],
             "severity": bug["severity"],
+            "keywords": bug["keywords"],
         }
 
         return bug
