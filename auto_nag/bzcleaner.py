@@ -686,7 +686,7 @@ class BzCleaner(object):
 
         return self.organize(bugs)
 
-    def get_email(self, date: str, data: dict, preamble: str = None):
+    def get_email(self, date: str, data: dict, preamble: str = ""):
         """Get title and body for the email"""
         assert data, "No data to send"
 
