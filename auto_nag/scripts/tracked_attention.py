@@ -6,7 +6,7 @@ from typing import Optional
 
 import humanize
 from libmozdata import utils as lmdutils
-from libmozdata.release_calendar import get_calendar
+from libmozdata.fx_trains import FirefoxTrains
 
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
@@ -41,7 +41,8 @@ class TrackedAttention(BzCleaner):
 
         self.team_managers = TeamManagers()
 
-        soft_freeze_date = get_calendar()[0]["soft freeze"]
+        schedule = FirefoxTrains().get_release_schedule("nightly")
+        soft_freeze_date = lmdutils.get_date_ymd(schedule["soft_code_freeze"])
         today = lmdutils.get_date_ymd("today")
         soft_freeze_delta = soft_freeze_date - today
         assert soft_freeze_delta.days >= 0
