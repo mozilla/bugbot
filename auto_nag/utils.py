@@ -20,6 +20,7 @@ from libmozdata import release_calendar as rc
 from libmozdata import utils as lmdutils
 from libmozdata import versions as lmdversions
 from libmozdata.bugzilla import Bugzilla, BugzillaShorten
+from libmozdata.fx_trains import FirefoxTrains
 from libmozdata.hgmozilla import Mercurial
 from requests.exceptions import HTTPError
 
@@ -200,37 +201,18 @@ def shorten_long_bz_url(url):
     return data["url"]
 
 
-def search_prev_merge(beta):
-    tables = rc.get_all()
-
-    # the first table is the future and the second is the recent past
-    table = tables[1]
-    central = table[0].index("Central")
-    central = rc.get_versions(table[1][central])[0][0]
-
-    # just check consistency
-    assert beta == central
-
-    merge = table[0].index("Merge Date")
-
-    return lmdutils.get_date_ymd(table[1][merge])
-
-
-def get_cycle_span():
+def get_cycle_span() -> str:
+    """Return the cycle span in the format YYYYMMDD-YYYYMMDD"""
     global _CYCLE_SPAN
     if _CYCLE_SPAN is None:
-        cal = get_release_calendar()
+        schedule = FirefoxTrains().get_release_schedule("nightly")
+        start = lmdutils.get_date_ymd(schedule["nightly_start"])
+        end = lmdutils.get_date_ymd(schedule["merge_day"])
+
         now = lmdutils.get_date_ymd("today")
-        cycle = None
-        for i, c in enumerate(cal):
-            if now < c["merge"]:
-                if i == 0:
-                    cycle = [search_prev_merge(c["beta"]), c["merge"]]
-                else:
-                    cycle = [cal[i - 1]["merge"], c["merge"]]
-                break
-        if cycle:
-            _CYCLE_SPAN = "-".join(x.strftime("%Y%m%d") for x in cycle)
+        assert start <= now <= end
+
+        _CYCLE_SPAN = start.strftime("%Y%m%d") + "-" + end.strftime("%Y%m%d")
 
     return _CYCLE_SPAN
 
