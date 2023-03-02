@@ -229,19 +229,23 @@ def get_release_calendar():
     return rc.get_calendar()
 
 
-def get_merge_day():
-    global _MERGE_DAY
-    if _MERGE_DAY is None:
-        cal = get_release_calendar()
-        _MERGE_DAY = cal[0]["merge"]
-    return _MERGE_DAY
+def is_merge_day(date: datetime.datetime = None) -> bool:
+    """Check if the date is the merge day
 
+    Args:
+        date: the date to check. If None, the current date is used.
 
-def is_merge_day():
-    next_merge = get_merge_day()
-    today = lmdutils.get_date_ymd("today")
+    Returns:
+        True if the date is the merge day
+    """
+    if date is None:
+        date = lmdutils.get_date_ymd("today")
 
-    return next_merge == today
+    schedule = FirefoxTrains().get_release_schedule("nightly")
+    last_merge = lmdutils.get_date_ymd(schedule["nightly_start"])
+    next_merge = lmdutils.get_date_ymd(schedule["merge_day"])
+
+    return date in (next_merge, last_merge)
 
 
 def get_report_bugs(channel, op="+"):
