@@ -2,19 +2,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from libmozdata import release_calendar as rc
-
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
 
 
 class P2MergeDay(BzCleaner):
     def must_run(self, date):
-        cal = rc.get_calendar()
-        for c in cal:
-            if date == c["merge"]:
-                return True
-        return False
+        return utils.is_merge_day(date)
 
     def description(self):
         return "P2 bugs with an assignee on merge day"
