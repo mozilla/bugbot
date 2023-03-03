@@ -11,7 +11,7 @@ from libmozdata import hgmozilla
 from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import Bugzilla
 from libmozdata.connection import Query
-from libmozdata.release_calendar import get_calendar
+from libmozdata.fx_trains import FirefoxTrains
 
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
@@ -54,13 +54,12 @@ class CodeFreezeWeek(BzCleaner):
         return False
 
     def must_run(self, date):
-        for c in get_calendar():
-            # run from the soft freeze date until merge day
-            freeze = c["soft freeze"]
-            merge = c["merge"]
-            if freeze <= date < merge:
-                return True
-        return False
+        schedule = FirefoxTrains().get_release_schedule("nightly")
+        freeze = lmdutils.get_date_ymd(schedule["soft_code_freeze"])
+        merge = lmdutils.get_date_ymd(schedule["merge_day"])
+
+        # run from the soft freeze date until merge day
+        return freeze <= date < merge
 
     def has_product_component(self):
         return True
