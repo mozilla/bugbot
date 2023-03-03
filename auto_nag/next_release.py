@@ -8,6 +8,7 @@ import re
 import dateutil.parser
 import pytz
 import requests
+from libmozdata import release_calendar
 from libmozdata import release_owners as ro
 from libmozdata import utils as lmdutils
 
@@ -42,7 +43,7 @@ def check_dates(dryrun=False):
         #  - Release services people just changed the release date
         #  - something is wrong and we must nag
         now = lmdutils.get_date_ymd("today")
-        cal = utils.get_release_calendar()
+        cal = release_calendar.get_calendar()
         must_nag = True
         for i, c in enumerate(cal):
             if (

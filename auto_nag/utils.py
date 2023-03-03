@@ -16,7 +16,6 @@ import humanize
 import pytz
 import requests
 from dateutil.relativedelta import relativedelta
-from libmozdata import release_calendar as rc
 from libmozdata import utils as lmdutils
 from libmozdata import versions as lmdversions
 from libmozdata.bugzilla import Bugzilla, BugzillaShorten
@@ -223,10 +222,6 @@ def get_next_release_date() -> datetime.datetime:
     release_date = lmdutils.get_date_ymd(schedule["release"])
     release_date = release_date.replace(hour=0, minute=0, second=0, microsecond=0)
     return release_date
-
-
-def get_release_calendar():
-    return rc.get_calendar()
 
 
 def is_merge_day(date: datetime.datetime = None) -> bool:
