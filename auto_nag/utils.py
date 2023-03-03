@@ -217,8 +217,12 @@ def get_cycle_span() -> str:
     return _CYCLE_SPAN
 
 
-def get_next_release_date():
-    return rc.get_next_release_date()
+def get_next_release_date() -> datetime.datetime:
+    """Return the next release date"""
+    schedule = FirefoxTrains().get_release_schedule("beta")
+    release_date = lmdutils.get_date_ymd(schedule["release"])
+    release_date = release_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    return release_date
 
 
 def get_release_calendar():
