@@ -11,6 +11,9 @@ class MovedToPerformance(BzCleaner):
     def description(self):
         return "Bugs that recently moved to the performance component"
 
+    def ignore_meta(self):
+        return True
+
     def get_mail_to_auto_ni(self, bug):
         return {"mail": bug["creator"], "nickname": bug["creator_detail"]["nick"]}
 
