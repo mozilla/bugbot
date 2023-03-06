@@ -2,7 +2,7 @@ This bug was moved into the Performance component.
 
 :{{ nickname }}, could you make sure the following information is on this bug?
 
- - For slowness or high CPU usage, capture a profile with http://profiler.firefox.com/ , upload it and share the link here.
+ - For slowness or high CPU usage, capture a profile with http://profiler.firefox.com/, upload it and share the link here.
  - For memory usage issues, capture a memory dump from `about:memory` and attach it to this bug.
  - Troubleshooting information: Go to `about:support`, click "Copy raw data to clipboard", paste it into a file, save it, and attach the file here.
 
