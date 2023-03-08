@@ -6,4 +6,6 @@ This bug was moved into the Performance component.
 - For memory usage issues, capture a memory dump from `about:memory` and attach it to this bug.
 - Troubleshooting information: Go to `about:support`, click "Copy raw data to clipboard", paste it into a file, save it, and attach the file here.
 
+If the requested information is already in the bug, please confirm that.
+
 Thank you.
