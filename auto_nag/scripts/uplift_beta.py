@@ -94,7 +94,7 @@ class UpliftBeta(BzCleaner):
             "v1": ",".join(["fixed", "verified"]),
             "f2": self.status_beta,
             "o2": "anyexact",
-            "v2": "affected",
+            "v2": ["affected", "fix-optional"],
             "f3": "flagtypes.name",
             "o3": "notsubstring",
             "v3": "approval-mozilla-beta",
