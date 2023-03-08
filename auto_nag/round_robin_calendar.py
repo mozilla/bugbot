@@ -150,13 +150,13 @@ class JSONCalendar(Calendar):
             return []
 
         if date == self.dates[i]:
-            person = self.team[i]
+            person = self.team[i][0]
         else:
-            person = self.team[i - 1] if i != 0 else self.team[0]
+            person = self.team[i - 1][0] if i != 0 else self.team[0][0]
 
-        self.cache[date] = [person]
+        self.cache[date] = res = [(person, self.people.get_bzmail_from_name(person))]
 
-        return [person]
+        return res
 
     def guess_cycle(self):
         diffs = [(x - y).days for x, y in zip(self.dates[1:], self.dates[:-1])]
