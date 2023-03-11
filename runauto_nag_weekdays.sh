@@ -204,6 +204,9 @@ python -m auto_nag.scripts.regression_new_set_nightly_affected --production
 # Suggest increasing the severity of performance-impacting bugs
 python -m auto_nag.scripts.severity_high_performance_impact --production
 
+# Request potential missing info when a bug is moved to Core::Performance
+python -m auto_nag.scripts.moved_to_performance --production
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
