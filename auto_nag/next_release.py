@@ -29,6 +29,11 @@ def send_mail(next_date, bad_date_nrd, bad_date_ro, dryrun=False):
 
 def check_dates(dryrun=False):
     next_date = utils.get_next_release_date()
+    now = lmdutils.get_date_ymd("today")
+    if next_date == now:
+        logger.info("We are on the release day, let's wait for the next day")
+        return
+
     bad_date_nrd = bad_date_ro = None
 
     pat = re.compile(r"<p>(.*)</p>", re.DOTALL)
@@ -42,7 +47,6 @@ def check_dates(dryrun=False):
         # so two possibilities:
         #  - Release services people just changed the release date
         #  - something is wrong and we must nag
-        now = lmdutils.get_date_ymd("today")
         cal = release_calendar.get_calendar()
         must_nag = True
         for i, c in enumerate(cal):
