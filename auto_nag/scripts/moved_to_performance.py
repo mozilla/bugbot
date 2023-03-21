@@ -5,6 +5,7 @@
 import base64
 import json
 from datetime import timedelta
+from typing import Dict
 
 from libmozdata import utils as lmdutils
 
@@ -14,9 +15,15 @@ from auto_nag.bzcleaner import BzCleaner
 class MovedToPerformance(BzCleaner):
     """Add a comment to bugs that recently moved to the performance component"""
 
-    def __init__(self, recent_date_weeks=26):
+    def __init__(self, recent_date_weeks: int = 26):
+        """Constructor
+
+        Args:
+            recent_date_weeks: Number of weeks to consider when looking for
+                recent data (e.g. profiler links and memory reports)
+        """
         super().__init__()
-        self.ni_extra = {}
+        self.ni_extra: Dict[str, dict] = {}
         self.recent_date_limit = lmdutils.get_date_str(
             lmdutils.get_date_ymd("today") - timedelta(weeks=recent_date_weeks)
         )
