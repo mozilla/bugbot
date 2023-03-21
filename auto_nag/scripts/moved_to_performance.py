@@ -4,6 +4,9 @@
 
 import base64
 import json
+from datetime import timedelta
+
+from libmozdata import utils as lmdutils
 
 from auto_nag.bzcleaner import BzCleaner
 
@@ -11,9 +14,12 @@ from auto_nag.bzcleaner import BzCleaner
 class MovedToPerformance(BzCleaner):
     """Add a comment to bugs that recently moved to the performance component"""
 
-    def __init__(self):
+    def __init__(self, recent_date_weeks=26):
         super().__init__()
         self.ni_extra = {}
+        self.recent_date_limit = lmdutils.get_date_str(
+            lmdutils.get_date_ymd("today") - timedelta(weeks=recent_date_weeks)
+        )
 
     def description(self):
         return "Bugs that recently moved to the performance component"
@@ -24,24 +30,29 @@ class MovedToPerformance(BzCleaner):
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
 
-        has_profiler_link = (
-            any(
-                "https://share.firefox.dev/" in comment["text"]
-                for comment in bug["comments"]
-            )
-            or "https://perf-html.io/from-url/" in bug["url"]
+        has_profiler_link = any(
+            "https://share.firefox.dev/" in comment["text"]
+            for comment in bug["comments"]
+            if comment["creator"] == bug["creator"]
+            and comment["creation_time"] > self.recent_date_limit
         )
 
         has_memory_report = any(
             self._is_memory_report_file(attachment)
             for attachment in bug["attachments"]
-            if not attachment["is_obsolete"] and not attachment["is_patch"]
+            if attachment["creator"] == bug["creator"]
+            and attachment["creation_time"] > self.recent_date_limit
+            and not attachment["is_obsolete"]
+            and not attachment["is_patch"]
         )
 
         has_troubleshooting_info = any(
             self._is_troubleshooting_content(attachment)
             for attachment in bug["attachments"]
-            if not attachment["is_obsolete"] and not attachment["is_patch"]
+            if attachment["creator"] == bug["creator"]
+            and attachment["creation_time"] > self.recent_date_limit
+            and not attachment["is_obsolete"]
+            and not attachment["is_patch"]
         )
 
         if has_profiler_link and has_memory_report and has_troubleshooting_info:
@@ -111,7 +122,11 @@ class MovedToPerformance(BzCleaner):
             "attachments.content_type",
             "attachments.data",
             "attachments.file_name",
+            "attachments.creator",
+            "attachments.creation_time",
             "comments.text",
+            "comments.creator",
+            "comments.creation_time",
             "url",
         ]
 
