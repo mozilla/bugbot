@@ -12,6 +12,6 @@ For memory usage issues, capture a memory dump from `about:memory` and attach it
 Troubleshooting information: Go to `about:support`, click "Copy raw data to clipboard", paste it into a file, save it, and attach the file here.
 {% if extra[bugid]["has_troubleshooting_info"] %}~~{% endif %}
 
-If the requested information is already in the bug, please confirm that.
+If the requested information is already in the bug, please confirm it is recent.
 
 Thank you.
