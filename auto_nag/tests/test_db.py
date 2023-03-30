@@ -28,7 +28,7 @@ class TestDB(unittest.TestCase):
         db.session.query(db.BugChange).delete()
         db.session.commit()
 
-        with open("./auto_nag/tests/db_history.json", "r") as In:
+        with open("./auto_nag/tests/data/db_history.json", "r") as In:
             HISTORY = json.load(In)["history"]
 
         db.BugChange.import_from_dict(HISTORY)
@@ -75,7 +75,7 @@ class TestDB(unittest.TestCase):
         db.session.query(db.Email).delete()
         db.session.commit()
 
-        with open("./auto_nag/tests/db_history.json", "r") as In:
+        with open("./auto_nag/tests/data/db_history.json", "r") as In:
             EMAILS = json.load(In)["emails"]
 
         db.Email.import_from_dict(EMAILS)
