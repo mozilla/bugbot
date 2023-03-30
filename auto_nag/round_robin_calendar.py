@@ -8,11 +8,11 @@ import re
 from bisect import bisect_left
 from json.decoder import JSONDecodeError
 
+import recurring_ical_events
 import requests
 from dateutil.relativedelta import relativedelta
 from dateutil.tz import UTC, gettz
 from icalendar import Calendar as iCalendar
-from icalevents.icalparser import parse_events
 from libmozdata import utils as lmdutils
 
 from auto_nag import utils
@@ -196,8 +196,9 @@ class ICSCalendar(Calendar):
         if date in self.cache:
             return self.cache[date]
 
-        res = parse_events(self.cal, start=date, end=date)
-        persons = [self.get_person(p.summary) for p in res]
+        cal = iCalendar.from_ical(self.cal)
+        events = recurring_ical_events.of(cal).between(date, date)
+        persons = [self.get_person(event["SUMMARY"]) for event in events]
         self.cache[date] = res = [
             (person, self.people.get_bzmail_from_name(person)) for person in persons
         ]
