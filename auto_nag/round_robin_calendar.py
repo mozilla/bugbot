@@ -11,7 +11,6 @@ from json.decoder import JSONDecodeError
 import recurring_ical_events
 import requests
 from dateutil.relativedelta import relativedelta
-from dateutil.tz import UTC, gettz
 from icalendar import Calendar as iCalendar
 from libmozdata import utils as lmdutils
 
@@ -171,16 +170,6 @@ class ICSCalendar(Calendar):
 
     def __init__(self, cal, fallback, team_name, people=None):
         super(ICSCalendar, self).__init__(cal, fallback, team_name, people=people)
-        self.set_tz()
-
-    def set_tz(self):
-        cal = iCalendar.from_ical(self.cal)
-        for c in cal.walk():
-            if c.name == "VTIMEZONE":
-                self.cal_tz = gettz(str(c["TZID"]))
-                break
-        else:
-            self.cal_tz = UTC
 
     def get_person(self, p):
         g = ICSCalendar.SUM_PAT.match(p)
@@ -191,8 +180,6 @@ class ICSCalendar(Calendar):
 
     def get_persons(self, date):
         date = lmdutils.get_date_ymd(date)
-        date += relativedelta(seconds=1)
-        date = date.replace(tzinfo=self.cal_tz)
         if date in self.cache:
             return self.cache[date]
 
