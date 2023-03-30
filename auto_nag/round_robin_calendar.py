@@ -26,10 +26,8 @@ class BadFallback(Exception):
     pass
 
 
-class Calendar(object):
-    def __init__(self, cal, fallback, team_name, people=None):
-        super(Calendar, self).__init__()
-        self.cal = cal
+class Calendar:
+    def __init__(self, fallback, team_name, people=None):
         self.people = People.get_instance() if people is None else people
         self.fallback = fallback
         self.fb_bzmail = self.people.get_bzmail_from_name(self.fallback)
@@ -119,12 +117,13 @@ team: {self.team}"""
 
 class JSONCalendar(Calendar):
     def __init__(self, cal, fallback, team_name, people=None):
-        super(JSONCalendar, self).__init__(
-            cal.get("duty-start-dates", {}), fallback, team_name, people=people
-        )
-        if self.cal:
-            dates = sorted((lmdutils.get_date_ymd(d), d) for d in self.cal.keys())
-            self.set_team(list(self.cal[d] for _, d in dates), cal.get("triagers", {}))
+        super().__init__(fallback, team_name, people=people)
+        start_dates = cal.get("duty-start-dates", {})
+        if start_dates:
+            dates = sorted((lmdutils.get_date_ymd(d), d) for d in start_dates.keys())
+            self.set_team(
+                list(start_dates[d] for _, d in dates), cal.get("triagers", {})
+            )
             self.dates = [d for d, _ in dates]
             cycle = self.guess_cycle()
             self.dates.append(self.dates[-1] + relativedelta(days=cycle))
@@ -169,7 +168,8 @@ class ICSCalendar(Calendar):
     SUM_PAT = re.compile(r"\s*(?:\[[^\]]*\])?\s*(.*)")
 
     def __init__(self, cal, fallback, team_name, people=None):
-        super(ICSCalendar, self).__init__(cal, fallback, team_name, people=people)
+        super().__init__(fallback, team_name, people=people)
+        self.cal = iCalendar.from_ical(cal)
 
     def get_person(self, p):
         g = ICSCalendar.SUM_PAT.match(p)
@@ -183,8 +183,7 @@ class ICSCalendar(Calendar):
         if date in self.cache:
             return self.cache[date]
 
-        cal = iCalendar.from_ical(self.cal)
-        events = recurring_ical_events.of(cal).between(date, date)
+        events = recurring_ical_events.of(self.cal).between(date, date)
         persons = [self.get_person(event["SUMMARY"]) for event in events]
         self.cache[date] = res = [
             (person, self.people.get_bzmail_from_name(person)) for person in persons
