@@ -26,17 +26,17 @@ class TestRoundRobin(unittest.TestCase):
     config = RotationDefinitionsMockup(
         [
             "Team Name,Calendar Scope,Fallback Triager,Calendar URL",
-            "team,P1::C1,G H,auto_nag/tests/calendar_default.json",
-            "team,P2::C2,G H,auto_nag/tests/calendar_default.json",
-            "team,P3::C3,G H,auto_nag/tests/calendar_special.json",
+            "team,P1::C1,G H,auto_nag/tests/data/calendar_default.json",
+            "team,P2::C2,G H,auto_nag/tests/data/calendar_default.json",
+            "team,P3::C3,G H,auto_nag/tests/data/calendar_special.json",
         ]
     )
 
     config_ics = RotationDefinitionsMockup(
         [
             "Team Name,Calendar Scope,Fallback Triager,Calendar URL",
-            "team,P1::C1,G H,auto_nag/tests/calendar.ics",
-            "team,P2::C2,G H,auto_nag/tests/calendar.ics",
+            "team,P1::C1,G H,auto_nag/tests/data/calendar.ics",
+            "team,P2::C2,G H,auto_nag/tests/data/calendar.ics",
         ]
     )
 
