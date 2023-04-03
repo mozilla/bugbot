@@ -12,10 +12,6 @@ pip install -r requirements.txt
 # Clean the log files
 python -m auto_nag.log --clean
 
-# Not up-to-date release date
-# Daily
-python -m auto_nag.next_release --production
-
 # Update the triage owners on Bugzilla
 python -m auto_nag.scripts.triage_owner_rotations --production
 
