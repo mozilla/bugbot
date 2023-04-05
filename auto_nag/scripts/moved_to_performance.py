@@ -154,9 +154,9 @@ class MovedToPerformance(BzCleaner):
             "f4": "component",
             "o4": "changedafter",
             "v4": "-1d",
-            "n6": 1,
-            "f6": "longdesc",
-            "o6": "casesubstring",
+            "n5": 1,
+            "f5": "longdesc",
+            "o5": "casesubstring",
             "v5": "could you make sure the following information is on this bug?",
         }
 
