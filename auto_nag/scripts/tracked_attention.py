@@ -45,9 +45,8 @@ class TrackedAttention(BzCleaner):
         soft_freeze_date = lmdutils.get_date_ymd(schedule["soft_code_freeze"])
         today = lmdutils.get_date_ymd("today")
         soft_freeze_delta = soft_freeze_date - today
-        assert soft_freeze_delta.days >= 0
 
-        self.is_soft_freeze_soon = soft_freeze_delta.days <= show_soft_freeze_days
+        self.is_soft_freeze_soon = 0 < soft_freeze_delta.days <= show_soft_freeze_days
         self.soft_freeze_delta = (
             "today"
             if soft_freeze_delta.days == 0
@@ -153,6 +152,7 @@ class TrackedAttention(BzCleaner):
         }
 
         if is_reminder:
+            assert self.is_soft_freeze_soon
             comment_num = last_comment["count"]
             self.autofix_changes[bugid] = {
                 "comment": {
