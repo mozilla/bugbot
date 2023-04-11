@@ -35,9 +35,25 @@ class TestICSCalendar(unittest.TestCase):
             people=People([]),
         )
 
+        self.assertEqual(
+            calendar.get_persons("2023-02-28"), [("Gregory Mierzwinski", None)]
+        )
         self.assertEqual(calendar.get_persons("2023-03-09"), [("Kash Shampur", None)])
         self.assertEqual(calendar.get_persons("2023-03-22"), [("Kash Shampur", None)])
         self.assertEqual(
             calendar.get_persons("2023-03-30"), [("Alexandru Ionescu", None)]
         )
         self.assertEqual(calendar.get_persons("2023-04-20"), [("Andrej Glavic", None)])
+
+    def test_recurring_event(self):
+        """Test a calendar with a recurring event."""
+        calendar = ICSCalendar.get(
+            "auto_nag/tests/data/calendar_recurring.ics",
+            "recurring@mozilla.tld",
+            "recurring",
+            people=People([]),
+        )
+
+        self.assertEqual(
+            calendar.get_persons("2023-02-28"), [("Gregory Mierzwinski", None)]
+        )

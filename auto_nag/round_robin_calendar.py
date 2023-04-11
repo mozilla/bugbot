@@ -87,18 +87,6 @@ class Calendar:
             return JSONCalendar(cal, fallback, team_name, people=people)
         except JSONDecodeError:
             try:
-                # there is an issue with dateutil.rrule parser when until doesn't have a tz
-                # so a workaround is to add a Z at the end of the string.
-                pat = re.compile(r"^RRULE:(.*)UNTIL=([0-9Z]+)", re.MULTILINE | re.I)
-
-                def sub(m):
-                    date = m.group(1)
-                    if date.lower().endswith("z"):
-                        return date
-                    return date + "Z"
-
-                data = pat.sub(sub, data)
-
                 return ICSCalendar(data, fallback, team_name, people=people)
             except ValueError:
                 raise InvalidCalendar(
