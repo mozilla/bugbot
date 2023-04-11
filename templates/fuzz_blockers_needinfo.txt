@@ -1,4 +1,4 @@
 This bug prevents fuzzing from making progress; however, it has low severity. It is important for fuzz blocker bugs to be addressed in a timely manner (see [here](https://firefox-source-docs.mozilla.org/tools/fuzzing/index.html#fuzz-blockers) why?).
-:{{ nickname }}, could you increase the severity?
+:{{ nickname }}, could you consider increasing the severity?
 
 {{ documentation }}
