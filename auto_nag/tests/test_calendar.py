@@ -55,5 +55,8 @@ class TestICSCalendar(unittest.TestCase):
         )
 
         self.assertEqual(
+            calendar.get_persons("2022-12-01"), [("Gregory Mierzwinski", None)]
+        )
+        self.assertEqual(
             calendar.get_persons("2023-02-28"), [("Gregory Mierzwinski", None)]
         )
