@@ -20,7 +20,7 @@ Installation
 
 #. Check out the code::
 
-    git clone git://github.com/mozilla/relman-auto-nag.git
+    git clone https://github.com/mozilla/relman-auto-nag.git
 
 #. (optional) Create your virtualenv using virtualenvwrapper::
 
