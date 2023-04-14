@@ -26,7 +26,7 @@ class RoundRobin(object):
 
     _instances: dict = {}
 
-    def __init__(self, rotation_definitions=None, people=None, teams=None):
+    def __init__(self, rotation_definitions=None, people=None, teams=None, days_to_nag: int = 7):
         self.people = People.get_instance() if people is None else people
         self.components_by_triager: Dict[str, list] = {}
         self.rotation_definitions = (

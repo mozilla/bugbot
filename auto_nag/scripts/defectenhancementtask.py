@@ -8,7 +8,7 @@ from auto_nag.utils import nice_round
 
 
 class DefectEnhancementTask(BzCleaner):
-    def __init__(self):
+    def __init__(self, max_days_in_cache: int = 7, days_lookup: int = 3):
         super().__init__()
         self.autofix_type = {}
 

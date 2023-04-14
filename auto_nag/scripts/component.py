@@ -11,7 +11,13 @@ from auto_nag.utils import get_config, nice_round
 
 
 class Component(BzCleaner):
-    def __init__(self):
+    def __init__(
+        self,
+        confidence_threshold: float = 0.35,
+        general_confidence_threshold: float = 0.8,
+        days_lookup: int = 365,
+        max_days_in_cache: int = 7
+    ):
         super().__init__()
         self.autofix_component = {}
         self.frequency = "daily"

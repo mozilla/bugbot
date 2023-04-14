@@ -28,7 +28,7 @@ class NeedinfoAction(IntEnum):
 
 
 class InactiveNeedinfoPending(BzCleaner):
-    def __init__(self):
+    def __init__(self, max_actions: int = 3):
         super(InactiveNeedinfoPending, self).__init__()
         self.max_actions = utils.get_config(self.name(), "max_actions", 7)
 
