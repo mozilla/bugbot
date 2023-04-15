@@ -2,19 +2,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import csv
-from typing import Dict, Iterator, Set
+from typing import Dict, Set
 
-import requests
+import gspread
 from dateutil.relativedelta import relativedelta
 from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import BugzillaUser
-from tenacity import (
-    retry,
-    retry_if_exception_message,
-    stop_after_attempt,
-    wait_exponential,
-)
 
 from auto_nag import logger, utils
 from auto_nag.components import Components
@@ -224,6 +217,12 @@ class RotationDefinitions:
         self.definitions_url = utils.get_private()["round_robin_sheet"]
         self.components = Components.get_instance()
 
+        gc = gspread.service_account_from_dict(utils.get_gcp_service_account_info())
+        # The spreadsheet key should match the one listed in the Firefox Source Docs:
+        # https://firefox-source-docs.mozilla.org/bug-mgmt/policies/triage-bugzilla.html#rotating-triage
+        doc = gc.open_by_key("1EK6iCtdD8KP4UflIHscuZo6W5er2vy_TX7vsmaaBVd4")
+        self.sheet = doc.worksheet("definitions")
+
     def fetch_by_teams(self) -> TeamCalendarDefs:
         """Fetch the triage owner rotation definitions and group them by team
 
@@ -245,7 +244,7 @@ class RotationDefinitions:
 
         teams: TeamCalendarDefs = {}
         seen = set()
-        for row in csv.DictReader(self.get_definitions_csv_lines()):
+        for row in self.get_definitions_records():
             team_name = row["Team Name"]
             scope = row["Calendar Scope"]
             fallback_triager = row["Fallback Triager"]
@@ -284,26 +283,6 @@ class RotationDefinitions:
 
         return teams
 
-    def get_definitions_csv_lines(self) -> Iterator[str]:
-        """Get the definitions for the triage owner rotations in CSV format.
-
-        Returns:
-            An iterator where each iteration should return a line from the CSV
-            file. The first line will be the headers::
-                - Team Name
-                - Calendar Scope
-                - Fallback Triager
-                - Calendar URL"
-        """
-        return self._fetch_definitions_csv()
-
-    @retry(
-        retry=retry_if_exception_message(match=r"^\d{3} Server Error"),
-        wait=wait_exponential(min=4),
-        stop=stop_after_attempt(3),
-    )
-    def _fetch_definitions_csv(self) -> Iterator[str]:
-        resp = requests.get(self.definitions_url)
-        resp.raise_for_status()
-
-        return resp.iter_lines(decode_unicode=True)
+    def get_definitions_records(self) -> list:
+        """Fetch the triage owner rotation definitions."""
+        return self.sheet.get_all_records()

@@ -158,6 +158,14 @@ def get_private():
         return json.load(In)["private"]
 
 
+def get_gcp_service_account_info() -> dict:
+    """Get the GCP service account info from the downloaded key file."""
+    with open(
+        _CONFIG_PATH + "gcp_service_account.json", "r", encoding="utf-8"
+    ) as json_file:
+        return json.load(json_file)
+
+
 def plural(sword, data, pword=""):
     if isinstance(data, int):
         p = data != 1

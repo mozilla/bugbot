@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import csv
 from typing import List
 
 from auto_nag.bzcleaner import BzCleaner
@@ -31,7 +30,7 @@ class TriageRotationsOutdated(BzCleaner):
         people = People.get_instance()
 
         data = []
-        for row in csv.DictReader(RotationDefinitions().get_definitions_csv_lines()):
+        for row in RotationDefinitions().get_definitions_records():
             team_name = row["Team Name"]
             scope = row["Calendar Scope"]
             fallback_triager = row["Fallback Triager"]
