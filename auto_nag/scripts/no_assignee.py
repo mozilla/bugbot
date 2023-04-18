@@ -18,7 +18,7 @@ ALNUM = re.compile(r"[\W_]+", re.UNICODE)
 
 
 class NoAssignee(BzCleaner):
-    def __init__(self, days_lookup: int = 45):
+    def __init__(self):
         super(NoAssignee, self).__init__()
         self.hgdata = {}
         self.autofix_assignee = {}

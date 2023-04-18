@@ -9,7 +9,7 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class CopyDuplicateInfo(BzCleaner):
-    def __init__(self, days_lookup: int = 10):
+    def __init__(self):
         super(CopyDuplicateInfo, self).__init__()
         self.autofix_data = {}
 

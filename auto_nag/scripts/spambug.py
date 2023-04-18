@@ -19,12 +19,7 @@ Accounts that abuse bugzilla.mozilla.org will be disabled.
 
 
 class SpamBug(BzCleaner):
-    def __init__(
-        self,
-        max_days_in_cache: int = 7,
-        days_lookup: int = 7,
-        confidence_threshold: float = 0.95
-    ):
+    def __init__(self):
         super().__init__()
         self.autofix_bugs = {}
         self.people = people.People.get_instance()

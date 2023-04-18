@@ -7,7 +7,7 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class MetaDefect(BzCleaner):
-    def __init__(self, months_lookup: int = 24):
+    def __init__(self):
         super(MetaDefect, self).__init__()
         self.nmonths = utils.get_config(self.name(), "months_lookup")
 

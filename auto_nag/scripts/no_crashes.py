@@ -15,7 +15,7 @@ class SocorroError(Exception):
 
 
 class NoCrashes(BzCleaner):
-    def __init__(self, number_of_weeks: int = 12):
+    def __init__(self):
         super(NoCrashes, self).__init__()
         self.nweeks = utils.get_config(self.name(), "number_of_weeks", 12)
         self.summaries = {}

@@ -7,7 +7,7 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class SeveralCc(BzCleaner):
-    def __init__(self, weeks_lookup: int = 3, number_cc: int = 50):
+    def __init__(self):
         super(SeveralCc, self).__init__()
         self.nweeks = utils.get_config(self.name(), "weeks_lookup")
         self.cc = utils.get_config(self.name(), "number_cc")

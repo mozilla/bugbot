@@ -21,7 +21,7 @@ PHAB_URL_PAT = re.compile(r"https://phabricator\.services\.mozilla\.com/D([0-9]+
 
 
 class NotLanded(BzCleaner):
-    def __init__(self, number_of_weeks: int = 2, number_of_years: int = 2):
+    def __init__(self):
         super(NotLanded, self).__init__()
         self.nweeks = utils.get_config(self.name(), "number_of_weeks", 2)
         self.nyears = utils.get_config(self.name(), "number_of_years", 2)

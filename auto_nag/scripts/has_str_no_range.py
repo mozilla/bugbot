@@ -9,7 +9,7 @@ from auto_nag.people import People
 
 
 class HasSTRNoRange(BzCleaner):
-    def __init__(self, days_lookup: int = 10):
+    def __init__(self):
         super(HasSTRNoRange, self).__init__()
         self.people = People.get_instance()
         self.autofix_reporters = {}

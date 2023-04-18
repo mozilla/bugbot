@@ -7,7 +7,7 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class GoodFirstBugUnassignInactive(BzCleaner):
-    def __init__(self, months_lookup: int = 2):
+    def __init__(self):
         super(GoodFirstBugUnassignInactive, self).__init__()
         self.nmonths = utils.get_config(self.name(), "months_lookup")
         self.autofix_assignee = {}

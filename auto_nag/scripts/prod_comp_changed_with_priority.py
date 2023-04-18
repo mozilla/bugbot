@@ -16,7 +16,7 @@ class ProdCompChangedWithPriority(BzCleaner):
         (False, True): "component",
     }
 
-    def __init__(self, days_lookup: int = 30):
+    def __init__(self):
         super(ProdCompChangedWithPriority, self).__init__()
         self.autofix_priority = {}
         self.skiplist = set(self.get_config("skiplist"))

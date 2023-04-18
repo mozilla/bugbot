@@ -7,14 +7,7 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class UnderestimatedSeverity(BzCleaner):
-    def __init__(
-        self,
-        weeks_lookup: int = 3,
-        number_dups: int = 3,
-        number_votes: int = 10,
-        number_cc: int = 50,
-        number_see_also: int = 5
-    ):
+    def __init__(self):
         super(UnderestimatedSeverity, self).__init__()
         self.nweeks = self.get_config("weeks_lookup")
         self.ndups = self.get_config("number_dups")
