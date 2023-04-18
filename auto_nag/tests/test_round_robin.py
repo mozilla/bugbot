@@ -4,6 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import csv
 import unittest
 from typing import List
 from unittest.mock import patch
@@ -17,8 +18,8 @@ class RotationDefinitionsMockup(RotationDefinitions):
     def __init__(self, csv_lines: List[str]) -> None:
         self.csv_lines = csv_lines
 
-    def get_definitions_csv_lines(self):
-        return self.csv_lines
+    def get_definitions_records(self):
+        return csv.DictReader(self.csv_lines)
 
 
 class TestRoundRobin(unittest.TestCase):
