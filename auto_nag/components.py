@@ -26,6 +26,11 @@ class ComponentName(NamedTuple):
 
         return cls(*splitted_name)
 
+    @classmethod
+    def from_bug(cls, bug: dict) -> "ComponentName":
+        """Extract the component name from a bug"""
+        return cls(bug["product"], bug["component"])
+
 
 class Components:
     """Bugzilla components"""
@@ -87,3 +92,31 @@ class Components:
             A list of all active components owned by the team.
         """
         return self.team_components[team_name]
+
+
+def fetch_component_teams() -> Dict[ComponentName, str]:
+    """Fetch all accessible components and their teams.
+
+    Returns:
+        A dictionary mapping a component name to its team name.
+    """
+    component_teams: Dict[ComponentName, str] = {}
+
+    def handler(product, data):
+        data.update(
+            {
+                ComponentName(product["name"], component["name"]): component[
+                    "team_name"
+                ]
+                for component in product["components"]
+            }
+        )
+
+    BugzillaProduct(
+        product_types="accessible",
+        include_fields=["name", "components.name", "components.team_name"],
+        product_handler=handler,
+        product_data=component_teams,
+    ).wait()
+
+    return component_teams
