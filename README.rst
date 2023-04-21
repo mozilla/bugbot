@@ -115,7 +115,6 @@ This needs to run on a private server because it will have login for smtp and bu
 Cronjob::
 
     CRON_DIR=/path/to/repository
-    00 17  * * 2   cd $CRON_DIR ; ./runauto_nag_tuesday.sh  &> /tmp/autonag-tuesday.log
     00 7   * * *   cd $CRON_DIR ; ./update_people.sh        &> /tmp/autonag-people.log
     00 12  * * 1-5 cd $CRON_DIR ; ./runauto_nag_weekdays.sh &> /tmp/autonag-day.log
     00 8   * * *   cd $CRON_DIR ; ./runauto_nag_daily.sh    &> /tmp/autonag-day.log
