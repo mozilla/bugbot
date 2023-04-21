@@ -3,17 +3,31 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from auto_nag.bzcleaner import BzCleaner
+from auto_nag.components import ComponentName, fetch_component_teams
 
 
 class Intermittents(BzCleaner):
     normal_changes_max: int = 300
 
+    def __init__(self):
+        super().__init__()
+        self.component_teams = fetch_component_teams()
+
     def description(self):
         return "Intermittent test failure bugs unchanged in 21 days"
 
+    def get_max_actions(self):
+        limit_per_run = 100
+        limit_per_team = 20
+
+        # Number of teams that have bugs to be autoclosed
+        number_of_teams = len(self.quota_actions)
+
+        return min([limit_per_run // number_of_teams, limit_per_team])
+
     def get_bz_params(self, date):
         params = {
-            "include_fields": ["_custom"],
+            "include_fields": ["_custom", "product", "component"],
             "n1": "1",
             "f1": "longdescs.count",
             "o1": "changedafter",
@@ -54,15 +68,13 @@ class Intermittents(BzCleaner):
         return params
 
     def handle_bug(self, bug, data):
-        bugid = str(bug["id"])
-
         status_flags = {
             field: "wontfix"
             for field, value in bug.items()
             if field.startswith("cf_status_") and value in ("affected", "fix-optional")
         }
 
-        self.autofix_changes[bugid] = {
+        autofix = {
             **status_flags,
             "status": "RESOLVED",
             "resolution": "INCOMPLETE",
@@ -70,6 +82,10 @@ class Intermittents(BzCleaner):
                 "body": f"https://wiki.mozilla.org/Bug_Triage#Intermittent_Test_Failure_Cleanup\n{self.get_documentation()}"
             },
         }
+
+        team_name = self.component_teams[ComponentName.from_bug(bug)]
+
+        self.add_prioritized_action(bug, quota_name=team_name, autofix=autofix)
 
         return bug
 
