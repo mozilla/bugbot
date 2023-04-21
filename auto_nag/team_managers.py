@@ -6,8 +6,9 @@ import json
 from collections import defaultdict
 from typing import Dict, Optional
 
-from libmozdata.bugzilla import BugzillaProduct, BugzillaUser
+from libmozdata.bugzilla import BugzillaUser
 
+from auto_nag.components import ComponentName, fetch_component_teams
 from auto_nag.people import People
 
 DEFAULT_PATH = "./auto_nag/scripts/configs/team_managers.json"
@@ -15,7 +16,7 @@ DEFAULT_PATH = "./auto_nag/scripts/configs/team_managers.json"
 
 class TeamManagers:
     def __init__(self):
-        self.component_teams: Dict[tuple, str] = {}
+        self._component_teams: Dict[ComponentName, str] = {}
         self._load_team_managers(DEFAULT_PATH)
 
     def _load_team_managers(self, filepath: str) -> None:
@@ -51,22 +52,6 @@ class TeamManagers:
                 return None
 
         return self.managers[team_name]
-
-    def _fetch_component_teams(self) -> None:
-        def handler(product, data):
-            data.update(
-                {
-                    (product["name"], component["name"]): component["team_name"]
-                    for component in product["components"]
-                }
-            )
-
-        BugzillaProduct(
-            product_types="accessible",
-            include_fields=["name", "components.name", "components.team_name"],
-            product_handler=handler,
-            product_data=self.component_teams,
-        ).wait()
 
     def _fetch_managers_nicknames(self) -> None:
         people = People.get_instance()
@@ -112,9 +97,9 @@ class TeamManagers:
         Returns:
             Info for the manager of team who owns the component.
         """
-        if not self.component_teams:
-            self._fetch_component_teams()
+        if not self._component_teams:
+            self._component_teams = fetch_component_teams()
             self._fetch_managers_nicknames()
 
-        team_name = self.component_teams[(product, component)]
+        team_name = self._component_teams[ComponentName(product, component)]
         return self.get_team_manager(team_name, fallback=fallback)
