@@ -47,6 +47,7 @@ class TopcrashBadSeverity(BzCleaner):
             "triage_owner",
             "assigned_to",
             "severity",
+            "history",
         ]
 
         return {
