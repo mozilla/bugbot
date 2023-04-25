@@ -1,16 +1,6 @@
 #!/bin/bash
 
-export PYTHONPATH=.
-
-./scripts/cron_common_start.sh
-
-. venv/bin/activate
-
-# force the update of dependencies
-pip install -r requirements.txt
-
-# Clean the log files
-python -m auto_nag.log --clean
+source ./scripts/cron_common_start.sh
 
 # Update the people.json file
 python -m auto_nag.iam
@@ -23,8 +13,4 @@ python -m auto_nag.scripts.code_freeze_week -D yesterday --production
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
 
-deactivate
-
-if [ "$errored" = true ]; then
-    exit -1
-fi
+source ./scripts/cron_common_end.sh

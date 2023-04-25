@@ -1,16 +1,6 @@
 #!/bin/bash
 
-export PYTHONPATH=.
-
-./scripts/cron_common_start.sh
-
-. venv/bin/activate
-
-# force the update of dependencies
-pip install -r requirements.txt
-
-# Clean the log files
-python -m auto_nag.log --clean
+source ./scripts/cron_common_start.sh
 
 # Update the triage owners on Bugzilla
 python -m auto_nag.scripts.triage_owner_rotations --production
@@ -207,12 +197,4 @@ python -m auto_nag.scripts.severity_high_performance_impact --production
 # Request potential missing info when a bug is moved to Core::Performance
 python -m auto_nag.scripts.moved_to_performance --production
 
-# Send a mail if the logs are not empty
-# MUST ALWAYS BE THE LAST COMMAND
-python -m auto_nag.log --send
-
-deactivate
-
-if [ "$errored" = true ] ; then
-    exit -1
-fi
+source ./scripts/cron_common_end.sh
