@@ -2,7 +2,7 @@
 
 export PYTHONPATH=.
 
-./runauto_nag_common.sh
+./scripts/cron_common_start.sh
 
 . venv/bin/activate
 

@@ -1,9 +1,8 @@
 #!/bin/bash
-set -e
 
 export PYTHONPATH=.
 
-./runauto_nag_common.sh
+./scripts/cron_common_start.sh
 
 . venv/bin/activate
 
@@ -13,11 +12,16 @@ pip install -r requirements.txt
 # Clean the log files
 python -m auto_nag.log --clean
 
-# Try to detect potential wrong bug types using bugbug
-python -m auto_nag.iam
+# Code freeze week information for release managers
+# Daily (but really runs during the soft freeze week)
+python -m auto_nag.scripts.code_freeze_week -D yesterday --production
 
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m auto_nag.log --send
 
 deactivate
+
+if [ "$errored" = true ]; then
+    exit -1
+fi

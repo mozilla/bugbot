@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PATH_SCRIPT="$( cd "$(dirname "$0")" ; pwd -P )"
+PATH_SCRIPT="$( cd "$(dirname "$0")/.." ; pwd -P )"
 cd "$PATH_SCRIPT"
 
 if test ! -f auto_nag/scripts/configs/config.json; then
