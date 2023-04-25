@@ -115,11 +115,9 @@ This needs to run on a private server because it will have login for smtp and bu
 Cronjob::
 
     CRON_DIR=/path/to/repository
-    00 7   * * *   cd $CRON_DIR ; ./cron_run_update_people.sh &> /tmp/autonag-people.log
     00 12  * * 1-5 cd $CRON_DIR ; ./cron_run_weekdays.sh &> /tmp/autonag-day.log
     00 8   * * *   cd $CRON_DIR ; ./cron_run_daily.sh    &> /tmp/autonag-day.log
-    30 */1 * * *   cd $CRON_DIR ; ./cron_run_hourly.sh   &> /tmp/autonag-hour.log
+    40 */1 * * *   cd $CRON_DIR ; ./cron_run_hourly.sh   &> /tmp/autonag-hour.log
 
 
-We run hourly jobs at minute 30 past every hour to avoid overlap with daily jobs.
-For the people update script, sometimes it could be slow, thus we run it earlier to avoid overlapping with hourly and daily jobs.
+We run hourly jobs at minute 40 past every hour to avoid overlap with daily jobs.
