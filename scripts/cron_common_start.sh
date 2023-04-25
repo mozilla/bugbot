@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PATH_SCRIPT="$( cd "$(dirname "$0")/.." ; pwd -P )"
+PATH_SCRIPT="$(cd "$(dirname "$0")/.." pwd -P)"
 cd "$PATH_SCRIPT"
 
 export PYTHONPATH="$(pwd)"
@@ -16,7 +16,7 @@ if test ! -f auto_nag/scripts/configs/people.json; then
 fi
 
 errored=false
-ErrorHandler () {
+ErrorHandler() {
     errored=true
 }
 
