@@ -1,13 +1,6 @@
 #!/bin/bash
 
-export PYTHONPATH=.
-
-./scripts/cron_common_start.sh
-
-. venv/bin/activate
-
-# Clean the log files
-python -m auto_nag.log --clean
+source ./scripts/cron_common_start.sh
 
 # Bug fixed without assignee
 # very common
@@ -80,12 +73,4 @@ python -m auto_nag.scripts.multifix_regression --production
 # Copy metadata from duplicates
 python -m auto_nag.scripts.duplicate_copy_metadata --production
 
-# Send a mail if the logs are not empty
-# MUST ALWAYS BE THE LAST COMMAND
-python -m auto_nag.log --send
-
-deactivate
-
-if [ "$errored" = true ] ; then
-    exit -1
-fi
+source ./scripts/cron_common_end.sh

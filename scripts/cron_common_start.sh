@@ -3,6 +3,8 @@
 PATH_SCRIPT="$( cd "$(dirname "$0")/.." ; pwd -P )"
 cd "$PATH_SCRIPT"
 
+export PYTHONPATH="$(pwd)"
+
 if test ! -f auto_nag/scripts/configs/config.json; then
     echo "Cannot run without the config.json file in auto_nag/scripts/configs/"
     exit -1
@@ -19,3 +21,11 @@ ErrorHandler () {
 }
 
 trap ErrorHandler ERR
+
+. venv/bin/activate
+
+# force the update of dependencies
+pip install -r requirements.txt
+
+# Clean the log files
+python -m auto_nag.log --clean
