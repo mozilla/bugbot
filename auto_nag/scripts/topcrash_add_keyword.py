@@ -36,32 +36,8 @@ class TopcrashAddKeyword(BzCleaner):
         if bugid in data:
             return
 
-        existing_keywords = {
-            keyword
-            for keyword in ("topcrash", "topcrash-startup")
-            if keyword in bug["keywords"]
-        }
-
-        top_crash_signatures = [
-            signature
-            for signature in utils.get_signatures(bug["cf_crash_signature"])
-            if signature in self.topcrashes
-        ]
-
-        if not top_crash_signatures:
-            raise Exception("The bug should have a topcrash signature.")
-
-        elif any(
-            # Is it a startup topcrash bug?
-            any(criterion["is_startup"] for criterion in self.topcrashes[signature])
-            for signature in top_crash_signatures
-        ):
-            keywords_to_add = {"topcrash", "topcrash-startup"}
-
-        else:
-            keywords_to_add = {"topcrash"}
-
-        keywords_to_add = keywords_to_add - existing_keywords
+        top_crash_signatures = self._get_topcrash_signatures(bug)
+        keywords_to_add = self._get_keywords_to_be_added(bug, top_crash_signatures)
         is_keywords_removed = utils.is_keywords_removed_by_autonag(bug, keywords_to_add)
 
         autofix = {
@@ -195,6 +171,37 @@ class TopcrashAddKeyword(BzCleaner):
                     return True
 
         return False
+
+    def _get_topcrash_signatures(self, bug: dict) -> list:
+        topcrash_signatures = [
+            signature
+            for signature in utils.get_signatures(bug["cf_crash_signature"])
+            if signature in self.topcrashes
+        ]
+
+        if not topcrash_signatures:
+            raise Exception("The bug should have a topcrash signature.")
+
+        return topcrash_signatures
+
+    def _get_keywords_to_be_added(self, bug: dict, topcrash_signatures: list) -> set:
+        existing_keywords = {
+            keyword
+            for keyword in ("topcrash", "topcrash-startup")
+            if keyword in bug["keywords"]
+        }
+
+        if any(
+            # Is it a startup topcrash bug?
+            any(criterion["is_startup"] for criterion in self.topcrashes[signature])
+            for signature in topcrash_signatures
+        ):
+            keywords_to_add = {"topcrash", "topcrash-startup"}
+
+        else:
+            keywords_to_add = {"topcrash"}
+
+        return keywords_to_add - existing_keywords
 
     def get_bugs(self, date="today", bug_ids=[], chunk_size=None):
         self.query_url = None
