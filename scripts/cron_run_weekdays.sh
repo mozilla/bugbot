@@ -28,10 +28,6 @@ python -m auto_nag.scripts.uplift_beta --production
 # Daily
 python -m auto_nag.scripts.missed_uplifts --production
 
-# Top crash with an incorrect severity
-# Pretty rare
-python -m auto_nag.scripts.topcrash_bad_severity --production
-
 # Bug with both the regression and feature keywords
 # Pretty rare
 python -m auto_nag.scripts.feature_regression --production
