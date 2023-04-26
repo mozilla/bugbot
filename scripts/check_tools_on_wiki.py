@@ -13,7 +13,7 @@ from urllib.request import Request, urlopen
 class CheckWikiPage:
     """Check if the tools on the wiki page are up-to-date."""
 
-    wiki_page_url = "https://wiki.mozilla.org/Release_Management/autonag"
+    wiki_page_url = "https://wiki.mozilla.org/BugBot"
     github_tree_address = (
         "https://github.com/mozilla/bugbot/blob/master/auto_nag/scripts/"
     )
@@ -123,9 +123,7 @@ class CheckWikiPage:
             print("## The following tools are not in the tree:")
             for tool in self.missed_tree:
                 wiki_id = tool.replace("/", ".2F")
-                print(
-                    f"- [{tool}](https://wiki.mozilla.org/Release_Management/autonag#{wiki_id})"
-                )
+                print(f"- [{tool}]({self.wiki_page_url}#{wiki_id})")
 
     def raise_on_mismatch(self) -> None:
         """Raise an exception if the tools on the wiki page are not up-to-date."""
@@ -151,9 +149,7 @@ class CheckWikiPage:
             print("## The following tools are not in the tree:")
             for tool in self.missed_tree:
                 wiki_id = tool.replace("/", ".2F")
-                print(
-                    f"- [{tool}](https://wiki.mozilla.org/Release_Management/autonag#{wiki_id})"
-                )
+                print(f"- [{tool}]({self.wiki_page_url}#{wiki_id})")
 
 
 if __name__ == "__main__":
