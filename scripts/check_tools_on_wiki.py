@@ -15,7 +15,7 @@ class CheckWikiPage:
 
     wiki_page_url = "https://wiki.mozilla.org/Release_Management/autonag"
     github_tree_address = (
-        "https://github.com/mozilla/relman-auto-nag/blob/master/auto_nag/scripts/"
+        "https://github.com/mozilla/bugbot/blob/master/auto_nag/scripts/"
     )
     tools_path = "auto_nag/scripts/"
 
@@ -117,9 +117,7 @@ class CheckWikiPage:
         if self.missed_wiki:
             print("## The following tools are not on the wiki page:")
             for tool in self.missed_wiki:
-                print(
-                    f"- [{tool}](https://github.com/mozilla/relman-auto-nag/blob/master/auto_nag/scripts/{tool})"
-                )
+                print(f"- [{tool}]({self.github_tree_address + tool})")
 
         if self.missed_tree:
             print("## The following tools are not in the tree:")
@@ -147,9 +145,7 @@ class CheckWikiPage:
         if self.missed_wiki:
             print("## The following tools are not on the wiki page:")
             for tool in self.missed_wiki:
-                print(
-                    f"- [{tool}](https://github.com/mozilla/relman-auto-nag/blob/master/auto_nag/scripts/{tool})"
-                )
+                print(f"- [{tool}]({self.github_tree_address + tool})")
 
         if self.missed_tree:
             print("## The following tools are not in the tree:")
