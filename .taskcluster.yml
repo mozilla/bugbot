@@ -40,7 +40,7 @@ tasks:
         command:
           - "/bin/bash"
           - "-lcx"
-          - "git clone --quiet ${repository} &&
+          - "git clone --quiet ${repository} bugbot &&
             cd bugbot &&
             git -c advice.detachedHead=false checkout ${head_rev} &&
             pip install --quiet -r requirements-test.txt &&
