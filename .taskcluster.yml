@@ -41,14 +41,14 @@ tasks:
           - "/bin/bash"
           - "-lcx"
           - "git clone --quiet ${repository} &&
-            cd relman-auto-nag &&
+            cd bugbot &&
             git -c advice.detachedHead=false checkout ${head_rev} &&
             pip install --quiet -r requirements-test.txt &&
             pre-commit run --all-files --show-diff-on-failure &&
             tox -e $TOX_ENV &&
             coveralls"
       metadata:
-        name: relman-auto-nag tests
-        description: relman-auto-nag tests
+        name: bugbot tests
+        description: bugbot tests
         owner: mcastelluccio@mozilla.com
         source: ${repository}/raw/${head_rev}/.taskcluster.yml
