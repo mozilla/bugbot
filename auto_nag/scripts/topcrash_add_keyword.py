@@ -36,8 +36,8 @@ class TopcrashAddKeyword(BzCleaner):
         if bugid in data:
             return
 
-        top_crash_signatures = self._get_topcrash_signatures(bug)
-        keywords_to_add = self._get_keywords_to_be_added(bug, top_crash_signatures)
+        topcrash_signatures = self._get_topcrash_signatures(bug)
+        keywords_to_add = self._get_keywords_to_be_added(bug, topcrash_signatures)
         is_keywords_removed = utils.is_keywords_removed_by_autonag(bug, keywords_to_add)
 
         autofix = {
@@ -48,13 +48,13 @@ class TopcrashAddKeyword(BzCleaner):
 
         if keywords_to_add and (
             not is_keywords_removed
-            or self._is_matching_restrictive_criteria(top_crash_signatures)
+            or self._is_matching_restrictive_criteria(topcrash_signatures)
         ):
             autofix["keywords"] = {
                 "add": sorted(keywords_to_add),
             }
             autofix["comment"]["body"] += self.get_matching_criteria_comment(
-                top_crash_signatures, is_keywords_removed
+                topcrash_signatures, is_keywords_removed
             )
 
         ni_person = utils.get_mail_to_ni(bug)
