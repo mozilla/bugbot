@@ -12,7 +12,8 @@ from libmozdata.connection import Connection
 
 from auto_nag import utils
 from auto_nag.bzcleaner import BzCleaner
-from auto_nag.constants import HIGH_SEVERITY
+from auto_nag.constants import LOW_SEVERITY
+from auto_nag.history import History
 from auto_nag.topcrash import TOP_CRASH_IDENTIFICATION_CRITERIA, Topcrash
 
 MAX_SIGNATURES_PER_QUERY = 30
@@ -41,10 +42,6 @@ class TopcrashAddKeyword(BzCleaner):
             if keyword in bug["keywords"]
         }
 
-        if len(existing_keywords) == 2:
-            # No topcrash keywords to add, the bug has them all
-            return
-
         top_crash_signatures = [
             signature
             for signature in utils.get_signatures(bug["cf_crash_signature"])
@@ -65,32 +62,32 @@ class TopcrashAddKeyword(BzCleaner):
             keywords_to_add = {"topcrash"}
 
         keywords_to_add = keywords_to_add - existing_keywords
-        if not keywords_to_add:
-            return
-
         is_keywords_removed = utils.is_keywords_removed_by_autonag(bug, keywords_to_add)
-        if is_keywords_removed and not self._is_matching_restrictive_criteria(
-            top_crash_signatures
-        ):
-            return
 
         autofix = {
-            "keywords": {
-                "add": list(keywords_to_add),
-            },
             "comment": {
-                "body": self.get_matching_criteria_comment(
-                    top_crash_signatures, is_keywords_removed
-                ),
+                "body": "",
             },
         }
+
+        if keywords_to_add and (
+            not is_keywords_removed
+            or self._is_matching_restrictive_criteria(top_crash_signatures)
+        ):
+            autofix["keywords"] = {
+                "add": sorted(keywords_to_add),
+            }
+            autofix["comment"]["body"] += self.get_matching_criteria_comment(
+                top_crash_signatures, is_keywords_removed
+            )
 
         ni_person = utils.get_mail_to_ni(bug)
         if (
             ni_person
-            and bug["severity"] not in HIGH_SEVERITY
+            and bug["severity"] in LOW_SEVERITY
             and "meta" not in bug["keywords"]
             and not is_keywords_removed
+            and not self._has_severity_increase_comment(bug)
         ):
             autofix["flags"] = [
                 {
@@ -105,12 +102,20 @@ class TopcrashAddKeyword(BzCleaner):
                 "could you consider increasing the severity of this top-crash bug?"
             )
 
+        if not autofix["comment"]["body"]:
+            # No comment, no action
+            return
+
         autofix["comment"]["body"] += f"\n\n{ self.get_documentation() }\n"
         self.autofix_changes[bugid] = autofix
 
         data[bugid] = {
             "severity": bug["severity"],
-            "added_keywords": utils.english_list(sorted(keywords_to_add)),
+            "added_keywords": (
+                utils.english_list(autofix["keywords"]["add"])
+                if "keywords" in autofix
+                else "-"
+            ),
         }
 
         return bug
@@ -159,6 +164,14 @@ class TopcrashAddKeyword(BzCleaner):
         )
 
         return "".join(itertools.chain(introduction, criteria))
+
+    def _has_severity_increase_comment(self, bug):
+        return any(
+            "could you consider increasing the severity of this top-crash bug?"
+            in comment["raw_text"]
+            for comment in reversed(bug["comments"])
+            if comment["creator"] == History.BOT
+        )
 
     def get_bugs(self, date="today", bug_ids=[], chunk_size=None):
         self.query_url = None
@@ -215,6 +228,8 @@ class TopcrashAddKeyword(BzCleaner):
             "keywords",
             "cf_crash_signature",
             "history",
+            "comments.creator",
+            "comments.raw_text",
         ]
         params_base = {
             "include_fields": fields,
