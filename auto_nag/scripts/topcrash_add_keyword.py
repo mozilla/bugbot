@@ -86,8 +86,8 @@ class TopcrashAddKeyword(BzCleaner):
             ni_person
             and bug["severity"] in LOW_SEVERITY
             and "meta" not in bug["keywords"]
-            and not is_keywords_removed
             and not self._has_severity_increase_comment(bug)
+            and not self._was_severity_set_after_topcrash(bug)
         ):
             autofix["flags"] = [
                 {
@@ -172,6 +172,29 @@ class TopcrashAddKeyword(BzCleaner):
             for comment in reversed(bug["comments"])
             if comment["creator"] == History.BOT
         )
+
+    def _was_severity_set_after_topcrash(self, bug: dict) -> bool:
+        """Check if the severity was set after the topcrash keyword was added.
+
+        Note: this will not catch cases where the topcrash keyword was added
+        added when the bug was created and the severity was set later.
+
+        Args:
+            bug: The bug to check.
+
+        Returns:
+            True if the severity was set after the topcrash keyword was added.
+        """
+        has_topcrash_added = False
+        for history in bug["history"]:
+            for change in history["changes"]:
+                if not has_topcrash_added and change["field_name"] == "keywords":
+                    has_topcrash_added = "topcrash" in change["added"]
+
+                elif has_topcrash_added and change["field_name"] == "severity":
+                    return True
+
+        return False
 
     def get_bugs(self, date="today", bug_ids=[], chunk_size=None):
         self.query_url = None
