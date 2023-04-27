@@ -18,11 +18,14 @@
   "Internationalization": "Amir Habibi",
   "DevTools": "Jan Odvarko",
   "Accessibility": "Frank Griffith Jr.",
-  "Frontend": "Yasmin Shash",
+  "Frontend": "Philip Luk",
   "Search and New Tab": "Chris Bellini",
   "Privacy Engineering": "Dan Mehic",
   "Credential Management": "Sergey Galich",
-  "RelEng": "Cyrus Bond",
+  "RelEng": "Johan Lorenzo",
   "Low Level": "Sylvestre Ledru",
-  "Telemetry": "Alessio Placitelli"
+  "Telemetry": "Alessio Placitelli",
+  "Mobile": "Amedyne Moya",
+  "Web Extensions": "Shane Caraveo",
+  "Pocket and User Journey": "Tim Spurway"
 }
