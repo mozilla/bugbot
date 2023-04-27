@@ -157,8 +157,8 @@ python -m auto_nag.scripts.severity_high_compat_priority --production
 # Identify missing or inactive team managers
 python -m auto_nag.scripts.vacant_team_manager --production
 
-# Add topcrash keywords
-python -m auto_nag.scripts.topcrash_add_keyword --production
+# Highlight topcrash bugs
+python -m auto_nag.scripts.topcrash_highlight --production
 
 # Notify about tracked bugs with no assignee, low severity, or low priority
 python -m auto_nag.scripts.tracked_attention --production
