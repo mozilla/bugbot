@@ -29,7 +29,7 @@ class TopcrashAddKeyword(BzCleaner):
         return "Bugs with missing topcrash keywords"
 
     def columns(self):
-        return ["id", "summary", "severity", "added_keywords"]
+        return ["id", "summary", "severity", "actions"]
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
@@ -40,6 +40,7 @@ class TopcrashAddKeyword(BzCleaner):
         keywords_to_add = self._get_keywords_to_be_added(bug, topcrash_signatures)
         is_keywords_removed = utils.is_keywords_removed_by_autonag(bug, keywords_to_add)
 
+        actions = []
         autofix = {
             "comment": {
                 "body": "",
@@ -50,12 +51,11 @@ class TopcrashAddKeyword(BzCleaner):
             not is_keywords_removed
             or self._is_matching_restrictive_criteria(topcrash_signatures)
         ):
-            autofix["keywords"] = {
-                "add": sorted(keywords_to_add),
-            }
+            autofix["keywords"] = {"add": keywords_to_add}
             autofix["comment"]["body"] += self.get_matching_criteria_comment(
                 topcrash_signatures, is_keywords_removed
             )
+            actions.extend(f"Add {keyword} keyword" for keyword in keywords_to_add)
 
         ni_person = utils.get_mail_to_ni(bug)
         if (
@@ -77,9 +77,9 @@ class TopcrashAddKeyword(BzCleaner):
                 f'\n:{ ni_person["nickname"] }, '
                 "could you consider increasing the severity of this top-crash bug?"
             )
+            actions.append("Suggest increasing the severity")
 
-        if not autofix["comment"]["body"]:
-            # No comment, no action
+        if not actions:
             return
 
         autofix["comment"]["body"] += f"\n\n{ self.get_documentation() }\n"
@@ -87,11 +87,7 @@ class TopcrashAddKeyword(BzCleaner):
 
         data[bugid] = {
             "severity": bug["severity"],
-            "added_keywords": (
-                utils.english_list(autofix["keywords"]["add"])
-                if "keywords" in autofix
-                else "-"
-            ),
+            "actions": actions,
         }
 
         return bug
@@ -184,7 +180,7 @@ class TopcrashAddKeyword(BzCleaner):
 
         return topcrash_signatures
 
-    def _get_keywords_to_be_added(self, bug: dict, topcrash_signatures: list) -> set:
+    def _get_keywords_to_be_added(self, bug: dict, topcrash_signatures: list) -> list:
         existing_keywords = {
             keyword
             for keyword in ("topcrash", "topcrash-startup")
@@ -201,7 +197,7 @@ class TopcrashAddKeyword(BzCleaner):
         else:
             keywords_to_add = {"topcrash"}
 
-        return keywords_to_add - existing_keywords
+        return list(keywords_to_add - existing_keywords)
 
     def get_bugs(self, date="today", bug_ids=[], chunk_size=None):
         self.query_url = None

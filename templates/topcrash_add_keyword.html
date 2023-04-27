@@ -1,12 +1,12 @@
-<p>The following topcrash {{ plural('bug is', data, pword='bugs are') }} missing a topcrash keyword or {{ plural('has', data, pword='have') }} low severity:
+<p>The following topcrash {{ plural('bug has', data, pword='bugs have') }} been highlighted:
   <table {{ table_attrs }}>
     <thead>
       <tr>
-        <th>Bug</th><th>Summary</th><th>Severity</th><th>Added Keywords</th>
+        <th>Bug</th><th>Summary</th><th>Severity</th><th>Actions</th>
       </tr>
     </thead>
     <tbody>
-      {% for i, (bugid, summary, severity, added_keywords) in enumerate(data) -%}
+      {% for i, (bugid, summary, severity, actions) in enumerate(data) -%}
       <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
         <td>
           <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
@@ -18,7 +18,11 @@
           {{ severity }}
         </td>
         <td>
-          {{ added_keywords }}
+          <ul>
+          {% for action in actions -%}
+            <li>{{ action }}</li>
+          {% endfor -%}
+          </ul>
         </td>
       </tr>
       {% endfor -%}
