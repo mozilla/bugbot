@@ -19,14 +19,14 @@ from auto_nag.topcrash import TOP_CRASH_IDENTIFICATION_CRITERIA, Topcrash
 MAX_SIGNATURES_PER_QUERY = 30
 
 
-class TopcrashAddKeyword(BzCleaner):
+class TopcrashHighlight(BzCleaner):
     def __init__(self):
         super().__init__()
         self.topcrashes = None
         self.topcrashes_restrictive = None
 
     def description(self):
-        return "Bugs with missing topcrash keywords"
+        return "Highlighted topcrash bugs"
 
     def columns(self):
         return ["id", "summary", "severity", "actions"]
@@ -288,4 +288,4 @@ class TopcrashAddKeyword(BzCleaner):
 
 
 if __name__ == "__main__":
-    TopcrashAddKeyword().run()
+    TopcrashHighlight().run()
