@@ -16,7 +16,7 @@ class TestICSCalendar(unittest.TestCase):
     def test_dom_lws_calendar(self):
         """Test the triage rotation calendar from DOM LWS team."""
         calendar = ICSCalendar.get(
-            "bugbot/tests/data/DOM_LWS_calendar.ics",
+            "tests/data/DOM_LWS_calendar.ics",
             "lws.fallback.triager@mozilla.tld",
             "DOM LWS",
             people=People([]),
@@ -29,7 +29,7 @@ class TestICSCalendar(unittest.TestCase):
     def test_performance_tools_calendar(self):
         """Test the triage rotation calendar from Performance Tools team."""
         calendar = ICSCalendar.get(
-            "bugbot/tests/data/Performance_Tools_calendar.ics",
+            "tests/data/Performance_Tools_calendar.ics",
             "performance.fallback.triager@mozilla.tld",
             "Performance Tools",
             people=People([]),
@@ -48,7 +48,7 @@ class TestICSCalendar(unittest.TestCase):
     def test_recurring_event(self):
         """Test a calendar with a recurring event."""
         calendar = ICSCalendar.get(
-            "bugbot/tests/data/calendar_recurring.ics",
+            "tests/data/calendar_recurring.ics",
             "recurring@mozilla.tld",
             "recurring",
             people=People([]),

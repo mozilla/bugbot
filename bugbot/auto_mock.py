@@ -18,7 +18,7 @@ import responses
 
 from bugbot import logger
 
-MOCKS_DIR = os.path.join(os.path.dirname(__file__), "tests/mocks")
+MOCKS_DIR = os.path.join(os.path.dirname(__file__), "../tests/mocks")
 
 
 class MockTestCase(unittest.TestCase):
