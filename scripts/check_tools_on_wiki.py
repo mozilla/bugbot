@@ -15,9 +15,9 @@ class CheckWikiPage:
 
     wiki_page_url = "https://wiki.mozilla.org/BugBot"
     github_tree_address = (
-        "https://github.com/mozilla/bugbot/blob/master/auto_nag/scripts/"
+        "https://github.com/mozilla/bugbot/blob/master/bugbot/scripts/"
     )
-    tools_path = "auto_nag/scripts/"
+    tools_path = "bugbot/scripts/"
 
     deleted_tools = {
         "fuzzing_bisection_without_regressed_by.py",  # replaced with `bisection_without_regressed_by.py`

@@ -2,7 +2,7 @@
 
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
-python -m auto_nag.log --send
+python -m bugbot.log --send
 
 deactivate
 
