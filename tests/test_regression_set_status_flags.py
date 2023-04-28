@@ -5,7 +5,7 @@ import unittest
 
 from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
-from bugbot.scripts.regression_set_status_flags import RegressionSetStatusFlags
+from bugbot.rules.regression_set_status_flags import RegressionSetStatusFlags
 
 
 def mock_get_checked_versions():

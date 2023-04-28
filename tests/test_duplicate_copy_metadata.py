@@ -4,7 +4,7 @@
 
 import unittest
 
-from bugbot.scripts.duplicate_copy_metadata import DuplicateCopyMetadata
+from bugbot.rules.duplicate_copy_metadata import DuplicateCopyMetadata
 
 
 class TestDuplicateCopyMetadata(unittest.TestCase):

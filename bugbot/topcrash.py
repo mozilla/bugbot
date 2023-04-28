@@ -10,7 +10,7 @@ import libmozdata.socorro as socorro
 from libmozdata import utils as lmdutils
 from libmozdata import versions as lmdversions
 
-from bugbot.scripts.no_crashes import NoCrashes
+from bugbot.rules.no_crashes import NoCrashes
 
 
 class SocorroError(Exception):

@@ -20,4 +20,4 @@ jobs:
           python-version: 3.9
 
       - name: Check tools on the wiki page
-        run: python scripts/check_tools_on_wiki.py -ci
+        run: python scripts/check_rules_on_wiki.py -ci
