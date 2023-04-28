@@ -36,7 +36,7 @@ _MERGE_DAY = None
 _TRIAGE_OWNERS = None
 _DEFAULT_ASSIGNEES = None
 _CURRENT_VERSIONS = None
-_CONFIG_PATH = "./bugbot/scripts/configs/"
+_CONFIG_PATH = "./configs/"
 
 
 BZ_FIELD_PAT = re.compile(r"^[fovj]([0-9]+)$")

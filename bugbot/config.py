@@ -10,7 +10,7 @@ from libmozdata import config
 
 class MyConfig(config.Config):
 
-    PATH = "bugbot/scripts/configs/config.json"
+    PATH = "configs/config.json"
 
     def __init__(self):
         super(MyConfig, self).__init__()
