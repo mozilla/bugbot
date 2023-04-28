@@ -4,73 +4,73 @@ source ./scripts/cron_common_start.sh
 
 # Bug fixed without assignee
 # very common
-python -m bugbot.scripts.no_assignee --production
+python -m bugbot.rules.no_assignee --production
 
 # Bug closed with the leave open keyword
 # very common
-python -m bugbot.scripts.leave_open --production
+python -m bugbot.rules.leave_open --production
 
 # has a STR without flag has_str
 # common
-# python -m bugbot.scripts.has_str_no_hasstr
+# python -m bugbot.rules.has_str_no_hasstr
 
 # Closes crash bug without any crashes for the last 12 weeks
 # pretty common
-python -m bugbot.scripts.no_crashes --production
+python -m bugbot.rules.no_crashes --production
 
 # List bug with the meta keyword but not [meta] in the title
 # Pretty common
-python -m bugbot.scripts.meta_summary_missing --production
+python -m bugbot.rules.meta_summary_missing --production
 
 # List bug without the meta keyword with [meta] in the title (with autofix)
 # Pretty common
-python -m bugbot.scripts.summary_meta_missing --production
+python -m bugbot.rules.summary_meta_missing --production
 
 # List reopened bugs with invalid nightly status flag
 # Pretty common
-python -m bugbot.scripts.nightly_reopened --production
+python -m bugbot.rules.nightly_reopened --production
 
 # Bug closed with the stalled keyword
 # Pretty rare
-python -m bugbot.scripts.stalled --production
+python -m bugbot.rules.stalled --production
 
 # Bugs with missing beta status
 # Pretty rare
-python -m bugbot.scripts.missing_beta_status --production
+python -m bugbot.rules.missing_beta_status --production
 
 # Try to detect potential regressions using bugbug
-python -m bugbot.scripts.regression --production
+python -m bugbot.rules.regression --production
 
 # Bugs with STR and no regression-range
 # Pretty rare
-python -m bugbot.scripts.has_str_no_range --production
+python -m bugbot.rules.has_str_no_range --production
 
 # Move info (signatures, product/component) from/to bugs & their dups
 # Pretty common
-python -m bugbot.scripts.copy_duplicate_info --production
+python -m bugbot.rules.copy_duplicate_info --production
 
 # Move dupeme from whiteboard to keyword
 # Pretty rare
-python -m bugbot.scripts.dupeme_whiteboard_keyword --production
+python -m bugbot.rules.dupeme_whiteboard_keyword --production
 
 # Remove dupeme keyword when the bug is closed
 # Pretty rare
-python -m bugbot.scripts.closed_dupeme --production
+python -m bugbot.rules.closed_dupeme --production
 
 # Detect spam bugs using bugbug
-python -m bugbot.scripts.spambug --production
+python -m bugbot.rules.spambug --production
 
 # Suggest components for untriaged bugs (hourly, list only bugs on which we acted)
-python -m bugbot.scripts.component --frequency hourly --production
+python -m bugbot.rules.component --frequency hourly --production
 
 # MUST ALWAYS BE AFTER COMPONENTS (to reset the priority if mandatory)
 # Reset the priority if the product::component changed after the priority has been set
-python -m bugbot.scripts.prod_comp_changed_with_priority --production
+python -m bugbot.rules.prod_comp_changed_with_priority --production
 
 # Run regression related tools
-python -m bugbot.scripts.multifix_regression --production
+python -m bugbot.rules.multifix_regression --production
 
 # Copy metadata from duplicates
-python -m bugbot.scripts.duplicate_copy_metadata --production
+python -m bugbot.rules.duplicate_copy_metadata --production
 
 source ./scripts/cron_common_end.sh

@@ -5,7 +5,7 @@ import unittest
 
 from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
-from bugbot.scripts.inactive_ni_pending import InactiveNeedinfoPending
+from bugbot.rules.inactive_ni_pending import InactiveNeedinfoPending
 
 
 class TestBZClearner(unittest.TestCase):

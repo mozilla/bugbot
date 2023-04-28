@@ -11,23 +11,21 @@ from urllib.request import Request, urlopen
 
 
 class CheckWikiPage:
-    """Check if the tools on the wiki page are up-to-date."""
+    """Check if the rules on the wiki page are up-to-date."""
 
     wiki_page_url = "https://wiki.mozilla.org/BugBot"
-    github_tree_address = (
-        "https://github.com/mozilla/bugbot/blob/master/bugbot/scripts/"
-    )
-    tools_path = "bugbot/scripts/"
+    github_tree_address = "https://github.com/mozilla/bugbot/blob/master/bugbot/rules/"
+    rules_path = "bugbot/rules/"
 
-    deleted_tools = {
+    deleted_rules = {
         "fuzzing_bisection_without_regressed_by.py",  # replaced with `bisection_without_regressed_by.py`
         "severity_tracked.py",  # dropped in favor of `tracked_attention.py`
         "tracked_bad_severity.py",  # dropped in favor of `tracked_attention.py`
         "newbie_with_ni.py",
     }
 
-    skipped_tools = {
-        # Disabled tools:
+    skipped_rules = {
+        # Disabled rules:
         "workflow/p1.py",
         "workflow/p2.py",
         "workflow/p2_no_activity.py",
@@ -35,7 +33,7 @@ class CheckWikiPage:
         # Temporary scripts:
         "survey_sec_bugs.py",  # not running by cron
         "severity_migration.py",
-        # Not user-facing tools:
+        # Not user-facing rules:
         "stepstoreproduce.py",  # the autofix is currently disabled
         "triage_owner_rotations.py",
         "triage_rotations_outdated.py",
@@ -59,52 +57,52 @@ class CheckWikiPage:
         self.missed_tree: Optional[list] = None
         self.missed_wiki: Optional[list] = None
 
-    def get_tools_on_wiki_page(self) -> set:
-        """Get the list of tools on the wiki page."""
+    def get_rules_on_wiki_page(self) -> set:
+        """Get the list of rules on the wiki page."""
         req = Request(self.wiki_page_url)
         with urlopen(req) as resp:
             wiki_page_content = resp.read().decode("utf-8")
 
         pat = re.compile(rf"""['"]{re.escape(self.github_tree_address)}(.*)['"]""")
-        tools = pat.findall(wiki_page_content)
+        rules = pat.findall(wiki_page_content)
 
-        if not tools:
-            raise Exception(f"No tools found on the wiki page {self.wiki_page_url}")
+        if not rules:
+            raise Exception(f"No rules found on the wiki page {self.wiki_page_url}")
 
-        return set(tools)
+        return set(rules)
 
-    def get_tools_in_the_tree(self) -> set:
-        """Get the list of tools in the tree."""
+    def get_rules_in_the_tree(self) -> set:
+        """Get the list of rules in the tree."""
 
-        tools = {
-            os.path.join(root, file)[len(self.tools_path) :].strip()
-            for root, dirs, files in os.walk(self.tools_path)
+        rules = {
+            os.path.join(root, file)[len(self.rules_path) :].strip()
+            for root, dirs, files in os.walk(self.rules_path)
             for file in files
             if file.endswith(".py") and file != "__init__.py"
         }
 
-        if not tools:
-            raise Exception(f"No tools found in the tree {self.tools_path}")
+        if not rules:
+            raise Exception(f"No rules found in the tree {self.rules_path}")
 
-        return tools
+        return rules
 
     def check(self) -> None:
-        """Check if the tools on the wiki page are up-to-date."""
-        tools_in_the_tree = self.get_tools_in_the_tree()
-        tools_on_wiki_page = self.get_tools_on_wiki_page()
+        """Check if the rules on the wiki page are up-to-date."""
+        rules_in_the_tree = self.get_rules_in_the_tree()
+        rules_on_wiki_page = self.get_rules_on_wiki_page()
 
         self.missed_wiki = sorted(
             tool
-            for tool in tools_in_the_tree
-            if tool not in tools_on_wiki_page and tool not in self.skipped_tools
+            for tool in rules_in_the_tree
+            if tool not in rules_on_wiki_page and tool not in self.skipped_rules
         )
         self.missed_tree = sorted(
             tool
-            for tool in tools_on_wiki_page
-            if tool not in tools_in_the_tree
-            and tool not in self.deleted_tools
+            for tool in rules_on_wiki_page
+            if tool not in rules_in_the_tree
+            and tool not in self.deleted_rules
             and not (
-                tool.startswith("..") and path.exists(path.join(self.tools_path, tool))
+                tool.startswith("..") and path.exists(path.join(self.rules_path, tool))
             )
         )
 
@@ -115,38 +113,38 @@ class CheckWikiPage:
             self.check()
 
         if self.missed_wiki:
-            print("## The following tools are not on the wiki page:")
+            print("## The following rules are not on the wiki page:")
             for tool in self.missed_wiki:
                 print(f"- [{tool}]({self.github_tree_address + tool})")
 
         if self.missed_tree:
-            print("## The following tools are not in the tree:")
+            print("## The following rules are not in the tree:")
             for tool in self.missed_tree:
                 wiki_id = tool.replace("/", ".2F")
                 print(f"- [{tool}]({self.wiki_page_url}#{wiki_id})")
 
     def raise_on_mismatch(self) -> None:
-        """Raise an exception if the tools on the wiki page are not up-to-date."""
+        """Raise an exception if the rules on the wiki page are not up-to-date."""
         if self.missed_wiki is None or self.missed_tree is None:
             self.check()
 
         if self.missed_wiki or self.missed_tree:
             raise Exception(
-                "The tools in the tree and on the wiki page are not in sync."
+                "The rules in the tree and on the wiki page are not in sync."
             )
 
     def check_with_markdown_output(self):
-        """Check if the tools on the wiki page are up-to-date and return a markdown output."""
+        """Check if the rules on the wiki page are up-to-date and return a markdown output."""
         if self.missed_wiki is None or self.missed_tree is None:
             self.check()
 
         if self.missed_wiki:
-            print("## The following tools are not on the wiki page:")
+            print("## The following rules are not on the wiki page:")
             for tool in self.missed_wiki:
                 print(f"- [{tool}]({self.github_tree_address + tool})")
 
         if self.missed_tree:
-            print("## The following tools are not in the tree:")
+            print("## The following rules are not in the tree:")
             for tool in self.missed_tree:
                 wiki_id = tool.replace("/", ".2F")
                 print(f"- [{tool}]({self.wiki_page_url}#{wiki_id})")
@@ -154,7 +152,7 @@ class CheckWikiPage:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Check if the tools on the wiki page are up-to-date."
+        description="Check if the rules on the wiki page are up-to-date."
     )
     parser.add_argument(
         "-ci",
@@ -162,7 +160,7 @@ if __name__ == "__main__":
         dest="error_on_mismatch",
         action="store_true",
         default=False,
-        help="Throw an error if the tools are not up-to-date.",
+        help="Throw an error if the rules are not up-to-date.",
     )
     args = parser.parse_args()
 

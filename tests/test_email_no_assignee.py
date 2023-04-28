@@ -4,7 +4,7 @@
 
 import unittest
 
-from bugbot.scripts.no_assignee import NoAssignee
+from bugbot.rules.no_assignee import NoAssignee
 
 
 class TestEmailNoAssignee(unittest.TestCase):

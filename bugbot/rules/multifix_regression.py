@@ -5,11 +5,11 @@
 from collections import defaultdict
 
 from bugbot.multi_autofixers import MultiAutoFixers, ToolsChanges, UnexpectedToolsError
-from bugbot.scripts.needinfo_regression_author import NeedinfoRegressionAuthor
-from bugbot.scripts.regression_but_type_enhancement_task import (
+from bugbot.rules.needinfo_regression_author import NeedinfoRegressionAuthor
+from bugbot.rules.regression_but_type_enhancement_task import (
     RegressionButEnhancementTask,
 )
-from bugbot.scripts.regression_set_status_flags import RegressionSetStatusFlags
+from bugbot.rules.regression_set_status_flags import RegressionSetStatusFlags
 
 
 class MultiFixRegressed(MultiAutoFixers):

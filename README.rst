@@ -69,9 +69,9 @@ Before running:
     }
 
 Do a dryrun::
-    python -m bugbot.scripts.stalled -d
+    python -m bugbot.rules.stalled
 
-There is a ton of scripts in bugbot/scripts/ so you should be able to find some good examples.
+There is a ton of rules in bugbot/rules/ so you should be able to find some good examples.
 
 Setting up 'Round Robin' triage rotations
 -----------------------------------------
