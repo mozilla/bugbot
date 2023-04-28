@@ -34,7 +34,7 @@ class People:
 
     def __init__(self, p=None):
         if p is None:
-            with open("./bugbot/scripts/configs/people.json", "r") as In:
+            with open("./configs/people.json", "r") as In:
                 self.data = json.load(In)
         else:
             self.data = p
@@ -192,7 +192,7 @@ class People:
     def get_rm(self):
         """Get the release managers as defined in configs/rm.json"""
         if not self.release_managers:
-            with open("./bugbot/scripts/configs/rm.json", "r") as In:
+            with open("./configs/rm.json", "r") as In:
                 self.release_managers = set(json.load(In))
         return self.release_managers
 

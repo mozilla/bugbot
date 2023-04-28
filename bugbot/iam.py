@@ -204,7 +204,7 @@ def get_phonebook_dump(output_dir=""):
     update_bugzilla_emails(new_data)
     new_data = list(new_data.values())
 
-    with open("./bugbot/scripts/configs/people.json", "w") as Out:
+    with open("./configs/people.json", "w") as Out:
         json.dump(new_data, Out, sort_keys=True, indent=4, separators=(",", ": "))
 
 

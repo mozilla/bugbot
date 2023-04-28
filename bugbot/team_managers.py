@@ -11,7 +11,7 @@ from libmozdata.bugzilla import BugzillaUser
 from bugbot.components import ComponentName, fetch_component_teams
 from bugbot.people import People
 
-DEFAULT_PATH = "./bugbot/scripts/configs/team_managers.json"
+DEFAULT_PATH = "./configs/team_managers.json"
 
 
 class TeamManagers:

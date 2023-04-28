@@ -2,12 +2,10 @@
 *.pyc
 *~
 .DS_Store
-scripts/configs/config.json
-bugbot/scripts/configs/*
-!bugbot/scripts/configs/tools.json
-!bugbot/scripts/configs/*round_robin.json
-!bugbot/scripts/configs/rm.json
-!bugbot/scripts/configs/team_managers.json
+configs/*
+!configs/tools.json
+!configs/rm.json
+!configs/team_managers.json
 models/
 venv/
 venv2/
