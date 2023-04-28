@@ -18,7 +18,7 @@
             {% if https_proxy -%}
                 https_proxy={{ https_proxy }}
             {% endif -%}
-        python -m auto_nag.scripts.{{ tool_name }} --production --no-limit</code>
+        python -m bugbot.scripts.{{ tool_name }} --production --no-limit</code>
     </p>
     <p>
         Alternatively, increase the maximum number of changes allowed for this
