@@ -1,0 +1,5 @@
+[tool.djlint]
+profile="jinja"
+linter_output_format = "{filename}:{line}: {code} {message} {match}"
+# Ignore linting rules that are related to web pages
+ignore = "H016,H021,H030,H031"

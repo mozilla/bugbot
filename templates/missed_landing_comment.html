@@ -1,4 +1,4 @@
-<p>The following bugs haven't been updated with a commit referencing them:
+<p>The following bugs haven't been updated with a commit referencing them:</p>
   <table {{ table_attrs }}>
     <thead>
       <tr>
@@ -13,11 +13,10 @@
         </td>
         <td>
           {% for cset in csets %}
-          <a href="{{ cset[1] | e }}">{{ cset[0]}}</a>
+          <a href="{{ cset[1] | e }}">{{ cset[0] }}</a>
           {% endfor %}
         </td>
       </tr>
       {% endfor -%}
     </tbody>
   </table>
-<p>

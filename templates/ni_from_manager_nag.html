@@ -1,4 +1,4 @@
-<p>The following {{ plural('bug has', data, pword='bugs have') }} a needinfo, {{ plural('is', data, pword='are') }} marked as affecting a released version, and {{ plural('has', data, pword='have') }} no activity for the last {{ extra['nweeks'] }} {{ plural('week', extra['nweeks']) }}:
+<p>The following {{ plural('bug has', data, pword='bugs have') }} a needinfo, {{ plural('is', data, pword='are') }} marked as affecting a released version, and {{ plural('has', data, pword='have') }} no activity for the last {{ extra['nweeks'] }} {{ plural('week', extra['nweeks']) }}:</p>
   <table {{ table_attrs }}>
     <thead>
       <tr>
@@ -15,7 +15,7 @@
           {{ summary | e }}
         </td>
         <td>
-          <a href="mailto:{{ to | e }}">{{ to | e }}</a> from {{ from | e }}</a>
+          <a href="mailto:{{ to }}">{{ to }}</a> from <a href="mailto:{{ from }}">{{ from }}</a>
         </td>
         <td>
           {{ last_comment }}
@@ -24,4 +24,3 @@
       {% endfor -%}
     </tbody>
   </table>
-</p>
