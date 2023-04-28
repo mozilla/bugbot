@@ -8,11 +8,11 @@ from bugbot.bzcleaner import BzCleaner
 from bugbot.multi_autofixers import (
     MissingMergeFunctionError,
     MultiAutoFixers,
-    UnexpectedToolsError,
+    UnexpectedRulesError,
 )
 
 
-class ToolOneMockup(BzCleaner):
+class RuleOneMockup(BzCleaner):
     def __init__(self):
         self.autofix_changes = {
             "1": {
@@ -29,12 +29,12 @@ class ToolOneMockup(BzCleaner):
         }
 
 
-class ToolTwoMockup(BzCleaner):
+class RuleTwoMockup(BzCleaner):
     def __init__(self):
         self.autofix_changes = {
             "1": {
                 "comment": {
-                    "body": "second tool comment body for bug 1",
+                    "body": "second rule comment body for bug 1",
                 },
                 "whiteboard": "TAG1",
             },
@@ -47,7 +47,7 @@ class ToolTwoMockup(BzCleaner):
         }
 
 
-class ToolThreeMockup(BzCleaner):
+class RuleThreeMockup(BzCleaner):
     def __init__(self):
         self.autofix_changes = {
             "1": {
@@ -59,7 +59,7 @@ class ToolThreeMockup(BzCleaner):
         }
 
 
-class ToolFourMockup(BzCleaner):
+class RuleFourMockup(BzCleaner):
     def __init__(self):
         self.autofix_changes = {
             "1": {
@@ -74,39 +74,39 @@ class ToolFourMockup(BzCleaner):
 class MultiAutoFixersMockup(MultiAutoFixers):
     def __init__(self):
         super().__init__(
-            ToolOneMockup(),
-            ToolTwoMockup(),
-            ToolThreeMockup(),
+            RuleOneMockup(),
+            RuleTwoMockup(),
+            RuleThreeMockup(),
             comment=self.merge_comment,
         )
 
     @staticmethod
-    def merge_comment(tools):
-        if tools.keys() == {ToolOneMockup, ToolTwoMockup}:
+    def merge_comment(rules):
+        if rules.keys() == {RuleOneMockup, RuleTwoMockup}:
             return {
                 "body": "\n\n".join(
                     [
-                        tools[ToolOneMockup]["comment"]["body"],
-                        tools[ToolTwoMockup]["comment"]["body"],
+                        rules[RuleOneMockup]["comment"]["body"],
+                        rules[RuleTwoMockup]["comment"]["body"],
                     ]
                 )
             }
 
-        raise UnexpectedToolsError(list(tools))
+        raise UnexpectedRulesError(list(rules))
 
 
 class MissingMergeFunctionMockup(MultiAutoFixers):
     def __init__(self):
-        super().__init__(ToolThreeMockup(), ToolFourMockup())
+        super().__init__(RuleThreeMockup(), RuleFourMockup())
 
 
-class UnsupportedToolInMergeFunctionMockup(MultiAutoFixers):
+class UnsupportedRuleInMergeFunctionMockup(MultiAutoFixers):
     def __init__(self):
         super().__init__(
-            ToolOneMockup(),
-            ToolTwoMockup(),
-            ToolThreeMockup(),
-            ToolFourMockup(),
+            RuleOneMockup(),
+            RuleTwoMockup(),
+            RuleThreeMockup(),
+            RuleFourMockup(),
             comment=MultiAutoFixersMockup.merge_comment,
         )
 
@@ -114,7 +114,7 @@ class UnsupportedToolInMergeFunctionMockup(MultiAutoFixers):
 class TestMultiAutoFixers(unittest.TestCase):
     def test_merge_changes(self):
         multi_autofixers = MultiAutoFixersMockup()
-        changes = multi_autofixers._merge_changes_from_tools()
+        changes = multi_autofixers._merge_changes_from_rules()
 
         self.assertEqual(changes.keys(), {"1", "2", "3"})
         self.assertEqual(
@@ -122,7 +122,7 @@ class TestMultiAutoFixers(unittest.TestCase):
         )
         self.assertEqual(
             changes["1"]["comment"]["body"],
-            "comment body for bug 1\n\nsecond tool comment body for bug 1",
+            "comment body for bug 1\n\nsecond rule comment body for bug 1",
         )
         self.assertEqual(changes["1"]["whiteboard"], "TAG1")
         self.assertEqual(changes["2"].keys(), {"comment", "whiteboard", "type"})
@@ -131,9 +131,9 @@ class TestMultiAutoFixers(unittest.TestCase):
     def test_missed_merge_function(self):
         with self.assertRaises(MissingMergeFunctionError):
             multi_autofixers = MissingMergeFunctionMockup()
-            multi_autofixers._merge_changes_from_tools()
+            multi_autofixers._merge_changes_from_rules()
 
-    def test_unsported_tool_in_merge_function(self):
-        with self.assertRaises(UnexpectedToolsError):
-            multi_autofixers = UnsupportedToolInMergeFunctionMockup()
-            multi_autofixers._merge_changes_from_tools()
+    def test_unsported_rule_in_merge_function(self):
+        with self.assertRaises(UnexpectedRulesError):
+            multi_autofixers = UnsupportedRuleInMergeFunctionMockup()
+            multi_autofixers._merge_changes_from_rules()

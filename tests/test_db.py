@@ -11,16 +11,16 @@ import bugbot.db as db
 
 
 class TestDB(unittest.TestCase):
-    def by_tool(self, data):
+    def by_rule(self, data):
         res = {}
         for x in data:
-            tool = x["tool"]
-            if tool not in res:
-                res[tool] = []
-            res[tool].append(x)
+            rule = x["tool"]
+            if rule not in res:
+                res[rule] = []
+            res[rule].append(x)
 
-        for tool, info in res.items():
-            res[tool] = sorted(info, key=lambda x: dateutil.parser.parse(x["date"]))
+        for rule, info in res.items():
+            res[rule] = sorted(info, key=lambda x: dateutil.parser.parse(x["date"]))
 
         return res
 
@@ -38,7 +38,7 @@ class TestDB(unittest.TestCase):
 
         assert len(data) == len(HISTORY)
 
-        data = self.by_tool(HISTORY)
+        data = self.by_rule(HISTORY)
         for tool, info in data.items():
             _data = db.BugChange.get(name=tool).order_by(db.BugChange.date.asc())
             _data = list(_data)

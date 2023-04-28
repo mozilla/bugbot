@@ -19,5 +19,5 @@ jobs:
         with:
           python-version: 3.9
 
-      - name: Check tools on the wiki page
+      - name: Check rules on the wiki page
         run: python scripts/check_rules_on_wiki.py -ci

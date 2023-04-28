@@ -67,7 +67,7 @@ python -m bugbot.rules.component --frequency hourly --production
 # Reset the priority if the product::component changed after the priority has been set
 python -m bugbot.rules.prod_comp_changed_with_priority --production
 
-# Run regression related tools
+# Run regression related rules
 python -m bugbot.rules.multifix_regression --production
 
 # Copy metadata from duplicates

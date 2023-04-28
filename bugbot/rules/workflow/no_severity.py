@@ -19,7 +19,7 @@ class NoSeverity(BzCleaner, Nag):
         """Constructor
 
         Args:
-            typ: the mode that the tool should run with (first or second). Nag
+            typ: the mode that the rule should run with (first or second). Nag
                 emails will be sent only if `typ` is second.
             inactivity_days: number of days that a bug should be inactive before
                 being considered.

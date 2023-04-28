@@ -4,25 +4,25 @@
             border-color: #ff0000;
             margin-bottom: 30px">
     <p>
-        The tool {{ tool_name }} has been aborted because it was attempting to apply
+        The rule {{ rule_name }} has been aborted because it was attempting to apply
         changes on {{ changes_size }} bugs. The maximum number of changes allowed
-        for this tool is {{ normal_changes_max }}.
+        for this rule is {{ normal_changes_max }}.
     </p>
     <hr />
     <p>
-        If you want to force the tool to apply changes on {{ changes_size }} bugs,
-        please run the tool with the <code>--no-limit</code> flag.
+        If you want to force the rule to apply changes on {{ changes_size }} bugs,
+        please run the rule with the <code>--no-limit</code> flag.
     </p>
     <p>
         <code>
             {% if https_proxy -%}
                 https_proxy={{ https_proxy }}
             {% endif -%}
-        python -m bugbot.rules.{{ tool_name }} --production --no-limit</code>
+        python -m bugbot.rules.{{ rule_name }} --production --no-limit</code>
     </p>
     <p>
         Alternatively, increase the maximum number of changes allowed for this
-        tool.
+        rule.
     </p>
 </div>
 <p>The following are the attempted changes:</p>

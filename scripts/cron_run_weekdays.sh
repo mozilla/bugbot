@@ -51,7 +51,7 @@ python -m bugbot.rules.leave_open_no_activity --production
 # Pretty common
 python -m bugbot.rules.meta_no_deps_no_activity --production
 
-# Several tools here
+# Several rules here
 #  1) has an unlanded patch or some flags not up-to-date
 #     Pretty rare
 #  2) Tracked bugs
