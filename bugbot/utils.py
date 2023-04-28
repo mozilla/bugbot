@@ -60,7 +60,7 @@ def _get_config():
     global _CONFIG
     if _CONFIG is None:
         try:
-            with open(_CONFIG_PATH + "/tools.json", "r") as In:
+            with open(_CONFIG_PATH + "/rules.json", "r") as In:
                 _CONFIG = json.load(In)
         except IOError:
             _CONFIG = {}
@@ -71,21 +71,21 @@ def get_config(name, entry, default=None):
     conf = _get_config()
     if name not in conf:
         name = "common"
-    tool_conf = conf[name]
-    if entry in tool_conf:
-        return tool_conf[entry]
-    tool_conf = conf["common"]
-    return tool_conf.get(entry, default)
+    rule_conf = conf[name]
+    if entry in rule_conf:
+        return rule_conf[entry]
+    rule_conf = conf["common"]
+    return rule_conf.get(entry, default)
 
 
-def get_receivers(tool_name):
+def get_receivers(rule_name):
     receiver_lists = get_config("common", "receiver_list", default={})
 
-    receivers = get_config(tool_name, "receivers", [])
+    receivers = get_config(rule_name, "receivers", [])
     if isinstance(receivers, str):
         receivers = receiver_lists[receivers]
 
-    additional_receivers = get_config(tool_name, "additional_receivers", [])
+    additional_receivers = get_config(rule_name, "additional_receivers", [])
     if isinstance(additional_receivers, str):
         additional_receivers = receiver_lists[additional_receivers]
 

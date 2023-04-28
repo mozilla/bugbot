@@ -49,4 +49,4 @@ if __name__ == "__main__":
     try:
         check_people(args.date, dryrun=args.dryrun)
     except Exception:
-        logger.exception("Tool round_robin_fallback")
+        logger.exception("Rule round_robin_fallback")

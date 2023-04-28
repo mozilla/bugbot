@@ -49,17 +49,17 @@ class TestBZClearnerClass(unittest.TestCase):
         assert "Bugs with needinfo pending" in InactiveNeedinfoPending().subject()
 
     def test_get_bz_params(self):
-        tool = InactiveNeedinfoPending()
-        if not tool.has_enough_data():
+        rule = InactiveNeedinfoPending()
+        if not rule.has_enough_data():
             # we've non-following versions in product-details
             # so cheat on versions.
-            tool.versions = {"central": 1, "beta": 2, "release": 3}
-            tool.status_release = utils.get_flag(
-                tool.versions["release"], "status", "release"
+            rule.versions = {"central": 1, "beta": 2, "release": 3}
+            rule.status_release = utils.get_flag(
+                rule.versions["release"], "status", "release"
             )
-            tool.flags_map = {}
+            rule.flags_map = {}
 
-        p = tool.get_bz_params("today")
+        p = rule.get_bz_params("today")
         assert p["o1"] == "equals"
         assert "flagtypes" in p["f1"]
         assert "type" in p["include_fields"]

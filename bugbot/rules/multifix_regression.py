@@ -4,7 +4,7 @@
 
 from collections import defaultdict
 
-from bugbot.multi_autofixers import MultiAutoFixers, ToolsChanges, UnexpectedToolsError
+from bugbot.multi_autofixers import MultiAutoFixers, RulesChanges, UnexpectedRulesError
 from bugbot.rules.needinfo_regression_author import NeedinfoRegressionAuthor
 from bugbot.rules.regression_but_type_enhancement_task import (
     RegressionButEnhancementTask,
@@ -13,7 +13,7 @@ from bugbot.rules.regression_set_status_flags import RegressionSetStatusFlags
 
 
 class MultiFixRegressed(MultiAutoFixers):
-    """Merge changes from regression related tools and apply them to Bugzilla at once"""
+    """Merge changes from regression related rules and apply them to Bugzilla at once"""
 
     def __init__(self):
         super().__init__(
@@ -25,33 +25,33 @@ class MultiFixRegressed(MultiAutoFixers):
         )
 
     @staticmethod
-    def __merge_comment(tools: ToolsChanges) -> dict:
-        tools_to_merge = tools.keys() - {
-            RegressionButEnhancementTask,  # we can ignore the comment from this tool
+    def __merge_comment(rules: RulesChanges) -> dict:
+        rules_to_merge = rules.keys() - {
+            RegressionButEnhancementTask,  # we can ignore the comment from this rule
         }
 
-        if len(tools_to_merge) == 1:
-            return tools[next(iter(tools_to_merge))]["comment"]
+        if len(rules_to_merge) == 1:
+            return rules[next(iter(rules_to_merge))]["comment"]
 
-        if tools_to_merge == {
+        if rules_to_merge == {
             RegressionSetStatusFlags,
             NeedinfoRegressionAuthor,
         }:
             return {
                 "body": "\n\n".join(
                     [
-                        tools[RegressionSetStatusFlags]["comment"]["body"],
-                        tools[NeedinfoRegressionAuthor]["comment"]["body"],
+                        rules[RegressionSetStatusFlags]["comment"]["body"],
+                        rules[NeedinfoRegressionAuthor]["comment"]["body"],
                     ]
                 ),
             }
 
-        raise UnexpectedToolsError(tools_to_merge)
+        raise UnexpectedRulesError(rules_to_merge)
 
     @staticmethod
-    def __merge_keywords(tools: ToolsChanges) -> dict:
+    def __merge_keywords(rules: RulesChanges) -> dict:
         merged_changes = defaultdict(set)
-        for changes in tools.values():
+        for changes in rules.values():
             if "keywords" not in changes:
                 continue
 

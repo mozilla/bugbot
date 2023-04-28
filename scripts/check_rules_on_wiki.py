@@ -92,17 +92,17 @@ class CheckWikiPage:
         rules_on_wiki_page = self.get_rules_on_wiki_page()
 
         self.missed_wiki = sorted(
-            tool
-            for tool in rules_in_the_tree
-            if tool not in rules_on_wiki_page and tool not in self.skipped_rules
+            rule
+            for rule in rules_in_the_tree
+            if rule not in rules_on_wiki_page and rule not in self.skipped_rules
         )
         self.missed_tree = sorted(
-            tool
-            for tool in rules_on_wiki_page
-            if tool not in rules_in_the_tree
-            and tool not in self.deleted_rules
+            rule
+            for rule in rules_on_wiki_page
+            if rule not in rules_in_the_tree
+            and rule not in self.deleted_rules
             and not (
-                tool.startswith("..") and path.exists(path.join(self.rules_path, tool))
+                rule.startswith("..") and path.exists(path.join(self.rules_path, rule))
             )
         )
 
@@ -114,14 +114,14 @@ class CheckWikiPage:
 
         if self.missed_wiki:
             print("## The following rules are not on the wiki page:")
-            for tool in self.missed_wiki:
-                print(f"- [{tool}]({self.github_tree_address + tool})")
+            for rule in self.missed_wiki:
+                print(f"- [{rule}]({self.github_tree_address + rule})")
 
         if self.missed_tree:
             print("## The following rules are not in the tree:")
-            for tool in self.missed_tree:
-                wiki_id = tool.replace("/", ".2F")
-                print(f"- [{tool}]({self.wiki_page_url}#{wiki_id})")
+            for rule in self.missed_tree:
+                wiki_id = rule.replace("/", ".2F")
+                print(f"- [{rule}]({self.wiki_page_url}#{wiki_id})")
 
     def raise_on_mismatch(self) -> None:
         """Raise an exception if the rules on the wiki page are not up-to-date."""
@@ -140,14 +140,14 @@ class CheckWikiPage:
 
         if self.missed_wiki:
             print("## The following rules are not on the wiki page:")
-            for tool in self.missed_wiki:
-                print(f"- [{tool}]({self.github_tree_address + tool})")
+            for rule in self.missed_wiki:
+                print(f"- [{rule}]({self.github_tree_address + rule})")
 
         if self.missed_tree:
             print("## The following rules are not in the tree:")
-            for tool in self.missed_tree:
-                wiki_id = tool.replace("/", ".2F")
-                print(f"- [{tool}]({self.wiki_page_url}#{wiki_id})")
+            for rule in self.missed_tree:
+                wiki_id = rule.replace("/", ".2F")
+                print(f"- [{rule}]({self.wiki_page_url}#{wiki_id})")
 
 
 if __name__ == "__main__":

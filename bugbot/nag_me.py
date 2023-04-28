@@ -185,7 +185,7 @@ class Nag(object):
                     dryrun=dryrun,
                 )
             except Exception:
-                logger.exception("Tool {}".format(self.name()))
+                logger.exception("Rule {}".format(self.name()))
                 status = "Failure"
 
             db.Email.add(self.name(), receivers, "individual", status)

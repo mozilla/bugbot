@@ -22,10 +22,10 @@ from bugbot.nag_me import Nag
 
 
 class TooManyChangesError(Exception):
-    """Exception raised when the tool is trying to apply too many changes"""
+    """Exception raised when the rule is trying to apply too many changes"""
 
     def __init__(self, bugs, changes, max_changes):
-        message = f"The tool has been aborted because it was attempting to apply changes on {len(changes)} bugs. Max is {max_changes}."
+        message = f"The rule has been aborted because it was attempting to apply changes on {len(changes)} bugs. Max is {max_changes}."
         super().__init__(message)
         self.bugs = bugs
         self.changes = changes
@@ -43,7 +43,7 @@ class BzCleaner(object):
         no_bugmail: If `True`, a token for an account that does not trigger
             bugmail will be used when performing `PUT` actions on Bugzilla.
         normal_changes_max: The maximum number of changes that could be made in
-            a normal situation. If exceeded, the tool will fail.
+            a normal situation. If exceeded, the rule will fail.
     """
 
     no_bugmail: bool = False
@@ -51,7 +51,7 @@ class BzCleaner(object):
 
     def __init__(self):
         super(BzCleaner, self).__init__()
-        self._set_tool_name()
+        self._set_rule_name()
         self.apply_autofix = True
         self.has_autofix = False
         self.autofix_changes = {}
@@ -62,16 +62,16 @@ class BzCleaner(object):
         self.cache = Cache(self.name(), self.max_days_in_cache())
         self.test_mode = utils.get_config("common", "test", False)
         self.versions = None
-        logger.info("Run tool {}".format(self.get_tool_path()))
+        logger.info("Run rule {}".format(self.get_rule_path()))
 
-    def _set_tool_name(self):
+    def _set_rule_name(self):
         module = sys.modules[self.__class__.__module__]
         base = os.path.dirname(__file__)
-        scripts = os.path.join(base, "scripts")
-        self.__tool_path__ = os.path.relpath(module.__file__, scripts)
+        rules = os.path.join(base, "rules")
+        self.__rule_path__ = os.path.relpath(module.__file__, rules)
         name = os.path.basename(module.__file__)
         name = os.path.splitext(name)[0]
-        self.__tool_name__ = name
+        self.__rule_name__ = name
 
     def init_versions(self):
         self.versions = utils.get_checked_versions()
@@ -86,12 +86,12 @@ class BzCleaner(object):
         return ""
 
     def name(self):
-        """Get the tool name"""
-        return self.__tool_name__
+        """Get the rule name"""
+        return self.__rule_name__
 
-    def get_tool_path(self):
-        """Get the tool path"""
-        return self.__tool_path__
+    def get_rule_path(self):
+        """Get the rule path"""
+        return self.__rule_path__
 
     def needinfo_template_name(self):
         """Get the txt template filename"""
@@ -117,7 +117,7 @@ class BzCleaner(object):
         return False
 
     def must_run(self, date):
-        """Check if the tool must run for this date"""
+        """Check if the rule must run for this date"""
         days = self.get_config("must_run", None)
         if not days:
             return True
@@ -129,7 +129,7 @@ class BzCleaner(object):
         return False
 
     def has_enough_data(self):
-        """Check if the tool has enough data to run"""
+        """Check if the rule has enough data to run"""
         if self.versions is None:
             # init_versions() has never been called
             return True
@@ -166,7 +166,7 @@ class BzCleaner(object):
         needinfo got ignored due to exceeding the limit). This is applied only
         when using the `add_prioritized_action()` method.
 
-        Returning `False` could be useful if we want to list all actions the tool
+        Returning `False` could be useful if we want to list all actions the rule
         would do if it had no limits.
         """
         return True
@@ -491,7 +491,7 @@ class BzCleaner(object):
 
     def get_documentation(self):
         return "For more information, please visit [BugBot documentation](https://wiki.mozilla.org/Release_Management/autonag#{}).".format(
-            self.get_tool_path().replace("/", ".2F")
+            self.get_rule_path().replace("/", ".2F")
         )
 
     def has_bot_set_ni(self, bug):
@@ -613,7 +613,7 @@ class BzCleaner(object):
 
     @staticmethod
     def apply_changes_on_bugzilla(
-        tool_name: str,
+        rule_name: str,
         new_changes: Dict[str, dict],
         no_bugmail: bool = False,
         is_dryrun: bool = True,
@@ -622,7 +622,7 @@ class BzCleaner(object):
         """Apply changes on Bugzilla
 
         Args:
-            tool_name: the name of the tool that is performing the changes.
+            rule_name: the name of the rule that is performing the changes.
             new_changes: the changes that will be performed. The dictionary key
                 should be the bug ID.
             no_bugmail: If True, an account that doesn't trigger bugmail will be
@@ -651,12 +651,12 @@ class BzCleaner(object):
                     time.sleep(1)
                 else:
                     added = True
-                    db.BugChange.add(tool_name, bugid, extra=db_extra.get(bugid, ""))
+                    db.BugChange.add(rule_name, bugid, extra=db_extra.get(bugid, ""))
                     break
             if not added:
                 logger.error(
                     "%s: Cannot put data for bug %s (change => %s): %s",
-                    tool_name,
+                    rule_name,
                     bugid,
                     ch,
                     failures,
@@ -720,7 +720,7 @@ class BzCleaner(object):
             changes=err.changes.items(),
             changes_size=len(err.changes),
             normal_changes_max=self.normal_changes_max,
-            tool_name=self.name(),
+            rule_name=self.name(),
             https_proxy=os.environ.get("https_proxy"),
             enumerate=enumerate,
             table_attrs=self.get_config("table_attrs"),
@@ -755,7 +755,7 @@ class BzCleaner(object):
                 return
 
         if not self.has_enough_data():
-            logger.info("The tool {} hasn't enough data to run".format(self.name()))
+            logger.info("The rule {} hasn't enough data to run".format(self.name()))
             return
 
         login_info = utils.get_login_info()
@@ -775,7 +775,7 @@ class BzCleaner(object):
                     dryrun=self.dryrun,
                 )
             except Exception:
-                logger.exception("Tool {}".format(self.name()))
+                logger.exception("Rule {}".format(self.name()))
                 status = "Failure"
 
             db.Email.add(self.name(), receivers, "global", status)
@@ -810,7 +810,7 @@ class BzCleaner(object):
             dest="is_limited",
             action="store_false",
             default=True,
-            help=f"If the flag is not passed, the tool will be limited to touch a maximum of {self.normal_changes_max} bugs",
+            help=f"If the flag is not passed, the rule will be limited to touch a maximum of {self.normal_changes_max} bugs",
         )
 
         if not self.ignore_date():
@@ -828,7 +828,7 @@ class BzCleaner(object):
         return parser
 
     def run(self):
-        """Run the tool"""
+        """Run the rule"""
         args = self.get_args_parser().parse_args()
         self.parse_custom_arguments(args)
         date = "" if self.ignore_date() else args.date
@@ -838,9 +838,9 @@ class BzCleaner(object):
         try:
             self.send_email(date=date)
             self.terminate()
-            logger.info("Tool {} has finished.".format(self.get_tool_path()))
+            logger.info("Rule {} has finished.".format(self.get_rule_path()))
         except TooManyChangesError as err:
             self._send_alert_about_too_many_changes(err)
-            logger.exception("Tool %s", self.name())
+            logger.exception("Rule %s", self.name())
         except Exception:
-            logger.exception("Tool {}".format(self.name()))
+            logger.exception("Rule {}".format(self.name()))

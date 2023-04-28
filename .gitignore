@@ -3,7 +3,7 @@
 *~
 .DS_Store
 configs/*
-!configs/tools.json
+!configs/rules.json
 !configs/rm.json
 !configs/team_managers.json
 models/
