@@ -1,54 +1,53 @@
-<div
-  style="
-    border-width: 3px;
-    padding: 0 15px;
-    border-style: solid;
-    border-color: #ff0000;
-    margin-bottom: 30px;
-  "
->
-  <p>
-    The tool {{ tool_name }} has been aborted because it was attempting to apply
-    changes on {{ changes_size }} bugs. The maximum number of changes allowed
-    for this tool is {{ normal_changes_max }}.
-  </p>
-  <hr />
-  <p>
-    If you want to force the tool to apply changes on {{ changes_size }} bugs,
-    please run the tool with the <code>--no-limit</code> flag.
-  </p>
-  <p>
-    <code>{% if https_proxy -%} https_proxy={{ https_proxy }} {% endif -%} python -m auto_nag.scripts.{{ tool_name }} --production --no-limit</code>
-  </p>
-  <p>
-    Alternatively, increase the maximum number of changes allowed for this
-    tool.
-  </p>
+<div style="border-width: 3px;
+            padding: 0 15px;
+            border-style: solid;
+            border-color: #ff0000;
+            margin-bottom: 30px">
+    <p>
+        The tool {{ tool_name }} has been aborted because it was attempting to apply
+        changes on {{ changes_size }} bugs. The maximum number of changes allowed
+        for this tool is {{ normal_changes_max }}.
+    </p>
+    <hr />
+    <p>
+        If you want to force the tool to apply changes on {{ changes_size }} bugs,
+        please run the tool with the <code>--no-limit</code> flag.
+    </p>
+    <p>
+        <code>
+            {% if https_proxy -%}
+                https_proxy={{ https_proxy }}
+            {% endif -%}
+        python -m auto_nag.scripts.{{ tool_name }} --production --no-limit</code>
+    </p>
+    <p>
+        Alternatively, increase the maximum number of changes allowed for this
+        tool.
+    </p>
 </div>
-<p>
-    The following are the attempted changes:
-</p>
+<p>The following are the attempted changes:</p>
 <table {{ table_attrs }}>
     <thead>
-      <tr>
-        <th>Bug</th><th>Change</th>
-      </tr>
+        <tr>
+            <th>Bug</th>
+            <th>Change</th>
+        </tr>
     </thead>
     <tbody>
         {% for i, (bugid, change) in enumerate(changes) -%}
-        <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
-            <td>
-                <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
-            </td>
-            <td>
-                <code>
-                {{ change }}
-                </code>
-            </td>
-        </tr>
+            <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
+                <td>
+                    <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+                </td>
+                <td>
+                    <code>
+                        {{ change }}
+                    </code>
+                </td>
+            </tr>
         {% endfor -%}
     </tbody>
 </table>
-<br/>
-<hr/>
-<br/>
+<br />
+<hr />
+<br />

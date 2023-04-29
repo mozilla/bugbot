@@ -1,33 +1,33 @@
-<p>The following {{ plural('bug has', data, pword='bugs have') }} an unlanded patch in {{ extra['channel'] }} {{ extra['version'] }} or some flags not up-to-date{% if not nag %} (when the bug is red, then the assignee is a person with no manager){% endif %}.
-</p>
 <p>
-  If the patch has landed then the status flags are not up-to-date.
-</p>
-<table {{ table_attrs }}>
-  <thead>
-    <tr>
-      <th>Bug</th><th>Summary</th><th>Assignee</th><th>Has landed</th><th>Last comment</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for i, (bugid, summary, assignee, landed, last_comment) in enumerate(data) -%}
-    <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
-      <td {% if bugid in no_manager %}style="background:red;"{% endif %}>
-        <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
-      </td>
-      <td>
-        {{ summary | e }}
-      </td>
-      <td>
-        {{ assignee | e }}
-      </td>
-      <td>
-        {{ landed }}
-      </td>
-      <td>
-        {{ last_comment }}
-      </td>
-    </tr>
-    {% endfor -%}
-  </tbody>
+    The following {{ plural('bug has', data, pword='bugs have') }} an unlanded patch in {{ extra['channel'] }} {{ extra['version'] }} or some flags not up-to-date
+    {% if not nag %}
+        (when the bug is red, then the assignee is a person with no manager){%- endif -%}
+        .
+    </p>
+    <p>If the patch has landed then the status flags are not up-to-date.</p>
+    <table {{ table_attrs }}>
+        <thead>
+            <tr>
+                <th>Bug</th>
+                <th>Summary</th>
+                <th>Assignee</th>
+                <th>Has landed</th>
+                <th>Last comment</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for i, (bugid, summary, assignee, landed, last_comment) in enumerate(data) -%}
+                <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
+                {% endif -%}
+                >
+                <td {% if bugid in no_manager %}style="background:red;"{% endif %}>
+                    <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+                </td>
+                <td>{{ summary | e }}</td>
+                <td>{{ assignee | e }}</td>
+                <td>{{ landed }}</td>
+                <td>{{ last_comment }}</td>
+            </tr>
+        {% endfor -%}
+    </tbody>
 </table>

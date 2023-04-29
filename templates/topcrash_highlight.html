@@ -1,31 +1,31 @@
-<p>The following topcrash {{ plural('bug has', data, pword='bugs have') }} been highlighted:
-  <table {{ table_attrs }}>
+<p>The following topcrash {{ plural('bug has', data, pword='bugs have') }} been highlighted:</p>
+<table {{ table_attrs }}>
     <thead>
-      <tr>
-        <th>Bug</th><th>Summary</th><th>Severity</th><th>Actions</th>
-      </tr>
+        <tr>
+            <th>Bug</th>
+            <th>Summary</th>
+            <th>Severity</th>
+            <th>Actions</th>
+        </tr>
     </thead>
     <tbody>
-      {% for i, (bugid, summary, severity, actions) in enumerate(data) -%}
-      <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
-        <td>
-          <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
-        </td>
-        <td>
-          {{ summary | e }}
-        </td>
-        <td>
-          {{ severity }}
-        </td>
-        <td>
-          <ul>
-          {% for action in actions -%}
-            <li>{{ action }}</li>
-          {% endfor -%}
-          </ul>
-        </td>
-      </tr>
-      {% endfor -%}
-    </tbody>
-  </table>
-</p>
+        {% for i, (bugid, summary, severity, actions) in enumerate(data) -%}
+            <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
+            {% endif -%}
+            >
+            <td>
+                <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+            </td>
+            <td>{{ summary | e }}</td>
+            <td>{{ severity }}</td>
+            <td>
+                <ul>
+                    {% for action in actions -%}
+                        <li>{{ action }}</li>
+                    {% endfor -%}
+                </ul>
+            </td>
+        </tr>
+    {% endfor -%}
+</tbody>
+</table>

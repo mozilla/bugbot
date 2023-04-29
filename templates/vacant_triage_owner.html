@@ -1,33 +1,29 @@
-<p>The following {{ plural('component is', data, pword='components are') }} missing an active triage owner:
-  <table {{ table_attrs }}>
+<p>The following {{ plural('component is', data, pword='components are') }} missing an active triage owner:</p>
+<table {{ table_attrs }}>
     <thead>
-      <tr>
-        <th>Component</th><th>Team</th><th>Team Manager</th><th>Triage Owner</th><th>Triage Owner Status</th><th>Untriaged Bugs</th>
-      </tr>
+        <tr>
+            <th>Component</th>
+            <th>Team</th>
+            <th>Team Manager</th>
+            <th>Triage Owner</th>
+            <th>Triage Owner Status</th>
+            <th>Untriaged Bugs</th>
+        </tr>
     </thead>
     <tbody>
-      {% for i, row in enumerate(data) -%}
-      <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
-        <td>
-          {{ row["product"] }}::{{ row["component"] }}
-        </td>
-        <td>
-          {{ row["team"] }}
-        </td>
-        <td>
-          {{ row["manager"] }}
-        </td>
-        <td>
-          {{ row["triage_owner"] | e }}
-        </td>
-        <td>
-          {{ row["status"] }}
-        </td>
-        <td>
-          <a href="{{ row["untriaged_bugs_url"] }}">{{ row["untriaged_bugs"] }}</a>
-        </td>
-      </tr>
-      {% endfor -%}
-    </tbody>
-  </table>
-</p>
+        {% for i, row in enumerate(data) -%}
+            <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
+            {% endif -%}
+            >
+            <td>{{ row["product"] }}::{{ row["component"] }}</td>
+            <td>{{ row["team"] }}</td>
+            <td>{{ row["manager"] }}</td>
+            <td>{{ row["triage_owner"] | e }}</td>
+            <td>{{ row["status"] }}</td>
+            <td>
+                <a href="{{ row["untriaged_bugs_url"] }}">{{ row["untriaged_bugs"] }}</a>
+            </td>
+        </tr>
+    {% endfor -%}
+</tbody>
+</table>

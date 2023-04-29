@@ -13,6 +13,7 @@ repos:
       - id: djlint-jinja
         files: "\\.html"
         types_or: ['html']
+        entry: djlint --profile=jinja --reformat
   - repo: https://github.com/pycqa/flake8
     rev: 5.0.4
     hooks:

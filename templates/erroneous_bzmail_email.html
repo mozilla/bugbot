@@ -1,6 +1,8 @@
-<p>The following {{ plural('email needs', bzmails, pword='emails need') }} to be updated in phonebook and/or in the calendar because {{ plural('it isn\'t', bzmails, pword='they aren\'t') }} valid in Bugzilla:</p>
+<p>
+    The following {{ plural('email needs', bzmails, pword='emails need') }} to be updated in phonebook and/or in the calendar because {{ plural('it isn\'t', bzmails, pword='they aren\'t') }} valid in Bugzilla:
+</p>
 <ul>
-  {% for bzmail in bzmails -%}
-  <li>{{ bzmail }}</li>
-  {% endfor -%}
+    {% for bzmail in bzmails -%}
+        <li>{{ bzmail }}</li>
+    {% endfor -%}
 </ul>

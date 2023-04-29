@@ -1,27 +1,27 @@
-<p>The following {{ plural('variant has', data, 'variants have') }} expired and will not be scheduled for testing, please drop or extend {{ plural('it', data, 'them') }}:
-    <table {{ table_attrs }}>
-      <thead>
+<p>
+    The following {{ plural('variant has', data, 'variants have') }} expired and will not be scheduled for testing, please drop or extend {{ plural('it', data, 'them') }}:
+</p>
+<table {{ table_attrs }}>
+    <thead>
         <tr>
-            <th>Bug</th><th>Component</th><th>Variant</th><th>Expiration</th>
+            <th>Bug</th>
+            <th>Component</th>
+            <th>Variant</th>
+            <th>Expiration</th>
         </tr>
-      </thead>
-      <tbody>
+    </thead>
+    <tbody>
         {% for i, (bugid, product, component, variant_name, expiration, action) in enumerate(data) -%}
-        <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
+            <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
+            {% endif -%}
+            >
             <td>
                 <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
             </td>
-            <td>
-            {{ product }}::{{ component }}
-          </td>
-          <td>
-            {{ variant_name }}
-          </td>
-          <td>
-            {{ expiration }}
-          </td>
+            <td>{{ product }}::{{ component }}</td>
+            <td>{{ variant_name }}</td>
+            <td>{{ expiration }}</td>
         </tr>
-        {% endfor -%}
-      </tbody>
-    </table>
-  </p>
+    {% endfor -%}
+</tbody>
+</table>
