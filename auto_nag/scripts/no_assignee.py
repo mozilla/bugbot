@@ -128,7 +128,10 @@ class NoAssignee(BzCleaner):
 
         if users:
             BugzillaUser(
-                user_names=list(users), user_handler=handler, user_data=data
+                user_names=list(users), 
+                include_fields=["name", "real_name"],
+                user_handler=handler, 
+                user_data=data
             ).wait()
 
         return data
