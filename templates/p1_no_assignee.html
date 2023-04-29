@@ -1,27 +1,29 @@
-<p>The following {{ plural('bug has', data, pword='bugs have') }} a priority P1, no assignees and no activity for the last {{ extra['ndays'] }} {{ plural('day', extra['ndays']) }}{% if query_url_nag %} (see the search query on <a href="{{ query_url_nag }}">Bugzilla</a>){% endif %}:
-  <table {{ table_attrs }}>
+<p>
+    The following {{ plural('bug has', data, pword='bugs have') }} a priority P1, no assignees and no activity for the last {{ extra['ndays'] }} {{ plural('day', extra['ndays']) }}
+    {% if query_url_nag %}
+        (see the search query on <a href="{{ query_url_nag }}">Bugzilla</a>)
+    {% endif -%}
+    :
+</p>
+<table {{ table_attrs }}>
     <thead>
-      <tr>
-        <th>Component</th><th>Bug</th><th>Summary</th><th>Last comment</th>
-      </tr>
+        <tr>
+            <th>Component</th>
+            <th>Bug</th>
+            <th>Summary</th>
+            <th>Last comment</th>
+        </tr>
     </thead>
     <tbody>
-      {% for i, (comp, bugid, summary, last_comment) in enumerate(data) -%}
-      <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
-        <td>
-          {{ comp | e }}
-        </td>
-        <td>
-          <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
-        </td>
-        <td>
-          {{ summary | e }}
-        </td>
-        <td>
-          {{ last_comment }}
-        </td>
-      </tr>
-      {% endfor -%}
+        {% for i, (comp, bugid, summary, last_comment) in enumerate(data) -%}
+            <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
+                <td>{{ comp | e }}</td>
+                <td>
+                    <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+                </td>
+                <td>{{ summary | e }}</td>
+                <td>{{ last_comment }}</td>
+            </tr>
+        {% endfor -%}
     </tbody>
-  </table>
-</p>
+</table>

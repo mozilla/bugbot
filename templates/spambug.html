@@ -1,24 +1,23 @@
-<p>The following {{ plural('bug', data, pword='bugs') }} {{ plural('is', data, pword='are') }} probably spam :
-    <table {{ table_attrs }}>
-      <thead>
+<p>The following {{ plural('bug', data, pword='bugs') }} {{ plural('is', data, pword='are') }} probably spam :</p>
+<table {{ table_attrs }}>
+    <thead>
         <tr>
-          <th>Bug</th><th>Summary</th><th>Confidence (%)</th>
+            <th>Bug</th>
+            <th>Summary</th>
+            <th>Confidence (%)</th>
         </tr>
-      </thead>
-      <tbody>
+    </thead>
+    <tbody>
         {% for i, (bugid, summary, confidence) in enumerate(data) -%}
-        <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
-          <td>
-            <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
-          </td>
-          <td>
-            {{ summary | e }}
-          </td>
-          <td>
-            {{ confidence }}
-          </td>
+            <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
+            {% endif -%}
+            >
+            <td>
+                <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+            </td>
+            <td>{{ summary | e }}</td>
+            <td>{{ confidence }}</td>
         </tr>
-        {% endfor -%}
-      </tbody>
-    </table>
-  </p>
+    {% endfor -%}
+</tbody>
+</table>

@@ -1,24 +1,23 @@
-<p>The following {{ plural('bug has', data, pword='bugs have') }} no assignees and a patch which landed in m-c:
-  <table {{ table_attrs }}>
+<p>The following {{ plural('bug has', data, pword='bugs have') }} no assignees and a patch which landed in m-c:</p>
+<table {{ table_attrs }}>
     <thead>
-      <tr>
-        <th>Bug</th><th>Summary</th><th>Assignee email</th>
-      </tr>
+        <tr>
+            <th>Bug</th>
+            <th>Summary</th>
+            <th>Assignee email</th>
+        </tr>
     </thead>
     <tbody>
-      {% for i, (bugid, summary, email) in enumerate(data) -%}
-      <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
-        <td>
-          <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
-        </td>
-        <td>
-          {{ summary | e }}
-        </td>
-        <td>
-          {{ email | e }}
-        </td>
-      </tr>
-      {% endfor -%}
-    </tbody>
-  </table>
-</p>
+        {% for i, (bugid, summary, email) in enumerate(data) -%}
+            <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
+            {% endif -%}
+            >
+            <td>
+                <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+            </td>
+            <td>{{ summary | e }}</td>
+            <td>{{ email | e }}</td>
+        </tr>
+    {% endfor -%}
+</tbody>
+</table>

@@ -1,22 +1,24 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en-us">
-  <head>
-    <meta charset="utf-8">
-  </head>
-  <body>
-    <p>Hi there,</p>
-    {{ preamble }}
-    {{ message }}
-    <p>Sincerely,<br>
-      Autonag bot
-    </p>
-    {% if query_url -%}
-    <p>
-      See the search query on <a href="{{ query_url }}">Bugzilla</a>.
-    </p>
-    {% endif %}
-    <p>
-      See the source / report issues on the <a href="https://github.com/mozilla/relman-auto-nag/">GitHub repo</a>
-    </p>
-  </body>
+    <head>
+        <meta charset="utf-8">
+    </head>
+    <body>
+        <p>Hi there,</p>
+        {{ preamble }}
+        {{ message }}
+        <p>
+            Sincerely,
+            <br>
+            Autonag bot
+        </p>
+        {% if query_url -%}
+            <p>
+                See the search query on <a href="{{ query_url }}">Bugzilla</a>.
+            </p>
+        {% endif %}
+        <p>
+            See the source / report issues on the <a href="https://github.com/mozilla/relman-auto-nag/">GitHub repo</a>
+        </p>
+    </body>
 </html>

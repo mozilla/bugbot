@@ -1,27 +1,27 @@
-<p>The following {{ plural('bug has', data, pword='bugs have') }} inconsistency between the bug severity and Whiteboard severity flag. {{ plural('Owner', data) }} got {{ plural('a needinfo request', data, pword='needinfo requests') }} to bump the severity:
-    <table {{ table_attrs }}>
-      <thead>
-        <tr>
-          <th>Bug</th><th>Summary</th><th>Severity</th><th>Whiteboard Flag</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for i, (bugid, summary, severity, whiteboard_severity) in enumerate(data) -%}
-        <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
-          <td>
-            <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
-           </td>
-          <td>
-            {{ summary | e }}
-          </td>
-          <td>
-            {{ severity }}
-          </td>
-          <td>
-            {{ whiteboard_severity }}
-          </td>
-        </tr>
-        {% endfor -%}
-      </tbody>
-    </table>
+<p>
+    The following {{ plural('bug has', data, pword='bugs have') }} inconsistency between the bug severity and Whiteboard severity flag. {{ plural('Owner', data) }} got {{ plural('a needinfo request', data, pword='needinfo requests') }} to bump the severity:
 </p>
+<table {{ table_attrs }}>
+    <thead>
+        <tr>
+            <th>Bug</th>
+            <th>Summary</th>
+            <th>Severity</th>
+            <th>Whiteboard Flag</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for i, (bugid, summary, severity, whiteboard_severity) in enumerate(data) -%}
+            <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
+            {% endif -%}
+            >
+            <td>
+                <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+            </td>
+            <td>{{ summary | e }}</td>
+            <td>{{ severity }}</td>
+            <td>{{ whiteboard_severity }}</td>
+        </tr>
+    {% endfor -%}
+</tbody>
+</table>

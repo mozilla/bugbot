@@ -1,35 +1,35 @@
-<p>The following {{ plural('bug has', data, pword='bugs have') }} been fixed in nightly but still affect other supported channels:
-  <table {{ table_attrs }}>
+<p>
+    The following {{ plural('bug has', data, pword='bugs have') }} been fixed in nightly but still affect other supported channels:
+</p>
+<table {{ table_attrs }}>
     <thead>
-      <tr>
-        <th>Bug</th><th>Priority</th><th>Severity</th><th>Affected versions</th><th>Approvals</th><th>Summary</th>
-      </tr>
+        <tr>
+            <th>Bug</th>
+            <th>Priority</th>
+            <th>Severity</th>
+            <th>Affected versions</th>
+            <th>Approvals</th>
+            <th>Summary</th>
+        </tr>
     </thead>
     <tbody>
-      {% for i, (bugid, priority, severity, affected, approvals, summary) in enumerate(data) -%}
-      <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
-        <td>
-          <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
-        </td>
-        <td>
-          {{ priority }}
-        </td>
-        <td>
-          {{ severity | e }}
-        </td>
-        <td>
-          <b>
-          {{ ', '.join(affected) }}
-          </b>
-        </td>
-        <td>
-          {{ approvals }}
-        </td>
-        <td>
-          {{ summary | e }}
-        </td>
-      </tr>
-      {% endfor -%}
-    </tbody>
-  </table>
-</p>
+        {% for i, (bugid, priority, severity, affected, approvals, summary) in enumerate(data) -%}
+            <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
+            {% endif -%}
+            >
+            <td>
+                <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+            </td>
+            <td>{{ priority }}</td>
+            <td>{{ severity | e }}</td>
+            <td>
+                <b>
+                    {{ ', '.join(affected) }}
+                </b>
+            </td>
+            <td>{{ approvals }}</td>
+            <td>{{ summary | e }}</td>
+        </tr>
+    {% endfor -%}
+</tbody>
+</table>
