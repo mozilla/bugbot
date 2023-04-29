@@ -13,7 +13,7 @@ from auto_nag.user_activity import UserActivity
 
 
 class AssigneeNoLogin(BzCleaner):
-    def __init__(self):
+    def __init__(self, unassign_weeks: int = 2, max_ni: int = 7, max_actions: int = 10):
         super(AssigneeNoLogin, self).__init__()
         self.unassign_weeks = utils.get_config(self.name(), "unassign_weeks", 2)
         self.max_ni = utils.get_config(self.name(), "max_ni")

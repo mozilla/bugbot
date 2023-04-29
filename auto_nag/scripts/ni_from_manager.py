@@ -8,7 +8,7 @@ from auto_nag.nag_me import Nag
 
 
 class NiFromManager(BzCleaner, Nag):
-    def __init__(self):
+    def __init__(self, days_lookup: int = 183, number_of_weeks: int = 1):
         super(NiFromManager, self).__init__()
         self.nweeks = utils.get_config(self.name(), "number_of_weeks", 1)
         self.vip = self.get_people().get_rm_or_directors()

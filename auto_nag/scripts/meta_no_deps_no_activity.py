@@ -8,7 +8,7 @@ from auto_nag.people import People
 
 
 class MetaNoDepsNoActivity(BzCleaner):
-    def __init__(self):
+    def __init__(self, months_lookup: int = 12, max_ni: int = 3):
         super(MetaNoDepsNoActivity, self).__init__()
         self.people = People.get_instance()
         self.nmonths = utils.get_config(self.name(), "months_lookup")

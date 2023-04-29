@@ -7,7 +7,7 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class SeveralVotes(BzCleaner):
-    def __init__(self):
+    def __init__(self, weeks_lookup: int = 3, number_votes: int = 10):
         super(SeveralVotes, self).__init__()
         self.nweeks = utils.get_config(self.name(), "weeks_lookup")
         self.votes = utils.get_config(self.name(), "number_votes")

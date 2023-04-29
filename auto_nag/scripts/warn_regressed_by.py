@@ -7,7 +7,7 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class WarnRegressedBy(BzCleaner):
-    def __init__(self):
+    def __init__(self, max_days_in_cache: int = 7):
         super(WarnRegressedBy, self).__init__()
         self.regressions = {}
         self.threshold = self.get_config("threshold", 3)

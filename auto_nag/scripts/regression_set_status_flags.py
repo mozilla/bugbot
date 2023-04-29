@@ -9,7 +9,7 @@ from auto_nag.bzcleaner import BzCleaner
 
 
 class RegressionSetStatusFlags(BzCleaner):
-    def __init__(self):
+    def __init__(self, days_lookup: int = 21):
         super().__init__()
         if not self.init_versions():
             return

@@ -8,7 +8,12 @@ from auto_nag.utils import nice_round
 
 
 class Regression(BzCleaner):
-    def __init__(self):
+    def __init__(
+        self,
+        max_days_in_cache: int = 7,
+        days_lookup: int = 3,
+        confidence_threshold: float = 1.0
+    ):
         super().__init__()
         self.autofix_regression = []
 
