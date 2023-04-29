@@ -14,6 +14,9 @@ repos:
         files: "\\.html"
         types_or: ['html']
         entry: djlint --profile=jinja --reformat
+      - id: djlint-jinja
+        files: "^templates.*\\.txt"
+        types_or: ['text']
   - repo: https://github.com/pycqa/flake8
     rev: 5.0.4
     hooks:

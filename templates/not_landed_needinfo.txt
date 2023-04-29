@@ -1,4 +1,4 @@
-There{{ plural('\'s a r+ patch', extra[bugid], pword=' are some r+ patches') }} which didn't land and no activity in this bug for {{ extra['nweeks'] }} {{ plural('week', extra['nweeks']) }}.
+There {{ plural('is an r+ patch', extra[bugid], pword='are some r+ patches') }} which didn't land and no activity in this bug for {{ extra['nweeks'] }} {{ plural('week', extra['nweeks']) }}.
 :{{ nickname }}, could you have a look please?
 If you still have some work to do, you can add an action "Plan Changes" in Phabricator.
 {{ documentation }}
