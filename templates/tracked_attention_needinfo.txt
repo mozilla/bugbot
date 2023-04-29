@@ -4,5 +4,4 @@ The bug is marked as {{ extra[bugid]["tracking_statuses"] }}.{% if extra[bugid][
 {%- if extra[bugid]["show_regression_comment"] %} Given that it is a regression and we know the cause, we could also simply backout the regressor.
 {%- endif %} If you disagree with the tracking decision, please talk with the release managers.
 
-
 {{ documentation }}
