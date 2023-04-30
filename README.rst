@@ -12,7 +12,7 @@ The list of checkers is documented on the Mozilla wiki:
 https://wiki.mozilla.org/BugBot
 
 
-This package currently uses Mozilla's `Bugzilla REST API <https://wiki.mozilla.org/Bugzilla:REST_API>`_, and optionally the Mozilla IAM `phonebook <https://github.com/mozilla-iam/cis/blob/master/docs/PersonAPI.md>`_ (to access bug assignees' managers & Mozilla email addresses).
+This package currently uses Mozilla's `Bugzilla REST API <https://wiki.mozilla.org/Bugzilla:REST_API>`_, and the Mozilla IAM `phonebook <https://github.com/mozilla-iam/cis/blob/master/docs/PersonAPI.md>`_ (to access bug assignees' managers & Mozilla email addresses).
 
 
 Installation
@@ -27,16 +27,10 @@ Installation
     virtualenv -p python3 venv
     source venv/bin/activate
 
-#. Install pip::
-
-    easy_install pip
-
 #. Install the dependencies for Python 3 too::
 
-    pip3 install -r requirements.txt
+    pip install -r requirements.txt
 
-
-To run it into production, you will need the full list of employees + managers.
 
 Running the Bot Rules
 ---------------------
@@ -47,7 +41,6 @@ Before running:
 2. Need to generate an API key from bugzilla admin ( https://bugzilla.mozilla.org/userprefs.cgi?tab=apikey )
 3. Should generate an API key from Phabricator ( https://phabricator.services.mozilla.com/settings/user )
 4. The IAM secrets are used to generate a dump of phonebook, which is required for some scripts (employees can request them by `filing a bug in the SSO: Requests component <https://bugzilla.mozilla.org/enter_bug.cgi?product=Infrastructure%20%26%20Operations&component=SSO%3A%20Requests>`_ )
-5. The private entry contains URLs for private calendar in ICS format:
 
 .. code-block:: json
 
@@ -59,13 +52,10 @@ Before running:
       "smtp_port": 314,
       "smtp_ssl": true,
       "bz_api_key": "xxxxxxxxxxxxxx",
+      "bz_api_key_nomail": "xxxxxxxxxxxxxx",
       "phab_api_key": "xxxxxxxxxxxxxx",
       "iam_client_secret": "xxxxxxxxxxxxxx",
-      "iam_client_id": "xxxxxxxxxxxxxx",
-      "private":
-      {
-        "Core::General": "https://..."
-      }
+      "iam_client_id": "xxxxxxxxxxxxxx"
     }
 
 Do a dryrun::
@@ -78,34 +68,8 @@ Setting up 'Round Robin' triage rotations
 
 One use case for this tool is managing triage of multiple components across a team of multiple people.
 
-To set up a new Round Robin rotation, a manager or team lead should create a Google Calendar with the rotation of triagers.
+To set up a new Round Robin rotation, a manager or team lead should create a calendar with the rotation of triagers and add a link to the rotation calendar in the `triage rotations spreadsheet <https://docs.google.com/spreadsheets/d/1EK6iCtdD8KP4UflIHscuZo6W5er2vy_TX7vsmaaBVd4>`_.
 
-Then the administrators will need to create a configuration file:
-
-.. code-block:: json
-
-    # in scripts/configs/<name of rotation>_round_robin.json
-    {
-        "fallback": "<Name of manager or lead>",
-        "components":
-        {
-            "Product::Component": "default",
-            "Product::Component": "default",
-            …
-        },
-        "default":
-        {
-            "calendar": "private://<Name of calendar>"
-        }
-    }
-
-The person requesting the round robin schedule must provide the URL of the calendar's `.ics` file.
-
-In the calendar, the summary of the events must be the full name (eventually prefixed with text between square brackets) of triage owner as it appears in Phonebook, e.g. `[Gfx Triage] Foo Bar` or just `Foo Bar`.
-
-And then you just have to add an entry in `configs/tools.json <https://github.com/mozilla/relman-auto-nag/blob/333ec164ba5c3ceebf3c39cf84196fa35c667b1b/configs/tools.json#L2>`_ in the round-robin section.
-
-Once everything is set-up you can make a PR similar too https://github.com/mozilla/relman-auto-nag/pull/858/files
 
 Running on a server
 -------------------
