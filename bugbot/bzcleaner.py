@@ -490,7 +490,7 @@ class BzCleaner(object):
         return [x["id"] for x in bugs.values()]
 
     def get_documentation(self):
-        return "For more information, please visit [BugBot documentation](https://wiki.mozilla.org/Release_Management/autonag#{}).".format(
+        return "For more information, please visit [BugBot documentation](https://wiki.mozilla.org/BugBot#{}).".format(
             self.get_rule_path().replace("/", ".2F")
         )
 

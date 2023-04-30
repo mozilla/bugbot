@@ -9,8 +9,8 @@ from bugbot.rules.duplicate_copy_metadata import DuplicateCopyMetadata
 
 class TestDuplicateCopyMetadata(unittest.TestCase):
     comments = [
-        "The following field has been copied from a duplicate bug:\n| Field | Value | Source |\n| ----- | ----- | ------ |\n| Severity | S3 | bug 1790853 |\n\n\nFor more information, please visit [BugBot documentation](https://wiki.mozilla.org/Release_Management/autonag#duplicate_copy_metadata.py).",
-        "The following fields have been copied from duplicate bugs:\n| Field | Value | Source |\n| ----- | ----- | ------ |\n| Keywords | access | bug 1677341 |\n| Severity | S3 | bug 1677341 and bug 1688533 |\n| Whiteboard | [access-s2] | bug 1677341 |\n\n\nFor more information, please visit [BugBot documentation](https://wiki.mozilla.org/Release_Management/autonag#duplicate_copy_metadata.py).",
+        "The following field has been copied from a duplicate bug:\n| Field | Value | Source |\n| ----- | ----- | ------ |\n| Severity | S3 | bug 1790853 |\n\n\nFor more information, please visit [BugBot documentation](https://wiki.mozilla.org/BugBot#duplicate_copy_metadata.py).",
+        "The following fields have been copied from duplicate bugs:\n| Field | Value | Source |\n| ----- | ----- | ------ |\n| Keywords | access | bug 1677341 |\n| Severity | S3 | bug 1677341 and bug 1688533 |\n| Whiteboard | [access-s2] | bug 1677341 |\n\n\nFor more information, please visit [BugBot documentation](https://wiki.mozilla.org/BugBot#duplicate_copy_metadata.py).",
     ]
 
     bugs = [
