@@ -135,7 +135,7 @@ class NoSeverity(BzCleaner, Nag):
             "f33": "bug_severity",
             "o33": "anyexact",
             "v33": "--, n/a",
-            # This is temporary, it should be removed, see: https://github.com/mozilla/relman-auto-nag/issues/1889
+            # This is temporary, it should be removed, see: https://github.com/mozilla/bugbot/issues/1889
             "n34": "1",
             "f34": "longdesc",
             "o34": "substring",
@@ -280,7 +280,7 @@ class NoSeverity(BzCleaner, Nag):
             )
 
         # TODO: the following code can be removed in 2023.
-        # https://github.com/mozilla/relman-auto-nag/issues/1596
+        # https://github.com/mozilla/bugbot/issues/1596
         # Almost 500 old bugs have no severity set. The intent of the following
         # is to have them triaged in batches where every week we include more
         # bugs. Once the list of old bugs are reduced, we could safely remove

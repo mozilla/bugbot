@@ -38,7 +38,7 @@ class UpliftBeta(BzCleaner):
 
     def handle_bug(self, bug, data):
         # XXX: This is a temporary workaround, should be dropped after
-        # fixing https://github.com/mozilla/relman-auto-nag/issues/1953
+        # fixing https://github.com/mozilla/bugbot/issues/1953
         if self._has_patch_after_closed(bug):
             return
 

@@ -58,7 +58,7 @@ class TrackedNeedinfo(BzCleaner, Nag):
         ]
         if len(flags) == 0:
             # The bug will still show up in the query link,
-            # resolving https://github.com/mozilla/relman-auto-nag/issues/1300 should fix this
+            # resolving https://github.com/mozilla/bugbot/issues/1300 should fix this
             return None
 
         has_manager = False

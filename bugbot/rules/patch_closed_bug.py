@@ -38,7 +38,7 @@ class PatchClosedBug(BzCleaner):
     def columns(self):
         return ["id", "summary", "resolved_at", "latest_patch_at"]
 
-    # Resolving https://github.com/mozilla/relman-auto-nag/issues/1300 should clean this
+    # Resolving https://github.com/mozilla/bugbot/issues/1300 should clean this
     # including improve the wording in the template (i.e., "See the search query on Bugzilla").
     def get_bugs(self, date="today", bug_ids=[], chunk_size=None):
         bugs = super().get_bugs(date, bug_ids, chunk_size)
