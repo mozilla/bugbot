@@ -1,7 +1,7 @@
-.. image:: https://community-tc.services.mozilla.com/api/github/v1/repository/mozilla/relman-auto-nag/master/badge.svg
-    :target: https://community-tc.services.mozilla.com/api/github/v1/repository/mozilla/relman-auto-nag/master/latest
-.. image:: https://coveralls.io/repos/github/mozilla/relman-auto-nag/badge.svg
-    :target: https://coveralls.io/github/mozilla/relman-auto-nag
+.. image:: https://community-tc.services.mozilla.com/api/github/v1/repository/mozilla/bugbot/master/badge.svg
+    :target: https://community-tc.services.mozilla.com/api/github/v1/repository/mozilla/bugbot/master/latest
+.. image:: https://coveralls.io/repos/github/mozilla/bugbot/badge.svg
+    :target: https://coveralls.io/github/mozilla/bugbot
 
 
 This tool is used by Mozilla release management to send emails to the Firefox developers. It will query the bugzilla.mozilla.org database and send emails to Mozilla developers and their managers (if Mozilla staff).

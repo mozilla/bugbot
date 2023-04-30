@@ -59,7 +59,7 @@ class AssigneeNoLogin(BzCleaner):
         bugs = super().get_bugs(*args, **kwargs)
         bugs = self.handle_inactive_assignees(bugs)
 
-        # Resolving https://github.com/mozilla/relman-auto-nag/issues/1300 should clean this
+        # Resolving https://github.com/mozilla/bugbot/issues/1300 should clean this
         # including improve the wording in the template (i.e., "See the search query on Bugzilla").
         self.query_url = utils.get_bz_search_url({"bug_id": ",".join(bugs.keys())})
 
