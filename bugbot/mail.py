@@ -47,7 +47,7 @@ def send_from_template(template_file, To, title, Cc=[], dryrun=False, **kwargs):
     send(
         login_info["ldap_username"],
         To,
-        "[autonag] {}".format(title),
+        "[bugbot] {}".format(title),
         body,
         Cc=Cc,
         html=True,
