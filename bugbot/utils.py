@@ -747,15 +747,15 @@ def create_bug(bug_data: dict) -> dict:
     return resp.json()
 
 
-def is_keywords_removed_by_autonag(bug: dict, keywords: Iterable) -> bool:
-    """Check if the bug had any of the provided keywords removed by autonag.
+def is_keywords_removed_by_bugbot(bug: dict, keywords: Iterable) -> bool:
+    """Check if the bug had any of the provided keywords removed by bugbot.
 
     Args:
         bug: The bug to check.
         keywords: The keywords to check.
 
     Returns:
-        True if any of the keywords was removed by autonag, False otherwise.
+        True if any of the keywords was removed by bugbot, False otherwise.
     """
     return any(
         keyword in change["removed"]

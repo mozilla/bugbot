@@ -28,7 +28,7 @@ class CrashSmallVolume(BzCleaner):
             min_crash_volume: the minimum number of crashes per week for a
                 signature to not be considered low volume.
             oldest_severity_change_days: if the bug severity has been changed by
-                a human or autonag in the last X days, we will not downgrade the
+                a human or bugbot in the last X days, we will not downgrade the
                 severity to `S3`.
             oldest_topcrash_added_days: if the bug has been marked as topcrash
                 in the last X days, we will ignore it.
@@ -117,7 +117,7 @@ class CrashSmallVolume(BzCleaner):
                 or bug["groups"] == "security"
                 or any(keyword.startswith("sec-") for keyword in bug["keywords"])
                 or "[fuzzblocker]" in bug["whiteboard"]
-                or self._is_severity_recently_changed_by_human_or_autonag(bug)
+                or self._is_severity_recently_changed_by_human_or_bugbot(bug)
                 or self._has_severity_downgrade_comment(bug)
             ),
             "keywords_to_remove": keywords_to_remove,
@@ -225,12 +225,12 @@ class CrashSmallVolume(BzCleaner):
 
         return False
 
-    def _is_severity_recently_changed_by_human_or_autonag(self, bug):
+    def _is_severity_recently_changed_by_human_or_bugbot(self, bug):
         for entry in reversed(bug["history"]):
             if entry["when"] < self.oldest_severity_change_date:
                 break
 
-            # We ignore bot changes except for autonag
+            # We ignore bot changes except for bugbot
             if utils.is_bot_email(entry["who"]) and entry["who"] not in (
                 "autonag-nomail-bot@mozilla.tld",
                 "release-mgmt-account-bot@mozilla.tld",

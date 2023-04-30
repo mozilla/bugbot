@@ -38,7 +38,7 @@ class TopcrashHighlight(BzCleaner):
 
         topcrash_signatures = self._get_topcrash_signatures(bug)
         keywords_to_add = self._get_keywords_to_be_added(bug, topcrash_signatures)
-        is_keywords_removed = utils.is_keywords_removed_by_autonag(bug, keywords_to_add)
+        is_keywords_removed = utils.is_keywords_removed_by_bugbot(bug, keywords_to_add)
 
         actions = []
         autofix = {
