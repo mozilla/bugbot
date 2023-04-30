@@ -9,7 +9,7 @@ This tool is used by Mozilla release management to send emails to the Firefox de
 The tool will also notify release managers about potential issues in bugzilla and autofix some categories of issues.
 
 The list of checkers is documented on the Mozilla wiki:
-https://wiki.mozilla.org/Release_Management/autonag
+https://wiki.mozilla.org/BugBot
 
 
 This package currently uses Mozilla's `Bugzilla REST API <https://wiki.mozilla.org/Bugzilla:REST_API>`_, and optionally the Mozilla IAM `phonebook <https://github.com/mozilla-iam/cis/blob/master/docs/PersonAPI.md>`_ (to access bug assignees' managers & Mozilla email addresses).
@@ -20,7 +20,7 @@ Installation
 
 #. Check out the code::
 
-    git clone https://github.com/mozilla/relman-auto-nag.git
+    git clone https://github.com/mozilla/bugbot.git
 
 #. (optional) Create your virtualenv using virtualenvwrapper::
 
@@ -38,8 +38,8 @@ Installation
 
 To run it into production, you will need the full list of employees + managers.
 
-Automated Nagging Script
-------------------------
+Running the Bot Rules
+---------------------
 
 Before running:
 
@@ -115,9 +115,9 @@ This needs to run on a private server because it will have login for smtp and bu
 Cronjob::
 
     CRON_DIR=/path/to/repository
-    00 12  * * 1-5 cd $CRON_DIR ; ./cron_run_weekdays.sh &> /tmp/autonag-day.log
-    00 8   * * *   cd $CRON_DIR ; ./cron_run_daily.sh    &> /tmp/autonag-day.log
-    40 */1 * * *   cd $CRON_DIR ; ./cron_run_hourly.sh   &> /tmp/autonag-hour.log
+    00 12  * * 1-5 cd $CRON_DIR ; ./cron_run_weekdays.sh &> /tmp/bugbot-weekdays.log
+    00 8   * * *   cd $CRON_DIR ; ./cron_run_daily.sh    &> /tmp/bugbot-daily.log
+    40 */1 * * *   cd $CRON_DIR ; ./cron_run_hourly.sh   &> /tmp/bugbot-hourly.log
 
 
 We run hourly jobs at minute 40 past every hour to avoid overlap with daily jobs.
