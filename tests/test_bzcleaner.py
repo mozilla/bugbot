@@ -22,7 +22,7 @@ class TestBZClearner(unittest.TestCase):
         assert BzCleaner().subject() == ""
 
     def test_email_subject(self):
-        assert "[autonag]" in BzCleaner().get_email_subject(None)
+        assert "[bugbot]" in BzCleaner().get_email_subject(None)
 
     def test_ignore_date(self):
         self.assertFalse(BzCleaner().ignore_date())

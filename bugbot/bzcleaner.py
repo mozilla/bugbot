@@ -109,8 +109,8 @@ class BzCleaner(object):
         """Get the email subject with a date or not"""
         af = "[autofix]" if self.has_autofix else ""
         if date:
-            return "[autonag]{} {} for the {}".format(af, self.subject(), date)
-        return "[autonag]{} {}".format(af, self.subject())
+            return "[bugbot]{} {} for the {}".format(af, self.subject(), date)
+        return "[bugbot]{} {}".format(af, self.subject())
 
     def ignore_date(self):
         """Should we ignore the date ?"""

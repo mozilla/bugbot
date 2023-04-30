@@ -40,7 +40,7 @@ def send():
             mail.send(
                 login_info["ldap_username"],
                 utils.get_config("common", "on-errors"),
-                "[autonag] Something bad happened when running auto-nag the {}".format(
+                "[bugbot] Something bad happened when running BugBot the {}".format(
                     date
                 ),
                 msg,
