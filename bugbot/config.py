@@ -35,7 +35,7 @@ class MyConfig(config.Config):
             if option == "nomail-token":
                 return self.conf["bz_api_key_nomail"]
         elif section == "User-Agent":
-            return "relman-auto-nag"
+            return "bugbot"
         return default
 
 
