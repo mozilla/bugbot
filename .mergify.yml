@@ -1,0 +1,12 @@
+pull_request_rules:
+  - name: Automatic merge dependency update on approval
+    conditions:
+      - "#approved-reviews-by>=1"
+      - label=dependencies
+      - author=dependabot
+      - check-success=Community-TC (pull_request)
+      - check-success=Community-TC (push)
+      
+    actions:
+      merge:
+        method: merge
