@@ -10,4 +10,3 @@ pull_request_rules:
         method: squash
         commit_message_template: |-
           {{ title }} (#{{ number }})
-          {{ body }}
