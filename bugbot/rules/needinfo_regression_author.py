@@ -139,16 +139,19 @@ class NeedinfoRegressionAuthor(BzCleaner):
             ):
                 del bugs[str(bug_id)]
 
-        # Exclude bugs where the regressor author is inactive.
+        # Exclude bugs where the regressor author is inactive or blocked needinfo.
         # TODO: We can drop this when https://github.com/mozilla/bugbot/issues/1465 is implemented.
-        users_info = UserActivity(include_fields=["groups"]).check_users(
+        users_info = UserActivity(include_fields=["groups", "requests"]).check_users(
             set(bug["regressor_author_email"] for bug in bugs.values()),
             keep_active=True,
         )
 
         for bug_id, bug in list(bugs.items()):
             user_info = users_info[bug["regressor_author_email"]]
-            if user_info["status"] != UserStatus.ACTIVE:
+            if (
+                user_info["status"] != UserStatus.ACTIVE
+                or user_info["requests"]["needinfo"]["blocked"]
+            ):
                 del bugs[bug_id]
             else:
                 bug["suggest_set_severity"] = bug["severity"] in (
