@@ -82,6 +82,7 @@ class UserActivity:
         user_emails: List[str],
         keep_active: bool = False,
         ignore_bots: bool = False,
+        fetch_employee_info: bool = False,
     ) -> dict:
         """Check user activity using their emails
 
@@ -90,7 +91,10 @@ class UserActivity:
             keep_active: whether the returned results should include the active
                 users.
             ignore_bots: whether the returned results should include bot and
-            component-watching accounts.
+                component-watching accounts.
+            fetch_employee_info: whether to fetch the employee info from
+                Bugzilla. Only fields specified in `include_fields` will be
+                guaranteed to be fetched.
 
         Returns:
             A dictionary where the key is the user email and the value is the
@@ -123,6 +127,20 @@ class UserActivity:
                 for user_email, info in user_statuses.items()
                 if info["status"] != UserStatus.ACTIVE
             }
+
+        if fetch_employee_info:
+            employee_emails = [
+                user_email
+                for user_email, info in user_statuses.items()
+                if info["is_employee"]
+            ]
+            if employee_emails:
+                BugzillaUser(
+                    user_names=employee_emails,
+                    user_data=user_statuses,
+                    user_handler=lambda user, data: data[user["name"]].update(user),
+                    include_fields=self.include_fields + ["name"],
+                ).wait()
 
         if user_emails:
             user_statuses.update(
