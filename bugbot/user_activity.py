@@ -82,6 +82,7 @@ class UserActivity:
         user_emails: List[str],
         keep_active: bool = False,
         ignore_bots: bool = False,
+        fetch_employee_info: bool = False,
     ) -> dict:
         """Check user activity using their emails
 
@@ -123,6 +124,20 @@ class UserActivity:
                 for user_email, info in user_statuses.items()
                 if info["status"] != UserStatus.ACTIVE
             }
+
+        if fetch_employee_info:
+            employee_emails = [
+                user_email
+                for user_email, info in user_statuses.items()
+                if info["is_employee"]
+            ]
+            if employee_emails:
+                BugzillaUser(
+                    user_names=employee_emails,
+                    user_data=user_statuses,
+                    user_handler=lambda user, data: data[user["name"]].update(user),
+                    include_fields=self.include_fields + ["name"],
+                ).wait()
 
         if user_emails:
             user_statuses.update(

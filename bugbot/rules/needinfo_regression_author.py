@@ -144,6 +144,7 @@ class NeedinfoRegressionAuthor(BzCleaner):
         users_info = UserActivity(include_fields=["groups", "requests"]).check_users(
             set(bug["regressor_author_email"] for bug in bugs.values()),
             keep_active=True,
+            fetch_employee_info=True,
         )
 
         for bug_id, bug in list(bugs.items()):
