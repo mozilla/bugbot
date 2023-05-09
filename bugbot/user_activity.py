@@ -91,7 +91,10 @@ class UserActivity:
             keep_active: whether the returned results should include the active
                 users.
             ignore_bots: whether the returned results should include bot and
-            component-watching accounts.
+                component-watching accounts.
+            fetch_employee_info: whether to fetch the employee info from
+                Bugzilla. Only fields specified in `include_fields` will be
+                guaranteed to be fetched.
 
         Returns:
             A dictionary where the key is the user email and the value is the
