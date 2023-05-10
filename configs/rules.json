@@ -441,7 +441,7 @@
     "additional_receivers": ["fbraun@mozilla.com", "tritter@mozilla.com"]
   },
   "close_intermittents": {
-    "must_run": ["Tue", "Thu"],
+    "must_run": ["Mon", "Wed", "Fri"],
     "sec": false
   },
   "uplift_beta": {
