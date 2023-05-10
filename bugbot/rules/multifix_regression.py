@@ -44,6 +44,10 @@ class MultiFixRegressed(MultiAutoFixers):
                         rules[NeedinfoRegressionAuthor]["comment"]["body"],
                     ]
                 ),
+                "is_private": (
+                    rules[RegressionSetStatusFlags]["comment"]["is_private"]
+                    or rules[NeedinfoRegressionAuthor]["comment"]["is_private"]
+                ),
             }
 
         raise UnexpectedRulesError(rules_to_merge)
