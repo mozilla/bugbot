@@ -61,7 +61,7 @@ class Reminder(BzCleaner):
                 reminders.append({"full_tag": replace_string, "invalid_date": True})
                 continue
 
-            if parsed_date < self.today:
+            if parsed_date <= self.today:
                 replace_string = f"[reminder-{tag} {date}]"
                 new_whiteboard = new_whiteboard.replace(replace_string, "")
                 reminders.append({"full_tag": replace_string})
