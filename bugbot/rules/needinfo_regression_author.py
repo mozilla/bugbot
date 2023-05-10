@@ -15,6 +15,7 @@ class NeedinfoRegressionAuthor(BzCleaner):
     def __init__(self):
         super().__init__()
         self.extra_ni = {}
+        self.private_regressor_ids: set[str] = set()
 
     def description(self):
         return "Unassigned regressions with non-empty Regressed By field"
@@ -101,6 +102,10 @@ class NeedinfoRegressionAuthor(BzCleaner):
             regressor_to_bugs[bug["regressor_id"]].append(bug)
 
         def bug_handler(regressor_bug):
+            if regressor_bug.get("groups"):
+                regressor_bug_id = str(regressor_bug["id"])
+                self.private_regressor_ids.add(regressor_bug_id)
+
             for bug in regressor_to_bugs[regressor_bug["id"]]:
                 bug["regressor_author_email"] = regressor_bug["assigned_to"]
                 bug["regressor_author_nickname"] = regressor_bug["assigned_to_detail"][
@@ -110,7 +115,7 @@ class NeedinfoRegressionAuthor(BzCleaner):
         Bugzilla(
             bugids={bug["regressor_id"] for bug in bugs.values()},
             bughandler=bug_handler,
-            include_fields=["id", "assigned_to"],
+            include_fields=["id", "assigned_to", "groups"],
         ).get_data().wait()
 
     def filter_bugs(self, bugs):
@@ -174,6 +179,12 @@ class NeedinfoRegressionAuthor(BzCleaner):
         bugs = self.filter_bugs(bugs)
         self.set_autofix(bugs)
         return bugs
+
+    def set_needinfo(self):
+        res = super().set_needinfo()
+        for bug_id, needinfo_action in res.items():
+            if bug_id in self.private_regressor_ids:
+                needinfo_action["comment"]["is_private"] = True
 
 
 if __name__ == "__main__":
