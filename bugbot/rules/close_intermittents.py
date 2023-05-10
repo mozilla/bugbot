@@ -17,8 +17,8 @@ class Intermittents(BzCleaner):
         return "Intermittent test failure bugs unchanged in 21 days"
 
     def get_max_actions(self):
-        limit_per_run = 100
-        limit_per_team = 20
+        limit_per_run = 140
+        limit_per_team = 42
 
         # Number of teams that have bugs to be autoclosed
         number_of_teams = len(self.quota_actions)
