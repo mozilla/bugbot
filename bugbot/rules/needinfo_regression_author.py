@@ -186,6 +186,8 @@ class NeedinfoRegressionAuthor(BzCleaner):
             if bug_id in self.private_regressor_ids:
                 needinfo_action["comment"]["is_private"] = True
 
+        return res
+
 
 if __name__ == "__main__":
     NeedinfoRegressionAuthor().run()
