@@ -12,7 +12,7 @@ class SecurityUnhideDups(BzCleaner):
     """Security bugs that could be un-hidden"""
 
     def description(self):
-        return "Security bugs that are marked as duplicates of already-open bugs"
+        return "Security bugs that are marked as duplicates of already-public bugs"
 
     def filter_no_nag_keyword(self):
         return False
