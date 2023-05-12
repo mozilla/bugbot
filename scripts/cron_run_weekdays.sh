@@ -176,7 +176,7 @@ python -m bugbot.rules.severity_migration --production
 python -m bugbot.rules.crash_small_volume --production
 
 # Send a list with security bugs that could be un-hidden
-python -m auto_nag.scripts.security_unhide_dups --production
+python -m bugbot.rules.security_unhide_dups --production
 
 # Suggest increasing the severity when duplicate bugs have higher severity
 python -m bugbot.rules.severity_higher_dups --production
