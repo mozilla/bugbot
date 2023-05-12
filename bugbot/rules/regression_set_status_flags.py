@@ -4,7 +4,7 @@
 
 from libmozdata.bugzilla import Bugzilla
 
-from bugbot import utils
+from bugbot import logger, utils
 from bugbot.bzcleaner import BzCleaner
 
 
@@ -107,7 +107,16 @@ class RegressionSetStatusFlags(BzCleaner):
         filtered_bugs = {}
         for bugid, info in bugs.items():
             regressor = info["regressed_by"]
-            assert regressor in data
+            if regressor not in data:
+                logger.error(
+                    "Rule %s: regressor %s is not found",
+                    self.name(),
+                    regressor,
+                )
+                # This should be OK in local environment where we don't have
+                # access to all bugs, but it is not OK in production.
+                continue
+
             regression_versions = sorted(
                 v
                 for v in data[regressor]
