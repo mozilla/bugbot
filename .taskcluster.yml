@@ -26,6 +26,10 @@ tasks:
       then: ${event.pull_request.head.repo.html_url}
       else: ${event.repository.html_url}
   in:
+    $if: >
+      (tasks_for == "github-pull-request" && event.action in ["opened", "reopened", "synchronize"])
+      || (tasks_for == "github-push" && event["ref"] == "refs/heads/master")
+    then:
     - taskId: { $eval: as_slugid("tests_task") }
       created: { $fromNow: "" }
       deadline: { $fromNow: "1 hour" }
