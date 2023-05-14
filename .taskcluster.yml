@@ -30,29 +30,29 @@ tasks:
       (tasks_for == "github-pull-request" && event.action in ["opened", "reopened", "synchronize"])
       || (tasks_for == "github-push" && event["ref"] == "refs/heads/master")
     then:
-    - taskId: { $eval: as_slugid("tests_task") }
-      created: { $fromNow: "" }
-      deadline: { $fromNow: "1 hour" }
-      provisionerId: proj-relman
-      workerType: ci
-      payload:
-        maxRunTime: 3600
-        image: python:3.10
-        env:
-          TOX_ENV: py310
-          COVERALLS_REPO_TOKEN: VWnjgqWLHfmgSQMJPFdIRYIG5ontiAGl6
-        command:
-          - "/bin/bash"
-          - "-lcx"
-          - "git clone --quiet ${repository} bugbot &&
-            cd bugbot &&
-            git -c advice.detachedHead=false checkout ${head_rev} &&
-            pip install --quiet -r requirements-test.txt &&
-            pre-commit run --all-files --show-diff-on-failure &&
-            tox -e $TOX_ENV &&
-            coveralls"
-      metadata:
-        name: bugbot tests
-        description: bugbot tests
-        owner: mcastelluccio@mozilla.com
-        source: ${repository}/raw/${head_rev}/.taskcluster.yml
+      - taskId: { $eval: as_slugid("tests_task") }
+        created: { $fromNow: "" }
+        deadline: { $fromNow: "1 hour" }
+        provisionerId: proj-relman
+        workerType: ci
+        payload:
+          maxRunTime: 3600
+          image: python:3.10
+          env:
+            TOX_ENV: py310
+            COVERALLS_REPO_TOKEN: VWnjgqWLHfmgSQMJPFdIRYIG5ontiAGl6
+          command:
+            - "/bin/bash"
+            - "-lcx"
+            - "git clone --quiet ${repository} bugbot &&
+              cd bugbot &&
+              git -c advice.detachedHead=false checkout ${head_rev} &&
+              pip install --quiet -r requirements-test.txt &&
+              pre-commit run --all-files --show-diff-on-failure &&
+              tox -e $TOX_ENV &&
+              coveralls"
+        metadata:
+          name: bugbot tests
+          description: bugbot tests
+          owner: mcastelluccio@mozilla.com
+          source: ${repository}/raw/${head_rev}/.taskcluster.yml
