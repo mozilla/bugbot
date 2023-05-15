@@ -33,7 +33,7 @@ class SecurityUnhideDups(BzCleaner):
             "resolution": "DUPLICATE",
             "f1": "bug_group",
             "o1": "substring",
-            "v1": "sec",
+            "v1": "core-security",
         }
 
         return params
@@ -49,7 +49,7 @@ class SecurityUnhideDups(BzCleaner):
             bugs_to_query.remove(bug["id"])
             if (
                 bug["resolution"] in ("FIXED", "DUPLICATE")
-                and not any("sec" in group for group in bug["groups"])
+                and not any("core-security" in group for group in bug["groups"])
                 and any(keyword.startswith("sec-") for keyword in bug["keywords"])
             ):
                 public_sec_bugs.add(bug["id"])
