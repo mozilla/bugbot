@@ -183,8 +183,9 @@ class NeedinfoRegressionAuthor(BzCleaner):
     def set_needinfo(self):
         res = super().set_needinfo()
         for bug_id, needinfo_action in res.items():
-            if bug_id in self.private_regressor_ids:
-                needinfo_action["comment"]["is_private"] = True
+            needinfo_action["comment"]["is_private"] = (
+                bug_id in self.private_regressor_ids
+            )
 
         return res
 
