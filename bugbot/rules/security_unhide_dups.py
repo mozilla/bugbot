@@ -48,8 +48,8 @@ class SecurityUnhideDups(BzCleaner):
         def bug_handler(bug):
             bugs_to_query.remove(bug["id"])
             if (
-                bug["resolution"] in ("FIXED", "DUPLICATE")
-                and not any("core-security" in group for group in bug["groups"])
+                bug["resolution"] != "---"
+                and not bug["groups"]
                 and any(keyword.startswith("sec-") for keyword in bug["keywords"])
             ):
                 public_sec_bugs.add(bug["id"])
