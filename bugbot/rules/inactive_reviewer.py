@@ -243,9 +243,15 @@ class InactiveReviewer(BzCleaner):
 
     def handle_bug(self, bug, data):
         rev_ids = [
-            int(PHAB_FILE_NAME_PAT.findall(attachment["file_name"])[0])
+            # To avoid loading the attachment content (which can be very large),
+            # we extract the revision id from the file name, which is in the
+            # format of "phabricator-D{revision_id}-url.txt".
+            # len("phabricator-D") == 14
+            # len("-url.txt") == 8
+            int(attachment["file_name"][14:-8])
             for attachment in bug["attachments"]
             if attachment["content_type"] == "text/x-phabricator-request"
+            and PHAB_FILE_NAME_PAT.match(attachment["file_name"])
             and not attachment["is_obsolete"]
         ]
 
