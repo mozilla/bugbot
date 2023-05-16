@@ -18,7 +18,8 @@ class SecurityUnhideDups(BzCleaner):
         return False
 
     def get_summary(self, bug):
-        # This will prevent hiding the summary
+        # This will prevent the default behavior of hiding the summary of
+        # security bugs.
         return bug["summary"]
 
     def handle_bug(self, bug, data):
@@ -42,11 +43,9 @@ class SecurityUnhideDups(BzCleaner):
         bugs = super().get_bugs(date, bug_ids, chunk_size)
 
         # Filter out bugs that are not marked as duplicates of open security bugs
-        bugs_to_query = {bug["dupe_of"] for bug in bugs.values()}
         public_sec_bugs = set()
 
         def bug_handler(bug):
-            bugs_to_query.remove(bug["id"])
             if (
                 bug["resolution"] != "---"
                 and not bug["groups"]
@@ -54,6 +53,7 @@ class SecurityUnhideDups(BzCleaner):
             ):
                 public_sec_bugs.add(bug["id"])
 
+        bugs_to_query = {bug["dupe_of"] for bug in bugs.values()}
         Bugzilla(
             bugs_to_query,
             include_fields=["id", "resolution", "keywords", "groups"],
