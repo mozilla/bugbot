@@ -23,8 +23,7 @@ class SecurityUnhideDups(BzCleaner):
         return bug["summary"]
 
     def handle_bug(self, bug, data):
-        bugid = str(bug["id"])
-        data[bugid] = bug
+        data[str(bug["id"])] = bug
 
         return bug
 
