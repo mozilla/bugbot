@@ -442,7 +442,7 @@
   },
   "security_unhide_dups": {
     "must_run": ["Mon"],
-    "additional_receivers": ["dveditz@mozilla.com"]
+    "additional_receivers": ["dveditz@mozilla.com", "fbraun@mozilla.com"]
   },
   "close_intermittents": {
     "must_run": ["Mon", "Wed", "Fri"],
