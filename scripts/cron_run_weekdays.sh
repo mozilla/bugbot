@@ -169,9 +169,6 @@ python -m bugbot.rules.inactive_reviewer --production
 # Nag on fuzz blocker bugs
 python -m bugbot.rules.fuzz_blockers --production
 
-# Drop old severities
-python -m bugbot.rules.severity_migration --production
-
 # Detect bugs with small crash volume
 python -m bugbot.rules.crash_small_volume --production
 
