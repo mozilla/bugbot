@@ -32,7 +32,6 @@ class CheckWikiPage:
         "workflow/p3_p4_p5.py",
         # Temporary scripts:
         "survey_sec_bugs.py",  # not running by cron
-        "severity_migration.py",
         # Not user-facing rules:
         "stepstoreproduce.py",  # the autofix is currently disabled
         "triage_owner_rotations.py",
