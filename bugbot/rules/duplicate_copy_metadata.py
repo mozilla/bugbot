@@ -4,6 +4,7 @@
 
 from typing import Any, Dict, List, Set
 
+from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import Bugzilla
 
 from bugbot import utils
@@ -15,6 +16,7 @@ FIELD_NAME_TO_LABEL = {
     "keywords": "Keywords",
     "severity": "Severity",
     "whiteboard": "Whiteboard",
+    "cf_accessibility_severity": "Accessibility Severity",
     "cf_performance_impact": "Performance Impact",
     "regressed_by": "Regressed by",
     "status": "Status",
@@ -25,6 +27,16 @@ FIELD_LABEL_TO_NAME = {label: name for name, label in FIELD_NAME_TO_LABEL.items(
 
 
 class DuplicateCopyMetadata(BzCleaner):
+    def __init__(self, last_modification_days: int = 7):
+        """Constructor
+        Args:
+            last_modification_days: Number of days to look back for bugs that
+                were modified.
+        """
+        super().__init__()
+
+        self.last_modification_date = lmdutils.get_date("today", last_modification_days)
+
     def description(self):
         return "Copied fields from duplicate bugs"
 
@@ -45,9 +57,9 @@ class DuplicateCopyMetadata(BzCleaner):
             include_fields=[
                 "id",
                 "summary",
-                "whiteboard",
                 "keywords",
                 "duplicates",
+                "cf_accessibility_severity",
                 "cf_performance_impact",
                 "comments",
                 "history",
@@ -99,25 +111,30 @@ class DuplicateCopyMetadata(BzCleaner):
                     else:
                         copied_fields["keywords"]["from"].append(dup_bug["id"])
 
-                # Whiteboard: copy the `access-s*` whiteboard rating from duplicates
+                # Accessibility severity: copy the rating from duplicates
                 if (
-                    "access-s" not in bug["whiteboard"]
-                    and "access-s" in dup_bug["whiteboard"]
+                    bug.get("cl_accessibility_severity") == "---"
+                    and dup_bug.get("cl_accessibility_severity") != "---"
                 ):
-                    new_access_tag = utils.get_whiteboard_access_rating(
-                        dup_bug["whiteboard"]
-                    )
+                    new_access_severity = dup_bug["cl_accessibility_severity"]
+                    assert new_access_severity in ("s1", "s2", "s3", "s4")
 
                     if (
-                        "whiteboard" not in copied_fields
-                        or new_access_tag < copied_fields["whiteboard"]["value"]
+                        "cf_accessibility_severity" not in copied_fields
+                        or new_access_severity
+                        < copied_fields["cf_accessibility_severity"]["value"]
                     ):
-                        copied_fields["whiteboard"] = {
+                        copied_fields["cf_accessibility_severity"] = {
                             "from": [dup_bug["id"]],
-                            "value": new_access_tag,
+                            "value": new_access_severity,
                         }
-                    elif new_access_tag == copied_fields["whiteboard"]["value"]:
-                        copied_fields["whiteboard"]["from"].append(dup_bug["id"])
+                    elif (
+                        new_access_severity
+                        == copied_fields["cf_accessibility_severity"]["value"]
+                    ):
+                        copied_fields["cf_accessibility_severity"]["from"].append(
+                            dup_bug["id"]
+                        )
 
                 # Webcompat Priority: copy the `cf_webcompat_priority` from duplicates
                 if (
@@ -230,8 +247,8 @@ class DuplicateCopyMetadata(BzCleaner):
         for field, value, source in copied_fields:
             if field == "keywords":
                 autofix["keywords"] = {"add": [value]}
-            elif field == "whiteboard":
-                autofix["whiteboard"] = bug["whiteboard"] + value
+            elif field == "cf_accessibility_severity":
+                autofix["cf_accessibility_severity"] = value
             elif field == "cf_performance_impact":
                 autofix["cf_performance_impact"] = value
             elif field == "cf_webcompat_priority":
@@ -339,8 +356,8 @@ class DuplicateCopyMetadata(BzCleaner):
     def get_bz_params(self, date):
         fields = [
             "history",
-            "whiteboard",
             "keywords",
+            "cf_accessibility_severity",
             "cf_performance_impact",
             "dupe_of",
             "regressed_by",
@@ -350,11 +367,12 @@ class DuplicateCopyMetadata(BzCleaner):
         params = {
             "include_fields": fields,
             "resolution": "DUPLICATE",
-            "chfieldfrom": "-7d",
+            "chfieldfrom": self.last_modification_date,
             "chfield": [
                 "resolution",
                 "keywords",
                 "status_whiteboard",
+                "cf_accessibility_severity",
                 "cf_performance_impact",
                 "regressed_by",
                 "cf_webcompat_priority",
