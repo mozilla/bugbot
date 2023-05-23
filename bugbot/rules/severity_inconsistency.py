@@ -2,12 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import re
-
 from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
-
-WHITEBOARD_PAT = re.compile(r"\[access\-s[123]\]")
 
 
 class SeverityInconsistency(BzCleaner):
@@ -18,13 +14,9 @@ class SeverityInconsistency(BzCleaner):
         return True
 
     def handle_bug(self, bug, data):
-        whiteboard_severities = WHITEBOARD_PAT.findall(bug["whiteboard"])
-        assert len(whiteboard_severities) == 1
-        whiteboard_severity = whiteboard_severities[0]
-
         bugid = str(bug["id"])
         data[bugid] = {
-            "whiteboard_severity": whiteboard_severity,
+            "accessibility_severity": bug["cf_accessibility_severity"],
             "severity": bug["severity"],
         }
         self.extra_ni = data
@@ -35,7 +27,7 @@ class SeverityInconsistency(BzCleaner):
         return self.extra_ni
 
     def columns(self):
-        return ["id", "summary", "severity", "whiteboard_severity"]
+        return ["id", "summary", "severity", "accessibility_severity"]
 
     def get_mail_to_auto_ni(self, bug):
         for field in ["assigned_to", "triage_owner"]:
@@ -46,7 +38,12 @@ class SeverityInconsistency(BzCleaner):
         return None
 
     def get_bz_params(self, date):
-        fields = ["triage_owner", "assigned_to", "severity", "whiteboard"]
+        fields = [
+            "triage_owner",
+            "assigned_to",
+            "severity",
+            "cf_accessibility_severity",
+        ]
 
         params = {
             "include_fields": fields,
