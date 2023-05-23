@@ -41,8 +41,10 @@ class DuplicateCopyMetadata(BzCleaner):
         return "Copied fields from duplicate bugs"
 
     def handle_bug(self, bug, data):
-        bugid = str(bug["id"])
-        data[bugid] = bug
+        if bug["last_change_time_non_bot"] < self.last_modification_date:
+            return None
+
+        data[str(bug["id"])] = bug
 
         return bug
 
@@ -51,6 +53,9 @@ class DuplicateCopyMetadata(BzCleaner):
 
         original_bug_ids = {bug["dupe_of"] for bug in dup_bugs.values()}
         original_bugs = {}
+
+        def bughandler(bug, data):
+            data: data[str(bug["id"])] = bug
 
         Bugzilla(
             original_bug_ids,
@@ -68,7 +73,7 @@ class DuplicateCopyMetadata(BzCleaner):
                 "is_open",
                 "cf_webcompat_priority",
             ],
-            bughandler=self.handle_bug,
+            bughandler=bughandler,
             bugdata=original_bugs,
         ).wait()
 
@@ -362,6 +367,7 @@ class DuplicateCopyMetadata(BzCleaner):
             "dupe_of",
             "regressed_by",
             "cf_webcompat_priority",
+            "last_change_time_non_bot",
         ]
 
         params = {
