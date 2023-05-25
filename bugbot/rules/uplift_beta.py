@@ -121,8 +121,8 @@ class UpliftBeta(BzCleaner):
             "v5": ", is this bug important enough to require an uplift?",
             # Check if have at least one attachment which is a Phabricator request
             "f6": "attachments.mimetype",
-            "o6": "anywordssubstr",
-            "v6": "text/x-phabricator-request",
+            "o6": "anyexact",
+            "v6": ["text/x-phabricator-request", "text/x-github-pull-request"],
             # skip if whiteboard contains checkin-needed-beta (e.g. test-only uplift)
             "f7": "status_whiteboard",
             "o7": "notsubstring",
