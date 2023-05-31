@@ -2,15 +2,17 @@
 <table {{ table_attrs }}>
     <thead>
         <tr>
+            <th>Component</th>
             <th>Bug</th>
             <th>Summary</th>
         </tr>
     </thead>
     <tbody>
-        {% for i, (bugid, summary) in enumerate(data) -%}
+        {% for i, (product, component ,bugid, summary) in enumerate(data) -%}
             <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
             {% endif -%}
             >
+            <td>{{ product | e }}::{{ component | e }}</td>
             <td>
                 <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
             </td>
