@@ -25,6 +25,12 @@ class Intermittents(BzCleaner):
 
         return min([limit_per_run // number_of_teams, limit_per_team])
 
+    def has_product_component(self):
+        return True
+
+    def columns(self):
+        return ["product", "component", "id", "summary"]
+
     def get_bz_params(self, date):
         params = {
             "include_fields": ["_custom", "product", "component"],
