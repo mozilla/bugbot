@@ -22,7 +22,7 @@ def classification_http_request(url, bug_ids):
     return response.json()
 
 
-def get_bug_ids_classification(model, bug_ids, retry_count=21, retry_sleep=7):
+def get_bug_ids_classification(model, bug_ids, retry_count=21, retry_sleep=10):
     if len(bug_ids) == 0:
         return {}
 
