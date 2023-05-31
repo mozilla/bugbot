@@ -4,6 +4,7 @@
 
 import os
 import time
+from typing import Iterable
 
 import requests
 
@@ -22,14 +23,27 @@ def classification_http_request(url, bug_ids):
     return response.json()
 
 
-def get_bug_ids_classification(model, bug_ids, retry_count=21, retry_sleep=10):
+def get_bug_ids_classification(
+    model: str, bugs: Iterable, retry_count: int = 21, retry_sleep: int = 10
+):
+    """Get the classification for a list of bug ids.
+
+    Args:
+        model: The model to use for the classification.
+        bug_ids: The list of bug ids to classify, if a dictionary is passed, the
+            keys will be used as bug ids.
+        retry_count: The number of times to retry the request.
+        retry_sleep: The number of seconds to sleep between retries.
+
+    Returns:
+        A dictionary with the bug ids as keys and the classification as values.
+    """
+    # Copy the bug ids to avoid mutating it
+    bug_ids = set(map(int, bugs))
     if len(bug_ids) == 0:
         return {}
 
     url = f"{BUGBUG_HTTP_SERVER}/{model}/predict/batch"
-
-    # Copy the bug ids to avoid mutating it
-    bug_ids = set(map(int, bug_ids))
 
     json_response = {}
 
