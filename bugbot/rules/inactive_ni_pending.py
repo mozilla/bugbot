@@ -10,7 +10,7 @@ from libmozdata import utils as lmdutils
 
 from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
-from bugbot.constants import HIGH_PRIORITY, HIGH_SEVERITY
+from bugbot.constants import HIGH_PRIORITY, HIGH_SEVERITY, SECURITY_KEYWORDS
 from bugbot.user_activity import UserActivity, UserStatus
 from bugbot.utils import plural
 
@@ -149,6 +149,7 @@ class InactiveNeedinfoPending(BzCleaner):
             bug["priority"] in HIGH_PRIORITY
             or bug["severity"] in HIGH_SEVERITY
             or bug["last_change_time"] >= RECENT_BUG_LIMIT
+            or any(keyword in SECURITY_KEYWORDS for keyword in bug["keywords"])
         ):
             return NeedinfoAction.FORWARD
 
@@ -287,6 +288,7 @@ class InactiveNeedinfoPending(BzCleaner):
             "needinfo_flags": [
                 flag for flag in bug["flags"] if flag["name"] == "needinfo"
             ],
+            "keywords": bug["keywords"],
         }
 
         return bug
@@ -303,6 +305,7 @@ class InactiveNeedinfoPending(BzCleaner):
             "creation_time",
             "comments",
             "creator",
+            "keywords",
         ]
 
         params = {
