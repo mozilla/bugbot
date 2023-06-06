@@ -19,3 +19,6 @@ OLD_SEVERITY_MAP = {
     "trivial": "S4",
     "enhancement": "S4",
 }
+
+HIGH_SECURITY_KEYWORDS = ["sec-high", "sec-critical"]
+SECURITY_KEYWORDS = HIGH_SECURITY_KEYWORDS + ["sec-moderate", "sec-low"]
