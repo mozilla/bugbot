@@ -4,8 +4,7 @@
 
 from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
-
-HIGH_SECURITY_KEYWORDS = ["sec-high", "sec-critical"]
+from bugbot.constants import HIGH_SECURITY_KEYWORDS
 
 
 class SeverityHighSecurity(BzCleaner):

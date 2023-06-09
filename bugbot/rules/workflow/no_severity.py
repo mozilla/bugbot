@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from datetime import datetime
+
 import numpy
 from libmozdata import utils as lmdutils
 
@@ -271,6 +273,23 @@ class NoSeverity(BzCleaner, Nag):
                     "f30": "CP",
                 }
             )
+
+        # TODO: the following code can be removed in 2024.
+        # https://github.com/mozilla/bugbot/issues/1596
+        # Almost 500 old bugs have no severity set. The intent of the following
+        # is to have them triaged in batches where every week we include more
+        # bugs. Once the list of old bugs are reduced, we could safely remove
+        # the following code.
+        passed_time = datetime.now() - datetime.fromisoformat("2023-06-09")
+        oldest_bug_months = 56 + passed_time.days
+        n = utils.get_last_field_num(params)
+        params.update(
+            {
+                f"f{n}": "creation_ts",
+                f"o{n}": "greaterthan",
+                f"v{n}": f"-{oldest_bug_months}m",
+            }
+        )
 
         return params
 
