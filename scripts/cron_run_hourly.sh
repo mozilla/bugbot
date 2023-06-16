@@ -73,4 +73,7 @@ python -m bugbot.rules.multifix_regression --production
 # Copy metadata from duplicates
 python -m bugbot.rules.duplicate_copy_metadata --production
 
+# File bugs for new actionable crashes
+python -m bugbot.rules.file_crash_bug --production
+
 source ./scripts/cron_common_end.sh
