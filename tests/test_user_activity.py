@@ -14,6 +14,8 @@ from bugbot.user_activity import UserActivity, UserStatus
 class UserActivityTest(MockTestCase):
     """Test the UserActivity class"""
 
+    reference_date = "2022-08-18"
+
     mock_urls = [BugzillaUser.URL]
 
     active_users = {"smujahid@mozilla.com", "mcastelluccio@mozilla.com"}
@@ -38,7 +40,9 @@ class UserActivityTest(MockTestCase):
     def test_check_users(self):
         """Test the check_users method"""
 
-        user_activity = UserActivity(people=self.people)
+        user_activity = UserActivity(
+            people=self.people, reference_date=self.reference_date
+        )
         inactive_users = user_activity.check_users(
             self.active_users | self.disabled_users | self.employees
         )
@@ -49,7 +53,9 @@ class UserActivityTest(MockTestCase):
     def test_check_users_keep_active(self):
         """Test the check_users method with keep_active set to True"""
 
-        user_activity = UserActivity(people=self.people)
+        user_activity = UserActivity(
+            people=self.people, reference_date=self.reference_date
+        )
         users_info = user_activity.check_users(
             self.active_users | self.disabled_users | self.employees, keep_active=True
         )
@@ -77,7 +83,9 @@ class UserActivityTest(MockTestCase):
 
     @responses.activate
     def test_check_users_ignore_bots(self):
-        user_activity = UserActivity(people=self.people)
+        user_activity = UserActivity(
+            people=self.people, reference_date=self.reference_date
+        )
         users_info = user_activity.check_users(
             self.bots | self.disabled_users, ignore_bots=True, keep_active=True
         )
@@ -102,7 +110,11 @@ class UserActivityTest(MockTestCase):
     def test_get_bz_users_with_status(self):
         """Test the get_bz_users_with_status method"""
 
-        user_activity = UserActivity(people=self.people, include_fields=["nick", "id"])
+        user_activity = UserActivity(
+            people=self.people,
+            include_fields=["nick", "id"],
+            reference_date=self.reference_date,
+        )
         users_info = user_activity.get_bz_users_with_status(
             list(self.active_users | self.disabled_users)
         )
