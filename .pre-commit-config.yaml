@@ -75,4 +75,4 @@ repos:
     hooks:
       - id: check-useless-excludes
 default_language_version:
-  python: python3
+  python: python3.10
