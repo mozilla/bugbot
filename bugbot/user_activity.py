@@ -40,6 +40,7 @@ class UserActivity:
         include_fields: list = None,
         phab: PhabricatorAPI = None,
         people: People = None,
+        reference_date: str = "today",
     ) -> None:
         """
         Constructor
@@ -57,6 +58,9 @@ class UserActivity:
                 created when it is needed.
             people: if an instance of People is not provided, the global
                 instance will be used.
+            reference_date: the reference date to use for checking user
+                activity. This is needed for testing because the dates in the
+                mock data are fixed.
         """
         self.activity_weeks_count = activity_weeks_count
         self.absent_weeks_count = absent_weeks_count
@@ -64,12 +68,14 @@ class UserActivity:
         self.people = people if people is not None else People.get_instance()
         self.phab = phab
         self.availability_limit = (
-            lmdutils.get_date_ymd("today") + timedelta(unavailable_max_days)
+            lmdutils.get_date_ymd(reference_date) + timedelta(unavailable_max_days)
         ).timestamp()
 
-        self.activity_limit = lmdutils.get_date("today", self.activity_weeks_count * 7)
+        self.activity_limit = lmdutils.get_date(
+            reference_date, self.activity_weeks_count * 7
+        )
         self.activity_limit_ts = lmdutils.get_date_ymd(self.activity_limit).timestamp()
-        self.seen_limit = lmdutils.get_date("today", self.absent_weeks_count * 7)
+        self.seen_limit = lmdutils.get_date(reference_date, self.absent_weeks_count * 7)
 
     def _get_phab(self):
         if not self.phab:
