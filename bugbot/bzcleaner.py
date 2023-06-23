@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import argparse
+import logging
 import os
 import sys
 import time
@@ -835,6 +836,10 @@ class BzCleaner(object):
         self.dryrun = args.dryrun
         self.is_limited = args.is_limited
         self.cache.set_dry_run(self.dryrun)
+
+        if self.dryrun:
+            logger.setLevel(logging.DEBUG)
+
         try:
             self.send_email(date=date)
             self.terminate()
