@@ -344,7 +344,7 @@ class FileCrashBug(BzCleaner):
                 "component": signature.crash_component.name,
                 "op_sys": signature.bugzilla_op_sys,
                 "rep_platform": signature.bugzilla_cpu_arch,
-                "signature": f"[@ {signature.signature_term}]",
+                "cf_crash_signature": f"[@ {signature.signature_term}]",
                 "description": description,
                 # TODO: Uncomment the following lines when we move to file on
                 # the production instance of Bugzilla. Filling `regressed_by` or
