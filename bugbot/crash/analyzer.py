@@ -107,15 +107,17 @@ class ClouseauReportsAnalyzer:
 
 
 class SocorroInfoAnalyzer(socorro_util.SignatureStats):
-    __bugzilla_os_values = set(bugzilla.BugFields.fetch_field_values("op_sys"))
-    __bugzilla_cpu_values = {
-        value.lower(): value
-        for value in bugzilla.BugFields.fetch_field_values("rep_platform")
-    }
+    __bugzilla_os_legal_values = None
+    __bugzilla_cpu_legal_values_map = None
 
     @classmethod
     def to_bugzilla_op_sys(cls, op_sys: str) -> str:
-        if op_sys in cls.__bugzilla_os_values:
+        if cls.__bugzilla_os_legal_values is None:
+            cls.__bugzilla_os_legal_values = set(
+                bugzilla.BugFields.fetch_field_values("op_sys")
+            )
+
+        if op_sys in cls.__bugzilla_os_legal_values:
             return op_sys
 
         if op_sys.startswith("OS X ") or op_sys.startswith("macOS "):
@@ -153,7 +155,13 @@ class SocorroInfoAnalyzer(socorro_util.SignatureStats):
 
     @classmethod
     def to_bugzilla_cpu(cls, cpu: str) -> str:
-        return cls.__bugzilla_cpu_values.get(cpu, "Other")
+        if cls.__bugzilla_cpu_legal_values_map is None:
+            cls.__bugzilla_cpu_legal_values_map = {
+                value.lower(): value
+                for value in bugzilla.BugFields.fetch_field_values("rep_platform")
+            }
+
+        return cls.__bugzilla_cpu_legal_values_map.get(cpu, "Other")
 
     @property
     def bugzilla_cpu_arch(self) -> str:
