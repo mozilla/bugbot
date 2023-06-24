@@ -18,6 +18,64 @@ from bugbot import logger, utils
 from bugbot.components import ComponentName
 from bugbot.crash import socorro_util
 
+# Allocator poison value addresses.
+ALLOCATOR_ADDRESSES_64_BIT = (
+    0xE5E5E5E5E5E5E5E5,
+    0x4B4B4B4B4B4B4B4B,
+)
+ALLOCATOR_ADDRESSES_32_BIT = (
+    0xE5E5E5E5,
+    0x4B4B4B4B,
+)
+# The max offset from a memory address to be considered "near".
+OFFSET_64_BIT = 0x1000
+OFFSET_32_BIT = 0x100
+# Ranges where addresses are considered near allocator poison values.
+ALLOCATOR_RANGES_64_BIT = (
+    (addr - OFFSET_64_BIT, addr + OFFSET_64_BIT) for addr in ALLOCATOR_ADDRESSES_64_BIT
+)
+ALLOCATOR_RANGES_32_BIT = (
+    (addr - OFFSET_32_BIT, addr + OFFSET_32_BIT) for addr in ALLOCATOR_ADDRESSES_32_BIT
+)
+
+
+def is_near_null_address(str_address) -> bool:
+    """Check if the address is near null.
+
+    Args:
+        str_address: The memory address to check.
+
+    Returns:
+        True if the address is near null, False otherwise.
+    """
+    address = int(str_address, 0)
+    is_64_bit = len(str_address) >= 18
+
+    if is_64_bit:
+        return -OFFSET_64_BIT <= address <= OFFSET_64_BIT
+
+    return -OFFSET_32_BIT <= address <= OFFSET_32_BIT
+
+
+def is_near_allocator_address(str_address) -> bool:
+    """Check if the address is near an allocator poison value.
+
+    Args:
+        str_address: The memory address to check.
+
+    Returns:
+        True if the address is near an allocator poison value, False otherwise.
+    """
+    address = int(str_address, 0)
+    is_64_bit = len(str_address) >= 18
+
+    return any(
+        low <= address <= high
+        for low, high in (
+            ALLOCATOR_RANGES_64_BIT if is_64_bit else ALLOCATOR_RANGES_32_BIT
+        )
+    )
+
 
 # TODO: Move this to libmozdata
 def generate_signature_page_url(params: dict, tab: str) -> str:
@@ -329,6 +387,76 @@ class SocorroDataAnalyzer(socorro_util.SignatureStats):
         """The build ID where most crashes occurred."""
         return self.signature["facets"]["build_id"][0]["term"]
 
+    @cached_property
+    def num_near_null_crashes(self) -> int:
+        """The number of crashes that occurred on addresses near null."""
+        return sum(
+            address["count"]
+            for address in self.signature["facets"]["address"]
+            if is_near_null_address(address["term"])
+        )
+
+    @property
+    def is_near_null_crash(self) -> bool:
+        """Whether all crashes occurred on addresses near null."""
+        return self.num_near_null_crashes == self.num_crashes
+
+    @property
+    def is_potential_near_null_crash(self) -> bool:
+        """Whether the signature is a potential near null crash.
+
+        The value will be True if some but not all crashes occurred on addresses
+        near null.
+        """
+        return not self.is_near_null_crash and self.num_near_null_crashes > 0
+
+    @property
+    def is_near_null_related_crash(self) -> bool:
+        """Whether the signature is related to near null crashes.
+
+        The value will be True if any of the crashes occurred on addresses near
+        null.
+        """
+        return self.is_near_null_crash or self.is_potential_near_null_crash
+
+    @cached_property
+    def num_near_allocator_crashes(self) -> int:
+        """The number of crashes that occurred on addresses near an allocator
+        poison value.
+        """
+        return sum(
+            address["count"]
+            for address in self.signature["facets"]["address"]
+            if is_near_allocator_address(address["term"])
+        )
+
+    @property
+    def is_near_allocator_crash(self) -> bool:
+        """Whether all crashes occurred on addresses near an allocator poison
+        value.
+        """
+        return self.num_near_allocator_crashes == self.num_crashes
+
+    @property
+    def is_potential_near_allocator_crash(self) -> bool:
+        """Whether the signature is a potential near allocator poison value
+        crash.
+
+        The value will be True if some but not all crashes occurred on addresses
+        near an allocator poison value.
+        """
+        return not self.is_near_allocator_crash and self.num_near_allocator_crashes > 0
+
+    @property
+    def is_near_allocator_related_crash(self) -> bool:
+        """Whether the signature is related to near allocator poison value
+        crashes.
+
+        The value will be True if any of the crashes occurred on addresses near
+        an allocator poison value.
+        """
+        return self.is_near_allocator_crash or self.is_potential_near_allocator_crash
+
 
 class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
     """Analyze the data related to a signature.
@@ -620,6 +748,7 @@ class SignaturesDataFetcher:
             # TODO: split signatures into chunks to avoid very long query URLs
             "signature": ["=" + signature for signature in self._signatures],
             "_aggs.signature": [
+                "address",
                 "build_id",
                 "cpu_arch",
                 "proto_signature",

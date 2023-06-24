@@ -98,7 +98,7 @@ class FileCrashBug(BzCleaner):
             # [ ] Severity
             # [ ] Time correlation
             # [X] User comments
-            # [ ] Crash address commonalities
+            # [X] Crash address commonalities
             # [ ] Estimated future crash volume
 
             bug_data = {
