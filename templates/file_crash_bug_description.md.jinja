@@ -28,7 +28,7 @@ Top {{ frames|length }} frames of crashing thread:
 {% endif %}
 
 
-Here are some insights about the crash signiture based on recent data at the time of reporting the bug:
+Here are some insights about the crash signature based on recent data at the time of reporting the bug:
 
 - **Crash kind:** {{ "Plugin Crash" if signature.is_plugin_crash  else  "Browser Crash" }}
 - **Is startup crash:** {{ "Yes - " if signature.is_startup_related_crash else "No" }}
