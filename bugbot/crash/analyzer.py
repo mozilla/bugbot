@@ -18,21 +18,24 @@ class NoCrashReportFoundError(Exception):
     """Raised when no crash report is found with the required criteria."""
 
 
-class ClouseauReportsAnalyzer:
-    REGRESSOR_MINIMUM_SCORE: int = 8
+class ClouseauDataAnalyzer:
+    MINIMUM_CLOUSEAU_SCORE_THRESHOLD: int = 8
+    DEFAULT_CRASH_COMPONENT = ComponentName("Core", "General")
 
     def __init__(self, reports: Iterable[dict]):
         self._clouseau_reports = reports
 
     @cached_property
-    def max_score(self):
+    def max_clouseau_score(self):
         if not self._clouseau_reports:
             return 0
         return max(report["max_score"] for report in self._clouseau_reports)
 
     @cached_property
     def regressed_by_potential_bug_ids(self) -> set[int]:
-        minimum_accepted_score = max(self.REGRESSOR_MINIMUM_SCORE, self.max_score)
+        minimum_accepted_score = max(
+            self.MINIMUM_CLOUSEAU_SCORE_THRESHOLD, self.max_clouseau_score
+        )
         return {
             changeset["bug_id"]
             for report in self._clouseau_reports
@@ -45,7 +48,9 @@ class ClouseauReportsAnalyzer:
 
     @cached_property
     def regressed_by_patch(self) -> str | None:
-        minimum_accepted_score = max(self.REGRESSOR_MINIMUM_SCORE, self.max_score)
+        minimum_accepted_score = max(
+            self.MINIMUM_CLOUSEAU_SCORE_THRESHOLD, self.max_clouseau_score
+        )
         potential_patches = {
             changeset["changeset"]
             for report in self._clouseau_reports
@@ -103,21 +108,35 @@ class ClouseauReportsAnalyzer:
         }
         if len(potential_components) == 1:
             return next(iter(potential_components))
-        return ComponentName("Core", "General")
+        return self.DEFAULT_CRASH_COMPONENT
 
 
-class SocorroInfoAnalyzer(socorro_util.SignatureStats):
-    __bugzilla_os_legal_values = None
-    __bugzilla_cpu_legal_values_map = None
+class SocorroDataAnalyzer(socorro_util.SignatureStats):
+    _bugzilla_os_legal_values = None
+    _bugzilla_cpu_legal_values_map = None
+    _platforms = [
+        {"short_name": "win", "name": "Windows"},
+        {"short_name": "mac", "name": "Mac OS X"},
+        {"short_name": "lin", "name": "Linux"},
+        {"short_name": "and", "name": "Android"},
+        {"short_name": "unknown", "name": "Unknown"},
+    ]
+
+    def __init__(
+        self,
+        signature: dict,
+        num_total_crashes: int,
+    ):
+        super().__init__(signature, num_total_crashes, platforms=self._platforms)
 
     @classmethod
     def to_bugzilla_op_sys(cls, op_sys: str) -> str:
-        if cls.__bugzilla_os_legal_values is None:
-            cls.__bugzilla_os_legal_values = set(
+        if cls._bugzilla_os_legal_values is None:
+            cls._bugzilla_os_legal_values = set(
                 bugzilla.BugFields.fetch_field_values("op_sys")
             )
 
-        if op_sys in cls.__bugzilla_os_legal_values:
+        if op_sys in cls._bugzilla_os_legal_values:
             return op_sys
 
         if op_sys.startswith("OS X ") or op_sys.startswith("macOS "):
@@ -155,13 +174,13 @@ class SocorroInfoAnalyzer(socorro_util.SignatureStats):
 
     @classmethod
     def to_bugzilla_cpu(cls, cpu: str) -> str:
-        if cls.__bugzilla_cpu_legal_values_map is None:
-            cls.__bugzilla_cpu_legal_values_map = {
+        if cls._bugzilla_cpu_legal_values_map is None:
+            cls._bugzilla_cpu_legal_values_map = {
                 value.lower(): value
                 for value in bugzilla.BugFields.fetch_field_values("rep_platform")
             }
 
-        return cls.__bugzilla_cpu_legal_values_map.get(cpu, "Other")
+        return cls._bugzilla_cpu_legal_values_map.get(cpu, "Other")
 
     @property
     def bugzilla_cpu_arch(self) -> str:
@@ -198,8 +217,7 @@ class SocorroInfoAnalyzer(socorro_util.SignatureStats):
     def num_top_proto_signature_crashes(self) -> int:
         return self.signature["facets"]["proto_signature"][0]["count"]
 
-    @property
-    def build_ids(self) -> Iterator[int]:
+    def _build_ids(self) -> Iterator[int]:
         for build_id in self.signature["facets"]["build_id"]:
             yield build_id["term"]
 
@@ -208,25 +226,15 @@ class SocorroInfoAnalyzer(socorro_util.SignatureStats):
         return self.signature["facets"]["build_id"][0]["term"]
 
 
-class SignatureAnalyzer(SocorroInfoAnalyzer, ClouseauReportsAnalyzer):
-    platforms = [
-        {"short_name": "win", "name": "Windows"},
-        {"short_name": "mac", "name": "Mac OS X"},
-        {"short_name": "lin", "name": "Linux"},
-        {"short_name": "and", "name": "Android"},
-        {"short_name": "unknown", "name": "Unknown"},
-    ]
-
+class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
     def __init__(
         self,
-        signature: dict,
+        socorro_signature: dict,
         num_total_crashes: int,
         clouseau_reports: list[dict],
     ):
-        SocorroInfoAnalyzer.__init__(
-            self, signature, num_total_crashes, platforms=self.platforms
-        )
-        ClouseauReportsAnalyzer.__init__(self, clouseau_reports)
+        SocorroDataAnalyzer.__init__(self, socorro_signature, num_total_crashes)
+        ClouseauDataAnalyzer.__init__(self, clouseau_reports)
 
     def _fetch_crash_reports(
         self,
@@ -267,7 +275,7 @@ class SignatureAnalyzer(SocorroInfoAnalyzer, ClouseauReportsAnalyzer):
             # Next we try find reports from the top crashing build because they
             # are likely to be representative.
             self._fetch_crash_reports(self.top_proto_signature, self.top_build_id),
-            self._fetch_crash_reports(self.top_proto_signature, self.build_ids),
+            self._fetch_crash_reports(self.top_proto_signature, self._build_ids()),
         )
         for report in reports:
             uuid = report["uuid"]
