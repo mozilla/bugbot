@@ -19,6 +19,8 @@ class NoCrashReportFoundError(Exception):
 
 
 class ClouseauDataAnalyzer:
+    """Analyze the data returned by Crash Clouseau"""
+
     MINIMUM_CLOUSEAU_SCORE_THRESHOLD: int = 8
     DEFAULT_CRASH_COMPONENT = ComponentName("Core", "General")
 
@@ -27,12 +29,14 @@ class ClouseauDataAnalyzer:
 
     @cached_property
     def max_clouseau_score(self):
+        """The maximum Clouseau score in the crash reports."""
         if not self._clouseau_reports:
             return 0
         return max(report["max_score"] for report in self._clouseau_reports)
 
     @cached_property
     def regressed_by_potential_bug_ids(self) -> set[int]:
+        """The IDs for the bugs that their patches could have caused the crash."""
         minimum_accepted_score = max(
             self.MINIMUM_CLOUSEAU_SCORE_THRESHOLD, self.max_clouseau_score
         )
@@ -48,6 +52,7 @@ class ClouseauDataAnalyzer:
 
     @cached_property
     def regressed_by_patch(self) -> str | None:
+        """The hash of the patch that could have caused the crash."""
         minimum_accepted_score = max(
             self.MINIMUM_CLOUSEAU_SCORE_THRESHOLD, self.max_clouseau_score
         )
@@ -66,6 +71,11 @@ class ClouseauDataAnalyzer:
 
     @cached_property
     def regressed_by(self) -> int | None:
+        """The ID of the bug that one of its patches could have caused
+        the crash.
+
+        If there are multiple bugs, the value will be `None`.
+        """
         bug_ids = self.regressed_by_potential_bug_ids
         if len(bug_ids) == 1:
             return next(iter(bug_ids))
@@ -73,6 +83,8 @@ class ClouseauDataAnalyzer:
 
     @cached_property
     def regressed_by_potential_bugs(self) -> list[dict]:
+        """The bugs that their patches could have caused the crash."""
+
         def handler(bug: dict, data: list):
             data.append(bug)
 
@@ -93,6 +105,14 @@ class ClouseauDataAnalyzer:
 
     @cached_property
     def regressed_by_author(self) -> dict | None:
+        """The author of the patch that could have caused the crash.
+
+        If there are multiple regressors, the value will be `None`.
+
+        The regressor bug assignee is considered as the author, even if the
+        assignee is not the patch author.
+        """
+
         if not self.regressed_by:
             return None
 
@@ -102,6 +122,10 @@ class ClouseauDataAnalyzer:
 
     @cached_property
     def crash_component(self) -> ComponentName:
+        """The component that the crash belongs to.
+
+        If there are multiple components, the value will be the default one.
+        """
         potential_components = {
             ComponentName(bug["product"], bug["component"])
             for bug in self.regressed_by_potential_bugs
@@ -112,6 +136,8 @@ class ClouseauDataAnalyzer:
 
 
 class SocorroDataAnalyzer(socorro_util.SignatureStats):
+    """Analyze the data returned by Socorro."""
+
     _bugzilla_os_legal_values = None
     _bugzilla_cpu_legal_values_map = None
     _platforms = [
@@ -131,6 +157,11 @@ class SocorroDataAnalyzer(socorro_util.SignatureStats):
 
     @classmethod
     def to_bugzilla_op_sys(cls, op_sys: str) -> str:
+        """Return the corresponding OS name in Bugzilla for the provide OS name
+        from Socorro.
+
+        If the OS name is not recognized, return "Other".
+        """
         if cls._bugzilla_os_legal_values is None:
             cls._bugzilla_os_legal_values = set(
                 bugzilla.BugFields.fetch_field_values("op_sys")
@@ -152,16 +183,27 @@ class SocorroDataAnalyzer(socorro_util.SignatureStats):
 
     @property
     def bugzilla_op_sys(self) -> str:
+        """The name of the OS where the crash happens.
+
+        The value is one of the legal values for Bugzilla's `op_sys` field.
+
+        - If no OS name is found, the value will be "Unspecified".
+        - If the OS name is not recognized, the value will be "Other".
+        - If multiple OS names are found, the value will "All". Unless the OS
+          names can be resolved common name without a version. For example,
+          "Windows 10" and "Windows 7" will become "Windows".
+        """
         all_op_sys = {
             self.to_bugzilla_op_sys(op_sys["term"])
             for op_sys in self.signature["facets"]["platform_pretty_version"]
         }
 
         if len(all_op_sys) > 1:
-            # TODO: explain this workaround
+            # Resolve to root OS name by removing the version number.
             all_op_sys = {op_sys.split(" ")[0] for op_sys in all_op_sys}
 
         if len(all_op_sys) == 2 and "Other" in all_op_sys:
+            # TODO: explain this workaround.
             all_op_sys.remove("Other")
 
         if len(all_op_sys) == 1:
@@ -174,6 +216,11 @@ class SocorroDataAnalyzer(socorro_util.SignatureStats):
 
     @classmethod
     def to_bugzilla_cpu(cls, cpu: str) -> str:
+        """Return the corresponding CPU name in Bugzilla for the provided name
+        from Socorro.
+
+        If the CPU is not recognized, return "Other".
+        """
         if cls._bugzilla_cpu_legal_values_map is None:
             cls._bugzilla_cpu_legal_values_map = {
                 value.lower(): value
@@ -184,6 +231,14 @@ class SocorroDataAnalyzer(socorro_util.SignatureStats):
 
     @property
     def bugzilla_cpu_arch(self) -> str:
+        """The CPU architecture of the devices where the crash happens.
+
+        The value is one of the legal values for Bugzilla's `rep_platform` field.
+
+        - If no CPU architecture is found, the value will be "Unspecified".
+        - If the CPU architecture is not recognized, the value will be "Other".
+        - If multiple CPU architectures are found, the value will "All".
+        """
         all_cpu_arch = {
             self.to_bugzilla_cpu(cpu["term"])
             for cpu in self.signature["facets"]["cpu_arch"]
@@ -202,31 +257,42 @@ class SocorroDataAnalyzer(socorro_util.SignatureStats):
 
     @property
     def num_user_comments(self) -> int:
+        """The number crash reports with user comments."""
         # TODO: count useful/intrusting user comments (e.g., exclude one word comments)
         return self.signature["facets"]["cardinality_user_comments"]["value"]
 
     @property
     def has_user_comments(self) -> bool:
+        """Whether the crash signature has any reports with a user comment."""
         return self.num_user_comments > 0
 
     @property
     def top_proto_signature(self) -> str:
+        """The proto signature that occurs the most."""
         return self.signature["facets"]["proto_signature"][0]["term"]
 
     @property
     def num_top_proto_signature_crashes(self) -> int:
+        """The number of crashes for the most occurring proto signature."""
         return self.signature["facets"]["proto_signature"][0]["count"]
 
     def _build_ids(self) -> Iterator[int]:
+        """Yields the build IDs where the crash occurred."""
         for build_id in self.signature["facets"]["build_id"]:
             yield build_id["term"]
 
     @property
     def top_build_id(self) -> int:
+        """The build ID where most crashes occurred."""
         return self.signature["facets"]["build_id"][0]["term"]
 
 
 class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
+    """Analyze the data related to a signature.
+
+    This includes data from Socorro and Clouseau.
+    """
+
     def __init__(
         self,
         socorro_signature: dict,
@@ -260,6 +326,11 @@ class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
         yield from data["hits"]
 
     def fetch_representing_processed_crash(self) -> dict:
+        """Fetch a processed crash to represent the signature.
+
+        This could fitch multiple processed crashes and return the one that is
+        most likely to be useful.
+        """
         limit_to_top_proto_signature = (
             self.num_top_proto_signature_crashes / self.num_crashes > 0.6
         )
@@ -294,6 +365,8 @@ class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
 
 
 class SignaturesDataFetcher:
+    """Fetch the data related to the given signatures."""
+
     def __init__(
         self,
         signatures,
@@ -305,6 +378,7 @@ class SignaturesDataFetcher:
         self._channel = channel
 
     def fetch_clouseau_crash_reports(self) -> dict[str, list]:
+        """Fetch the crash reports data from Crash Clouseau."""
         return clouseau.Reports.get_by_signatures(
             self._signatures,
             product=self._product,
@@ -312,6 +386,7 @@ class SignaturesDataFetcher:
         )
 
     def fetch_socorro_info(self) -> tuple[list[dict], int]:
+        """Fetch the signature data from Socorro."""
         # TODO(investigate): should we increase the duration to 6 months?
         duration = timedelta(weeks=1)
         end_date = lmdutils.get_date_ymd("today")
@@ -359,6 +434,7 @@ class SignaturesDataFetcher:
         return data["signatures"], data["num_total_crashes"]
 
     def analyze(self) -> list[SignatureAnalyzer]:
+        """Analyze the data related to the signatures."""
         clouseau_reports = self.fetch_clouseau_crash_reports()
         signatures, num_total_crashes = self.fetch_socorro_info()
 
