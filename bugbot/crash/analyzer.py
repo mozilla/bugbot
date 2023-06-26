@@ -3,19 +3,34 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import itertools
+import re
+from collections import defaultdict
 from datetime import timedelta
 from functools import cached_property
 from typing import Iterable, Iterator
 
-from libmozdata import bugzilla, clouseau, socorro
+from libmozdata import bugzilla, clouseau, connection, socorro
 from libmozdata import utils as lmdutils
+from libmozdata.bugzilla import Bugzilla
+from libmozdata.connection import Connection
 
+from bugbot import logger, utils
 from bugbot.components import ComponentName
 from bugbot.crash import socorro_util
 
 
+# NOTE: At this point, we will file bugs on bugzilla-dev. Once we are confident
+# that the bug filing is working as expected, we can switch to filing bugs in
+# the production instance of Bugzilla.
+class DevBugzilla(Bugzilla):
+    URL = "https://bugzilla-dev.allizom.org"
+    API_URL = URL + "/rest/bug"
+    ATTACHMENT_API_URL = API_URL + "/attachment"
+    TOKEN = utils.get_login_info()["bz_api_key_dev"]
+
+
 class NoCrashReportFoundError(Exception):
-    """Raised when no crash report is found with the required criteria."""
+    """There are no crash reports that meet the required criteria."""
 
 
 class ClouseauDataAnalyzer:
@@ -89,7 +104,7 @@ class ClouseauDataAnalyzer:
             data.append(bug)
 
         bugs: list[dict] = []
-        bugzilla.Bugzilla(
+        Bugzilla(
             bugids=self.regressed_by_potential_bug_ids,
             include_fields=[
                 "id",
@@ -367,23 +382,198 @@ class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
 class SignaturesDataFetcher:
     """Fetch the data related to the given signatures."""
 
+    MEMORY_ACCESS_ERROR_REASONS = (
+        # On Windows:
+        "EXCEPTION_ACCESS_VIOLATION_READ",
+        "EXCEPTION_ACCESS_VIOLATION_WRITE",
+        "EXCEPTION_ACCESS_VIOLATION_EXEC"
+        # On Linux:
+        "SIGSEGV / SEGV_MAPERR",
+        "SIGSEGV / SEGV_ACCERR",
+    )
+
+    EXCLUDED_MOZ_REASON_STRINGS = (
+        "MOZ_CRASH(OOM)",
+        "MOZ_CRASH(Out of memory)",
+        "out of memory",
+        "Shutdown hanging",
+        # TODO(investigate): do we need to exclude signatures that their reason
+        # contains `[unhandlable oom]`?
+        # Example: arena_t::InitChunk | arena_t::AllocRun | arena_t::MallocLarge | arena_t::Malloc | BaseAllocator::malloc | Allocator::malloc | PageMalloc
+        # "[unhandlable oom]",
+    )
+
+    # If any of the crash reason starts with any of the following, then it is
+    # Network or I/O error.
+    EXCLUDED_IO_ERROR_REASON_PREFIXES = (
+        "EXCEPTION_IN_PAGE_ERROR_READ",
+        "EXCEPTION_IN_PAGE_ERROR_WRITE",
+        "EXCEPTION_IN_PAGE_ERROR_EXEC",
+    )
+
+    # TODO(investigate): do we need to exclude all these signatures prefixes?
+    EXCLUDED_SIGNATURE_PREFIXES = (
+        "OOM | ",
+        "bad hardware | ",
+        "shutdownhang | ",
+    )
+
     def __init__(
         self,
-        signatures,
+        signatures: Iterable[str],
         product: str = "Firefox",
         channel: str = "nightly",
     ):
-        self._signatures = signatures
+        self._signatures = set(signatures)
         self._product = product
         self._channel = channel
 
+    @classmethod
+    def find_new_actionable_crashes(
+        cls,
+        product: str,
+        channel: str,
+        days_to_check: int = 7,
+        days_without_crashes: int = 7,
+    ) -> "SignaturesDataFetcher":
+        """Find new actionable crashes.
+
+        Args:
+            product: The product to check.
+            channel: The release channel to check.
+            days_to_check: The number of days to check for crashes.
+            days_without_crashes: The number of days without crashes before the
+                `days_to_check` to consider the signature new.
+
+        Returns:
+            A list of actionable signatures.
+        """
+        duration = days_to_check + days_without_crashes
+        end_date = lmdutils.get_date_ymd("today")
+        start_date = end_date - timedelta(duration)
+        earliest_allowed_date = lmdutils.get_date_str(
+            end_date - timedelta(days_to_check)
+        )
+        date_range = socorro.SuperSearch.get_search_date(start_date, end_date)
+
+        params = {
+            "product": product,
+            "release_channel": channel,
+            "date": date_range,
+            # TODO(investigate): should we do a local filter instead of the
+            # following (should we exclude the signature if one of the crashes
+            # is a shutdown hang?):
+            # If the `ipc_shutdown_state` or `shutdown_progress` field are
+            # non-empty then it's a shutdown hang.
+            "ipc_shutdown_state": "__null__",
+            "shutdown_progress": "__null__",
+            # TODO(investigate): should we use the following instead of the
+            # local filter.
+            # "oom_allocation_size": "!__null__",
+            "_aggs.signature": [
+                "moz_crash_reason",
+                "reason",
+                "_histogram.date",
+                "_cardinality.install_time",
+                "_cardinality.oom_allocation_size",
+            ],
+            "_results_number": 0,
+            "_facets_size": 10000,
+        }
+
+        def handler(search_resp: dict, data: list):
+            logger.debug(
+                "Total of %d signatures received from Socorro",
+                len(search_resp["facets"]["signature"]),
+            )
+
+            for crash in search_resp["facets"]["signature"]:
+                signature = crash["term"]
+                if any(
+                    signature.startswith(excluded_prefix)
+                    for excluded_prefix in cls.EXCLUDED_SIGNATURE_PREFIXES
+                ):
+                    # Ignore signatures that start with any of the excluded prefixes.
+                    continue
+
+                facets = crash["facets"]
+                installations = facets["cardinality_install_time"]["value"]
+                if installations <= 1:
+                    # Ignore crashes that only happen on one installation.
+                    continue
+
+                first_date = facets["histogram_date"][0]["term"]
+                if first_date < earliest_allowed_date:
+                    # The crash is not new, skip it.
+                    continue
+
+                if any(
+                    reason["term"].startswith(io_error_prefix)
+                    for reason in facets["reason"]
+                    for io_error_prefix in cls.EXCLUDED_IO_ERROR_REASON_PREFIXES
+                ):
+                    # Ignore Network or I/O error crashes.
+                    continue
+
+                if crash["count"] < 20:
+                    # For signatures with low volume, having multiple types of
+                    # memory errors indicates potential bad hardware crashes.
+                    num_memory_error_types = sum(
+                        reason["term"] in cls.MEMORY_ACCESS_ERROR_REASONS
+                        for reason in facets["reason"]
+                    )
+                    if num_memory_error_types > 1:
+                        # Potential bad hardware crash, skip it.
+                        continue
+
+                # TODO: Add a filter using the `possible_bit_flips_max_confidence`
+                # field to exclude bad hardware crashes. The filed is not available yet.
+                # See: https://bugzilla.mozilla.org/show_bug.cgi?id=1816669#c3
+
+                # TODO(investigate): is this needed since we are already
+                # filtering signatures that start with "OOM | "
+                if facets["cardinality_oom_allocation_size"]["value"]:
+                    # If one of the crashes is an OOM crash, skip it.
+                    continue
+
+                # TODO(investigate): do we need to check for the `moz_crash_reason`
+                moz_crash_reasons = facets["moz_crash_reason"]
+                if moz_crash_reasons and any(
+                    excluded_reason in reason["term"]
+                    for reason in moz_crash_reasons
+                    for excluded_reason in cls.EXCLUDED_MOZ_REASON_STRINGS
+                ):
+                    continue
+
+                data.append(signature)
+
+        signatures: list = []
+        socorro.SuperSearch(
+            params=params,
+            handler=handler,
+            handlerdata=signatures,
+        ).wait()
+
+        logger.debug(
+            "Total of %d signatures left after applying the filtering criteria",
+            len(signatures),
+        )
+
+        return cls(signatures, product, channel)
+
     def fetch_clouseau_crash_reports(self) -> dict[str, list]:
         """Fetch the crash reports data from Crash Clouseau."""
-        return clouseau.Reports.get_by_signatures(
+        signature_reports = clouseau.Reports.get_by_signatures(
             self._signatures,
             product=self._product,
             channel=self._channel,
         )
+
+        logger.debug(
+            "Total of %d signatures received from Clouseau", len(signature_reports)
+        )
+
+        return signature_reports
 
     def fetch_socorro_info(self) -> tuple[list[dict], int]:
         """Fetch the signature data from Socorro."""
@@ -431,12 +621,84 @@ class SignaturesDataFetcher:
             handlerdata=data,
         ).wait()
 
+        logger.debug(
+            "Fetch info from Socorro for %d signatures", len(data["signatures"])
+        )
+
         return data["signatures"], data["num_total_crashes"]
+
+    def fetch_bugs(self, include_fields: list[str] = None) -> dict[str, list[dict]]:
+        """Fetch bugs that are filed against the given signatures."""
+
+        params_base: dict = {
+            "include_fields": [
+                "cf_crash_signature",
+            ],
+        }
+
+        if include_fields:
+            params_base["include_fields"].extend(include_fields)
+
+        params_list = []
+        for signatures_chunk in Connection.chunks(list(self._signatures), 30):
+            params = params_base.copy()
+            n = int(utils.get_last_field_num(params))
+            params[f"f{n}"] = "OP"
+            params[f"j{n}"] = "OR"
+            for signature in signatures_chunk:
+                n += 1
+                params[f"f{n}"] = "cf_crash_signature"
+                params[f"o{n}"] = "regexp"
+                params[f"v{n}"] = rf"\[(@ |@){re.escape(signature)}( \]|\])"
+            params[f"f{n+1}"] = "CP"
+            params_list.append(params)
+
+        signatures_bugs: dict = defaultdict(list)
+
+        def handler(res, data):
+            for bug in res["bugs"]:
+                for signature in utils.get_signatures(bug["cf_crash_signature"]):
+                    if signature in self._signatures:
+                        data[signature].append(bug)
+
+        Bugzilla(
+            queries=[
+                connection.Query(Bugzilla.API_URL, params, handler, signatures_bugs)
+                for params in params_list
+            ],
+        ).wait()
+
+        # TODO: remove the call to DevBugzilla after moving to production
+        DevBugzilla(
+            queries=[
+                connection.Query(DevBugzilla.API_URL, params, handler, signatures_bugs)
+                for params in params_list
+            ],
+        ).wait()
+
+        logger.debug(
+            "Total of %d signatures already have bugs filed", len(signatures_bugs)
+        )
+
+        return signatures_bugs
 
     def analyze(self) -> list[SignatureAnalyzer]:
         """Analyze the data related to the signatures."""
+        bugs = self.fetch_bugs()
+        # TODO(investigate): For now, we are ignoring signatures that have bugs
+        # filed even if they are closed long time ago. We should investigate
+        # whether we should include the ones with closed bugs. For example, if
+        # the bug was closed as Fixed years ago.
+        self._signatures.difference_update(bugs.keys())
+
         clouseau_reports = self.fetch_clouseau_crash_reports()
+        # TODO(investigate): For now, we are ignoring signatures that are not
+        # analyzed by clouseau. We should investigate why they are not analyzed
+        # and whether we should include them.
+        self._signatures.intersection_update(clouseau_reports.keys())
+
         signatures, num_total_crashes = self.fetch_socorro_info()
+        logger.debug("Total of %d signatures will be analyzed", len(signatures))
 
         return [
             SignatureAnalyzer(
@@ -445,8 +707,4 @@ class SignaturesDataFetcher:
                 clouseau_reports[signature["term"]],
             )
             for signature in signatures
-            # TODO(investigate): For now, we are ignoring signatures that are
-            # not analyzed by clouseau. We should investigate why they are not
-            # analyzed and whether we should include them.
-            if signature["term"] in clouseau_reports
         ]
