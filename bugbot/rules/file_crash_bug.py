@@ -52,7 +52,11 @@ class FileCrashBug(BzCleaner):
         for signature in signatures.analyze():
             logger.debug("Generating bug for signature: %s", signature.signature_term)
 
-            title = f"Crash in [@ {signature.signature_term}]"
+            title = (
+                f"Startup crash in [@ {signature.signature_term}]"
+                if signature.is_startup_related_crash
+                else f"Crash in [@ {signature.signature_term}]"
+            )
             if len(title) > self.MAX_BUG_TITLE_LENGTH:
                 title = title[: self.MAX_BUG_TITLE_LENGTH - 3] + "..."
 
