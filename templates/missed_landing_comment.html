@@ -15,7 +15,13 @@
                 <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
             </td>
             <td>
-                {% for cset in csets %}<a href="{{ cset[1] | e }}">{{ cset[0] }}</a>{% endfor %}
+                <ul style="margin: 0; list-style-type:none">
+                    {% for cset in csets %}
+                        <li>
+                            <a href="{{ cset[1] | e }}">{{ cset[0] }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
             </td>
         </tr>
     {% endfor -%}
