@@ -39,7 +39,11 @@ all crashes happened during startup
 {%- elif signature.is_startup_window_crash  -%}
 more than half of the crashes happened during the first minute after launch
 {%- endif %}
-- **Has user comments:** {{ "Yes" if signature.has_user_comments else "No" }}
+- **Has user comments:** {% if signature.has_user_comments -%}
+[Yes]({{ signature.user_comments_page_url }})
+{%- else -%}
+No
+{%- endif %}
 
 
 {% if signature.regressed_by %}

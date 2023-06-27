@@ -5,7 +5,7 @@
 import itertools
 import re
 from collections import defaultdict
-from datetime import timedelta
+from datetime import date, timedelta
 from functools import cached_property
 from typing import Iterable, Iterator
 
@@ -17,6 +17,22 @@ from libmozdata.connection import Connection
 from bugbot import logger, utils
 from bugbot.components import ComponentName
 from bugbot.crash import socorro_util
+
+
+# TODO: Move this to libmozdata
+def generate_signature_page_url(params: dict, tab: str) -> str:
+    """Generate a URL to the signature page on Socorro
+
+    Args:
+        params: the parameters for the search query.
+        tab: the page tab that should be selected.
+
+    Returns:
+        The URL of the signature page on Socorro
+    """
+    web_url = socorro.Socorro.CRASH_STATS_URL
+    query = lmdutils.get_params_for_url(params)
+    return f"{web_url}/signature/{query}#{tab}"
 
 
 # NOTE: At this point, we will file bugs on bugzilla-dev. Once we are confident
@@ -269,6 +285,18 @@ class SocorroDataAnalyzer(socorro_util.SignatureStats):
             return "Unspecified"
 
         return "All"
+
+    @property
+    def user_comments_page_url(self) -> str:
+        """The URL to the Signature page on Socorro where the Comments tab is
+        selected.
+        """
+        start_date = date.today() - timedelta(weeks=26)
+        params = {
+            "signature": self.signature_term,
+            "date": socorro.SuperSearch.get_search_date(start_date),
+        }
+        return generate_signature_page_url(params, "comments")
 
     @property
     def num_user_comments(self) -> int:
