@@ -75,7 +75,7 @@ class FileCrashBug(BzCleaner):
                     }
                 ]
 
-            report = signature.fetch_representing_processed_crash()
+            report = signature.fetch_representative_processed_crash()
             description = self.bug_description_template.render(
                 {
                     **socorro_util.generate_bug_description_data(report),

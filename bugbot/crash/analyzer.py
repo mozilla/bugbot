@@ -368,7 +368,7 @@ class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
 
         yield from data["hits"]
 
-    def fetch_representing_processed_crash(self) -> dict:
+    def fetch_representative_processed_crash(self) -> dict:
         """Fetch a processed crash to represent the signature.
 
         This could fetch multiple processed crashes and return the one that is
