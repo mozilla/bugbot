@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""The code in this module was borrowed from Socorro (some parts was adjusted).
+"""The code in this module was borrowed from Socorro (some parts were adjusted).
 Each function, class, or dictionary is documented with a link to the original
 source.
 """

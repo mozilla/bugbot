@@ -98,7 +98,7 @@ class ClouseauDataAnalyzer:
 
     @cached_property
     def regressed_by_potential_bugs(self) -> list[dict]:
-        """The bugs that their patches could have caused the crash."""
+        """The bugs whose patches could have caused the crash."""
 
         def handler(bug: dict, data: list):
             data.append(bug)
@@ -172,7 +172,7 @@ class SocorroDataAnalyzer(socorro_util.SignatureStats):
 
     @classmethod
     def to_bugzilla_op_sys(cls, op_sys: str) -> str:
-        """Return the corresponding OS name in Bugzilla for the provide OS name
+        """Return the corresponding OS name in Bugzilla for the provided OS name
         from Socorro.
 
         If the OS name is not recognized, return "Other".
@@ -204,8 +204,8 @@ class SocorroDataAnalyzer(socorro_util.SignatureStats):
 
         - If no OS name is found, the value will be "Unspecified".
         - If the OS name is not recognized, the value will be "Other".
-        - If multiple OS names are found, the value will "All". Unless the OS
-          names can be resolved common name without a version. For example,
+        - If multiple OS names are found, the value will be "All". Unless the OS
+          names can be resolved to a common name without a version. For example,
           "Windows 10" and "Windows 7" will become "Windows".
         """
         all_op_sys = {
@@ -272,8 +272,8 @@ class SocorroDataAnalyzer(socorro_util.SignatureStats):
 
     @property
     def num_user_comments(self) -> int:
-        """The number crash reports with user comments."""
-        # TODO: count useful/intrusting user comments (e.g., exclude one word comments)
+        """The number of crash reports with user comments."""
+        # TODO: count useful/interesting user comments (e.g., exclude one word comments)
         return self.signature["facets"]["cardinality_user_comments"]["value"]
 
     @property
@@ -343,7 +343,7 @@ class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
     def fetch_representing_processed_crash(self) -> dict:
         """Fetch a processed crash to represent the signature.
 
-        This could fitch multiple processed crashes and return the one that is
+        This could fetch multiple processed crashes and return the one that is
         most likely to be useful.
         """
         limit_to_top_proto_signature = (

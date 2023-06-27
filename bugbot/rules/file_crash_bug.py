@@ -60,8 +60,8 @@ class FileCrashBug(BzCleaner):
             if len(title) > self.MAX_BUG_TITLE_LENGTH:
                 title = title[: self.MAX_BUG_TITLE_LENGTH - 3] + "..."
 
-            # TODO: Handle cases where the regressor is a security bug. I such
-            # cases, we may want to fil the bug as security bug.
+            # TODO: Handle cases where the regressor is a security bug. In such
+            # cases, we may want to file the bug as security bug.
 
             flags = None
             if signature.regressed_by:
