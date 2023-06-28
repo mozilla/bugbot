@@ -316,6 +316,9 @@ class NotLanded(BzCleaner):
             "f6": "longdesc",
             "o6": "casesubstring",
             "v6": "which didn't land and no activity in this bug for",
+            "f7": "status_whiteboard",
+            "o7": "notsubstring",
+            "v7": "[reminder-test ",
         }
 
         return params
