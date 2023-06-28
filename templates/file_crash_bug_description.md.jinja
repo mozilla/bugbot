@@ -47,7 +47,7 @@ No
 
 
 {% if signature.regressed_by %}
-By analyzing the backtrace, the regression may have been introduced by the {{ "patch [1]" if signature.regressed_by_patch else "patch"}} to fix [Bug {{ signature.regressed_by }}](https://bugzilla.mozilla.org/show_bug.cgi?id={{ signature.regressed_by }}).
+By analyzing the backtrace, the regression may have been introduced by a {{ "patch [1]" if signature.regressed_by_patch else "patch"}} to fix [Bug {{ signature.regressed_by }}](https://bugzilla.mozilla.org/show_bug.cgi?id={{ signature.regressed_by }}).
 {% if signature.regressed_by_patch %}
 [1] https://hg.mozilla.org/mozilla-central/rev?node={{ signature.regressed_by_patch }}
 {%- endif %}
