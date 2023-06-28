@@ -145,7 +145,7 @@ class FileCrashBug(BzCleaner):
             }
 
             # Filling the `flags` field on bugzilla-dev will cause an error when
-            # the user is not exist.
+            # the user does not exist.
             if needinfo_regression_author and not self.FILE_ON_BUGZILLA_DEV:
                 bug_data["flags"] = [
                     {
