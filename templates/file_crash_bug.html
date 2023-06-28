@@ -1,0 +1,21 @@
+<p>BugBot filed the following crash {{ plural('bug', data) }}:</p>
+<table {{ table_attrs }}>
+    <thead>
+        <tr>
+            <th>Component</th>
+            <th>Bug</th>
+            <th>Summary</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for i, (comp, bugid, summary) in enumerate(data) -%}
+            <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{%- endif %}>
+                <td>{{ comp | e }}</td>
+                <td>
+                    <a href="https://bugzilla-dev.allizom.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+                </td>
+                <td>{{ summary | e }}</td>
+            </tr>
+        {% endfor -%}
+    </tbody>
+</table>
