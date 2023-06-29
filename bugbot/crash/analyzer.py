@@ -18,24 +18,30 @@ from bugbot import logger, utils
 from bugbot.components import ComponentName
 from bugbot.crash import socorro_util
 
-# Allocator poison value addresses.
-ALLOCATOR_ADDRESSES_64_BIT = (
-    0xE5E5E5E5E5E5E5E5,
-    0x4B4B4B4B4B4B4B4B,
-)
-ALLOCATOR_ADDRESSES_32_BIT = (
-    0xE5E5E5E5,
-    0x4B4B4B4B,
-)
 # The max offset from a memory address to be considered "near".
 OFFSET_64_BIT = 0x1000
 OFFSET_32_BIT = 0x100
+# Allocator poison value addresses.
+ALLOCATOR_ADDRESSES_64_BIT = (
+    (0xE5E5E5E5E5E5E5E5, OFFSET_64_BIT),
+    # On 64-bit windows, sometimes it could be doing something with a 32-bit
+    # value gotten from freed memory, so it'll be 0X00000000E5E5E5E5 +/-, and
+    # because of the address limitation, quite often it will be
+    # 0X0000E5E5E5E5E5E5 +/-.
+    (0x00000000E5E5E5E5, OFFSET_32_BIT),
+    (0x0000E5E5E5E5E5E5, OFFSET_64_BIT),
+    (0x4B4B4B4B4B4B4B4B, OFFSET_64_BIT),
+)
+ALLOCATOR_ADDRESSES_32_BIT = (
+    (0xE5E5E5E5, OFFSET_32_BIT),
+    (0x4B4B4B4B, OFFSET_32_BIT),
+)
 # Ranges where addresses are considered near allocator poison values.
 ALLOCATOR_RANGES_64_BIT = (
-    (addr - OFFSET_64_BIT, addr + OFFSET_64_BIT) for addr in ALLOCATOR_ADDRESSES_64_BIT
+    (addr - offset, addr + offset) for addr, offset in ALLOCATOR_ADDRESSES_64_BIT
 )
 ALLOCATOR_RANGES_32_BIT = (
-    (addr - OFFSET_32_BIT, addr + OFFSET_32_BIT) for addr in ALLOCATOR_ADDRESSES_32_BIT
+    (addr - offset, addr + offset) for addr, offset in ALLOCATOR_ADDRESSES_32_BIT
 )
 
 
