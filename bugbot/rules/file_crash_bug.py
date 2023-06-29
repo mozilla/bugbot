@@ -10,7 +10,8 @@ import requests
 from bugbot import logger
 from bugbot.bzcleaner import BzCleaner
 from bugbot.crash import socorro_util
-from bugbot.crash.analyzer import DevBugzilla, SignaturesDataFetcher
+from bugbot.crash.analyzer import DevBugzilla, SignatureAnalyzer, SignaturesDataFetcher
+from bugbot.user_activity import UserActivity, UserStatus
 
 
 class FileCrashBug(BzCleaner):
@@ -20,6 +21,7 @@ class FileCrashBug(BzCleaner):
     # increment this number. This is needed in the experimental phase only.
     VERSION = 1
     MAX_BUG_TITLE_LENGTH = 255
+    FILE_ON_BUGZILLA_DEV = True
 
     def __init__(self):
         super().__init__()
@@ -41,15 +43,48 @@ class FileCrashBug(BzCleaner):
             "keywords_type": "allwords",
         }
 
+    def _active_regression_authors(
+        self, signatures: list[SignatureAnalyzer]
+    ) -> set[str]:
+        """Get Bugzilla usernames for users who are active and can be needinfo'd.
+
+        Args:
+            signatures: a list of signatures for which to check the status of
+                their regression author.
+
+        Returns:
+            A set of user emails.
+        """
+        ni_skiplist = self.get_auto_ni_skiplist()
+        users = UserActivity(include_fields=["requests"]).check_users(
+            (
+                signature.regressed_by_author["name"]
+                for signature in signatures
+                if signature.regressed_by_author
+            ),
+            keep_active=True,
+            fetch_employee_info=True,
+        )
+
+        return {
+            name
+            for name, user in users.items()
+            if name not in ni_skiplist
+            and user["status"] == UserStatus.ACTIVE
+            and not user["requests"]["needinfo"]["blocked"]
+        }
+
     def get_bugs(self, date):
         self.query_url = None
         bugs = {}
 
         signatures = SignaturesDataFetcher.find_new_actionable_crashes(
             "Firefox", "nightly"
-        )
+        ).analyze()
 
-        for signature in signatures.analyze():
+        active_regression_authors = self._active_regression_authors(signatures)
+
+        for signature in signatures:
             logger.debug("Generating bug for signature: %s", signature.signature_term)
 
             title = (
@@ -60,24 +95,18 @@ class FileCrashBug(BzCleaner):
             if len(title) > self.MAX_BUG_TITLE_LENGTH:
                 title = title[: self.MAX_BUG_TITLE_LENGTH - 3] + "..."
 
-            flags = None
-            if signature.regressed_by:
-                # TODO: check user activity and if the ni? is open
-                flags = [
-                    {
-                        "name": "needinfo",
-                        "requestee": signature.regressed_by_author["name"],
-                        "status": "?",
-                        "new": "true",
-                    }
-                ]
+            # Whether we should needinfo the regression author.
+            needinfo_regression_author = (
+                signature.regressed_by
+                and signature.regressed_by_author["email"] in active_regression_authors
+            )
 
             report = signature.fetch_representative_processed_crash()
             description = self.bug_description_template.render(
                 {
                     **socorro_util.generate_bug_description_data(report),
                     "signature": signature,
-                    "needinfo_regression_author": bool(flags),
+                    "needinfo_regression_author": needinfo_regression_author,
                 }
             )
 
@@ -118,12 +147,24 @@ class FileCrashBug(BzCleaner):
                     "mcastelluccio@mozilla.com",
                     "aryx.bugmail@gmx-topmail.de",
                 ],
-                # TODO: Uncomment the following lines when we move to file on
-                # the production instance of Bugzilla. Filling `regressed_by` or
-                # `flags` on bugzilla-dev will cause "bug does not exist" errors.
-                # "regressed_by": signature.regressed_by,
-                # "flags": flags,
             }
+
+            # Filling the `flags` field on bugzilla-dev will cause an error when
+            # the user does not exist.
+            if needinfo_regression_author and not self.FILE_ON_BUGZILLA_DEV:
+                bug_data["flags"] = [
+                    {
+                        "name": "needinfo",
+                        "requestee": signature.regressed_by_author["name"],
+                        "status": "?",
+                        "new": "true",
+                    }
+                ]
+
+            # Filling the `regressed_by` field on bugzilla-dev will cause "bug
+            # does not exist" errors.
+            if signature.regressed_by and not self.FILE_ON_BUGZILLA_DEV:
+                bug_data["regressed_by"] = signature.regressed_by
 
             if signature.is_potential_security_crash:
                 bug_data["groups"] = ["core-security"]
@@ -139,7 +180,8 @@ class FileCrashBug(BzCleaner):
                 #   - Update the bug URL `file_crash_bug.html`
                 #   - Drop the bug link `file_crash_bug_description.md.jinja`
                 #   - Fill the `regressed_by` and `flags` fields
-                #   - Create the bug using `utils.create_bug``
+                #   - Create the bug using `utils.create_bug`
+                #   - Drop the FILE_ON_BUGZILLA_DEV attribute
                 resp = requests.post(
                     url=DevBugzilla.API_URL,
                     json=bug_data,

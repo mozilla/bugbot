@@ -4,7 +4,7 @@
 
 from datetime import timedelta
 from enum import Enum, auto
-from typing import List, Optional
+from typing import Iterable, List, Optional
 
 from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import BugzillaUser
@@ -85,7 +85,7 @@ class UserActivity:
 
     def check_users(
         self,
-        user_emails: List[str],
+        user_emails: Iterable[str],
         keep_active: bool = False,
         ignore_bots: bool = False,
         fetch_employee_info: bool = False,
