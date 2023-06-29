@@ -30,7 +30,14 @@ class Reminder(BzCleaner):
         self.today = lmdutils.get_date_ymd(date)
 
         params = {
-            "include_fields": ["assigned_to", "whiteboard", "triage_owner", "history"],
+            "include_fields": [
+                "assigned_to",
+                "whiteboard",
+                "triage_owner",
+                "history",
+                "creator",
+                "creation_time",
+            ],
             "f1": "status_whiteboard",
             "o1": "substring",
             "v1": "[reminder-",
@@ -82,6 +89,18 @@ class Reminder(BzCleaner):
                             entry["full_tag"] = r["full_tag"]
                             target_entries.append(entry)
                     break
+
+        if not target_entries:
+            # If the history shows no changes, it indicates that the reminders
+            # were added when the bug was filed.
+            target_entries.extend(
+                {
+                    "who": bug["creator"],
+                    "when": bug["creation_time"],
+                    "full_tag": reminder["full_tag"],
+                }
+                for reminder in reminders
+            )
 
         user_emails_to_names = self._get_user_emails_to_names(target_entries)
 
