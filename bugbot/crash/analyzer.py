@@ -182,6 +182,7 @@ class ClouseauDataAnalyzer:
             bugids=self.regressed_by_potential_bug_ids,
             include_fields=[
                 "id",
+                "groups",
                 "assigned_to",
                 "product",
                 "component",
@@ -532,6 +533,19 @@ class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
 
         raise NoCrashReportFoundError(
             f"No crash report found with the most frequent proto signature for {self.signature_term}."
+        )
+
+    @cached_property
+    def is_potential_security_crash(self) -> bool:
+        """Whether the crash is related to a potential security bug.
+
+        The value will be True if:
+            - the signature is related to near allocator poison value crashes, or
+            - one of the potential regressors is a security bug
+        """
+        return self.is_near_allocator_related_crash or any(
+            any("core-security" in group for group in bug["groups"])
+            for bug in self.regressed_by_potential_bugs
         )
 
 
