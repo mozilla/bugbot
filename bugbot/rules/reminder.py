@@ -121,14 +121,12 @@ class Reminder(BzCleaner):
             data[user["name"]] = "Invalid User"
             for g in user["groups"]:
                 if g["name"] == "editbugs" or g["name"] == "canconfirm":
-                    data[user["name"]] = (
-                        user["real_name"] or user["nick"] or user["name"]
-                    )
+                    data[user["name"]] = user["nick"]
 
         user_emails_to_names = {}
         BugzillaUser(
             user_names=[entry["who"] for entry in target_entries],
-            include_fields=["real_name", "nick", "name", "groups"],
+            include_fields=["nick", "name", "groups"],
             user_handler=user_handler,
             user_data=user_emails_to_names,
         ).wait()
