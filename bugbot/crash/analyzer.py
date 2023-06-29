@@ -733,6 +733,9 @@ class SignaturesDataFetcher:
 
     def fetch_clouseau_crash_reports(self) -> dict[str, list]:
         """Fetch the crash reports data from Crash Clouseau."""
+        if not self._signatures:
+            return {}
+
         signature_reports = clouseau.Reports.get_by_signatures(
             self._signatures,
             product=self._product,
@@ -747,6 +750,9 @@ class SignaturesDataFetcher:
 
     def fetch_socorro_info(self) -> tuple[list[dict], int]:
         """Fetch the signature data from Socorro."""
+        if not self._signatures:
+            return [], 0
+
         # TODO(investigate): should we increase the duration to 6 months?
         duration = timedelta(weeks=1)
         end_date = lmdutils.get_date_ymd("today")
@@ -800,6 +806,8 @@ class SignaturesDataFetcher:
 
     def fetch_bugs(self, include_fields: list[str] = None) -> dict[str, list[dict]]:
         """Fetch bugs that are filed against the given signatures."""
+        if not self._signatures:
+            return {}
 
         params_base: dict = {
             "include_fields": [
