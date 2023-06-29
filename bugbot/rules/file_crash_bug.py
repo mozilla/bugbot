@@ -49,8 +49,8 @@ class FileCrashBug(BzCleaner):
         """Get Bugzilla usernames for users who are active and can be needinfo'd.
 
         Args:
-            signatures: signatures to check the status if their regression
-                authors.
+            signatures: a list of signatures for which to check the status of
+                their regression author.
 
         Returns:
             A set of user emails.
@@ -98,7 +98,7 @@ class FileCrashBug(BzCleaner):
             # TODO: Handle cases where the regressor is a security bug. In such
             # cases, we may want to file the bug as security bug.
 
-            # Weather we should needinfo the regression author.
+            # Whether we should needinfo the regression author.
             needinfo_regression_author = (
                 signature.regressed_by
                 and signature.regressed_by_author["email"] in active_regression_authors
