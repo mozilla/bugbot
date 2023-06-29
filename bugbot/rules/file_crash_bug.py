@@ -95,9 +95,6 @@ class FileCrashBug(BzCleaner):
             if len(title) > self.MAX_BUG_TITLE_LENGTH:
                 title = title[: self.MAX_BUG_TITLE_LENGTH - 3] + "..."
 
-            # TODO: Handle cases where the regressor is a security bug. In such
-            # cases, we may want to file the bug as security bug.
-
             # Whether we should needinfo the regression author.
             needinfo_regression_author = (
                 signature.regressed_by
@@ -142,6 +139,14 @@ class FileCrashBug(BzCleaner):
                 "rep_platform": signature.bugzilla_cpu_arch,
                 "cf_crash_signature": f"[@ {signature.signature_term}]",
                 "description": description,
+                # NOTE(suhaib): the following CC is for testing purposes only
+                # to allow us access and evaluate security bugs. It should be
+                # removed at some point after we move to production.
+                "cc": [
+                    "smujahid@mozilla.com",
+                    "mcastelluccio@mozilla.com",
+                    "aryx.bugmail@gmx-topmail.de",
+                ],
             }
 
             # Filling the `flags` field on bugzilla-dev will cause an error when
@@ -160,6 +165,9 @@ class FileCrashBug(BzCleaner):
             # does not exist" errors.
             if signature.regressed_by and not self.FILE_ON_BUGZILLA_DEV:
                 bug_data["regressed_by"] = signature.regressed_by
+
+            if signature.is_potential_security_crash:
+                bug_data["groups"] = ["core-security"]
 
             if self.dryrun:
                 logger.info("Dry-run bug:")
@@ -189,7 +197,7 @@ class FileCrashBug(BzCleaner):
 
             bugs[bug_id] = {
                 "id": bug_id,
-                "summary": title,
+                "summary": "..." if signature.is_potential_security_crash else title,
                 "component": signature.crash_component,
             }
 
