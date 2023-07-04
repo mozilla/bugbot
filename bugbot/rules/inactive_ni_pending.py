@@ -7,6 +7,7 @@ from datetime import timedelta
 from enum import IntEnum, auto
 
 from libmozdata import utils as lmdutils
+from libmozdata.bugzilla import Bugzilla
 
 from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
@@ -163,6 +164,7 @@ class InactiveNeedinfoPending(BzCleaner):
                 and not attachment["is_obsolete"]
                 for attachment in bug["attachments"]
             )
+            and not was_unconfirmed(bug)
         ):
             return NeedinfoAction.CLOSE_BUG
 
@@ -285,6 +287,7 @@ class InactiveNeedinfoPending(BzCleaner):
             "attachments": bug["attachments"],
             "triage_owner": bug["triage_owner"],
             "triage_owner_nic": triage_owner_nic,
+            "is_confirmed": bug["is_confirmed"],
             "needinfo_flags": [
                 flag for flag in bug["flags"] if flag["name"] == "needinfo"
             ],
@@ -306,6 +309,7 @@ class InactiveNeedinfoPending(BzCleaner):
             "comments",
             "creator",
             "keywords",
+            "is_confirmed",
         ]
 
         params = {
@@ -327,6 +331,35 @@ class InactiveNeedinfoPending(BzCleaner):
             )
 
         return params
+
+
+def was_unconfirmed(bug: dict) -> bool:
+    """Check if a bug was unconfirmed.
+
+    Returns:
+        True if the bug was unconfirmed and now is confirmed, False otherwise.
+    """
+    if not bug["is_confirmed"]:
+        return False
+
+    had_unconfirmed_status = False
+
+    def check_unconfirmed_in_history(bug):
+        nonlocal had_unconfirmed_status
+        for history in bug["history"]:
+            for change in history["changes"]:
+                if change["field_name"] == "status":
+                    if change["removed"] == "UNCONFIRMED":
+                        had_unconfirmed_status = True
+                        return
+                    break
+
+    if "history" in bug:
+        check_unconfirmed_in_history(bug)
+    else:
+        Bugzilla(bug["id"], historyhandler=check_unconfirmed_in_history).wait()
+
+    return had_unconfirmed_status
 
 
 if __name__ == "__main__":
