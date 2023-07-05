@@ -189,7 +189,16 @@ class FileCrashBug(BzCleaner):
                     verify=True,
                     timeout=DevBugzilla.TIMEOUT,
                 )
-                resp.raise_for_status()
+                try:
+                    resp.raise_for_status()
+                except requests.HTTPError:
+                    logger.exception(
+                        "Failed to create a bug for signature %s: %s",
+                        signature.signature_term,
+                        bug_data,
+                    )
+                    continue
+
                 bug = resp.json()
                 bug_id = str(bug["id"])
                 # TODO: log the created bugs info somewhere (e.g., DB,
