@@ -195,7 +195,7 @@ class FileCrashBug(BzCleaner):
                     logger.exception(
                         "Failed to create a bug for signature %s: %s",
                         signature.signature_term,
-                        bug_data,
+                        resp.text,
                     )
                     continue
 
