@@ -161,6 +161,9 @@ class FileCrashBug(BzCleaner):
                     }
                 ]
 
+            if signature.regressed_by:
+                bug_data["keywords"].append("regression")
+
             # Filling the `regressed_by` field on bugzilla-dev will cause "bug
             # does not exist" errors.
             if signature.regressed_by and not self.FILE_ON_BUGZILLA_DEV:
