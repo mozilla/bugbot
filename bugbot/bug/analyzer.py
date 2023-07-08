@@ -92,7 +92,7 @@ class BugAnalyzer:
         return self._bug.get(field)
 
     def detect_version_status_updates(self) -> list[VersionStatus] | None:
-        """Detect the status for the version flags that should to be updated.
+        """Detect the status for the version flags that should be updated.
 
         The status of the version flags is determined by the status of the
         regressor bug.
