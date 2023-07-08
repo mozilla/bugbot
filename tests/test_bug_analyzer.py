@@ -1,6 +1,6 @@
 import unittest
 
-from bugbot.bug.analyzer import BugsStore
+from bugbot.bug.analyzer import BugsStore, VersionStatus
 
 
 class TestSetStatusFlags(unittest.TestCase):
@@ -61,16 +61,33 @@ class TestSetStatusFlags(unittest.TestCase):
         bugs_store = BugsStore(all_bugs, versions_map)
 
         updates = bugs_store.get_bug_by_id(1111).detect_version_status_updates()
-        flag_status = {update.flag: update.status for update in updates}
         self.assertEqual(
-            sorted(flag_status),
+            updates,
             [
-                "cf_status_firefox2",
-                "cf_status_firefox_esr2",
-                "cf_status_firefox_esr3",
+                VersionStatus(channel="release", version=2, status="unaffected"),
+                VersionStatus(channel="esr", version=2, status="unaffected"),
+                VersionStatus(channel="esr", version=3, status="affected"),
             ],
         )
 
-        self.assertEqual(flag_status["cf_status_firefox2"], "unaffected")
-        self.assertEqual(flag_status["cf_status_firefox_esr2"], "unaffected")
-        self.assertEqual(flag_status["cf_status_firefox_esr3"], "affected")
+        updates = bugs_store.get_bug_by_id(2222).detect_version_status_updates()
+        self.assertEqual(
+            updates,
+            [
+                VersionStatus(channel="release", version=2, status="affected"),
+                VersionStatus(channel="beta", version=3, status="affected"),
+                VersionStatus(channel="nightly", version=4, status="affected"),
+                VersionStatus(channel="esr", version=2, status="affected"),
+                VersionStatus(channel="esr", version=3, status="affected"),
+            ],
+        )
+
+        updates = bugs_store.get_bug_by_id(3333).detect_version_status_updates()
+        self.assertEqual(
+            updates,
+            [
+                VersionStatus(channel="release", version=2, status="unaffected"),
+                VersionStatus(channel="esr", version=2, status="unaffected"),
+                VersionStatus(channel="esr", version=3, status="affected"),
+            ],
+        )
