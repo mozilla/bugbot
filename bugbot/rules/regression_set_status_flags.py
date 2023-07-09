@@ -219,10 +219,9 @@ class RegressionSetStatusFlags(BzCleaner):
             }
             for bug in bugs.values()
         )
-        bugs_store = BugsStore(
-            chain(adjusted_bugs, data.values()), utils.get_checked_versions()
-        )
-        for bug_id, old_code_updates in self.status_changes.items():
+        bugs_store = BugsStore(chain(adjusted_bugs, data.values()))
+        for bug_id in bugs:
+            old_code_updates = self.status_changes.get(bug_id, {})
             bug = bugs_store.get_bug_by_id(int(bug_id))
             try:
                 new_code_updates = bug.detect_version_status_updates()
@@ -233,17 +232,20 @@ class RegressionSetStatusFlags(BzCleaner):
                     continue
                 raise error from None
 
-            for update in new_code_updates:
-                flag = update.flag
-                if old_code_updates.get(flag) != update.status:
-                    logger.error(
-                        "Rule %s - bug %s: Mismatching status for `%s`: %s <--> %s",
-                        self.name(),
-                        bug_id,
-                        flag,
-                        old_code_updates.get(flag),
-                        update.status,
-                    )
+            new_code_updates = (
+                {update.flag: update.status for update in new_code_updates}
+                if new_code_updates
+                else {}
+            )
+
+            if old_code_updates != new_code_updates:
+                logger.error(
+                    "Rule %s: Mismatching status updates for bug %s: %s <--> %s",
+                    self.name(),
+                    bug_id,
+                    old_code_updates,
+                    new_code_updates,
+                )
         # <<<<< End of the temporary code
 
         for bugid in filtered_bugs:
