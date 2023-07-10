@@ -115,7 +115,9 @@ class NoCrashReportFoundError(Exception):
 
 
 class ClouseauDataAnalyzer:
-    """Analyze the data returned by Crash Clouseau"""
+    """Analyze the data returned by Crash Clouseau about a specific crash
+    signature.
+    """
 
     MINIMUM_CLOUSEAU_SCORE_THRESHOLD: int = 8
     DEFAULT_CRASH_COMPONENT = ComponentName("Core", "General")

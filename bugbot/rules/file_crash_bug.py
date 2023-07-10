@@ -149,8 +149,8 @@ class FileCrashBug(BzCleaner):
                 ],
             }
 
-            # Filling the `flags` field on bugzilla-dev will cause an error when
-            # the user does not exist.
+            # NOTE: Filling the `flags` field on bugzilla-dev will cause an
+            # error when the user does not exist.
             if needinfo_regression_author and not self.FILE_ON_BUGZILLA_DEV:
                 bug_data["flags"] = [
                     {
@@ -164,8 +164,8 @@ class FileCrashBug(BzCleaner):
             if signature.regressed_by:
                 bug_data["keywords"].append("regression")
 
-            # Filling the `regressed_by` field on bugzilla-dev will cause "bug
-            # does not exist" errors.
+            # NOTE: Filling the `regressed_by` field on bugzilla-dev will cause
+            # "bug does not exist" errors.
             if signature.regressed_by and not self.FILE_ON_BUGZILLA_DEV:
                 bug_data["regressed_by"] = signature.regressed_by
 
