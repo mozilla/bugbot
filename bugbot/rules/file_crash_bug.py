@@ -8,6 +8,7 @@ import jinja2
 import requests
 
 from bugbot import logger
+from bugbot.bug.analyzer import BugAnalyzer
 from bugbot.bzcleaner import BzCleaner
 from bugbot.crash import socorro_util
 from bugbot.crash.analyzer import DevBugzilla, SignatureAnalyzer, SignaturesDataFetcher
@@ -171,6 +172,15 @@ class FileCrashBug(BzCleaner):
 
             if signature.is_potential_security_crash:
                 bug_data["groups"] = ["core-security"]
+
+            # NOTE: The following will have no effect on bugzilla-dev since we
+            # don't fill the `regressed_by` field. Anyway, setting the version
+            # status flag will cause errors on bugzilla-dev since the fields are
+            # out of sync.
+            bug_analyzer = BugAnalyzer(bug_data, signature.bugs_store)
+            updates = bug_analyzer.detect_version_status_updates()
+            for update in updates:
+                bug_data[update.flag] = update.status
 
             if self.dryrun:
                 logger.info("Dry-run bug:")
