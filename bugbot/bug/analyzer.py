@@ -107,7 +107,7 @@ class BugAnalyzer:
         """
         return self._bug.get(field)
 
-    def detect_version_status_updates(self) -> list[VersionStatus] | None:
+    def detect_version_status_updates(self) -> list[VersionStatus]:
         """Detect the status for the version flags that should be updated.
 
         The status of the version flags is determined by the status of the
@@ -118,12 +118,12 @@ class BugAnalyzer:
         """
         if len(self._bug["regressed_by"]) > 1:
             # Currently only bugs with one regressor are supported
-            return None
+            return []
 
         regressor_bug = self.regressed_by_bugs[0]
         regressed_version = regressor_bug.oldest_fixed_firefox_version
         if not regressed_version:
-            return None
+            return []
 
         fixed_version = self.oldest_fixed_firefox_version
 
