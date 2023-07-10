@@ -3,12 +3,14 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 import unittest
 
+from libmozdata import versions as lmdversions
+
 from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
 from bugbot.rules.regression_set_status_flags import RegressionSetStatusFlags
 
 
-def mock_get_checked_versions():
+def mock_get_checked_versions(base=True):
     return {
         "release": 2,
         "beta": 3,
@@ -75,11 +77,13 @@ def mock_get_flags_from_regressing_bugs(self, bugids):
 class TestSetStatusFlags(unittest.TestCase):
     def setUp(self):
         self.orig_get_checked_versions = utils.get_checked_versions
+        self.orig_get_versions = lmdversions.get
         self.orig_get_bugs = BzCleaner.get_bugs
         self.orig_get_flags_from_regressing_bugs = (
             RegressionSetStatusFlags.get_flags_from_regressing_bugs
         )
         utils.get_checked_versions = mock_get_checked_versions
+        lmdversions.get = mock_get_checked_versions
         BzCleaner.get_bugs = mock_get_bugs
         RegressionSetStatusFlags.get_flags_from_regressing_bugs = (
             mock_get_flags_from_regressing_bugs
@@ -87,6 +91,7 @@ class TestSetStatusFlags(unittest.TestCase):
 
     def tearDown(self):
         utils.get_checked_versions = self.orig_get_checked_versions
+        lmdversions.get = self.orig_get_versions
         BzCleaner.get_bugs = self.orig_get_bugs
         RegressionSetStatusFlags.get_flags_from_regressing_bugs = (
             self.orig_get_flags_from_regressing_bugs

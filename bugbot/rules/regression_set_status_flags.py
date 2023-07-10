@@ -2,9 +2,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from itertools import chain
+
 from libmozdata.bugzilla import Bugzilla
 
 from bugbot import logger, utils
+from bugbot.bug.analyzer import BugNotInStoreError, BugsStore
 from bugbot.bzcleaner import BzCleaner
 
 
@@ -203,6 +206,47 @@ class RegressionSetStatusFlags(BzCleaner):
                     self.status_changes[bugid][flag] = "unaffected"
                     info["esr"][f"esr{v}"] = "unaffected"
                 filtered_bugs[bugid] = info
+
+        # NOTE: The following is temporary to test that the new code is matching
+        # producing the expected results. Once we are confident with the new
+        # code, we can refactor this tool to use the new code.
+        # See: https://github.com/mozilla/bugbot/issues/2152
+        # >>>>> Begin of the temporary code
+        adjusted_bugs = (
+            {
+                **bug,
+                "regressed_by": [bug["regressed_by"]],
+            }
+            for bug in bugs.values()
+        )
+        bugs_store = BugsStore(chain(adjusted_bugs, data.values()))
+        for bug_id in bugs:
+            old_code_updates = self.status_changes.get(bug_id, {})
+            bug = bugs_store.get_bug_by_id(int(bug_id))
+            try:
+                new_code_updates = bug.detect_version_status_updates()
+            except BugNotInStoreError as error:
+                if self.dryrun:
+                    # This should be OK in local environment where we don't have
+                    # access to all bugs, but it is not OK in production.
+                    continue
+                raise error from None
+
+            new_code_updates = (
+                {update.flag: update.status for update in new_code_updates}
+                if new_code_updates
+                else {}
+            )
+
+            if old_code_updates != new_code_updates:
+                logger.error(
+                    "Rule %s: Mismatching status updates for bug %s: %s <--> %s",
+                    self.name(),
+                    bug_id,
+                    old_code_updates,
+                    new_code_updates,
+                )
+        # <<<<< End of the temporary code
 
         for bugid in filtered_bugs:
             regressor = bugs[bugid]["regressed_by"]
