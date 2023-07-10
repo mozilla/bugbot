@@ -15,6 +15,7 @@ from libmozdata.bugzilla import Bugzilla
 from libmozdata.connection import Connection
 
 from bugbot import logger, utils
+from bugbot.bug.analyzer import BugAnalyzer, BugsStore
 from bugbot.components import ComponentName
 from bugbot.crash import socorro_util
 
@@ -119,8 +120,9 @@ class ClouseauDataAnalyzer:
     MINIMUM_CLOUSEAU_SCORE_THRESHOLD: int = 8
     DEFAULT_CRASH_COMPONENT = ComponentName("Core", "General")
 
-    def __init__(self, reports: Iterable[dict]):
+    def __init__(self, reports: Iterable[dict], bugs_store: BugsStore):
         self._clouseau_reports = reports
+        self.bugs_store = bugs_store
 
     @cached_property
     def max_clouseau_score(self):
@@ -177,27 +179,22 @@ class ClouseauDataAnalyzer:
         return None
 
     @cached_property
-    def regressed_by_potential_bugs(self) -> list[dict]:
+    def regressed_by_potential_bugs(self) -> list[BugAnalyzer]:
         """The bugs whose patches could have caused the crash."""
-
-        def handler(bug: dict, data: list):
-            data.append(bug)
-
-        bugs: list[dict] = []
-        Bugzilla(
-            bugids=self.regressed_by_potential_bug_ids,
-            include_fields=[
+        self.bugs_store.fetch_bugs(
+            self.regressed_by_potential_bug_ids,
+            [
                 "id",
                 "groups",
                 "assigned_to",
                 "product",
                 "component",
             ],
-            bughandler=handler,
-            bugdata=bugs,
-        ).wait()
-
-        return bugs
+        )
+        return [
+            self.bugs_store.get_bug_by_id(bug_id)
+            for bug_id in self.regressed_by_potential_bug_ids
+        ]
 
     @cached_property
     def regressed_by_author(self) -> dict | None:
@@ -213,8 +210,8 @@ class ClouseauDataAnalyzer:
             return None
 
         bug = self.regressed_by_potential_bugs[0]
-        assert bug["id"] == self.regressed_by
-        return bug["assigned_to_detail"]
+        assert bug.id == self.regressed_by
+        return bug.get_field("assigned_to_detail")
 
     @cached_property
     def crash_component(self) -> ComponentName:
@@ -223,8 +220,7 @@ class ClouseauDataAnalyzer:
         If there are multiple components, the value will be the default one.
         """
         potential_components = {
-            ComponentName(bug["product"], bug["component"])
-            for bug in self.regressed_by_potential_bugs
+            bug.component for bug in self.regressed_by_potential_bugs
         }
         if len(potential_components) == 1:
             return next(iter(potential_components))
@@ -476,9 +472,10 @@ class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
         socorro_signature: dict,
         num_total_crashes: int,
         clouseau_reports: list[dict],
+        bugs_store: BugsStore,
     ):
         SocorroDataAnalyzer.__init__(self, socorro_signature, num_total_crashes)
-        ClouseauDataAnalyzer.__init__(self, clouseau_reports)
+        ClouseauDataAnalyzer.__init__(self, clouseau_reports, bugs_store)
 
     def _fetch_crash_reports(
         self,
@@ -550,8 +547,7 @@ class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
             - one of the potential regressors is a security bug
         """
         return self.is_near_allocator_related_crash or any(
-            any("core-security" in group for group in bug["groups"])
-            for bug in self.regressed_by_potential_bugs
+            bug.is_security for bug in self.regressed_by_potential_bugs
         )
 
 
@@ -899,12 +895,14 @@ class SignaturesDataFetcher:
         self._signatures.intersection_update(clouseau_reports.keys())
 
         signatures, num_total_crashes = self.fetch_socorro_info()
+        bugs_store = BugsStore()
 
         return [
             SignatureAnalyzer(
                 signature,
                 num_total_crashes,
                 clouseau_reports[signature["term"]],
+                bugs_store,
             )
             for signature in signatures
         ]

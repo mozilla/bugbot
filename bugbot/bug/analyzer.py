@@ -10,6 +10,7 @@ from libmozdata import versions as lmdversions
 from libmozdata.bugzilla import Bugzilla
 
 from bugbot import utils
+from bugbot.components import ComponentName
 
 
 class VersionStatus(NamedTuple):
@@ -36,6 +37,21 @@ class BugAnalyzer:
         """
         self._bug = bug
         self._store = store
+
+    @property
+    def id(self) -> int:
+        """The bug id."""
+        return self._bug["id"]
+
+    @property
+    def component(self) -> ComponentName:
+        """The component that the bug is in."""
+        return ComponentName(self._bug["product"], self._bug["component"])
+
+    @property
+    def is_security(self) -> bool:
+        """Whether the bug is a security bug."""
+        return any("core-security" in group for group in self._bug["groups"])
 
     @property
     def regressed_by_bugs(self) -> list["BugAnalyzer"]:
@@ -155,7 +171,7 @@ class BugNotInStoreError(LookupError):
 class BugsStore:
     """A class to retrieve bugs."""
 
-    def __init__(self, bugs: Iterable[dict], versions_map: dict[str, int] = None):
+    def __init__(self, bugs: Iterable[dict] = (), versions_map: dict[str, int] = None):
         self.bugs = {bug["id"]: BugAnalyzer(bug, self) for bug in bugs}
         self.versions_map = versions_map
 
@@ -182,16 +198,12 @@ class BugsStore:
         Args:
             include_fields: The fields to include when fetching the bugs.
         """
-        bug_ids = {
+        bug_ids = (
             bug_id
             for bug in self.bugs.values()
             if bug.get_field("regressed_by")
             for bug_id in bug.get_field("regressed_by")
-            if bug_id not in self.bugs
-        }
-
-        if not bug_ids:
-            return
+        )
 
         self.fetch_bugs(bug_ids, include_fields)
 
@@ -202,6 +214,17 @@ class BugsStore:
             bug_ids: The ids of the bugs to fetch.
             include_fields: The fields to include when fetching the bugs.
         """
+        bug_ids = {
+            bug_id
+            for bug_id in bug_ids
+            # TODO: We only fetch bugs that aren't already in the store.
+            # However, the new fetch request might be specifying fields that
+            # aren't in the existing bug. We need at some point to handle such
+            # cases (currently, we do not have this requirement).
+            if bug_id not in self.bugs
+        }
+        if not bug_ids:
+            return
 
         def bug_handler(bugs):
             for bug in bugs:
