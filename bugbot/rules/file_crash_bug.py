@@ -7,7 +7,7 @@ import pprint
 import jinja2
 import requests
 
-from bugbot import logger
+from bugbot import logger, utils
 from bugbot.bug.analyzer import BugAnalyzer
 from bugbot.bzcleaner import BzCleaner
 from bugbot.crash import socorro_util
@@ -181,6 +181,14 @@ class FileCrashBug(BzCleaner):
             updates = bug_analyzer.detect_version_status_updates()
             for update in updates:
                 bug_data[update.flag] = update.status
+
+            if bug_data["regressed_by"] and not updates:
+                # If we don't set the nightly flag here, the bot will set it
+                # later as part of `regression_new_set_nightly_affected` rule.
+                nightly_flag = utils.get_flag(
+                    self.versions["nightly"], "status", "nightly"
+                )
+                bug_data[nightly_flag] = "affected"
 
             if self.dryrun:
                 logger.info("Dry-run bug:")
