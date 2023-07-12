@@ -145,7 +145,8 @@ python -m bugbot.rules.inactive_ni_pending --production
 python -m bugbot.rules.crash_signature_confirm --production
 
 # Bugs with patches after being closed
-python -m bugbot.rules.patch_closed_bug --production
+# Disabled temporarily until fixing https://github.com/mozilla/bugbot/issues/1953
+# python -m bugbot.rules.patch_closed_bug --production
 
 # Confirm bugs with affected flags
 python -m bugbot.rules.affected_flag_confirm --production
