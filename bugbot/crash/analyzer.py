@@ -860,7 +860,9 @@ class SignaturesDataFetcher:
             "Fetch from Bugzilla: requesting bugs for %d signatures",
             len(self._signatures),
         )
+        timeout = utils.get_config("common", "bz_query_timeout")
         Bugzilla(
+            timeout=timeout,
             queries=[
                 connection.Query(Bugzilla.API_URL, params, handler, signatures_bugs)
                 for params in params_list
@@ -869,6 +871,7 @@ class SignaturesDataFetcher:
 
         # TODO: remove the call to DevBugzilla after moving to production
         DevBugzilla(
+            timeout=timeout,
             queries=[
                 connection.Query(DevBugzilla.API_URL, params, handler, signatures_bugs)
                 for params in params_list
