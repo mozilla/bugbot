@@ -177,18 +177,19 @@ class FileCrashBug(BzCleaner):
             # don't fill the `regressed_by` field. Anyway, setting the version
             # status flag will cause errors on bugzilla-dev since the fields are
             # out of sync.
-            bug_analyzer = BugAnalyzer(bug_data, signature.bugs_store)
-            updates = bug_analyzer.detect_version_status_updates()
-            for update in updates:
-                bug_data[update.flag] = update.status
+            if "regressed_by" in bug_data:
+                bug_analyzer = BugAnalyzer(bug_data, signature.bugs_store)
+                updates = bug_analyzer.detect_version_status_updates()
+                for update in updates:
+                    bug_data[update.flag] = update.status
 
-            if bug_data["regressed_by"] and not updates:
-                # If we don't set the nightly flag here, the bot will set it
-                # later as part of `regression_new_set_nightly_affected` rule.
-                nightly_flag = utils.get_flag(
-                    self.versions["nightly"], "status", "nightly"
-                )
-                bug_data[nightly_flag] = "affected"
+                if bug_data["regressed_by"] and not updates:
+                    # If we don't set the nightly flag here, the bot will set it
+                    # later as part of `regression_new_set_nightly_affected` rule.
+                    nightly_flag = utils.get_flag(
+                        self.versions["nightly"], "status", "nightly"
+                    )
+                    bug_data[nightly_flag] = "affected"
 
             if self.dryrun:
                 logger.info("Dry-run bug:")
