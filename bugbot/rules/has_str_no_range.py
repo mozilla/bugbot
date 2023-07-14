@@ -110,6 +110,9 @@ class HasSTRNoRange(BzCleaner):
             "f6": "reporter",
             "o6": "regexp",
             "v6": r"^.*@softvision\.(ro|com)$",
+            "f7": "bug_type",
+            "o7": "equals",
+            "v7": "defect",
         }
 
         return params
