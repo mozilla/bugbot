@@ -47,6 +47,7 @@
       "JSS",
       "NSPR",
       "NSS",
+      "Release Engineering",
       "Remote Protocol",
       "Testing",
       "Toolkit",
@@ -441,7 +442,6 @@
   },
   "close_intermittents": {
     "must_run": ["Mon", "Wed", "Fri"],
-    "additional_products": ["Release Engineering"],
     "sec": false
   },
   "uplift_beta": {
