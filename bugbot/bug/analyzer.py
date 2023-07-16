@@ -226,9 +226,8 @@ class BugsStore:
         if not bug_ids:
             return
 
-        def bug_handler(bugs):
-            for bug in bugs:
-                self.bugs[bug["id"]] = BugAnalyzer(bug, self)
+        def bug_handler(bug):
+            self.bugs[bug["id"]] = BugAnalyzer(bug, self)
 
         Bugzilla(bug_ids, bughandler=bug_handler, include_fields=include_fields).wait()
 
