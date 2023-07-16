@@ -4,6 +4,7 @@
 
 import pprint
 
+import humanize
 import jinja2
 import requests
 
@@ -79,9 +80,12 @@ class FileCrashBug(BzCleaner):
         self.query_url = None
         bugs = {}
 
-        signatures = SignaturesDataFetcher.find_new_actionable_crashes(
+        data_fetcher = SignaturesDataFetcher.find_new_actionable_crashes(
             "Firefox", "nightly"
-        ).analyze()
+        )
+        signatures = data_fetcher.analyze()
+
+        signature_details_delta = humanize.naturaldelta(data_fetcher.SUMMARY_DURATION)
 
         active_regression_authors = self._active_regression_authors(signatures)
 
@@ -108,6 +112,8 @@ class FileCrashBug(BzCleaner):
                     **socorro_util.generate_bug_description_data(report),
                     "signature": signature,
                     "needinfo_regression_author": needinfo_regression_author,
+                    "signature_details_delta": signature_details_delta,
+                    "signature_details_channel": "Nightly",
                 }
             )
 
