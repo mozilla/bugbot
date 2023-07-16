@@ -20,7 +20,7 @@ class FileCrashBug(BzCleaner):
 
     # NOTE: If you make changes that affect the output of the rule, you should
     # increment this number. This is needed in the experimental phase only.
-    VERSION = 1
+    VERSION = 2
     MAX_BUG_TITLE_LENGTH = 255
     FILE_ON_BUGZILLA_DEV = True
 

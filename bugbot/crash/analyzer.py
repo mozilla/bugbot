@@ -592,6 +592,8 @@ class SignaturesDataFetcher:
         "shutdownhang | ",
     )
 
+    SUMMARY_DURATION = timedelta(weeks=10)
+
     def __init__(
         self,
         signatures: Iterable[str],
@@ -763,10 +765,8 @@ class SignaturesDataFetcher:
         if not self._signatures:
             return [], 0
 
-        # TODO(investigate): should we increase the duration to 6 months?
-        duration = timedelta(weeks=1)
         end_date = lmdutils.get_date_ymd("today")
-        start_date = end_date - duration
+        start_date = end_date - self.SUMMARY_DURATION
         date_range = socorro.SuperSearch.get_search_date(start_date, end_date)
 
         params = {
