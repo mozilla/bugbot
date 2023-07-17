@@ -276,6 +276,14 @@ class SocorroDataAnalyzer(socorro_util.SignatureStats):
         return op_sys
 
     @property
+    def first_crash_date(self) -> str:
+        """The date of the first crash within the query time range.
+
+        The date is in YYYY-MM-DD format.
+        """
+        return self.signature["facets"]["histogram_date"][0]["term"][:10]
+
+    @property
     def bugzilla_op_sys(self) -> str:
         """The name of the OS where the crash happens.
 
@@ -785,6 +793,7 @@ class SignaturesDataFetcher:
                 "_cardinality.user_comments",
                 "cpu_arch",
                 "platform_pretty_version",
+                "_histogram.date",
                 # The following are needed for SignatureStats:
                 "platform",
                 "is_garbage_collecting",
