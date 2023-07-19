@@ -40,6 +40,12 @@ class UpliftBeta(BzCleaner):
         # XXX: This is a temporary workaround, should be dropped after
         # fixing https://github.com/mozilla/bugbot/issues/1953
         if self._has_patch_after_closed(bug):
+            from bugbot import logger
+
+            logger.error(
+                "Bug %s has a patch after being closed without an uplift approval flag. This could be a sign that Bug 1825961 is still not fixed.",
+                bug["id"],
+            )
             return
 
         bugid = str(bug["id"])
