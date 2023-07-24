@@ -45,6 +45,10 @@ ALLOCATOR_RANGES_32_BIT = (
     (addr - offset, addr + offset) for addr, offset in ALLOCATOR_ADDRESSES_32_BIT
 )
 
+# NOTE: If you make changes that affect the output of the analysis, you should
+# increment this number. This is needed in the experimental phase only.
+EXPERIMENT_VERSION = 3
+
 
 def is_near_null_address(str_address) -> bool:
     """Check if the address is near null.
@@ -879,6 +883,13 @@ class SignaturesDataFetcher:
         ).wait()
 
         # TODO: remove the call to DevBugzilla after moving to production
+        for params in params_list:
+            # Excluded only filed bugs with the latest version. This will
+            # re-generate the bugs after bumping the version.
+            n = int(utils.get_last_field_num(params))
+            params[f"f{n}"] = "status_whiteboard"
+            params[f"o{n}"] = "substring"
+            params[f"v{n}"] = f"[bugbot-crash-v{EXPERIMENT_VERSION}]"
         DevBugzilla(
             timeout=timeout,
             queries=[

@@ -12,16 +12,18 @@ from bugbot import logger, utils
 from bugbot.bug.analyzer import BugAnalyzer
 from bugbot.bzcleaner import BzCleaner
 from bugbot.crash import socorro_util
-from bugbot.crash.analyzer import DevBugzilla, SignatureAnalyzer, SignaturesDataFetcher
+from bugbot.crash.analyzer import (
+    EXPERIMENT_VERSION,
+    DevBugzilla,
+    SignatureAnalyzer,
+    SignaturesDataFetcher,
+)
 from bugbot.user_activity import UserActivity, UserStatus
 
 
 class FileCrashBug(BzCleaner):
     """File bugs for new actionable crashes."""
 
-    # NOTE: If you make changes that affect the output of the rule, you should
-    # increment this number. This is needed in the experimental phase only.
-    VERSION = 2
     MAX_BUG_TITLE_LENGTH = 255
     FILE_ON_BUGZILLA_DEV = True
 
@@ -138,7 +140,7 @@ class FileCrashBug(BzCleaner):
                 "blocks": "bugbot-auto-crash",
                 "type": "defect",
                 "keywords": ["crash"],
-                "status_whiteboard": f"[bugbot-crash-v{self.VERSION}]",
+                "status_whiteboard": f"[bugbot-crash-v{EXPERIMENT_VERSION}]",
                 "summary": title,
                 "product": signature.crash_component.product,
                 "component": signature.crash_component.name,
