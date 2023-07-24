@@ -6,7 +6,7 @@ import collections
 
 from libmozdata import utils as lmdutils
 
-from bugbot import people, utils
+from bugbot import logger, people, utils
 from bugbot.bzcleaner import BzCleaner
 from bugbot.constants import HIGH_PRIORITY, HIGH_SEVERITY
 from bugbot.user_activity import UserActivity
@@ -123,6 +123,10 @@ class AssigneeNoLogin(BzCleaner):
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
+        if "triage_owner_detail" not in bug:
+            logger.warning("Skip bug %s: no triage owner", bugid)
+            return None
+
         data[bugid] = {
             "assigned_to": bug["assigned_to"],
             "triage_owner": bug["triage_owner"],
