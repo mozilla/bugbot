@@ -51,11 +51,13 @@ all crashes happened on null or near null memory address
 {%- elif signature.is_potential_near_null_crash -%}
 {{ signature.num_near_null_crashes }} out of {{ signature.num_crashes }} crashes happened on null or near null memory address
 {%- endif %}
+{% if signature.is_near_allocator_related_crash -%}
 - **Is use after free crash:** {{ "Yes - " if signature.is_near_allocator_related_crash else "No" }}
 {%- if signature.is_near_allocator_crash -%}
 all crashes happened on or near an allocator poison value
 {%- elif signature.is_potential_near_allocator_crash -%}
 {{ signature.num_near_allocator_crashes }} out of {{ signature.num_crashes }} crashes happened on or near an allocator poison value
+{%- endif %}
 {%- endif %}
 
 
