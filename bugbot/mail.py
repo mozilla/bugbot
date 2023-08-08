@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import smtplib
+import ssl
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -126,7 +127,9 @@ def sendMail(From, To, msg, login={}, dryrun=False):
     smtp_ssl = login.get("smtp_ssl", default_login.get("smtp_ssl", True))
 
     if smtp_ssl:
-        mailserver = smtplib.SMTP_SSL(smtp_server, smtp_port)
+        mailserver = smtplib.SMTP_SSL(
+            smtp_server, smtp_port, context=ssl.create_default_context()
+        )
     else:
         mailserver = smtplib.SMTP(smtp_server, smtp_port)
 
