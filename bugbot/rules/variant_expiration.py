@@ -340,11 +340,13 @@ class VariantExpiration(BzCleaner, Nag):
         return bug
 
     def is_with_patch(self, bug: dict) -> bool:
-        """Check if the bug has a patch"""
+        """Check if the bug has a patch (not obsolete))"""
         return any(
-            attachment["is_patch"]
-            and not attachment["is_obsolete"]
-            and attachment["content_type"] == "text/x-phabricator-request"
+            not attachment["is_obsolete"]
+            and (
+                attachment["content_type"] == "text/x-phabricator-request"
+                or attachment["is_patch"]
+            )
             for attachment in bug["attachments"]
         )
 
