@@ -22,6 +22,9 @@ MAX_SIGNATURES_PER_QUERY = 30
 class TopcrashHighlight(BzCleaner):
     def __init__(self):
         super().__init__()
+        if not self.init_versions():
+            return
+
         self.topcrashes = None
         self.topcrashes_restrictive = None
 
