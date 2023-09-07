@@ -112,6 +112,9 @@ class DevBugzilla(Bugzilla):
     API_URL = URL + "/rest/bug"
     ATTACHMENT_API_URL = API_URL + "/attachment"
     TOKEN = utils.get_login_info()["bz_api_key_dev"]
+    # Note(suhaib): the dev instance of bugzilla has a smaller cluster, so we
+    # need to go easy on it.
+    MAX_WORKERS = 1
 
 
 class NoCrashReportFoundError(Exception):
