@@ -16,10 +16,7 @@ class CopyDuplicateInfo(BzCleaner):
     def description(self):
         return "Bugs which are DUPLICATE and some info haven't been moved"
 
-    def has_product_component(self):
-        return True
-
-    def set_autofix(self, bugs, dups, signatures, pcs):
+    def set_autofix(self, bugs, dups, signatures):
         for bugid, missed_sgns in signatures.items():
             sgns = dups[bugid]["signature"]
             sgns = utils.add_signatures(sgns, missed_sgns)
@@ -27,43 +24,6 @@ class CopyDuplicateInfo(BzCleaner):
                 "cf_crash_signature": sgns,
                 "comment": {"body": "Copying crash signatures from duplicate bugs."},
             }
-
-        for bugid, pc in pcs.items():
-            if bugid in self.autofix_data:
-                self.autofix_data[bugid].update(pc)
-            else:
-                self.autofix_data[bugid] = pc
-
-    def get_fixed_bugs(self, bugs, dups, signatures, pcs):
-        res = {}
-        for bugid in signatures.keys():
-            res[bugid] = info = dups[bugid]
-            info["update_signature"] = "Yes"
-
-        for bugid in pcs.keys():
-            if bugid in res:
-                res[bugid]["update_pc"] = "Yes"
-            else:
-                res[bugid] = info = bugs[bugid]
-                info["update_pc"] = "Yes"
-
-        for info in res.values():
-            if "update_pc" not in info:
-                info["update_pc"] = "No"
-            if "update_signature" not in info:
-                info["update_signature"] = "No"
-
-        return res
-
-    def columns(self):
-        return ["id", "summary", "update_signature", "update_pc"]
-
-    def sort_columns(self):
-        return lambda p: (
-            0 if p[2] == "Yes" else 1,
-            0 if p[3] == "Yes" else 1,
-            -int(p[0]),
-        )
 
     def get_autofix_change(self):
         return self.autofix_data
@@ -75,18 +35,12 @@ class CopyDuplicateInfo(BzCleaner):
             "summary": self.get_summary(bug),
             "signature": bug.get("cf_crash_signature", ""),
             "dupe": str(bug["dupe_of"]),
-            "product": bug["product"],
-            "component": bug["component"],
             "version": bug["version"],
             "is_private": bool(bug["groups"]),
         }
         return bug
 
     def get_dups(self, bugs):
-        def handler(bug, data):
-            if bug["product"] in self.get_config("products"):
-                self.handle_bug(bug, data)
-
         bugids = [info["dupe"] for info in bugs.values()]
         data = {}
 
@@ -95,14 +49,12 @@ class CopyDuplicateInfo(BzCleaner):
             include_fields=[
                 "cf_crash_signature",
                 "dupe_of",
-                "product",
-                "component",
                 "id",
                 "summary",
                 "groups",
                 "version",
             ],
-            bughandler=handler,
+            bughandler=self.handle_bug,
             bugdata=data,
         ).get_data().wait()
 
@@ -112,7 +64,6 @@ class CopyDuplicateInfo(BzCleaner):
         # each bug in bugs is the dup of one in dups
         # so the characteristics of this bug should be in the dup
         signatures = {}
-        pcs = {}
         for bugid, info in bugs.items():
             dupid = info["dupe"]
             if dupid not in dups:
@@ -129,20 +80,7 @@ class CopyDuplicateInfo(BzCleaner):
             if not bs.issubset(ds):
                 signatures[dupid] = bs - ds
 
-            pc = {}
-            for x in ["product", "component"]:
-                if info[x] != dup[x]:
-                    pc[x] = dup[x]
-            if pc:
-                # when we change the product, we change the version too
-                # to avoid incompatible version in the new product
-                if "product" in pc and info["version"] != dup["version"]:
-                    pc["version"] = dup["version"]
-                pcs[bugid] = pc
-
-        # Don't move product/component for now
-        # return signatures, pcs
-        return signatures, {}
+        return signatures
 
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
@@ -160,12 +98,11 @@ class CopyDuplicateInfo(BzCleaner):
     def get_bugs(self, date="today", bug_ids=[]):
         bugs = super(CopyDuplicateInfo, self).get_bugs(date=date, bug_ids=bug_ids)
         dups = self.get_dups(bugs)
-        signatures, pcs = self.compare(bugs, dups)
+        signatures = self.compare(bugs, dups)
 
-        self.set_autofix(bugs, dups, signatures, pcs)
-        bugs = self.get_fixed_bugs(bugs, dups, signatures, pcs)
+        self.set_autofix(bugs, dups, signatures)
 
-        return bugs
+        return {bugid: dups[bugid] for bugid in signatures}
 
 
 if __name__ == "__main__":
