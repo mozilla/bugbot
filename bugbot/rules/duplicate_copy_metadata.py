@@ -72,6 +72,7 @@ class DuplicateCopyMetadata(BzCleaner):
                 "regressed_by",
                 "is_open",
                 "cf_webcompat_priority",
+                "groups",
             ],
             bughandler=bughandler,
             bugdata=original_bugs,
@@ -82,11 +83,17 @@ class DuplicateCopyMetadata(BzCleaner):
             if not bug["is_open"]:
                 continue
 
+            is_public = not bug["groups"]
+
             copied_fields = {}
             for dup_bug_id in bug["duplicates"]:
                 dup_bug_id = str(dup_bug_id)
                 dup_bug = dup_bugs.get(dup_bug_id)
                 if not dup_bug:
+                    continue
+
+                if is_public and dup_bug["groups"]:
+                    # We avoid copying fields from private to public bugs
                     continue
 
                 # TODO: Since the logic for copied fields is getting bigger,
@@ -368,6 +375,7 @@ class DuplicateCopyMetadata(BzCleaner):
             "regressed_by",
             "cf_webcompat_priority",
             "last_change_time_non_bot",
+            "groups",
         ]
 
         params = {
