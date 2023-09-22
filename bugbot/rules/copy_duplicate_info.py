@@ -78,6 +78,7 @@ class CopyDuplicateInfo(BzCleaner):
             "product": bug["product"],
             "component": bug["component"],
             "version": bug["version"],
+            "is_private": bool(bug["groups"]),
         }
         return bug
 
@@ -119,6 +120,10 @@ class CopyDuplicateInfo(BzCleaner):
                 continue
 
             dup = dups[dupid]
+            if info["is_private"] and not dup["is_private"]:
+                # We avoid copying signatures from private to public bugs
+                continue
+
             bs = utils.get_signatures(info["signature"])
             ds = utils.get_signatures(dup["signature"])
             if not bs.issubset(ds):
@@ -141,7 +146,7 @@ class CopyDuplicateInfo(BzCleaner):
 
     def get_bz_params(self, date):
         start_date, end_date = self.get_dates(date)
-        fields = ["cf_crash_signature", "dupe_of", "version"]
+        fields = ["cf_crash_signature", "dupe_of", "version", "groups"]
         params = {
             "include_fields": fields,
             "resolution": "DUPLICATE",
