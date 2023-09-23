@@ -1,17 +1,15 @@
 <p>
-    The following {{ plural('bug has', data, pword='bugs have') }} been fixed as DUPLICATE and some information haven't been moved:
+    The following {{ plural('bug has', data, pword='bugs have') }} been fixed as DUPLICATE and some crash signatures haven't been moved:
 </p>
 <table {{ table_attrs }}>
     <thead>
         <tr>
             <th>Bug</th>
             <th>Summary</th>
-            <th>Update signature</th>
-            <th>Update product::component</th>
         </tr>
     </thead>
     <tbody>
-        {% for i, (bugid, summary, update_signature, update_pc) in enumerate(data) -%}
+        {% for i, (bugid, summary) in enumerate(data) -%}
             <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
             {% endif -%}
             >
@@ -19,8 +17,6 @@
                 <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
             </td>
             <td>{{ summary | e }}</td>
-            <td>{{ update_signature }}</td>
-            <td>{{ update_pc }}</td>
         </tr>
     {% endfor -%}
 </tbody>
