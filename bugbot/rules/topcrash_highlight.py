@@ -50,15 +50,29 @@ class TopcrashHighlight(BzCleaner):
             },
         }
 
-        if keywords_to_add and (
-            not is_keywords_removed
-            or self._is_matching_restrictive_criteria(topcrash_signatures)
-        ):
+        if keywords_to_add and not is_keywords_removed:
             autofix["keywords"] = {"add": keywords_to_add}
             autofix["comment"]["body"] += self.get_matching_criteria_comment(
                 topcrash_signatures, is_keywords_removed
             )
             actions.extend(f"Add {keyword} keyword" for keyword in keywords_to_add)
+
+        if (
+            keywords_to_add
+            and is_keywords_removed
+            and self._is_matching_restrictive_criteria(topcrash_signatures)
+        ):
+            # FIXME: This is a workaround to monitor the cases where the bot
+            # supposed re-add topcrash keywords.
+            # More context in: https://github.com/mozilla/bugbot/issues/2100
+            actions.extend(
+                f"Add {keyword} keyword (not applied to avoid noise)"
+                for keyword in keywords_to_add
+            )
+            data[bugid] = {
+                "actions": actions,
+            }
+            return
 
         ni_person = utils.get_mail_to_ni(bug)
         if (
