@@ -11,7 +11,7 @@ from libmozdata.bugzilla import BugzillaUser
 from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
 
-REMINDER_TYPES = ["test", "pref", "disclosure", "deprecation"]
+REMINDER_TYPES = ["test", "pref", "disclosure", "deprecation", "landing"]
 DATE_MATCH = re.compile(
     r"\[reminder\-(%s) ([0-9]{4}-[0-9]{1,2}-[0-9]{1,2})\]" % "|".join(REMINDER_TYPES)
 )
