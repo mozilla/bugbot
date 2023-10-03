@@ -261,7 +261,10 @@ class InactiveNeedinfoPending(BzCleaner):
                 "status": "RESOLVED",
                 "resolution": "INCOMPLETE",
                 "comment": {
-                    "body": "A needinfo is requested from the reporter, however, the reporter is inactive on Bugzilla. Closing the bug as incomplete."
+                    "body": (
+                        "A needinfo is requested from the reporter, however, the reporter is inactive on Bugzilla. "
+                        "Given that the bug is still `UNCONFIRMED`, closing the bug as incomplete."
+                    )
                 },
             }
 
