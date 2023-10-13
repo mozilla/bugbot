@@ -618,7 +618,7 @@ class BzCleaner(object):
         new_changes: Dict[str, dict],
         no_bugmail: bool = False,
         is_dryrun: bool = True,
-        db_extra: Dict[str, str] = None,
+        db_extra: Dict[str, str] | None = None,
     ) -> None:
         """Apply changes on Bugzilla
 

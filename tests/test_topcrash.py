@@ -6,7 +6,6 @@ from bugbot.topcrash import Topcrash
 
 
 class TestTopcrash(MockTestCase):
-
     mock_urls = [Socorro.API_URL]
 
     @responses.activate

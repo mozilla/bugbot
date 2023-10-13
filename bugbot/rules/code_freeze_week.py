@@ -197,7 +197,6 @@ class CodeFreezeWeek(BzCleaner):
             )
             # bug with only backouts
             if landed_patches == 0:
-
                 torm.append(bug)
             else:
                 info["landed_patches"] = landed_patches

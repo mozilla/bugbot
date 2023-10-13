@@ -35,18 +35,20 @@
     </thead>
     <tbody>
         {% for i, (bugid, change) in enumerate(changes) -%}
-            <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"{% endif -%}>
-                <td>
-                    <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
-                </td>
-                <td>
-                    <code>
-                        {{ change }}
-                    </code>
-                </td>
-            </tr>
-        {% endfor -%}
-    </tbody>
+            <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
+            {% endif -%}
+            >
+            <td>
+                <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+            </td>
+            <td>
+                <code>
+                    {{ change }}
+                </code>
+            </td>
+        </tr>
+    {% endfor -%}
+</tbody>
 </table>
 <br />
 <hr />

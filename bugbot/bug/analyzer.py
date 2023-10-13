@@ -171,7 +171,9 @@ class BugNotInStoreError(LookupError):
 class BugsStore:
     """A class to retrieve bugs."""
 
-    def __init__(self, bugs: Iterable[dict] = (), versions_map: dict[str, int] = None):
+    def __init__(
+        self, bugs: Iterable[dict] = (), versions_map: dict[str, int] | None = None
+    ):
         self.bugs = {bug["id"]: BugAnalyzer(bug, self) for bug in bugs}
         self.versions_map = versions_map
 
@@ -192,7 +194,7 @@ class BugsStore:
         except KeyError as error:
             raise BugNotInStoreError(f"Bug {bug_id} is not the bugs store") from error
 
-    def fetch_regressors(self, include_fields: list[str] = None):
+    def fetch_regressors(self, include_fields: list[str] | None = None):
         """Fetches the regressors for all the bugs in the store.
 
         Args:
@@ -207,7 +209,9 @@ class BugsStore:
 
         self.fetch_bugs(bug_ids, include_fields)
 
-    def fetch_bugs(self, bug_ids: Iterable[int], include_fields: list[str] = None):
+    def fetch_bugs(
+        self, bug_ids: Iterable[int], include_fields: list[str] | None = None
+    ):
         """Fetches the bugs from Bugzilla.
 
         Args:

@@ -198,7 +198,7 @@ class Nag(object):
         if not template:
             return []
 
-        # If we escalating only to hierarchical mangers, we should always have a
+        # If we escalating only to hierarchical managers, we should always have a
         # management chain.
         fail_on_missing_mgmt_chain = self.escalation.is_hierarchical_escalation_only()
 

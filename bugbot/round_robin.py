@@ -16,7 +16,6 @@ from bugbot.round_robin_calendar import BadFallback, Calendar, InvalidCalendar
 
 
 class RoundRobin(object):
-
     _instances: dict = {}
 
     def __init__(self, rotation_definitions=None, people=None, teams=None):
@@ -44,7 +43,7 @@ class RoundRobin(object):
             RoundRobin._instances[teams] = RoundRobin(teams=teams)
         return RoundRobin._instances[teams]
 
-    def feed(self, teams: Set[str] = None) -> None:
+    def feed(self, teams: Set[str] | None = None) -> None:
         """Fetch the rotations calendars.
 
         Args:

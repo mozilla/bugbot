@@ -232,7 +232,7 @@ def get_next_release_date() -> datetime.datetime:
     return release_date
 
 
-def is_merge_day(date: datetime.datetime = None) -> bool:
+def is_merge_day(date: datetime.datetime | None = None) -> bool:
     """Check if the date is the merge day
 
     Args:

@@ -836,7 +836,9 @@ class SignaturesDataFetcher:
 
         return data["signatures"], data["num_total_crashes"]
 
-    def fetch_bugs(self, include_fields: list[str] = None) -> dict[str, list[dict]]:
+    def fetch_bugs(
+        self, include_fields: list[str] | None = None
+    ) -> dict[str, list[dict]]:
         """Fetch bugs that are filed against the given signatures."""
         if not self._signatures:
             return {}

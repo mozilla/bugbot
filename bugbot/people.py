@@ -29,7 +29,6 @@ IM_NICK = re.compile(r"([\w\.@]+)")
 
 
 class People:
-
     _instance = None
 
     def __init__(self, p=None):
