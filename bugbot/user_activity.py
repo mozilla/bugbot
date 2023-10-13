@@ -37,9 +37,9 @@ class UserActivity:
         activity_weeks_count: int = 26,
         absent_weeks_count: int = 26,
         unavailable_max_days: int = 7,
-        include_fields: list = None,
-        phab: PhabricatorAPI = None,
-        people: People = None,
+        include_fields: list | None = None,
+        phab: PhabricatorAPI | None = None,
+        people: People | None = None,
         reference_date: str = "today",
     ) -> None:
         """

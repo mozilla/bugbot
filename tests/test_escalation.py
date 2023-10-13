@@ -11,7 +11,6 @@ from bugbot.people import People
 
 
 class TestEscalation(unittest.TestCase):
-
     config = {
         "high": {
             "[30;+∞[": {"supervisor": "foobar", "days": ["Thu"]},

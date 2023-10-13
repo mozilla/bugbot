@@ -151,7 +151,6 @@ class JSONCalendar(Calendar):
 
 
 class ICSCalendar(Calendar):
-
     # The summary can be "[Gfx Triage] Foo Bar" or just "Foo Bar"
     SUM_PAT = re.compile(r"\s*(?:\[[^\]]*\])?\s*(.*)")
 

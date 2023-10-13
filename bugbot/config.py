@@ -9,7 +9,6 @@ from libmozdata import config
 
 
 class MyConfig(config.Config):
-
     PATH = "configs/config.json"
 
     def __init__(self):

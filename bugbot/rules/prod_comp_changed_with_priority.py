@@ -9,7 +9,6 @@ from bugbot.bzcleaner import BzCleaner
 
 
 class ProdCompChangedWithPriority(BzCleaner):
-
     CHANGE = {
         (True, False): "product",
         (True, True): "product::component",

@@ -26,7 +26,6 @@ class TestDuplicateCopyMetadata(unittest.TestCase):
     ]
 
     def test_get_previously_copied_fields(self):
-
         rule = DuplicateCopyMetadata()
 
         self.assertEqual(

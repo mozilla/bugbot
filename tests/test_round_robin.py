@@ -23,7 +23,6 @@ class RotationDefinitionsMockup(RotationDefinitions):
 
 
 class TestRoundRobin(unittest.TestCase):
-
     config = RotationDefinitionsMockup(
         [
             "Team Name,Calendar Scope,Fallback Triager,Calendar URL",

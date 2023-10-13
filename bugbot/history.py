@@ -10,7 +10,6 @@ from bugbot import logger
 
 
 class History(object):
-
     BOT = "release-mgmt-account-bot@mozilla.tld"
 
     def __init__(self):
