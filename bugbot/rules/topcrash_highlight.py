@@ -70,9 +70,10 @@ class TopcrashHighlight(BzCleaner):
                 for keyword in keywords_to_add
             )
             data[bugid] = {
+                "severity": bug["severity"],
                 "actions": actions,
             }
-            return
+            return bug
 
         ni_person = utils.get_mail_to_ni(bug)
         if (
