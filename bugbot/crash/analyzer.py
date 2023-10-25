@@ -572,7 +572,7 @@ class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
             if not self._is_corrupted_crash_stack(processed_crash):
                 return processed_crash
 
-            if i >= 10:
+            if i >= 20:
                 # We have tried enough reports, give up.
                 break
 
