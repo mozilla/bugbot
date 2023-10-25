@@ -86,7 +86,7 @@ class FileCrashBug(BzCleaner):
             "Firefox", "nightly"
         )
         signatures = data_fetcher.analyze()
-        # This is the last filtering stage which aims to avoid filling bugs for
+        # This is the last filtering stage which aims to avoid filing bugs for
         # junky crashes, where the volume is low and the crashes do not show
         # signals of being actionable or critical.
         signatures = [
