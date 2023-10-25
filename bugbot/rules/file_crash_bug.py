@@ -97,6 +97,7 @@ class FileCrashBug(BzCleaner):
             or signature.is_potential_near_null_crash
             or signature.is_potential_security_crash
             or signature.has_moz_crash_reason("MOZ_RELEASE_ASSERT")
+            or signature.has_moz_crash_reason("DocumentChannel::SetLoadFlags")
         ]
 
         signature_details_delta = humanize.naturaldelta(data_fetcher.SUMMARY_DURATION)
