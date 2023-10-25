@@ -165,7 +165,7 @@ class FileCrashBug(BzCleaner):
                 bug_data["keywords"].append("regression")
 
             if signature.regressed_by:
-                bug_data["regressed_by"] = signature.regressed_by
+                bug_data["regressed_by"] = [signature.regressed_by]
 
             if signature.is_potential_security_crash:
                 bug_data["groups"] = ["core-security"]
