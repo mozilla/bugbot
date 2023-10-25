@@ -477,6 +477,41 @@ class SocorroDataAnalyzer(socorro_util.SignatureStats):
         """
         return self.is_near_allocator_crash or self.is_potential_near_allocator_crash
 
+    @property
+    def is_content_crash(self) -> bool:
+        """Whether the crash is related to content process."""
+        for row in self.signature["facets"]["process_type"]:
+            if row["term"].lower() == "content":
+                return row["count"] > 0
+        return False
+
+    @property
+    def is_gpu_crash(self) -> bool:
+        """Whether the crash is related to GPU."""
+        for row in self.signature["facets"]["process_type"]:
+            if row["term"].lower() == "gpu":
+                return row["count"] > 0
+        return False
+
+    @property
+    def is_parent_crash(self) -> bool:
+        """Whether the crash is related to the parent process."""
+        for row in self.signature["facets"]["process_type"]:
+            if row["term"].lower() == "parent":
+                return row["count"] > 0
+        return False
+
+    @property
+    def crash_kind(self) -> str:
+        """The kind of the crash based on the crashing process type."""
+        if self.is_plugin_crash:
+            return "Plugin"
+        if self.is_parent_crash:
+            return "Parent"
+        if self.is_content_crash:
+            return "Content"
+        return "Browser Crash"
+
 
 class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
     """Analyze the data related to a signature.
