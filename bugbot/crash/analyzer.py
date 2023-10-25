@@ -559,6 +559,8 @@ class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
 
         if len(process_types) == 1:
             process_type = process_types[0]["term"]
+            # Small process types are usually acronyms (e.g., gpu for GPU), thus
+            # we use upper case for them. Otherwise, we capitalize the first letter.
             if len(process_type) <= 3:
                 return process_type.upper()
             return process_type.capitalize()
