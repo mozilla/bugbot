@@ -92,8 +92,8 @@ class FileCrashBug(BzCleaner):
         signatures = [
             signature
             for signature in signatures
-            if signature.num_installs > 20
-            or signature.num_crashes > 200
+            if signature.num_installs > 5
+            or signature.num_crashes > 25
             or signature.is_potential_near_null_crash
             or signature.is_potential_security_crash
             or signature.has_moz_crash_reason("MOZ_RELEASE_ASSERT")
