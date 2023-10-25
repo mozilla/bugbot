@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import pprint
+from functools import cached_property
 
 import humanize
 import jinja2
@@ -12,12 +13,7 @@ from bugbot import logger, utils
 from bugbot.bug.analyzer import BugAnalyzer
 from bugbot.bzcleaner import BzCleaner
 from bugbot.crash import socorro_util
-from bugbot.crash.analyzer import (
-    EXPERIMENT_VERSION,
-    DevBugzilla,
-    SignatureAnalyzer,
-    SignaturesDataFetcher,
-)
+from bugbot.crash.analyzer import SignatureAnalyzer, SignaturesDataFetcher
 from bugbot.user_activity import UserActivity, UserStatus
 
 
@@ -25,7 +21,6 @@ class FileCrashBug(BzCleaner):
     """File bugs for new actionable crashes."""
 
     MAX_BUG_TITLE_LENGTH = 255
-    FILE_ON_BUGZILLA_DEV = True
 
     def __init__(self):
         super().__init__()
@@ -46,6 +41,11 @@ class FileCrashBug(BzCleaner):
             "keywords": ["feature", "regression"],
             "keywords_type": "allwords",
         }
+
+    @cached_property
+    def nightly_version(self) -> int:
+        """The version for the nightly channel as defined on Bugzilla."""
+        return utils.get_nightly_version_from_bz()
 
     def _active_regression_authors(
         self, signatures: list[SignatureAnalyzer]
@@ -140,7 +140,6 @@ class FileCrashBug(BzCleaner):
                 "blocks": "bugbot-auto-crash",
                 "type": "defect",
                 "keywords": ["crash"],
-                "status_whiteboard": f"[bugbot-crash-v{EXPERIMENT_VERSION}]",
                 "summary": title,
                 "product": signature.crash_component.product,
                 "component": signature.crash_component.name,
@@ -158,9 +157,7 @@ class FileCrashBug(BzCleaner):
                 ],
             }
 
-            # NOTE: Filling the `flags` field on bugzilla-dev will cause an
-            # error when the user does not exist.
-            if needinfo_regression_author and not self.FILE_ON_BUGZILLA_DEV:
+            if needinfo_regression_author:
                 bug_data["flags"] = [
                     {
                         "name": "needinfo",
@@ -173,18 +170,12 @@ class FileCrashBug(BzCleaner):
             if signature.regressed_by:
                 bug_data["keywords"].append("regression")
 
-            # NOTE: Filling the `regressed_by` field on bugzilla-dev will cause
-            # "bug does not exist" errors.
-            if signature.regressed_by and not self.FILE_ON_BUGZILLA_DEV:
-                bug_data["regressed_by"] = signature.regressed_by
+            if signature.regressed_by:
+                bug_data["regressed_by"] = [signature.regressed_by]
 
             if signature.is_potential_security_crash:
                 bug_data["groups"] = ["core-security"]
 
-            # NOTE: The following will have no effect on bugzilla-dev since we
-            # don't fill the `regressed_by` field. Anyway, setting the version
-            # status flag will cause errors on bugzilla-dev since the fields are
-            # out of sync.
             if "regressed_by" in bug_data:
                 bug_analyzer = BugAnalyzer(bug_data, signature.bugs_store)
                 updates = bug_analyzer.detect_version_status_updates()
@@ -195,7 +186,7 @@ class FileCrashBug(BzCleaner):
                     # If we don't set the nightly flag here, the bot will set it
                     # later as part of `regression_new_set_nightly_affected` rule.
                     nightly_flag = utils.get_flag(
-                        self.versions["nightly"], "status", "nightly"
+                        self.nightly_version, "status", "nightly"
                     )
                     bug_data[nightly_flag] = "affected"
 
@@ -204,32 +195,16 @@ class FileCrashBug(BzCleaner):
                 pprint.pprint(bug_data)
                 bug_id = str(len(bugs) + 1)
             else:
-                # NOTE: When moving to production:
-                #   - Use Bugzilla instead of DevBugzilla
-                #   - Drop the DevBugzilla class
-                #   - Update the bug URL `file_crash_bug.html`
-                #   - Drop the bug link `file_crash_bug_description.md.jinja`
-                #   - Fill the `regressed_by` and `flags` fields
-                #   - Create the bug using `utils.create_bug`
-                #   - Drop the FILE_ON_BUGZILLA_DEV attribute
-                resp = requests.post(
-                    url=DevBugzilla.API_URL,
-                    json=bug_data,
-                    headers=DevBugzilla([]).get_header(),
-                    verify=True,
-                    timeout=DevBugzilla.TIMEOUT,
-                )
                 try:
-                    resp.raise_for_status()
-                except requests.HTTPError:
+                    bug = utils.create_bug(bug_data)
+                except requests.HTTPError as err:
                     logger.exception(
                         "Failed to create a bug for signature %s: %s",
                         signature.signature_term,
-                        resp.text,
+                        err.response.text,
                     )
                     continue
 
-                bug = resp.json()
                 bug_id = str(bug["id"])
                 # TODO: log the created bugs info somewhere (e.g., DB,
                 # spreadsheet, or LabelStudio)

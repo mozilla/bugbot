@@ -45,10 +45,6 @@ ALLOCATOR_RANGES_32_BIT = (
     (addr - offset, addr + offset) for addr, offset in ALLOCATOR_ADDRESSES_32_BIT
 )
 
-# NOTE: If you make changes that affect the output of the analysis, you should
-# increment this number. This is needed in the experimental phase only.
-EXPERIMENT_VERSION = 3
-
 
 def is_near_null_address(str_address) -> bool:
     """Check if the address is near null.
@@ -102,19 +98,6 @@ def generate_signature_page_url(params: dict, tab: str) -> str:
     web_url = socorro.Socorro.CRASH_STATS_URL
     query = lmdutils.get_params_for_url(params)
     return f"{web_url}/signature/{query}#{tab}"
-
-
-# NOTE: At this point, we will file bugs on bugzilla-dev. Once we are confident
-# that the bug filing is working as expected, we can switch to filing bugs in
-# the production instance of Bugzilla.
-class DevBugzilla(Bugzilla):
-    URL = "https://bugzilla-dev.allizom.org"
-    API_URL = URL + "/rest/bug"
-    ATTACHMENT_API_URL = API_URL + "/attachment"
-    TOKEN = utils.get_login_info()["bz_api_key_dev"]
-    # Note(suhaib): the dev instance of bugzilla has a smaller cluster, so we
-    # need to go easy on it.
-    MAX_WORKERS = 1
 
 
 class NoCrashReportFoundError(Exception):
@@ -898,22 +881,6 @@ class SignaturesDataFetcher:
             timeout=timeout,
             queries=[
                 connection.Query(Bugzilla.API_URL, params, handler, signatures_bugs)
-                for params in params_list
-            ],
-        ).wait()
-
-        # TODO: remove the call to DevBugzilla after moving to production
-        for params in params_list:
-            # Excluded only filed bugs with the latest version. This will
-            # re-generate the bugs after bumping the version.
-            n = int(utils.get_last_field_num(params))
-            params[f"f{n}"] = "status_whiteboard"
-            params[f"o{n}"] = "substring"
-            params[f"v{n}"] = f"[bugbot-crash-v{EXPERIMENT_VERSION}]"
-        DevBugzilla(
-            timeout=timeout,
-            queries=[
-                connection.Query(DevBugzilla.API_URL, params, handler, signatures_bugs)
                 for params in params_list
             ],
         ).wait()
