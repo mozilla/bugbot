@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import pprint
+from functools import cached_property
 
 import humanize
 import jinja2
@@ -40,6 +41,11 @@ class FileCrashBug(BzCleaner):
             "keywords": ["feature", "regression"],
             "keywords_type": "allwords",
         }
+
+    @cached_property
+    def nightly_version(self) -> int:
+        """The version for the nightly channel as defined on Bugzilla."""
+        return utils.get_nightly_version_from_bz()
 
     def _active_regression_authors(
         self, signatures: list[SignatureAnalyzer]
@@ -180,7 +186,7 @@ class FileCrashBug(BzCleaner):
                     # If we don't set the nightly flag here, the bot will set it
                     # later as part of `regression_new_set_nightly_affected` rule.
                     nightly_flag = utils.get_flag(
-                        self.versions["nightly"], "status", "nightly"
+                        self.nightly_version, "status", "nightly"
                     )
                     bug_data[nightly_flag] = "affected"
 
