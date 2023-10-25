@@ -567,6 +567,21 @@ class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
             bug.is_security for bug in self.regressed_by_potential_bugs
         )
 
+    def has_moz_crash_reason(self, reason: str) -> bool:
+        """Whether the crash has a specific MOZ_CRASH reason.
+
+        Args:
+            reason: The MOZ_CRASH reason to check.
+
+        Returns:
+            True if the any of the MOZ_CRASH reasons has a partial match with
+            the provided reason.
+        """
+        return any(
+            reason in moz_crash_reason["term"]
+            for moz_crash_reason in self.signature["facets"]["moz_crash_reason"]
+        )
+
 
 class SignaturesDataFetcher:
     """Fetch the data related to the given signatures."""
@@ -808,6 +823,7 @@ class SignaturesDataFetcher:
                 "startup_crash",
                 "_histogram.uptime",
                 "process_type",
+                "moz_crash_reason",
             ],
             "_results_number": 0,
             "_facets_size": 10000,

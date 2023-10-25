@@ -86,6 +86,18 @@ class FileCrashBug(BzCleaner):
             "Firefox", "nightly"
         )
         signatures = data_fetcher.analyze()
+        # This is the last filtering stage which aims to avoid filling bugs for
+        # junky crashes, where the volume is low and the crashes do not show
+        # signals of being actionable or critical.
+        signatures = [
+            signature
+            for signature in signatures
+            if signature.num_installs > 20
+            or signature.num_crashes > 200
+            or signature.is_potential_near_null_crash
+            or signature.is_potential_security_crash
+            or signature.has_moz_crash_reason("MOZ_RELEASE_ASSERT")
+        ]
 
         signature_details_delta = humanize.naturaldelta(data_fetcher.SUMMARY_DURATION)
 
