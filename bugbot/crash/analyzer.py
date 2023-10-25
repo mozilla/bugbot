@@ -517,6 +517,21 @@ class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
 
         yield from data["hits"]
 
+    def _is_corrupted_crash_stack(self, processed_crash: dict) -> bool:
+        """Whether the crash stack is corrupted.
+
+        Args:
+            processed_crash: The processed crash to check.
+
+        Returns:
+            True if the crash stack is corrupted, False otherwise.
+        """
+
+        return any(
+            not frame["module"]
+            for frame in processed_crash["json_dump"]["crashing_thread"]["frames"]
+        )
+
     def fetch_representative_processed_crash(self) -> dict:
         """Fetch a processed crash to represent the signature.
 
@@ -527,7 +542,7 @@ class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
             self.num_top_proto_signature_crashes / self.num_crashes > 0.6
         )
 
-        reports = itertools.chain(
+        candidate_reports = itertools.chain(
             # Reports with a higher score from clouseau are more likely to be
             # useful.
             sorted(
@@ -540,16 +555,31 @@ class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
             self._fetch_crash_reports(self.top_proto_signature, self.top_build_id),
             self._fetch_crash_reports(self.top_proto_signature, self._build_ids()),
         )
-        for report in reports:
+
+        first_representative_report = None
+        for i, report in enumerate(candidate_reports):
             uuid = report["uuid"]
             processed_crash = socorro.ProcessedCrash.get_processed(uuid)[uuid]
             if (
-                not limit_to_top_proto_signature
-                or processed_crash["proto_signature"] == self.top_proto_signature
+                limit_to_top_proto_signature
+                and processed_crash["proto_signature"] != self.top_proto_signature
             ):
-                # TODO(investigate): maybe we should check if the stack is
-                # corrupted (ask gsvelto or willkg about how to detect that)
+                continue
+
+            if first_representative_report is None:
+                first_representative_report = processed_crash
+
+            if not self._is_corrupted_crash_stack(processed_crash):
                 return processed_crash
+
+            if i >= 10:
+                # We have tried enough reports, give up.
+                break
+
+        if first_representative_report is not None:
+            # Fall back to the first representative report that we found, even
+            # if it's corrupted.
+            return first_representative_report
 
         raise NoCrashReportFoundError(
             f"No crash report found with the most frequent proto signature for {self.signature_term}."
