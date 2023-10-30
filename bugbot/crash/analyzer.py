@@ -45,10 +45,6 @@ ALLOCATOR_RANGES_32_BIT = (
     (addr - offset, addr + offset) for addr, offset in ALLOCATOR_ADDRESSES_32_BIT
 )
 
-# NOTE: If you make changes that affect the output of the analysis, you should
-# increment this number. This is needed in the experimental phase only.
-EXPERIMENT_VERSION = 3
-
 
 def is_near_null_address(str_address) -> bool:
     """Check if the address is near null.
@@ -102,19 +98,6 @@ def generate_signature_page_url(params: dict, tab: str) -> str:
     web_url = socorro.Socorro.CRASH_STATS_URL
     query = lmdutils.get_params_for_url(params)
     return f"{web_url}/signature/{query}#{tab}"
-
-
-# NOTE: At this point, we will file bugs on bugzilla-dev. Once we are confident
-# that the bug filing is working as expected, we can switch to filing bugs in
-# the production instance of Bugzilla.
-class DevBugzilla(Bugzilla):
-    URL = "https://bugzilla-dev.allizom.org"
-    API_URL = URL + "/rest/bug"
-    ATTACHMENT_API_URL = API_URL + "/attachment"
-    TOKEN = utils.get_login_info()["bz_api_key_dev"]
-    # Note(suhaib): the dev instance of bugzilla has a smaller cluster, so we
-    # need to go easy on it.
-    MAX_WORKERS = 1
 
 
 class NoCrashReportFoundError(Exception):
@@ -517,6 +500,21 @@ class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
 
         yield from data["hits"]
 
+    def _is_corrupted_crash_stack(self, processed_crash: dict) -> bool:
+        """Whether the crash stack is corrupted.
+
+        Args:
+            processed_crash: The processed crash to check.
+
+        Returns:
+            True if the crash stack is corrupted, False otherwise.
+        """
+
+        return any(
+            not frame["module"]
+            for frame in processed_crash["json_dump"]["crashing_thread"]["frames"]
+        )
+
     def fetch_representative_processed_crash(self) -> dict:
         """Fetch a processed crash to represent the signature.
 
@@ -527,7 +525,7 @@ class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
             self.num_top_proto_signature_crashes / self.num_crashes > 0.6
         )
 
-        reports = itertools.chain(
+        candidate_reports = itertools.chain(
             # Reports with a higher score from clouseau are more likely to be
             # useful.
             sorted(
@@ -540,16 +538,31 @@ class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
             self._fetch_crash_reports(self.top_proto_signature, self.top_build_id),
             self._fetch_crash_reports(self.top_proto_signature, self._build_ids()),
         )
-        for report in reports:
+
+        first_representative_report = None
+        for i, report in enumerate(candidate_reports):
             uuid = report["uuid"]
             processed_crash = socorro.ProcessedCrash.get_processed(uuid)[uuid]
             if (
-                not limit_to_top_proto_signature
-                or processed_crash["proto_signature"] == self.top_proto_signature
+                limit_to_top_proto_signature
+                and processed_crash["proto_signature"] != self.top_proto_signature
             ):
-                # TODO(investigate): maybe we should check if the stack is
-                # corrupted (ask gsvelto or willkg about how to detect that)
+                continue
+
+            if first_representative_report is None:
+                first_representative_report = processed_crash
+
+            if not self._is_corrupted_crash_stack(processed_crash):
                 return processed_crash
+
+            if i >= 20:
+                # We have tried enough reports, give up.
+                break
+
+        if first_representative_report is not None:
+            # Fall back to the first representative report that we found, even
+            # if it's corrupted.
+            return first_representative_report
 
         raise NoCrashReportFoundError(
             f"No crash report found with the most frequent proto signature for {self.signature_term}."
@@ -581,6 +594,23 @@ class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
             reason in moz_crash_reason["term"]
             for moz_crash_reason in self.signature["facets"]["moz_crash_reason"]
         )
+
+    @property
+    def process_type_summary(self) -> str:
+        """The summary of the process types for the crash signature."""
+        process_types = self.signature["facets"]["process_type"]
+        if len(process_types) == 0:
+            return "Unknown"
+
+        if len(process_types) == 1:
+            process_type = process_types[0]["term"]
+            # Small process types are usually acronyms (e.g., gpu for GPU), thus
+            # we use upper case for them. Otherwise, we capitalize the first letter.
+            if len(process_type) <= 3:
+                return process_type.upper()
+            return process_type.capitalize()
+
+        return "Multiple distinct types"
 
 
 class SignaturesDataFetcher:
@@ -899,22 +929,6 @@ class SignaturesDataFetcher:
             timeout=timeout,
             queries=[
                 connection.Query(Bugzilla.API_URL, params, handler, signatures_bugs)
-                for params in params_list
-            ],
-        ).wait()
-
-        # TODO: remove the call to DevBugzilla after moving to production
-        for params in params_list:
-            # Excluded only filed bugs with the latest version. This will
-            # re-generate the bugs after bumping the version.
-            n = int(utils.get_last_field_num(params))
-            params[f"f{n}"] = "status_whiteboard"
-            params[f"o{n}"] = "substring"
-            params[f"v{n}"] = f"[bugbot-crash-v{EXPERIMENT_VERSION}]"
-        DevBugzilla(
-            timeout=timeout,
-            queries=[
-                connection.Query(DevBugzilla.API_URL, params, handler, signatures_bugs)
                 for params in params_list
             ],
         ).wait()

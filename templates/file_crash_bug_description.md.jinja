@@ -31,7 +31,7 @@ Top {{ frames|length }} frames of crashing thread:
 By querying {{ signature_details_channel }} crashes reported within the last {{ signature_details_delta }}, here are some insights about the signature:
 
 - **First crash report:** {{ signature.first_crash_date }}
-- **Crash kind:** {{ "Plugin Crash" if signature.is_plugin_crash  else  "Browser Crash" }}
+- **Process type:** {{ signature.process_type_summary }}
 - **Is startup crash:** {{ "Yes - " if signature.is_startup_related_crash else "No" }}
 {%- if signature.is_startup_crash -%}
 all crashes happened during startup
@@ -63,7 +63,7 @@ all crashes happened on or near an allocator poison value
 
 
 {% if signature.regressed_by %}
-By analyzing the backtrace, the regression may have been introduced by a {{ "patch [1]" if signature.regressed_by_patch else "patch"}} to fix [Bug {{ signature.regressed_by }}](https://bugzilla.mozilla.org/show_bug.cgi?id={{ signature.regressed_by }}).
+By analyzing the backtrace, the regression may have been introduced by a {{ "patch [1]" if signature.regressed_by_patch else "patch"}} to fix Bug {{ signature.regressed_by }}.
 {% if signature.regressed_by_patch %}
 [1] https://hg.mozilla.org/mozilla-central/rev?node={{ signature.regressed_by_patch }}
 {%- endif %}
