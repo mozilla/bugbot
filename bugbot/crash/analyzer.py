@@ -580,6 +580,23 @@ class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
             bug.is_security for bug in self.regressed_by_potential_bugs
         )
 
+    @property
+    def process_type_summary(self) -> str:
+        """The summary of the process types for the crash signature."""
+        process_types = self.signature["facets"]["process_type"]
+        if len(process_types) == 0:
+            return "Unknown"
+
+        if len(process_types) == 1:
+            process_type = process_types[0]["term"]
+            # Small process types are usually acronyms (e.g., gpu for GPU), thus
+            # we use upper case for them. Otherwise, we capitalize the first letter.
+            if len(process_type) <= 3:
+                return process_type.upper()
+            return process_type.capitalize()
+
+        return "Multiple distinct types"
+
 
 class SignaturesDataFetcher:
     """Fetch the data related to the given signatures."""

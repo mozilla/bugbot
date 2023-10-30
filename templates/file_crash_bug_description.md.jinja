@@ -31,7 +31,7 @@ Top {{ frames|length }} frames of crashing thread:
 By querying {{ signature_details_channel }} crashes reported within the last {{ signature_details_delta }}, here are some insights about the signature:
 
 - **First crash report:** {{ signature.first_crash_date }}
-- **Crash kind:** {{ "Plugin Crash" if signature.is_plugin_crash  else  "Browser Crash" }}
+- **Process type:** {{ signature.process_type_summary }}
 - **Is startup crash:** {{ "Yes - " if signature.is_startup_related_crash else "No" }}
 {%- if signature.is_startup_crash -%}
 all crashes happened during startup
