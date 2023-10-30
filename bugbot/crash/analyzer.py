@@ -664,10 +664,10 @@ class SignaturesDataFetcher:
             "_aggs.signature": [
                 "moz_crash_reason",
                 "reason",
+                "possible_bit_flips_max_confidence",
                 "_histogram.date",
                 "_cardinality.install_time",
                 "_cardinality.oom_allocation_size",
-                "_cardinality.possible_bit_flips_max_confidence",
             ],
             "_results_number": 0,
             "_facets_size": 10000,
@@ -718,10 +718,10 @@ class SignaturesDataFetcher:
                         # Potential bad hardware crash, skip it.
                         continue
 
-                bit_flips_percentage = (
-                    facets["cardinality_possible_bit_flips_max_confidence"]["value"]
-                    / crash["count"]
+                bit_flips_count = sum(
+                    row["count"] for row in facets["possible_bit_flips_max_confidence"]
                 )
+                bit_flips_percentage = bit_flips_count / crash["count"]
                 if bit_flips_percentage >= 0.2:
                     # Potential bad hardware crash, skip it.
                     continue
