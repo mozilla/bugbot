@@ -709,6 +709,7 @@ class SignaturesDataFetcher:
             "_aggs.signature": [
                 "moz_crash_reason",
                 "reason",
+                "possible_bit_flips_max_confidence",
                 "_histogram.date",
                 "_cardinality.install_time",
                 "_cardinality.oom_allocation_size",
@@ -762,9 +763,13 @@ class SignaturesDataFetcher:
                         # Potential bad hardware crash, skip it.
                         continue
 
-                # TODO: Add a filter using the `possible_bit_flips_max_confidence`
-                # field to exclude bad hardware crashes. The filed is not available yet.
-                # See: https://bugzilla.mozilla.org/show_bug.cgi?id=1816669#c3
+                bit_flips_count = sum(
+                    row["count"] for row in facets["possible_bit_flips_max_confidence"]
+                )
+                bit_flips_percentage = bit_flips_count / crash["count"]
+                if bit_flips_percentage >= 0.2:
+                    # Potential bad hardware crash, skip it.
+                    continue
 
                 # TODO(investigate): is this needed since we are already
                 # filtering signatures that start with "OOM | "
