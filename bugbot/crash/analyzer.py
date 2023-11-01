@@ -38,10 +38,10 @@ ALLOCATOR_ADDRESSES_32_BIT = (
     (0x4B4B4B4B, OFFSET_32_BIT),
 )
 # Ranges where addresses are considered near allocator poison values.
-ALLOCATOR_RANGES_64_BIT = (
+ALLOCATOR_RANGES_64_BIT = tuple(
     (addr - offset, addr + offset) for addr, offset in ALLOCATOR_ADDRESSES_64_BIT
 )
-ALLOCATOR_RANGES_32_BIT = (
+ALLOCATOR_RANGES_32_BIT = tuple(
     (addr - offset, addr + offset) for addr, offset in ALLOCATOR_ADDRESSES_32_BIT
 )
 
