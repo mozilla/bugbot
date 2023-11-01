@@ -181,6 +181,7 @@ class ClouseauDataAnalyzer:
                 "assigned_to",
                 "product",
                 "component",
+                "_custom",
             ],
         )
         return [

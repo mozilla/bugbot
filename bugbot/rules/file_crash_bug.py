@@ -8,6 +8,7 @@ from functools import cached_property
 import humanize
 import jinja2
 import requests
+from libmozdata.bugzilla import Bugzilla
 
 from bugbot import logger, utils
 from bugbot.bug.analyzer import BugAnalyzer
@@ -43,9 +44,41 @@ class FileCrashBug(BzCleaner):
         }
 
     @cached_property
-    def nightly_version(self) -> int:
-        """The version for the nightly channel as defined on Bugzilla."""
-        return utils.get_nightly_version_from_bz()
+    def current_status_flags(self) -> list[str]:
+        """The status flags for Firefox, which includes Nightly, Beta, Release, and ESR."""
+        status = "cf_status_firefox"
+        status_esr = "cf_status_firefox_esr"
+        data: dict[str, list[str]] = {
+            status: [],
+            status_esr: [],
+        }
+
+        def handler(bug):
+            for field in bug.keys():
+                if field.startswith(status_esr):
+                    data[status_esr].append(field)
+                elif field.startswith(status):
+                    data[status].append(field)
+
+        Bugzilla(bugids=1234567, include_fields="_custom", bughandler=handler).wait()
+
+        return (
+            # ESR
+            sorted(
+                data[status_esr],
+                key=lambda flag: int(flag[len(status_esr) :]),
+            )[-1:]
+            # Release, Beta, Nightly
+            + sorted(
+                data[status],
+                key=lambda flag: int(flag[len(status) :]),
+            )[-3:]
+        )
+
+    @cached_property
+    def nightly_status_flag(self) -> str:
+        """The nightly release status flag for Firefox."""
+        return self.current_status_flags[-1]
 
     def _active_regression_authors(
         self, signatures: list[SignatureAnalyzer]
@@ -142,7 +175,7 @@ class FileCrashBug(BzCleaner):
             # [X] Reason
             # [X] Regressed by
             # [X] Platform
-            # [ ] Firefox status flags
+            # [x] Firefox status flags
             # [ ] Severity
             # [ ] Time correlation
             # [X] User comments
@@ -190,6 +223,9 @@ class FileCrashBug(BzCleaner):
                 bug_data["groups"] = ["core-security"]
 
             if "regressed_by" in bug_data:
+                for flag in self.current_status_flags:
+                    # Empty statuses are needed to detect the status updates.
+                    bug_data[flag] = "---"
                 bug_analyzer = BugAnalyzer(bug_data, signature.bugs_store)
                 updates = bug_analyzer.detect_version_status_updates()
                 for update in updates:
@@ -198,10 +234,7 @@ class FileCrashBug(BzCleaner):
                 if bug_data["regressed_by"] and not updates:
                     # If we don't set the nightly flag here, the bot will set it
                     # later as part of `regression_new_set_nightly_affected` rule.
-                    nightly_flag = utils.get_flag(
-                        self.nightly_version, "status", "nightly"
-                    )
-                    bug_data[nightly_flag] = "affected"
+                    bug_data[self.nightly_status_flag] = "affected"
 
             if self.dryrun:
                 logger.info("Dry-run bug:")
