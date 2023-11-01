@@ -214,20 +214,18 @@ class FileCrashBug(BzCleaner):
                     }
                 ]
 
-            if signature.regressed_by:
-                bug_data["keywords"].append("regression")
-
-            if signature.regressed_by:
-                bug_data["regressed_by"] = [signature.regressed_by]
-
             if signature.is_potential_security_crash:
                 bug_data["groups"] = ["core-security"]
 
-            if "regressed_by" in bug_data:
+            if signature.regressed_by:
+                bug_data["keywords"].append("regression")
+                bug_data["regressed_by"] = [signature.regressed_by]
+
+                # Empty statuses are needed to detect the affected releases.
                 for flag in self.current_status_flags:
-                    # Empty statuses are needed to detect the status updates.
                     if flag not in bug_data:
                         bug_data[flag] = "---"
+
                 bug_analyzer = BugAnalyzer(bug_data, signature.bugs_store)
                 updates = bug_analyzer.detect_version_status_updates()
                 for update in updates:
