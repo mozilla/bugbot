@@ -193,6 +193,7 @@ class FileCrashBug(BzCleaner):
                 "rep_platform": signature.bugzilla_cpu_arch,
                 "cf_crash_signature": f"[@ {signature.signature_term}]",
                 "description": description,
+                self.nightly_status_flag: "affected",
                 # NOTE(suhaib): the following CC is for testing purposes only
                 # to allow us access and evaluate security bugs. It should be
                 # removed at some point after we move to production.
@@ -225,16 +226,12 @@ class FileCrashBug(BzCleaner):
             if "regressed_by" in bug_data:
                 for flag in self.current_status_flags:
                     # Empty statuses are needed to detect the status updates.
-                    bug_data[flag] = "---"
+                    if flag not in bug_data:
+                        bug_data[flag] = "---"
                 bug_analyzer = BugAnalyzer(bug_data, signature.bugs_store)
                 updates = bug_analyzer.detect_version_status_updates()
                 for update in updates:
                     bug_data[update.flag] = update.status
-
-                if bug_data["regressed_by"] and not updates:
-                    # If we don't set the nightly flag here, the bot will set it
-                    # later as part of `regression_new_set_nightly_affected` rule.
-                    bug_data[self.nightly_status_flag] = "affected"
 
             if self.dryrun:
                 logger.info("Dry-run bug:")
