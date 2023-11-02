@@ -129,6 +129,7 @@ class FileCrashBug(BzCleaner):
             or signature.num_crashes > 25
             or signature.is_potential_near_null_crash
             or signature.is_potential_security_crash
+            or signature.regressed_by
             or signature.has_moz_crash_reason("MOZ_RELEASE_ASSERT")
             or signature.has_moz_crash_reason("DocumentChannel::SetLoadFlags")
         ]
