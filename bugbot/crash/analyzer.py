@@ -126,33 +126,15 @@ class ClouseauDataAnalyzer:
     @cached_property
     def regressed_by_potential_bug_ids(self) -> set[int]:
         """The IDs for the bugs that their patches could have caused the crash."""
-        minimum_accepted_score = max(
-            self.MINIMUM_CLOUSEAU_SCORE_THRESHOLD, self.max_clouseau_score
-        )
         return {
-            changeset["bug_id"]
-            for report in self._clouseau_reports
-            if report["max_score"] >= minimum_accepted_score
-            for changeset in report["changesets"]
-            if changeset["max_score"] >= minimum_accepted_score
-            and not changeset["is_merge"]
-            and not changeset["is_backedout"]
+            changeset["bug_id"] for changeset in self.regressed_by_potential_patches
         }
 
     @cached_property
     def regressed_by_patch(self) -> str | None:
         """The hash of the patch that could have caused the crash."""
-        minimum_accepted_score = max(
-            self.MINIMUM_CLOUSEAU_SCORE_THRESHOLD, self.max_clouseau_score
-        )
         potential_patches = {
-            changeset["changeset"]
-            for report in self._clouseau_reports
-            if report["max_score"] >= minimum_accepted_score
-            for changeset in report["changesets"]
-            if changeset["max_score"] >= minimum_accepted_score
-            and not changeset["is_merge"]
-            and not changeset["is_backedout"]
+            changeset["changeset"] for changeset in self.regressed_by_potential_patches
         }
         if len(potential_patches) == 1:
             return next(iter(potential_patches))
@@ -218,6 +200,34 @@ class ClouseauDataAnalyzer:
         if len(potential_components) == 1:
             return next(iter(potential_components))
         return self.DEFAULT_CRASH_COMPONENT
+
+    @property
+    def regressed_by_potential_patches(self) -> Iterator[dict]:
+        """The patches that could have caused the crash.
+
+        Example of a patch data:
+            {
+                "bug_id": 1668136,
+                "changeset": "aa66fda02aac",
+                "channel": "nightly",
+                "is_backedout": False,
+                "is_merge": False,
+                "max_score": 0,
+                "push_date": "Tue, 31 Oct 2023 09:30:58 GMT",
+            }
+        """
+        minimum_accepted_score = max(
+            self.MINIMUM_CLOUSEAU_SCORE_THRESHOLD, self.max_clouseau_score
+        )
+        return (
+            changeset
+            for report in self._clouseau_reports
+            if report["max_score"] >= minimum_accepted_score
+            for changeset in report["changesets"]
+            if changeset["max_score"] >= minimum_accepted_score
+            and not changeset["is_merge"]
+            and not changeset["is_backedout"]
+        )
 
 
 class SocorroDataAnalyzer(socorro_util.SignatureStats):
