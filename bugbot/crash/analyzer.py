@@ -113,8 +113,11 @@ class ClouseauDataAnalyzer:
     MINIMUM_CLOUSEAU_SCORE_THRESHOLD: int = 8
     DEFAULT_CRASH_COMPONENT = ComponentName("Core", "General")
 
-    def __init__(self, reports: Iterable[dict], bugs_store: BugsStore):
+    def __init__(
+        self, reports: Iterable[dict], bugs_store: BugsStore, first_crash_date: datetime
+    ):
         self._clouseau_reports = reports
+        self._first_crash_date = first_crash_date
         self.bugs_store = bugs_store
 
     @cached_property
@@ -228,6 +231,7 @@ class ClouseauDataAnalyzer:
             if changeset["max_score"] >= minimum_accepted_score
             and not changeset["is_merge"]
             and not changeset["is_backedout"]
+            and self._first_crash_date > parser.parse(changeset["push_date"])
         )
 
 
@@ -492,7 +496,9 @@ class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
         bugs_store: BugsStore,
     ):
         SocorroDataAnalyzer.__init__(self, socorro_signature, num_total_crashes)
-        ClouseauDataAnalyzer.__init__(self, clouseau_reports, bugs_store)
+        ClouseauDataAnalyzer.__init__(
+            self, clouseau_reports, bugs_store, self.first_crash_date
+        )
 
     def _fetch_crash_reports(
         self,
