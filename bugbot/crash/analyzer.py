@@ -5,10 +5,11 @@
 import itertools
 import re
 from collections import defaultdict
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from functools import cached_property
 from typing import Iterable, Iterator
 
+from dateutil import parser
 from libmozdata import bugzilla, clouseau, connection, socorro
 from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import Bugzilla
@@ -276,13 +277,18 @@ class SocorroDataAnalyzer(socorro_util.SignatureStats):
 
         return op_sys
 
+    @cached_property
+    def first_crash_date(self) -> datetime:
+        """The date of the first crash within the query time range."""
+        return parser.parse(self.signature["facets"]["histogram_date"][0]["term"])
+
     @property
     def first_crash_date_ymd(self) -> str:
         """The date of the first crash within the query time range.
 
         The date is in YYYY-MM-DD format.
         """
-        return self.signature["facets"]["histogram_date"][0]["term"][:10]
+        return self.first_crash_date.strftime("%Y-%m-%d")
 
     @property
     def bugzilla_op_sys(self) -> str:
