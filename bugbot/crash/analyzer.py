@@ -277,7 +277,7 @@ class SocorroDataAnalyzer(socorro_util.SignatureStats):
         return op_sys
 
     @property
-    def first_crash_date(self) -> str:
+    def first_crash_date_ymd(self) -> str:
         """The date of the first crash within the query time range.
 
         The date is in YYYY-MM-DD format.
