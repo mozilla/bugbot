@@ -231,6 +231,9 @@ class ClouseauDataAnalyzer:
             if changeset["max_score"] >= minimum_accepted_score
             and not changeset["is_merge"]
             and not changeset["is_backedout"]
+            # NOTE(marco): This aims to reduce noise but could exclude valid
+            # regressors, such as when a single signature refers to multiple
+            # crash causes.
             and self._first_crash_date > parser.parse(changeset["push_date"])
         )
 
