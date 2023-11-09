@@ -55,7 +55,8 @@ Before running:
       "bz_api_key_nomail": "xxxxxxxxxxxxxx",
       "phab_api_key": "xxxxxxxxxxxxxx",
       "iam_client_secret": "xxxxxxxxxxxxxx",
-      "iam_client_id": "xxxxxxxxxxxxxx"
+      "iam_client_id": "xxxxxxxxxxxxxx",
+      "socorro_token": "xxxxxxxxxxxxxx"
     }
 
 Do a dryrun::
