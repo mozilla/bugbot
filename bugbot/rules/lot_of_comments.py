@@ -7,17 +7,22 @@ from bugbot.bzcleaner import BzCleaner
 
 
 class SeveralComments(BzCleaner):
-    def __init__(self):
-        super(SeveralComments, self).__init__()
-        self.nweeks = utils.get_config(self.name(), "weeks_lookup")
-        self.comments = utils.get_config(self.name(), "number_comments")
-        print("foo")
+    def __init__(self, nweeks: int = 52, comments: int = 50):
+        """Constructor
+
+        Args:
+            nweeks: the maximum number of weeks from the submission date
+            comments: the number of comments in the bug
+        """
+        super().__init__()
+        self.nweeks = nweeks
+        self.comments = comments
 
     def description(self):
         return "Bugs with several comments for the last {} weeks".format(self.nweeks)
 
     def columns(self):
-        return ["id", "summary", "creation", "last_change"]
+        return ["id", "summary", "creation", "last_change", "comment_count"]
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
@@ -31,8 +36,7 @@ class SeveralComments(BzCleaner):
         return bug
 
     def get_bz_params(self, date):
-        print("foo")
-        params = {
+        return {
             "include_fields": ["creation_time", "last_change_time", "comment_count"],
             "resolution": "---",
             "f1": "days_elapsed",
@@ -45,9 +49,6 @@ class SeveralComments(BzCleaner):
             "o3": "nowords",
             "v3": ["meta", "intermittent"],
         }
-        print(params)
-        return params
-
 
 if __name__ == "__main__":
     SeveralComments().run()

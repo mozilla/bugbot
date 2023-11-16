@@ -172,9 +172,8 @@
     "must_run": ["Mon"]
   },
   "lot_of_comments": {
-    "weeks_lookup": 52,
-    "number_comments": 50,
-    "additional_receivers": "rm"
+    "additional_receivers": "rm",
+    "must_run": ["Mon"]
   },
   "severity_underestimated": {
     "weeks_lookup": 3,
