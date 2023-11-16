@@ -50,5 +50,6 @@ class SeveralComments(BzCleaner):
             "v3": ["meta", "intermittent"],
         }
 
+
 if __name__ == "__main__":
     SeveralComments().run()
