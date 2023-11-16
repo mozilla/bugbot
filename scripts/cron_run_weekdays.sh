@@ -82,6 +82,9 @@ python -m bugbot.rules.lot_of_cc --production
 # Bugs with a lot of votes
 python -m bugbot.rules.lot_of_votes --production
 
+# Bugs with a lot of comments
+python -m bugbot.rules.lot_of_comments --production
+
 # Bug caused several regressions recently reported
 # Pretty rare
 python -m bugbot.rules.warn_regressed_by --production

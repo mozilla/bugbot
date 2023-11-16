@@ -171,6 +171,10 @@
     "additional_receivers": "rm",
     "must_run": ["Mon"]
   },
+  "lot_of_comments": {
+    "additional_receivers": "rm",
+    "must_run": ["Mon"]
+  },
   "severity_underestimated": {
     "weeks_lookup": 3,
     "number_dups": 3,
