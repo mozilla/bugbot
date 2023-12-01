@@ -435,7 +435,11 @@ class Topcrash:
 
                 name = signature["term"]
                 installations = signature["facets"]["cardinality_install_time"]["value"]
-                if installations < min_installations or name in blocked_signatures:
+                if (
+                    installations < min_installations
+                    or name in blocked_signatures
+                    or name.startswith("bad hardware | ")
+                ):
                     continue
 
                 is_startup = self.__is_startup_crash(signature)
