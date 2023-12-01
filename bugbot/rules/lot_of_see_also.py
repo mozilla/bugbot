@@ -26,7 +26,7 @@ class SeveralSeeAlso(BzCleaner):
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
-        see_also_count = bug["see_also_count"]
+        see_also_count = len(bug["see_also"])
 
         data[bugid] = {
             "creation": utils.get_human_lag(bug["creation_time"]),
