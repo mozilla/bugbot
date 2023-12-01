@@ -7,7 +7,7 @@ from bugbot.bzcleaner import BzCleaner
 
 
 class SeveralSeeAlso(BzCleaner):
-    def __init__(self, nweeks: int = 52, see_also: int = 5):
+    def __init__(self, nweeks: int = 52, min_see_also: int = 5):
         """Constructor
 
         Args:
