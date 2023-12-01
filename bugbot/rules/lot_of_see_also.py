@@ -37,7 +37,7 @@ class SeveralSeeAlso(BzCleaner):
 
     def get_bz_params(self, date):
         return {
-            "include_fields": ["creation_time", "last_change_time", "see_also_count"],
+            "include_fields": ["creation_time", "last_change_time", "see_also"],
             "resolution": "---",
             "f1": "days_elapsed",
             "o1": "lessthan",
