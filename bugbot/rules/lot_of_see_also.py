@@ -11,7 +11,7 @@ class SeveralSeeAlso(BzCleaner):
         """Constructor
 
         Args:
-            nweeks: the maximum number of weeks from the submission date
+            nweeks: the maximum number of weeks since the bug was last updated
             min_see_also: the minimum number of 'see also' in the bug
         """
         super().__init__()
