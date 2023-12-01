@@ -10,7 +10,7 @@
         </tr>
     </thead>
     <tbody>
-        {% for i, (bugid, summary, creation, last_change, comment_count) in enumerate(data) -%}
+        {% for i, (bugid, summary, creation, last_change, see_also_count) in enumerate(data) -%}
             <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
             {% endif -%}
             >
