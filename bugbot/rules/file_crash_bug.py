@@ -214,6 +214,7 @@ class FileCrashBug(BzCleaner):
                         "new": "true",
                     }
                 ]
+                bug_data["cc"].append(signature.regressed_by_author["name"])
 
             if signature.is_potential_security_crash:
                 bug_data["groups"] = ["core-security"]
