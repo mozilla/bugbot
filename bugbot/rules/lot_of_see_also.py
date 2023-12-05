@@ -16,7 +16,7 @@ class SeveralSeeAlso(BzCleaner):
         """
         super().__init__()
         self.nweeks = nweeks
-        self.see_also = see_also
+        self.min_see_also = min_see_also
 
     def description(self):
         return "Bugs with several see_also for the last {} weeks".format(self.nweeks)
@@ -44,7 +44,7 @@ class SeveralSeeAlso(BzCleaner):
             "v1": self.nweeks * 7,
             "f2": "see_also_count",
             "o2": "greaterthaneq",
-            "v2": self.see_also,
+            "v2": self.min_see_also,
             "f3": "keywords",
             "o3": "nowords",
             "v3": ["meta", "intermittent"],
