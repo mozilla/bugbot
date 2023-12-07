@@ -47,7 +47,7 @@ class P1NoAssignee(BzCleaner, Nag):
         return True
 
     def columns(self):
-        return ["component", "id", "summary", "last_comment"]
+        return ["product", "component", "id", "summary", "last_comment"]
 
     def handle_bug(self, bug, data):
         # check if the product::component is in the list

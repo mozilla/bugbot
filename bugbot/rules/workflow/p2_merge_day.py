@@ -20,7 +20,7 @@ class P2MergeDay(BzCleaner):
         return True
 
     def columns(self):
-        return ["component", "id", "summary"]
+        return ["product", "component", "id", "summary"]
 
     def handle_bug(self, bug, data):
         # check if the product::component is in the list

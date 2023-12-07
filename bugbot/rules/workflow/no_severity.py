@@ -74,7 +74,7 @@ class NoSeverity(BzCleaner, Nag):
         return True
 
     def columns(self):
-        return ["component", "id", "summary"]
+        return ["product", "component", "id", "summary"]
 
     def handle_bug(self, bug, data):
         if (

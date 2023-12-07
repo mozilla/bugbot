@@ -11,12 +11,12 @@
         </tr>
     </thead>
     <tbody>
-        {% for i, (triage_owner_name, comp, bugid, summary, assignee, assignee_status) in enumerate(data) -%}
+        {% for i, (triage_owner_name, product, comp, bugid, summary, assignee, assignee_status) in enumerate(data) -%}
             <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
             {% endif -%}
             >
             <td>{{ triage_owner_name | e }}</td>
-            <td>{{ comp | e }}</td>
+            <td>{{ product | e }}::{{ comp | e }}</td>
             <td>
                 <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
             </td>
