@@ -42,7 +42,7 @@ class P1NoActivity(BzCleaner, Nag):
         return True
 
     def columns(self):
-        return ["component", "id", "summary", "last_comment", "assignee"]
+        return ["product", "component", "id", "summary", "last_comment", "assignee"]
 
     def set_people_to_nag(self, bug, buginfo):
         priority = "high"

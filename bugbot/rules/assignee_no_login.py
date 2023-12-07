@@ -42,6 +42,7 @@ class AssigneeNoLogin(BzCleaner):
     def columns(self):
         return [
             "triage_owner_name",
+            "product",
             "component",
             "id",
             "summary",

@@ -42,7 +42,7 @@ class ToTriage(BzCleaner, Nag):
         return True
 
     def columns(self):
-        return ["component", "id", "summary", "type"]
+        return ["product", "component", "id", "summary", "type"]
 
     def columns_nag(self):
         return self.columns()
