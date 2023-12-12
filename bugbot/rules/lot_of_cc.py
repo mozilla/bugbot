@@ -15,8 +15,11 @@ class SeveralCc(BzCleaner):
     def description(self):
         return "Bugs with several cc for the last {} weeks".format(self.nweeks)
 
+    def has_product_component(self):
+        return True
+
     def columns(self):
-        return ["id", "summary", "creation", "last_change"]
+        return ["id", "product", "component", "summary", "creation", "last_change"]
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
