@@ -21,8 +21,19 @@ class SeveralComments(BzCleaner):
     def description(self):
         return "Bugs with several comments for the last {} weeks".format(self.nweeks)
 
+    def has_product_component(self):
+        return True
+
     def columns(self):
-        return ["id", "summary", "creation", "last_change", "comment_count"]
+        return [
+            "id",
+            "product",
+            "component",
+            "summary",
+            "creation",
+            "last_change",
+            "comment_count",
+        ]
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
