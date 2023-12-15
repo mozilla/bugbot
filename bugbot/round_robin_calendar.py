@@ -10,6 +10,7 @@ from json.decoder import JSONDecodeError
 
 import recurring_ical_events
 import requests
+from dateutil.parser import ParserError
 from dateutil.relativedelta import relativedelta
 from icalendar import Calendar as iCalendar
 from libmozdata import utils as lmdutils
@@ -24,6 +25,10 @@ class InvalidCalendar(Exception):
 
 class BadFallback(Exception):
     pass
+
+
+class InvalidDateError(ParserError):
+    """Raised when a date in a rotation calendar is invalid"""
 
 
 class Calendar:
@@ -108,7 +113,12 @@ class JSONCalendar(Calendar):
         super().__init__(fallback, team_name, people=people)
         start_dates = cal.get("duty-start-dates", {})
         if start_dates:
-            dates = sorted((lmdutils.get_date_ymd(d), d) for d in start_dates.keys())
+            try:
+                dates = sorted((lmdutils.get_date_ymd(d), d) for d in start_dates)
+            except ParserError as err:
+                raise InvalidDateError(
+                    f"Invalid duty start date for the {team_name} team: {err}"
+                ) from err
             self.set_team(
                 list(start_dates[d] for _, d in dates), cal.get("triagers", {})
             )
