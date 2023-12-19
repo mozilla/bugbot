@@ -34,7 +34,7 @@ Installation
 Auto-formatting with pre-commit
 -------------------------------
 
-This project is using [pre-commit](https://pre-commit.com/).
+This project is using `pre-commit <https://pre-commit.com/>`_.
 
 #. Install the git pre-commit hooks on your clone::
 
