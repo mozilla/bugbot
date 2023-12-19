@@ -31,6 +31,16 @@ Installation
 
     pip install -r requirements.txt
 
+Auto-formatting with pre-commit
+-------------------------------
+
+This project is using [pre-commit](https://pre-commit.com/).
+
+#. Install the git pre-commit hooks on your clone::
+
+    pre-commit install
+
+Every time you will try to commit, pre-commit will run checks on your files to make sure they follow our style standards and they aren't affected by some simple issues. If the checks fail, pre-commit won't let you commit.
 
 Running the Bot Rules
 ---------------------
