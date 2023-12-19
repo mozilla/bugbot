@@ -12,7 +12,12 @@ from libmozdata.bugzilla import BugzillaUser
 from bugbot import logger, utils
 from bugbot.components import Components
 from bugbot.people import People
-from bugbot.round_robin_calendar import BadFallback, Calendar, InvalidCalendar
+from bugbot.round_robin_calendar import (
+    BadFallback,
+    Calendar,
+    InvalidCalendar,
+    InvalidDateError,
+)
 
 
 class RoundRobin(object):
@@ -77,7 +82,7 @@ class RoundRobin(object):
 
                     self.data[component_name] = calendar
 
-            except (BadFallback, InvalidCalendar) as err:
+            except (BadFallback, InvalidCalendar, InvalidDateError) as err:
                 logger.error(err)
                 # If one the team's calendars failed, it is better to fail loud,
                 # and disable all team's calendars.
