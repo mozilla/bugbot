@@ -8,27 +8,26 @@ from bugbot.utils import nice_round
 
 
 class PerformanceBug(BzCleaner):
+    def __init__(self):
+        super().__init__()
+        self.autofix_performance_impact = {}
+
     def description(self):
-        return "[Using ML] Detect potential performance-related bugs"
+        return "[Using ML] Bugs with Missing Performance Impact"
 
     def columns(self):
-        return ["id", "summary", "confidence"]
-
-    def sort_columns(self):
-        return lambda p: (-p[3], -int(p[0]))
+        return ["id", "summary", "confidence", "autofixed"]
 
     def get_bz_params(self, date):
         params = {
-            "include_fields": ["id", "summary", "whiteboard"],
+            "include_fields": ["id", "summary"],
+            "n1": 1,
             "f1": "keywords",
-            "o1": "anywords",
+            "o1": "nowords",
             "v1": "perf,topperf,main-thread-io",
-            "f2": "status_whiteboard",
-            "o2": "anywords",
-            "v2": "[fxperf,[fxperfsize,[snappy,[pdfjs-c-performance,[pdfjs-performance,[sp3",
-            "f3": "cf_performance_impact",
-            "o3": "notequals",
-            "v3": ["---", "?"],
+            "f2": "cf_performance_impact",
+            "o2": "equals",
+            "v2": ["---"],
         }
 
         return params
@@ -67,12 +66,18 @@ class PerformanceBug(BzCleaner):
                 "id": bug_id,
                 "summary": bug["summary"],
                 "confidence": nice_round(prob[index]),
+                "autofixed": False,
             }
+
+            # Only autofix results for which we are sure enough.
+            if prob[1] >= self.get_config("confidence_threshold"):
+                results[bug_id]["autofixed"] = True
+                self.autofix_performance_impact[bug_id] = {"cf_performance_impact": "?"}
 
         return results
 
     def get_autofix_change(self):
-        return {}
+        return self.autofix_performance_impact
 
 
 if __name__ == "__main__":
