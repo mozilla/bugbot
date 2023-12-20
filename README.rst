@@ -36,7 +36,7 @@ Auto-formatting with pre-commit
 
 This project uses `pre-commit <https://pre-commit.com/>`_.
 
-#. Install the required packages from :file:`requirements-test.txt`:
+#. Install the required packages from `requirements-test.txt <requirements-test.txt>`_:
 
     .. code-block:: bash
 
