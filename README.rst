@@ -39,13 +39,13 @@ This project uses `pre-commit <https://pre-commit.com/>`_.
 #. Install the required packages from `requirements-test.txt <requirements-test.txt>`_:
 
 .. code-block:: bash
-    
+
     pip install -r requirements-test.txt
 
 #. After installing the required packages, set up the git pre-commit hooks in your clone:
 
 .. code-block:: bash
-    
+
     pre-commit install
 
 Every time you try to commit, pre-commit checks your files to ensure they follow our style standards and aren't affected by some simple issues. If the checks fail, pre-commit won't let you commit.
