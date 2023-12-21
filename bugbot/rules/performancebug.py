@@ -19,14 +19,19 @@ class PerformanceBug(BzCleaner):
         return ["id", "summary", "confidence", "autofixed"]
 
     def get_bz_params(self, date):
+        start_date, _ = self.get_dates(date)
+
         params = {
             "include_fields": ["id", "summary"],
-            "f1": "keywords",
-            "o1": "nowords",
-            "v1": "perf,topperf,main-thread-io",
-            "f2": "cf_performance_impact",
-            "o2": "equals",
-            "v2": ["---"],
+            "f1": "creation_ts",
+            "o1": "greaterthan",
+            "v1": start_date,
+            "f2": "keywords",
+            "o2": "nowords",
+            "v2": "perf,topperf,main-thread-io",
+            "f3": "cf_performance_impact",
+            "o3": "equals",
+            "v3": ["---"],
         }
 
         return params
@@ -59,12 +64,11 @@ class PerformanceBug(BzCleaner):
 
             bug = raw_bugs[bug_id]
             prob = bug_data["prob"]
-            index = bug_data["index"]
 
             results[bug_id] = {
                 "id": bug_id,
                 "summary": bug["summary"],
-                "confidence": nice_round(prob[index]),
+                "confidence": nice_round(prob[1]),
                 "autofixed": False,
             }
 
