@@ -21,7 +21,6 @@ class PerformanceBug(BzCleaner):
     def get_bz_params(self, date):
         params = {
             "include_fields": ["id", "summary"],
-            "n1": 1,
             "f1": "keywords",
             "o1": "nowords",
             "v1": "perf,topperf,main-thread-io",
