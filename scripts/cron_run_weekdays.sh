@@ -86,7 +86,7 @@ python -m bugbot.rules.several_votes --production
 python -m bugbot.rules.several_comments --production
 
 # Bugs with a lot of see also
-python -m bugbot.rules.lot_of_see_also --production
+python -m bugbot.rules.several_see_also --production
 
 # Bug caused several regressions recently reported
 # Pretty rare
