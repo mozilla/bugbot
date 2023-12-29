@@ -80,7 +80,7 @@ python -m bugbot.rules.several_dups --production
 python -m bugbot.rules.several_cc --production
 
 # Bugs with a lot of votes
-python -m bugbot.rules.lot_of_votes --production
+python -m bugbot.rules.several_votes --production
 
 # Bugs with a lot of comments
 python -m bugbot.rules.lot_of_comments --production

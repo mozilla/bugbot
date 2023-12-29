@@ -45,7 +45,7 @@ class CheckWikiPage:
         "multi_nag.py",
         "multifix_regression.py",
         "several_dups.py",
-        "lot_of_votes.py",
+        "several_votes.py",
         "several_cc.py",
         "lot_of_comments.py",
         "lot_of_see_also.py",

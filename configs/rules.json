@@ -159,7 +159,7 @@
     "additional_receivers": "rm",
     "must_run": ["Mon"]
   },
-  "lot_of_votes": {
+  "several_votes": {
     "weeks_lookup": 3,
     "number_votes": 10,
     "additional_receivers": "rm",
