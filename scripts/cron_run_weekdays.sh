@@ -83,7 +83,7 @@ python -m bugbot.rules.several_cc --production
 python -m bugbot.rules.several_votes --production
 
 # Bugs with a lot of comments
-python -m bugbot.rules.lot_of_comments --production
+python -m bugbot.rules.several_comments --production
 
 # Bugs with a lot of see also
 python -m bugbot.rules.lot_of_see_also --production

@@ -47,7 +47,7 @@ class CheckWikiPage:
         "several_dups.py",
         "several_votes.py",
         "several_cc.py",
-        "lot_of_comments.py",
+        "several_comments.py",
         "lot_of_see_also.py",
         "pdfjs_tag_change.py",
         "pdfjs_update.py",
