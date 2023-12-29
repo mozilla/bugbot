@@ -141,12 +141,10 @@
     "number_of_weeks": 1
   },
   "leave_open_no_activity": {
-    "skiplist": ["sdeckelmann@mozilla.com"],
     "months_lookup": 6,
     "max_ni": 3
   },
   "meta_no_deps_no_activity": {
-    "skiplist": ["sdeckelmann@mozilla.com"],
     "months_lookup": 12,
     "max_ni": 3
   },
@@ -280,8 +278,7 @@
       "WebExtensions::Developer Outreach",
       "NSS::Tools",
       "NSS::Build"
-    ],
-    "supervisor_skiplist": ["dcamp@mozilla.com"]
+    ]
   },
   "no_severity": {
     "first-step": 2,
@@ -417,7 +414,7 @@
   },
   "spambug": {
     "max_days_in_cache": 7,
-    "additional_receivers": ["glob@mozilla.com", "mhoye@mozilla.com"],
+    "additional_receivers": ["glob@mozilla.com"],
     "days_lookup": 7,
     "confidence_threshold": 0.95,
     "cc": []
