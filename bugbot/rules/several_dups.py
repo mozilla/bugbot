@@ -24,7 +24,6 @@ class SeveralDups(BzCleaner):
             "creation": utils.get_human_lag(bug["creation_time"]),
             "last_change": utils.get_human_lag(bug["last_change_time"]),
             "dupe_count": len(bug["duplicates"]),
-
         }
         return bug
 
