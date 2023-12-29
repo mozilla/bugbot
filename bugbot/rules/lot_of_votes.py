@@ -19,19 +19,20 @@ class SeveralVotes(BzCleaner):
         return True
 
     def columns(self):
-        return ["id", "product", "component", "summary", "creation", "last_change"]
+        return ["id", "product", "component", "summary", "creation", "last_change", "votes"]
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
         data[bugid] = {
             "creation": utils.get_human_lag(bug["creation_time"]),
             "last_change": utils.get_human_lag(bug["last_change_time"]),
+            "votes": bug["votes"]
         }
         return bug
 
     def get_bz_params(self, date):
         params = {
-            "include_fields": ["creation_time", "last_change_time"],
+            "include_fields": ["creation_time", "last_change_time", "votes"],
             "resolution": "---",
             "f1": "days_elapsed",
             "o1": "lessthan",
