@@ -77,7 +77,7 @@ python -m bugbot.rules.meta_defect --production
 python -m bugbot.rules.several_dups --production
 
 # Bugs with a lot of cc
-python -m bugbot.rules.lot_of_cc --production
+python -m bugbot.rules.several_cc --production
 
 # Bugs with a lot of votes
 python -m bugbot.rules.lot_of_votes --production

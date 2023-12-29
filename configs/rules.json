@@ -165,7 +165,7 @@
     "additional_receivers": "rm",
     "must_run": ["Mon"]
   },
-  "lot_of_cc": {
+  "several_cc": {
     "weeks_lookup": 3,
     "number_cc": 50,
     "additional_receivers": "rm",
