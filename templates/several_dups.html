@@ -6,10 +6,11 @@
             <th>Summary</th>
             <th>Creation</th>
             <th>Last comment</th>
+            <th># of dupes</th>
         </tr>
     </thead>
     <tbody>
-        {% for i, (bugid, summary, creation, last_change) in enumerate(data) -%}
+        {% for i, (bugid, summary, creation, last_change, dupe_count) in enumerate(data) -%}
             <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
             {% endif -%}
             >
@@ -19,6 +20,7 @@
             <td>{{ summary | e }}</td>
             <td>{{ creation }}</td>
             <td>{{ last_change }}</td>
+            <td>{{ dupe_count }}</td>
         </tr>
     {% endfor -%}
 </tbody>

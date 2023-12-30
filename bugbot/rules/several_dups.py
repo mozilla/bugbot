@@ -16,19 +16,20 @@ class SeveralDups(BzCleaner):
         return "Bugs with several dups for the last {} weeks".format(self.nweeks)
 
     def columns(self):
-        return ["id", "summary", "creation", "last_change"]
+        return ["id", "summary", "creation", "last_change", "dupe_count"]
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
         data[bugid] = {
             "creation": utils.get_human_lag(bug["creation_time"]),
             "last_change": utils.get_human_lag(bug["last_change_time"]),
+            "dupe_count": len(bug["duplicates"]),
         }
         return bug
 
     def get_bz_params(self, date):
         params = {
-            "include_fields": ["creation_time", "last_change_time"],
+            "include_fields": ["creation_time", "last_change_time", "duplicates"],
             "resolution": "---",
             "f1": "days_elapsed",
             "o1": "lessthan",

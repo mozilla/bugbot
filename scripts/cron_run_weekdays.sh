@@ -77,16 +77,16 @@ python -m bugbot.rules.meta_defect --production
 python -m bugbot.rules.several_dups --production
 
 # Bugs with a lot of cc
-python -m bugbot.rules.lot_of_cc --production
+python -m bugbot.rules.several_cc --production
 
 # Bugs with a lot of votes
-python -m bugbot.rules.lot_of_votes --production
+python -m bugbot.rules.several_votes --production
 
 # Bugs with a lot of comments
-python -m bugbot.rules.lot_of_comments --production
+python -m bugbot.rules.several_comments --production
 
 # Bugs with a lot of see also
-python -m bugbot.rules.lot_of_see_also --production
+python -m bugbot.rules.several_see_also --production
 
 # Bug caused several regressions recently reported
 # Pretty rare

@@ -6,39 +6,48 @@ from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
 
 
-class SeveralCc(BzCleaner):
+class SeveralVotes(BzCleaner):
     def __init__(self):
-        super(SeveralCc, self).__init__()
+        super(SeveralVotes, self).__init__()
         self.nweeks = utils.get_config(self.name(), "weeks_lookup")
-        self.cc = utils.get_config(self.name(), "number_cc")
+        self.votes = utils.get_config(self.name(), "number_votes")
 
     def description(self):
-        return "Bugs with several cc for the last {} weeks".format(self.nweeks)
+        return "Bugs with several votes for the last {} weeks".format(self.nweeks)
 
     def has_product_component(self):
         return True
 
     def columns(self):
-        return ["id", "product", "component", "summary", "creation", "last_change"]
+        return [
+            "id",
+            "product",
+            "component",
+            "summary",
+            "creation",
+            "last_change",
+            "votes",
+        ]
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
         data[bugid] = {
             "creation": utils.get_human_lag(bug["creation_time"]),
             "last_change": utils.get_human_lag(bug["last_change_time"]),
+            "votes": bug["votes"],
         }
         return bug
 
     def get_bz_params(self, date):
         params = {
-            "include_fields": ["creation_time", "last_change_time"],
+            "include_fields": ["creation_time", "last_change_time", "votes"],
             "resolution": "---",
             "f1": "days_elapsed",
             "o1": "lessthan",
             "v1": self.nweeks * 7,
-            "f2": "cc_count",
+            "f2": "votes",
             "o2": "greaterthaneq",
-            "v2": self.cc,
+            "v2": self.votes,
             "f3": "keywords",
             "o3": "nowords",
             "v3": ["meta", "intermittent"],
@@ -47,4 +56,4 @@ class SeveralCc(BzCleaner):
 
 
 if __name__ == "__main__":
-    SeveralCc().run()
+    SeveralVotes().run()

@@ -157,23 +157,23 @@
     "additional_receivers": "rm",
     "must_run": ["Mon"]
   },
-  "lot_of_votes": {
+  "several_votes": {
     "weeks_lookup": 3,
     "number_votes": 10,
     "additional_receivers": "rm",
     "must_run": ["Mon"]
   },
-  "lot_of_cc": {
+  "several_cc": {
     "weeks_lookup": 3,
     "number_cc": 50,
     "additional_receivers": "rm",
     "must_run": ["Mon"]
   },
-  "lot_of_comments": {
+  "several_comments": {
     "additional_receivers": "rm",
     "must_run": ["Mon"]
   },
-  "lot_of_see_also": {
+  "several_see_also": {
     "additional_receivers": "rm",
     "must_run": ["Mon"]
   },
