@@ -49,7 +49,7 @@ class SecurityUnhideDups(BzCleaner):
             if (
                 bug["resolution"] != "---"
                 and not bug["groups"]
-                or any(keyword in SECURITY_KEYWORDS for keyword in bug["keywords"])
+                and any(keyword in SECURITY_KEYWORDS for keyword in bug["keywords"])
             ):
                 public_sec_bugs.add(bug["id"])
 
