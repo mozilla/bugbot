@@ -233,8 +233,8 @@ def update_bugzilla_emails(data: Dict[str, dict]) -> None:
     def handler(bz_user, data):
         if bz_user["id"] in users_by_bugzilla_id:
             person = users_by_bugzilla_id[bz_user["id"]]
-        elif bz_user["name"] in data:
-            person = data[bz_user["name"]]
+        elif bz_user["name"].lower() in data:
+            person = data[bz_user["name"].lower()]
         else:
             raise Exception(f"Can't find {bz_user['name']} in the data")
 
