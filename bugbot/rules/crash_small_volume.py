@@ -8,7 +8,7 @@ from libmozdata import utils as lmdutils
 
 from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
-from bugbot.constants import HIGH_SEVERITY
+from bugbot.constants import HIGH_SEVERITY, SECURITY_KEYWORDS
 from bugbot.history import History
 from bugbot.topcrash import TOP_CRASH_IDENTIFICATION_CRITERIA, Topcrash
 
@@ -115,7 +115,7 @@ class CrashSmallVolume(BzCleaner):
             "ignore_severity": (
                 bug["severity"] not in HIGH_SEVERITY
                 or bug["groups"] == "security"
-                or any(keyword.startswith("sec-") for keyword in bug["keywords"])
+                or any(keyword in SECURITY_KEYWORDS for keyword in bug["keywords"])
                 or "[fuzzblocker]" in bug["whiteboard"]
                 or self._is_severity_recently_changed_by_human_or_bugbot(bug)
                 or self._has_severity_downgrade_comment(bug)

@@ -6,39 +6,48 @@ from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
 
 
-class SeveralVotes(BzCleaner):
+class SeveralCc(BzCleaner):
     def __init__(self):
-        super(SeveralVotes, self).__init__()
+        super(SeveralCc, self).__init__()
         self.nweeks = utils.get_config(self.name(), "weeks_lookup")
-        self.votes = utils.get_config(self.name(), "number_votes")
+        self.cc = utils.get_config(self.name(), "number_cc")
 
     def description(self):
-        return "Bugs with several votes for the last {} weeks".format(self.nweeks)
+        return "Bugs with several cc for the last {} weeks".format(self.nweeks)
 
     def has_product_component(self):
         return True
 
     def columns(self):
-        return ["id", "product", "component", "summary", "creation", "last_change"]
+        return [
+            "id",
+            "product",
+            "component",
+            "summary",
+            "creation",
+            "last_change",
+            "cc_count",
+        ]
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
         data[bugid] = {
             "creation": utils.get_human_lag(bug["creation_time"]),
             "last_change": utils.get_human_lag(bug["last_change_time"]),
+            "cc_count": len(bug["cc"]),
         }
         return bug
 
     def get_bz_params(self, date):
         params = {
-            "include_fields": ["creation_time", "last_change_time"],
+            "include_fields": ["creation_time", "last_change_time", "cc"],
             "resolution": "---",
             "f1": "days_elapsed",
             "o1": "lessthan",
             "v1": self.nweeks * 7,
-            "f2": "votes",
+            "f2": "cc_count",
             "o2": "greaterthaneq",
-            "v2": self.votes,
+            "v2": self.cc,
             "f3": "keywords",
             "o3": "nowords",
             "v3": ["meta", "intermittent"],
@@ -47,4 +56,4 @@ class SeveralVotes(BzCleaner):
 
 
 if __name__ == "__main__":
-    SeveralVotes().run()
+    SeveralCc().run()

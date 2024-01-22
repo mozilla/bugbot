@@ -1,4 +1,4 @@
-<p>The following {{ plural('bug has', data, pword='bugs have') }} many votes:</p>
+<p>The following {{ plural('bug has', data, pword='bugs have') }} many cc</p>
 <table {{ table_attrs }}>
     <thead>
         <tr>
@@ -7,10 +7,11 @@
             <th>Summary</th>
             <th>Creation</th>
             <th>Last comment</th>
+            <th># of cc</th>
         </tr>
     </thead>
     <tbody>
-        {% for i, (bugid, product, component, summary, creation, last_change) in enumerate(data) -%}
+        {% for i, (bugid, product, component, summary, creation, last_change, cc_count) in enumerate(data) -%}
             <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
             {% endif -%}
             >
@@ -21,6 +22,7 @@
             <td>{{ summary | e }}</td>
             <td>{{ creation }}</td>
             <td>{{ last_change }}</td>
+            <td>{{ cc_count }}</td>
         </tr>
     {% endfor -%}
 </tbody>
