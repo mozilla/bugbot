@@ -59,6 +59,14 @@ all crashes happened on or near an allocator poison value
 {{ signature.num_near_allocator_crashes }} out of {{ signature.num_crashes }} crashes happened on or near an allocator poison value
 {%- endif %}
 {%- endif %}
+{% if signature.is_potential_phc_crash -%}
+- **Is PHC crash:** {{ "Yes - " if signature.is_potential_phc_crash else "No" }}
+{%- if signature.is_phc_crash -%}
+all crashes have PHC allocation stack trace
+{%- elif signature.is_potential_phc_crash -%}
+{{ signature.num_phc_crashes }} out of {{ signature.num_crashes }} crashes have PHC allocation stack trace
+{%- endif %}
+{%- endif %}
 
 
 

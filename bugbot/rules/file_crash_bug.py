@@ -184,7 +184,7 @@ class FileCrashBug(BzCleaner):
             # [ ] Estimated future crash volume
 
             bug_data = {
-                "blocks": "bugbot-auto-crash",
+                "blocks": ["bugbot-auto-crash"],
                 "type": "defect",
                 "keywords": ["crash"],
                 "summary": title,
@@ -215,6 +215,9 @@ class FileCrashBug(BzCleaner):
                     }
                 ]
                 bug_data["cc"].append(signature.regressed_by_author["name"])
+
+            if signature.is_potential_phc_crash:
+                bug_data["blocks"].append("PHC")
 
             if signature.is_potential_security_crash:
                 bug_data["groups"] = ["core-security"]
