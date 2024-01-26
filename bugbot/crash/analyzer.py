@@ -484,6 +484,29 @@ class SocorroDataAnalyzer(socorro_util.SignatureStats):
         """
         return self.is_near_allocator_crash or self.is_potential_near_allocator_crash
 
+    @cached_property
+    def num_phc_crashes(self) -> int:
+        """The number of crashes that are related to a potential Probabilistic
+        Heap Checker (PHC) bug.
+        """
+        return sum(
+            crash["count"] for crash in self.signature["facets"]["phc_alloc_stack"]
+        )
+
+    @property
+    def is_potential_phc_crash(self) -> bool:
+        """Whether the crash is related to a potential Probabilistic Heap
+        Checker (PHC) bug.
+        """
+        return self.num_phc_crashes > 0
+
+    @property
+    def is_phc_crash(self) -> bool:
+        """Whether the crash is related to a potential Probabilistic Heap
+        Checker (PHC) bug.
+        """
+        return self.num_phc_crashes == self.num_crashes
+
 
 class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
     """Analyze the data related to a signature.
@@ -596,14 +619,11 @@ class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
 
     @cached_property
     def is_potential_security_crash(self) -> bool:
-        """Whether the crash is related to a potential security bug.
-
-        The value will be True if:
-            - the signature is related to near allocator poison value crashes, or
-            - one of the potential regressors is a security bug
-        """
-        return self.is_near_allocator_related_crash or any(
-            bug.is_security for bug in self.regressed_by_potential_bugs
+        """Whether the crash is related to a potential security bug."""
+        return (
+            self.is_near_allocator_related_crash
+            or self.is_potential_phc_crash
+            or any(bug.is_security for bug in self.regressed_by_potential_bugs)
         )
 
     def has_moz_crash_reason(self, reason: str) -> bool:
@@ -877,6 +897,7 @@ class SignaturesDataFetcher:
                 "cpu_arch",
                 "platform_pretty_version",
                 "_histogram.date",
+                "phc_alloc_stack",
                 # The following are needed for SignatureStats:
                 "platform",
                 "is_garbage_collecting",
