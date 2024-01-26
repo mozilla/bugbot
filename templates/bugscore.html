@@ -1,0 +1,302 @@
+<style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th {
+    background-color: #007bff;
+    color: white;
+    padding: 10px;
+    cursor: pointer;
+}
+
+td {
+    padding: 8px;
+    text-align: left;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+tr:hover {
+    background-color: #ddd;
+}
+
+input[type="number"], select {
+    padding: 5px;
+    margin: 5px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+input[type="checkbox"] {
+    margin-right: 5px;
+}
+
+.filter-section {
+    background-color: white;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.filter-section td {
+    padding: 5px;
+}
+
+.asc:after {
+    content: " \25B2"; /* Upwards arrow */
+}
+
+.desc:after {
+    content: " \25BC"; /* Downwards arrow */
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    let lastSortedColumn = 4;
+    let lastSortAscending = false;
+
+    function calculateBugScore(votes, seeAlso, duplicates, comments, ccs, weights) {
+        return (votes * weights.votesWeight) +
+               (seeAlso * weights.seeAlsoWeight) +
+               (duplicates * weights.duplicatesWeight) +
+               (comments * weights.commentsWeight) +
+               (ccs * weights.ccsWeight);
+    }
+
+    function filterByComponent() {
+        const isChecked = document.getElementById('componentFilter').checked;
+        const rows = document.querySelectorAll("#bugTable tbody tr");
+
+        rows.forEach(row => {
+            const componentCell = row.cells[2].textContent; // Assuming 'Product / Component' is the 3rd column
+            if (!isChecked || componentCell.includes("GeckoView") || componentCell.includes("Fenix")) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    function getWeights() {
+        return {
+            votesWeight: parseFloat(document.getElementById('votesWeight').value),
+            seeAlsoWeight: parseFloat(document.getElementById('seeAlsoWeight').value),
+            duplicatesWeight: parseFloat(document.getElementById('duplicatesWeight').value),
+            commentsWeight: parseFloat(document.getElementById('commentsWeight').value),
+            ccsWeight: parseFloat(document.getElementById('ccsWeight').value)
+        };
+    }
+
+    function updateBugScores() {
+        const weights = getWeights();
+        const rows = document.querySelectorAll("#bugTable tbody tr");
+        rows.forEach(row => {
+            const duplicates = parseInt(row.cells[6].textContent) || 0;
+            const votes = parseInt(row.cells[7].textContent) || 0;
+            const ccs = parseInt(row.cells[8].textContent) || 0;
+            const seeAlso = parseInt(row.cells[9].textContent) || 0;
+            const comments = parseInt(row.cells[10].textContent) || 0;
+
+            let score = calculateBugScore(votes, seeAlso, duplicates, comments, ccs, weights);
+            score = Math.round(score);
+            row.querySelector(".bugScore").textContent = score;
+        });
+    }
+
+function filterByBugType() {
+    const selectedType = document.getElementById('bugTypeFilter').value;
+    const rows = document.querySelectorAll("#bugTable tbody tr");
+
+    rows.forEach(row => {
+        const typeCell = row.cells[3].textContent.trim().toLowerCase();
+        if (selectedType === 'all' || typeCell === selectedType) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+	function parseCreationText(creationText) {
+    let totalDays = 0;
+    const parts = creationText.split(', ');
+
+    parts.forEach(part => {
+        const [value, unit] = part.split(' ');
+        if (unit.startsWith('year')) {
+            totalDays += parseInt(value) * 365; // Approximate days in a year
+        } else if (unit.startsWith('month')) {
+            totalDays += parseInt(value) * 30; // Approximate days in a month
+        } else if (unit.startsWith('day')) {
+            totalDays += parseInt(value);
+        }
+    });
+
+    return totalDays;
+	}
+
+function sortTable(table, column, isAscending) {
+    const direction = isAscending ? 1 : -1;
+    const rows = Array.from(table.tBodies[0].rows);
+
+    rows.sort((a, b) => {
+        let aVal, bVal;
+
+        if (column === 4) { // Assuming 'Creation' is the 5th column (index 4)
+            aVal = parseCreationText(a.cells[column].textContent.trim());
+            bVal = parseCreationText(b.cells[column].textContent.trim());
+        } else {
+            const aText = a.cells[column].textContent.trim();
+            const bText = b.cells[column].textContent.trim();
+            aVal = isNaN(aText) ? aText : parseFloat(aText);
+            bVal = isNaN(bText) ? bText : parseFloat(bText);
+        }
+
+        return aVal > bVal ? (1 * direction) : (-1 * direction);
+    });
+
+    rows.forEach(row => table.tBodies[0].appendChild(row));
+
+    lastSortedColumn = column;
+    lastSortAscending = isAscending;
+}
+    function updateBugScoresAndSort() {
+        updateBugScores();
+
+        if (lastSortedColumn !== null) {
+            const table = document.getElementById('bugTable');
+            sortTable(table, lastSortedColumn, lastSortAscending);
+        }
+    }
+
+    document.querySelectorAll("#bugTable thead th").forEach((headerCell, index) => {
+        headerCell.addEventListener("click", () => {
+            const tableElement = headerCell.closest("table");
+            const isAscending = headerCell.classList.contains("asc");
+            sortTable(tableElement, index, !isAscending);
+
+            document.querySelectorAll("#bugTable thead th").forEach(th => th.classList.remove("asc", "desc"));
+            headerCell.classList.toggle("asc", !isAscending);
+            headerCell.classList.toggle("desc", isAscending);
+        });
+    });
+
+    document.getElementById('votesWeight').addEventListener('input', updateBugScoresAndSort);
+    document.getElementById('seeAlsoWeight').addEventListener('input', updateBugScoresAndSort);
+    document.getElementById('duplicatesWeight').addEventListener('input', updateBugScoresAndSort);
+    document.getElementById('commentsWeight').addEventListener('input', updateBugScoresAndSort);
+    document.getElementById('ccsWeight').addEventListener('input', updateBugScoresAndSort);
+	document.getElementById('bugTypeFilter').addEventListener('change', filterByBugType);
+    document.getElementById('componentFilter').addEventListener('change', filterByComponent);
+
+window.onload = function() {
+    updateBugScoresAndSort();
+    filterByBugType();
+    filterByComponent();
+};
+
+});
+</script>
+
+Bug score is a metric that combines the following metrics:<br />
+<table>
+    <tr>
+        <td>Votes Weight:</td>
+        <td><input type="number" id="votesWeight" value="{{ extra['votes_weight'] }}" step="0.1"></td>
+    </tr>
+    <tr>
+        <td>See Also Weight:</td>
+        <td><input type="number" id="seeAlsoWeight" value="{{ extra['see_also_weight'] }}" step="0.1"></td>
+    </tr>
+    <tr>
+        <td>Duplicates Weight:</td>
+        <td><input type="number" id="duplicatesWeight" value="{{ extra['dups_weight'] }}" step="0.1"></td>
+    </tr>
+    <tr>
+        <td>Comments Weight:</td>
+        <td><input type="number" id="commentsWeight" value="{{ extra['comments_weight'] }}" step="0.1"></td>
+    </tr>
+    <tr>
+        <td>CCs Weight:</td>
+        <td><input type="number" id="ccsWeight" value="{{ extra['ccs_weight'] }}" step="0.1"></td>
+    </tr>
+    <tr>
+        <td>Bug Type Filter:</td>
+        <td>
+            <select id="bugTypeFilter">
+                <option value="all">All Types</option>
+                <option value="defect">Defect</option>
+                <option value="enhancement">Enhancement</option>
+                <option value="task">Task</option>
+            </select>
+        </td>
+    </tr>
+<tr>
+    <td>Component Filter:</td>
+    <td>
+        <input type="checkbox" id="componentFilter" /> Geckoview or Fenix
+    </td>
+</tr>
+</table>
+
+
+Threshold score: {{ extra["threshold"] }} <br />
+
+<table  id="bugTable" {{ table_attrs }}>
+    <thead>
+        <tr>
+            <th>Bug</th>
+            <th>Summary</th>
+            <th>Product</th>
+            <th>Type</th>
+            <th>Creation</th>
+            <th>Bug Score</th>
+            <th>Severity</th>
+            <th>Duplicates</th>
+            <th>Votes</th>
+            <th>CC</th>
+            <th>See Also</th>
+            <th># of comments</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for i, (bugid, summary, creation, last_change, severity, dups_count, votes, cc_count, see_also_count, bugscore, comment_count, product, component, type) in enumerate(data) -%}
+            <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
+            {% endif -%}
+            >
+            <td>
+                <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+            </td>
+            <td>{{ summary | e }}</td>
+            <td>{{ product | e }} / {{ component | e }}</td>
+            <td>{{ type }}</td>
+            <td>{{ creation }}</td>
+            <td class="bugScore"></td>
+            <td>{{ severity }}</td>
+            <td {% if dups_count >= extra["dups_threshold"] %}bgcolor="#FFB8B8"{% endif -%}>{{ dups_count }}</td>
+            <td {% if votes >= extra["votes_threshold"] %}bgcolor="#FFB8B8"{% endif -%}>{{ votes }}</td>
+            <td {% if cc_count >= extra["cc_threshold"] %}bgcolor="#FFB8B8"{% endif -%}>{{ cc_count }}</td>
+            <td {% if see_also_count >= extra["see_also_threshold"] %}bgcolor="#FFB8B8"{% endif -%}>{{ see_also_count }}</td>
+            <td {% if comment_count >= extra["comments_threshold"] %}bgcolor="#FFB8B8"{% endif -%}>{{ comment_count }}</td>
+        </tr>
+    {% endfor -%}
+</tbody>
+</table>

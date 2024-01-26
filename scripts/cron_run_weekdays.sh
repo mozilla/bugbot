@@ -88,6 +88,9 @@ python -m bugbot.rules.several_comments --production
 # Bugs with a lot of see also
 python -m bugbot.rules.several_see_also --production
 
+# List of papercuts
+python -m bugbot.rules.bugscore --production
+
 # Bug caused several regressions recently reported
 # Pretty rare
 python -m bugbot.rules.warn_regressed_by --production
