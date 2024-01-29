@@ -6,6 +6,7 @@ from libmozdata.bugzilla import Bugzilla
 
 from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
+from bugbot.constants import SECURITY_KEYWORDS
 
 
 class SecurityUnhideDups(BzCleaner):
@@ -48,7 +49,7 @@ class SecurityUnhideDups(BzCleaner):
             if (
                 bug["resolution"] != "---"
                 and not bug["groups"]
-                and any(keyword.startswith("sec-") for keyword in bug["keywords"])
+                and any(keyword in SECURITY_KEYWORDS for keyword in bug["keywords"])
             ):
                 public_sec_bugs.add(bug["id"])
 
