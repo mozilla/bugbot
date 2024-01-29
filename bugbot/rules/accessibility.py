@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from bugbot import people
 from bugbot.bugbug_utils import get_bug_ids_classification
 from bugbot.bzcleaner import BzCleaner
 from bugbot.utils import nice_round
@@ -12,7 +11,6 @@ class Accessibility(BzCleaner):
     def __init__(self):
         super().__init__()
         self.autofix_bugs = {}
-        self.people = people.People.get_instance()
 
     def description(self):
         return "[Using ML] Detected accessibility bugs"
