@@ -21,7 +21,6 @@ class PerformanceBug(BzCleaner):
         start_date, _ = self.get_dates(date)
 
         params = {
-            "include_fields": ["id", "summary"],
             "f1": "creation_ts",
             "o1": "greaterthan",
             "v1": start_date,
@@ -36,23 +35,18 @@ class PerformanceBug(BzCleaner):
         return params
 
     def get_bugs(self, date="today", bug_ids=[]):
-        # Retrieve the bugs with the fields defined in get_bz_params
         raw_bugs = super().get_bugs(date=date, bug_ids=bug_ids, chunk_size=7000)
 
         if len(raw_bugs) == 0:
             return {}
 
-        # Extract the bug ids
         bug_ids = list(raw_bugs.keys())
 
-        # Classify those bugs
         bugs = get_bug_ids_classification("performancebug", bug_ids)
 
         results = {}
 
-        for bug_id in sorted(bugs.keys()):
-            bug_data = bugs[bug_id]
-
+        for bug_id, bug_data in bugs.items():
             if not bug_data.get("available", True):
                 # The bug was not available, it was either removed or is a
                 # security bug
