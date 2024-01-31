@@ -16,13 +16,12 @@ class Accessibility(BzCleaner):
         return "[Using ML] Detected accessibility bugs"
 
     def columns(self):
-        return ["id", "summary", "confidence", "auto_fixed", "comments"]
+        return ["id", "summary", "confidence"]
 
     def get_bz_params(self, date):
         start_date, _ = self.get_dates(date)
 
         return {
-            "include_fields": ["id", "summary", "comments"],
             "f1": "creation_ts",
             "o1": "greaterthan",
             "v1": start_date,
@@ -47,9 +46,7 @@ class Accessibility(BzCleaner):
         # Classify those bugs
         bugs = get_bug_ids_classification("accessibility", bug_ids)
 
-        for bug_id in sorted(bugs.keys()):
-            bug_data = bugs[bug_id]
-
+        for bug_id, bug_data in bugs.items():
             if not bug_data.get("available", True):
                 # The bug was not available, it was either removed or is a
                 # security bug
@@ -69,22 +66,6 @@ class Accessibility(BzCleaner):
                 }
 
         return self.autofix_bugs
-
-    def get_autofix_change(self):
-        return {
-            bug_id: (
-                data.update(
-                    {
-                        "keywords": {"add": "access"},
-                        "comment": {
-                            "body": "The [Bugbug](https://github.com/mozilla/bugbug/) bot thinks this bug is an accessibility bug, and is adding the access keyword to the bug. Please correct in case you think the bot is wrong."
-                        },
-                    }
-                )
-                or data
-            )
-            for bug_id, data in self.autofix_bugs.items()
-        }
 
 
 if __name__ == "__main__":
