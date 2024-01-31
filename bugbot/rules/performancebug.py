@@ -10,7 +10,6 @@ from bugbot.utils import nice_round
 class PerformanceBug(BzCleaner):
     def __init__(self):
         super().__init__()
-        self.autofix_bugs = []
 
     def description(self):
         return "[Using ML] Bugs with Missing Performance Impact"
@@ -75,26 +74,7 @@ class PerformanceBug(BzCleaner):
                 "autofixed": False,
             }
 
-            # Only autofix results for which we are sure enough.
-            if prob[1] >= self.get_config("confidence_threshold"):
-                results[bug_id]["autofixed"] = True
-                self.autofix_bugs.append((bug_id, prob[1]))
-
         return results
-
-    def get_autofix_change(self):
-        autofix_change = {}
-        for bug_id, confidence in self.autofix_bugs:
-            autofix_change[bug_id] = {
-                "cf_performance_impact": "?",
-            }
-
-            if confidence != 1.0:
-                autofix_change[bug_id]["comment"] = {
-                    "body": "The [Bugbug](https://github.com/mozilla/bugbug/) bot thinks this bug is a performance bug, but please revert this change in case of error."
-                }
-
-        return autofix_change
 
 
 if __name__ == "__main__":
