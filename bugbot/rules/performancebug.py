@@ -8,7 +8,7 @@ from bugbot.utils import nice_round
 
 
 class PerformanceBug(BzCleaner):
-    def __init__(self, confidence_threshold=0.9):
+    def __init__(self, confidence_threshold: float = 0.9):
         super().__init__()
         self.confidence_threshold = confidence_threshold
 
