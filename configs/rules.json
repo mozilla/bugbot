@@ -356,9 +356,7 @@
   },
   "accessibility": {
     "max_days_in_cache": 7,
-    "days_lookup": 7,
-    "confidence_threshold": 0.9,
-    "cc": []
+    "days_lookup": 7
   },
   "component": {
     "confidence_threshold": 0.35,
