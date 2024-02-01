@@ -9,6 +9,9 @@ python -m bugbot.iam
 # Daily (but really runs during the soft freeze week)
 python -m bugbot.rules.code_freeze_week -D yesterday --production
 
+# Try to detect potential performance-related bugs using bugbug
+python -m bugbot.rules.performancebug --production
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m bugbot.log --send
