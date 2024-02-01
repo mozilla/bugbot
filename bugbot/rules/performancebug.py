@@ -9,6 +9,13 @@ from bugbot.utils import nice_round
 
 class PerformanceBug(BzCleaner):
     def __init__(self, confidence_threshold: float = 0.9):
+        """
+        Initialize the PerformanceBug class.
+
+        Args:
+            confidence_threshold: The confidence threshold for
+                considering a bug as a performance bug.
+        """
         super().__init__()
         self.confidence_threshold = confidence_threshold
 
@@ -63,12 +70,8 @@ class PerformanceBug(BzCleaner):
                 "id": bug_id,
                 "summary": bug["summary"],
                 "confidence": nice_round(prob[1]),
-                "autofixed": False,
+                "autofixed": prob[1] >= self.confidence_threshold,
             }
-
-            # Only autofix results for which we are sure enough.
-            if prob[1] >= self.confidence_threshold:
-                results[bug_id]["autofixed"] = True
 
         return results
 
