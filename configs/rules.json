@@ -425,6 +425,10 @@
     "confidence_threshold": 0.95,
     "cc": []
   },
+  "performancebug": {
+    "max_days_in_cache": 7,
+    "days_lookup": 7
+  },
   "stepstoreproduce": {
     "max_days_in_cache": 7,
     "days_lookup": 3,
