@@ -8,8 +8,9 @@ from bugbot.utils import nice_round
 
 
 class PerformanceBug(BzCleaner):
-    def __init__(self):
+    def __init__(self, confidence_threshold=0.9):
         super().__init__()
+        self.confidence_threshold = confidence_threshold
 
     def description(self):
         return "[Using ML] Bugs with Missing Performance Impact"
@@ -52,9 +53,6 @@ class PerformanceBug(BzCleaner):
                 # security bug
                 continue
 
-            if not {"prob", "index"}.issubset(bug_data.keys()):
-                raise Exception(f"Invalid bug response {bug_id}: {bug_data!r}")
-
             bug = raw_bugs[bug_id]
             prob = bug_data["prob"]
 
@@ -67,6 +65,10 @@ class PerformanceBug(BzCleaner):
                 "confidence": nice_round(prob[1]),
                 "autofixed": False,
             }
+
+            # Only autofix results for which we are sure enough.
+            if prob[1] >= self.confidence_threshold:
+                results[bug_id]["autofixed"] = True
 
         return results
 
