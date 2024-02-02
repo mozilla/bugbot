@@ -7,7 +7,7 @@ from bugbot.bzcleaner import BzCleaner
 from bugbot.utils import nice_round
 
 
-class Accessibility(BzCleaner):
+class AccessibilityBug(BzCleaner):
     def __init__(self, confidence_threshold: float = 0.9):
         super().__init__()
         self.confidence_threshold = confidence_threshold
@@ -16,7 +16,7 @@ class Accessibility(BzCleaner):
         return "[Using ML] Detected accessibility bugs"
 
     def columns(self):
-        return ["id", "summary", "confidence"]
+        return ["id", "summary", "confidence", "autofixed"]
 
     def get_bz_params(self, date):
         start_date, _ = self.get_dates(date)
@@ -57,15 +57,18 @@ class Accessibility(BzCleaner):
             bug = raw_bugs[bug_id]
             prob = bug_data["prob"]
 
-            if prob[1] > self.confidence_threshold:
-                results[bug_id] = {
-                    "id": bug_id,
-                    "summary": bug["summary"],
-                    "confidence": nice_round(prob[1]),
-                }
+            if prob[1] < 0.2:
+                continue
+
+            results[bug_id] = {
+                "id": bug_id,
+                "summary": bug["summary"],
+                "confidence": nice_round(prob[1]),
+                "autofixed": prob[1] >= self.confidence_threshold,
+            }
 
         return results
 
 
 if __name__ == "__main__":
-    Accessibility().run()
+    AccessibilityBug().run()
