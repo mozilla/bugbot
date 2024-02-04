@@ -1,0 +1,56 @@
+# MAX ACCEPTABLE LINE LENGTH 
+line-length = 88
+
+
+#CACHE DIR FOLDER FOR RUFF 
+cache-dir = "~/.cache/ruff"
+
+
+#EXCLUDED FILE TYPES 
+exclude = [
+    ".git", 
+    "__pycache__",
+    "data",
+    "tools",
+    "env",
+    "venv",
+]
+
+
+# RUFF FIXING BEHAVIOUR
+fix = true
+
+
+# ENUMERATE ALL FIXES 
+show-fixes = true 
+
+
+# INDENTATION LEVEL 
+indent-width = 4
+
+
+# GROUP VIOLATIONS BY FILE 
+output-format = "full"
+
+
+# RUFF VERSION 
+required-version = "0.2.0"
+
+
+# AUTO RECOMMENDATION FOR UNSAFE FIXES 
+unsafe-fixes = false 
+
+
+[lint]
+
+# INGORE RULES 
+ignore = ["E203", "E501"]
+
+
+
+
+
+
+
+
+
