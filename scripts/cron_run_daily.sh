@@ -9,6 +9,9 @@ python -m bugbot.iam
 # Daily (but really runs during the soft freeze week)
 python -m bugbot.rules.code_freeze_week -D yesterday --production
 
+# Detect accessibility-related bugs using accessibility model from bugbug
+python -m bugbot.rules.accessibilitybug --production
+
 # Try to detect potential performance-related bugs using bugbug
 python -m bugbot.rules.performancebug --production
 
