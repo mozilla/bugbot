@@ -9,6 +9,13 @@ from bugbot.utils import nice_round
 
 class AccessibilityBug(BzCleaner):
     def __init__(self, confidence_threshold: float = 0.9):
+        """
+        Initialize the AccessibilityBug class.
+
+        Args:
+            confidence_threshold: The confidence threshold for
+                considering a bug as accessibility related.
+        """
         super().__init__()
         self.confidence_threshold = confidence_threshold
 
