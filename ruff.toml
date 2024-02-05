@@ -42,8 +42,6 @@ unsafe-fixes = false
 
 
 [lint]
-
-# INGORE RULES 
 ignore = ["E203", "E501"]
 
 
