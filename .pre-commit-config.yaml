@@ -1,12 +1,4 @@
 repos:
-  - repo: https://github.com/timothycrosley/isort
-    rev: 5.12.0
-    hooks:
-      - id: isort
-  - repo: https://github.com/ambv/black
-    rev: 23.9.1
-    hooks:
-      - id: black
   - repo: https://github.com/Riverside-Healthcare/djLint
     rev: v1.34.0
     hooks:
