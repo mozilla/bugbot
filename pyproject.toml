@@ -3,3 +3,17 @@ profile="jinja"
 linter_output_format = "{filename}:{line}: {code} {message} {match}"
 # Ignore linting rules that are related to web pages
 ignore = "H016,H021,H030,H031"
+
+[tool.ruff]
+extend-exclude = ["data", "models", "db", "cache"]
+ignore = [
+    "E101", "E111", "E114", "E115", "E116", "E117",
+    "E121", "E122", "E123", "E124", "E125", "E126",
+    "E127", "E128", "E129", "E131", "E133", "E2",
+    "E3", "E5", "E501", "E701", "E702", "E703",
+    "E704", "W1", "W2", "W3", "W503", "W504", "C101",
+]
+output-format = "grouped"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
