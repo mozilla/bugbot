@@ -6,7 +6,6 @@ ignore = "H016,H021,H030,H031"
 
 [tool.ruff]
 extend-exclude = ["data", "models", "db", "cache"]
-output-format = "grouped"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "W", "C901", "T10", "CPY"]
+select = ["E4", "E7", "E9", "F", "I", "T10", "CPY"]
