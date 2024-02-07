@@ -52,6 +52,7 @@ class CheckWikiPage:
         "pdfjs_tag_change.py",
         "pdfjs_update.py",
         "leave_open_sec.py",
+        "bugscore.py"
     }
 
     def __init__(self) -> None:

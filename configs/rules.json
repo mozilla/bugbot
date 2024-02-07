@@ -474,5 +474,14 @@
   "leave_open_sec": {
     "additional_receivers": "rm",
     "days_lookup": 2
+  },
+  "bugscore": {
+    "number_dups": 30,
+    "number_votes": 200,
+    "number_cc": 100,
+    "number_see_also": 10,
+    "number_comments": 150,
+    "additional_receivers": "rm",
+    "must_run": ["Mon"]
   }
 }
