@@ -53,8 +53,8 @@ class CheckWikiPage:
         "pdfjs_update.py",
         "leave_open_sec.py",
         # Experimental rules:
-        "accessibilitybug",
-        "performancebug",
+        "accessibilitybug.py",
+        "performancebug.py",
     }
 
     def __init__(self) -> None:
