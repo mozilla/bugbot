@@ -206,7 +206,7 @@ class InactiveNeedinfoPending(BzCleaner):
         if bug["last_change_time"] >= RECENT_BUG_LIMIT:
             reasons.append("recent activity")
 
-        if len(reasons) == 0 and bug["severity"] == "--":
+        if len(reasons) == 0 and bug["severity"] == "--" and bug["type"] == "defect":
             return "since the bug doesn't have a severity set, could you please set the severity or close the bug?"
 
         comment = []
