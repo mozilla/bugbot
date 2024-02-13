@@ -44,10 +44,6 @@ python -m bugbot.rules.file_crash_bug --production
 # Try to detect potential regressions using bugbug
 python -m bugbot.rules.regression --production
 
-# Bugs with STR and no regression-range
-# Pretty rare
-python -m bugbot.rules.has_str_no_range --production
-
 # Move info (signatures, product/component) from/to bugs & their dups
 # Pretty common
 python -m bugbot.rules.copy_duplicate_info --production
