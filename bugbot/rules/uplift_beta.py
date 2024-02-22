@@ -37,17 +37,6 @@ class UpliftBeta(BzCleaner):
         return ["id", "summary", "assignee"]
 
     def handle_bug(self, bug, data):
-        # XXX: This is a temporary workaround, should be dropped after
-        # fixing https://github.com/mozilla/bugbot/issues/1953
-        if self._has_patch_after_closed(bug):
-            from bugbot import logger
-
-            logger.error(
-                "Bug %s has a patch after being closed without an uplift approval flag. This could be a sign that Bug 1825961 is still not fixed.",
-                bug["id"],
-            )
-            return
-
         bugid = str(bug["id"])
 
         assignee = bug.get("assigned_to", "")
@@ -136,21 +125,6 @@ class UpliftBeta(BzCleaner):
         }
 
         return params
-
-    def _has_patch_after_closed(self, bug):
-        patches = [
-            attachment["creation_time"]
-            for attachment in bug["attachments"]
-            if attachment["content_type"] == "text/x-phabricator-request"
-            and not attachment["is_obsolete"]
-        ]
-        if len(patches) == 0:
-            return False
-
-        latest_patch_at = max(patches)
-        resolved_at = bug["cf_last_resolved"]
-
-        return latest_patch_at > resolved_at
 
     def get_bugs(self, date="today", bug_ids=[]):
         bugs = super(UpliftBeta, self).get_bugs(date=date, bug_ids=bug_ids)
