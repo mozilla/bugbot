@@ -592,14 +592,15 @@ class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
         for i, report in enumerate(candidate_reports):
             uuid = report["uuid"]
             processed_crash = socorro.ProcessedCrash.get_processed(uuid)[uuid]
+
+            if first_representative_report is None:
+                first_representative_report = processed_crash
+
             if (
                 limit_to_top_proto_signature
                 and processed_crash["proto_signature"] != self.top_proto_signature
             ):
                 continue
-
-            if first_representative_report is None:
-                first_representative_report = processed_crash
 
             if not self._is_corrupted_crash_stack(processed_crash):
                 return processed_crash
@@ -614,7 +615,7 @@ class SignatureAnalyzer(SocorroDataAnalyzer, ClouseauDataAnalyzer):
             return first_representative_report
 
         raise NoCrashReportFoundError(
-            f"No crash report found with the most frequent proto signature for {self.signature_term}."
+            f"No crash report found for {self.signature_term}."
         )
 
     @cached_property
