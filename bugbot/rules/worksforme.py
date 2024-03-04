@@ -20,7 +20,7 @@ class WorksForMe(BzCleaner):
         self.confidence_threshold = confidence_threshold
 
     def description(self):
-        return "[Using ML] Potential Worksforme Bugs with Missing Resolution"
+        return "[Using ML] Bugs that could be resolved as WORKSFORME"
 
     def columns(self):
         return ["id", "summary", "confidence", "autofixed"]
