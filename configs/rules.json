@@ -417,8 +417,8 @@
     "days_lookup": 7
   },
   "worksforme": {
-    "max_days_in_cache": 7,
-    "days_lookup": 7
+    "max_days_in_cache": 30,
+    "days_lookup": 365
   },
   "stepstoreproduce": {
     "max_days_in_cache": 7,
