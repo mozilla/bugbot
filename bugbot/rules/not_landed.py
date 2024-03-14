@@ -263,36 +263,17 @@ class NotLanded(BzCleaner):
             return {}
 
         def handler(user, data):
-            data[str(user["id"])] = user["name"]
+            data[str(user["id"])] = (user["name"], user["nick"])
 
         data = {}
         BugzillaUser(
             user_names=list(users.values()),
-            include_fields=["id", "name"],
+            include_fields=["id", "name", "nick"],
             user_handler=handler,
             user_data=data,
         ).wait()
 
         return {phid: data[id] for phid, id in users.items()}
-
-    def get_nicks(self, nicknames):
-        def handler(user, data):
-            data[user["name"]] = user["nick"]
-
-        users = set(nicknames.values())
-        data = {}
-        if users:
-            BugzillaUser(
-                user_names=list(users),
-                include_fields=["name", "nick"],
-                user_handler=handler,
-                user_data=data,
-            ).wait()
-
-        for bugid, name in nicknames.items():
-            nicknames[bugid] = (name, data[name])
-
-        return nicknames
 
     def get_bz_params(self, date):
         self.date = lmdutils.get_date_ymd(date)
@@ -340,7 +321,6 @@ class NotLanded(BzCleaner):
 
         bz_reviewers = self.get_bz_userid(reviewers_phid)
         all_reviewers = set(bz_reviewers.keys())
-        nicknames = self.get_nicks(nicknames)
 
         for bugid, data in bugs_patch.items():
             res[bugid] = d = bugs[bugid]
@@ -349,7 +329,7 @@ class NotLanded(BzCleaner):
             nickname = d["nickname"]
 
             if not assignee:
-                assignee, nickname = nicknames[bugid]
+                assignee, nickname = bz_reviewers[nicknames[bugid]]
 
             if not assignee:
                 continue
@@ -360,7 +340,11 @@ class NotLanded(BzCleaner):
             if common:
                 reviewer = random.choice(list(common))
                 self.add_auto_ni(
-                    bugid, {"mail": bz_reviewers[reviewer], "nickname": None}
+                    bugid,
+                    {
+                        "mail": bz_reviewers[reviewer][0],
+                        "nickname": bz_reviewers[reviewer][1],
+                    },
                 )
 
         return res
