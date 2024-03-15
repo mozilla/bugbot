@@ -252,7 +252,7 @@ class NotLanded(BzCleaner):
 
         return data
 
-    def get_bz_userid(self, phids):
+    def get_bz_users(self, phids):
         if not phids:
             return {}
 
@@ -263,7 +263,7 @@ class NotLanded(BzCleaner):
             return {}
 
         def handler(user, data):
-            data[str(user["id"])] = (user["name"], user["nick"])
+            data[str(user["id"])] = user
 
         data = {}
         BugzillaUser(
@@ -311,15 +311,15 @@ class NotLanded(BzCleaner):
         res = {}
 
         reviewers_phid = set()
-        nicknames = {}
+        bug_assignee_map = {}
         for bugid, data in bugs_patch.items():
             reviewers_phid |= data["reviewers_phid"]
             assignee = bugs[bugid]["assigned_to"]
             if not assignee:
                 assignee = max(data["author"], key=data["author"].get)
-                nicknames[bugid] = assignee
+                bug_assignee_map[bugid] = assignee
 
-        bz_reviewers = self.get_bz_userid(reviewers_phid)
+        bz_reviewers = self.get_bz_users(reviewers_phid)
         all_reviewers = set(bz_reviewers.keys())
 
         for bugid, data in bugs_patch.items():
@@ -329,7 +329,8 @@ class NotLanded(BzCleaner):
             nickname = d["nickname"]
 
             if not assignee:
-                assignee, nickname = bz_reviewers[nicknames[bugid]]
+                assignee_id = bug_assignee_map[bugid]
+                assignee, nickname = bz_reviewers[assignee_id]
 
             if not assignee:
                 continue
