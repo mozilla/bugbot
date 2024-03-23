@@ -326,26 +326,22 @@ class NotLanded(BzCleaner):
             res[bugid] = d = bugs[bugid]
             self.extra_ni[bugid] = data["count"]
             assignee = d["assigned_to"]
-            nickname = d["nickname"]
 
             if not assignee:
-                assignee_id = bug_assignee_map[bugid]
-                assignee, nickname = bz_reviewers[assignee_id]
+                user_details = bz_reviewers[assignee]
+                assignee = user_details["id"]
+                nickname = user_details["nick"]
 
             if not assignee:
                 continue
 
             self.add_auto_ni(bugid, {"mail": assignee, "nickname": nickname})
 
-            common = all_reviewers & data["reviewers_phid"]
+            common = all_reviewers["name"] & data["reviewers_phid"]
             if common:
                 reviewer = random.choice(list(common))
                 self.add_auto_ni(
-                    bugid,
-                    {
-                        "mail": bz_reviewers[reviewer][0],
-                        "nickname": bz_reviewers[reviewer][1],
-                    },
+                    bugid, {"mail": bz_reviewers[reviewer], "nickname": None}
                 )
 
         return res
