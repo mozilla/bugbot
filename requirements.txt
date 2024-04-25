@@ -13,7 +13,7 @@ python-dateutil>=2.8.2
 python-Levenshtein>=0.12.0
 pytz>=2018.9
 PyYAML==6.0.1
-recurring-ical-events==2.1.3
+recurring-ical-events==2.2.1
 requests==2.31.0
 sqlalchemy==1.3.24
 tenacity==8.2.3
