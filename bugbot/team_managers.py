@@ -15,18 +15,27 @@ DEFAULT_PATH = "./configs/team_managers.json"
 
 
 class TeamManagers:
-    def __init__(self):
+    def __init__(
+        self,
+        mappers_path: str = DEFAULT_PATH,
+        people: People = People.get_instance(),
+    ):
+        """Constructor
+
+        Args:
+            mappers_path: path to the team managers mappings file.
+            people: instance of the People class to get information about employees.
+        """
         self._component_teams: Dict[ComponentName, str] = {}
-        self._load_team_managers(DEFAULT_PATH)
+        self.people = people
+        self._load_team_managers(mappers_path)
 
     def _load_team_managers(self, filepath: str) -> None:
-        people = People.get_instance()
-
         with open(filepath) as file:
             self.managers = {
                 team: {
                     "name": manager,
-                    "mozilla_email": people.get_mozmail_from_name(manager),
+                    "mozilla_email": self.people.get_mozmail_from_name(manager),
                 }
                 for team, manager in json.load(file).items()
             }
@@ -54,15 +63,13 @@ class TeamManagers:
         return self.managers[team_name]
 
     def _fetch_managers_nicknames(self) -> None:
-        people = People.get_instance()
-
         bz_emails_map = defaultdict(list)
         for manager in self.managers.values():
             moz_mail = manager["mozilla_email"]
             if not moz_mail:
                 continue
 
-            info = people.get_info(moz_mail)
+            info = self.people.get_info(moz_mail)
             bz_mail = info["bugzillaEmail"]
             if not bz_mail:
                 bz_mail = moz_mail

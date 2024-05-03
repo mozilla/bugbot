@@ -27,6 +27,9 @@ IMs = [
 ]
 IM_NICK = re.compile(r"([\w\.@]+)")
 
+DEFAULT_PATH = "./configs/people.json"
+
+
 _ManagerInfo = TypedDict("_ManagerInfo", {"cn": str, "dn": str})
 
 Person = TypedDict(
@@ -50,12 +53,17 @@ Person = TypedDict(
 class People:
     _instance = None
 
-    def __init__(self, p=None):
-        if p is None:
-            with open("./configs/people.json", "r") as In:
-                self.data = json.load(In)
+    def __init__(self, people_file: str | list[Person] = DEFAULT_PATH):
+        """Constructor
+
+        Args:
+            people_file: path to the people file or loaded people data.
+        """
+        if isinstance(people_file, str):
+            with open(people_file, "r", encoding="utf-8") as file:
+                self.data = json.load(file)
         else:
-            self.data = p
+            self.data = people_file
 
         self.people = self._get_people()
         self.people_by_bzmail: dict[str, Person] = {}
