@@ -47,6 +47,14 @@ class TestRoundRobin(unittest.TestCase):
                 "cn": "{} {}".format(x.upper(), y.upper()),
                 "ismanager": "FALSE",
                 "title": "nothing",
+                # Dummy info to satisfy the Person type:
+                "bugzillaEmail": "",
+                "bugzillaID": "",
+                "dn": "mail=xx@mozilla.com,o=com,dc=mozilla",
+                "found_on_bugzilla": True,
+                "im": [],
+                "isdirector": "FALSE",
+                "manager": {"cn": "", "dn": "mail=xxx@mozilla.com,o=com,dc=mozilla"},
             }
             for x, y in zip("aceg", "bdfh")
         ]
