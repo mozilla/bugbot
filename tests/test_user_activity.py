@@ -34,7 +34,25 @@ class UserActivityTest(MockTestCase):
         "orangefactor@bots.tld",  # bot account
     }
 
-    people = People([{"mail": email} for email in employees])
+    people = People(
+        [
+            {
+                "mail": email,
+                # Dummy info to satisfy the Person type
+                "bugzillaEmail": "",
+                "bugzillaID": "",
+                "cn": "",
+                "dn": "mail=xx@mozilla.com,o=com,dc=mozilla",
+                "found_on_bugzilla": True,
+                "im": [],
+                "isdirector": "FALSE",
+                "ismanager": "FALSE",
+                "manager": {"cn": "", "dn": "mail=xxx@mozilla.com,o=com,dc=mozilla"},
+                "title": "",
+            }
+            for email in employees
+        ]
+    )
 
     @responses.activate
     def test_check_users(self):
