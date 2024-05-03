@@ -5,7 +5,7 @@
 import json
 import re
 from math import sqrt
-from typing import Set
+from typing import Set, TypedDict
 
 import numpy as np
 
@@ -27,6 +27,25 @@ IMs = [
 ]
 IM_NICK = re.compile(r"([\w\.@]+)")
 
+_ManagerInfo = TypedDict("_ManagerInfo", {"cn": str, "dn": str})
+
+Person = TypedDict(
+    "Person",
+    {
+        "bugzillaEmail": str,
+        "bugzillaID": str,
+        "cn": str,
+        "dn": str,
+        "found_on_bugzilla": bool,
+        "im": list[str],
+        "isdirector": str,
+        "ismanager": str,
+        "mail": str,
+        "manager": _ManagerInfo,
+        "title": str,
+    },
+)
+
 
 class People:
     _instance = None
@@ -39,15 +58,15 @@ class People:
             self.data = p
 
         self.people = self._get_people()
-        self.people_by_bzmail = {}
-        self.managers = set()
-        self.people_with_bzmail = set()
-        self.release_managers = set()
-        self.rm_or_directors = set()
-        self.nicks = {}
-        self.directors = set()
-        self.vps = set()
-        self.names = {}
+        self.people_by_bzmail: dict[str, Person] = {}
+        self.managers: set[str] = set()
+        self.people_with_bzmail: set[str] = set()
+        self.release_managers: set[str] = set()
+        self.rm_or_directors: set[str] = set()
+        self.nicks: dict[str, Person] = {}
+        self.directors: set[str] = set()
+        self.vps: set[str] = set()
+        self.names: dict[tuple, Person] = {}
         self._amend()
         self.matrix = None
 
@@ -61,7 +80,7 @@ class People:
         """Get names from name"""
         return set(s.lower() for s in WORDS.findall(name))
 
-    def _get_people(self):
+    def _get_people(self) -> dict[str, Person]:
         people = {}
         for person in self.data:
             mail = self.get_preferred_mail(person)
