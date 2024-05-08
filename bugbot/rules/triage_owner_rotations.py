@@ -5,6 +5,7 @@
 
 from typing import List, Set
 
+from jinja2 import Environment, FileSystemLoader
 from libmozdata.bugzilla import BugzillaComponent
 from requests import HTTPError
 from tenacity import (
@@ -15,7 +16,7 @@ from tenacity import (
     wait_exponential,
 )
 
-from bugbot import logger
+from bugbot import logger, mail
 from bugbot.bzcleaner import BzCleaner
 from bugbot.component_triagers import ComponentName, ComponentTriagers, TriageOwner
 
@@ -87,17 +88,62 @@ class TriageOwnerRotations(BzCleaner):
         failures = self._update_triage_owners(new_triagers)
         self.has_put_errors = len(failures) > 0
 
-        return [
-            {
-                "component": new_triager.component,
-                "old_triage_owner": self.component_triagers.get_current_triage_owner(
-                    new_triager.component
-                ),
-                "new_triage_owner": new_triager.bugzilla_email,
-                "has_put_error": new_triager.component in failures,
-            }
-            for new_triager in new_triagers
-        ]
+        email_data = []
+
+        for new_triager in new_triagers:
+            old_owner = self.component_triagers.get_current_triage_owner(
+                new_triager.component
+            )
+
+            email_data.append(
+                {
+                    "component": new_triager.component,
+                    "old_triage_owner": old_owner,
+                    "new_triage_owner": new_triager.bugzilla_email,
+                    "has_put_error": new_triager.component in failures,
+                }
+            )
+
+            self.send_email_to_triage_owners(
+                old_owner,
+                new_triager.bugzilla_email,
+                new_triager.component,
+                "https://www.mozilla.org",
+            )
+
+        return email_data
+
+    def send_email_to_triage_owners(self, old_email, new_email, component, details_url):
+        """Send an email to the old and new triage owners about the switch."""
+        env = Environment(loader=FileSystemLoader("templates"))
+        template = env.get_template("triage_owner_rotations_2.html")
+
+        # Render the email body using the template and passing required details
+        body = template.render(
+            preamble="Triage Owner Update Notification",
+            data=[
+                {
+                    "component": component,
+                    "old_triage_owner": old_email,
+                    "new_triage_owner": new_email,
+                    "details_url": details_url,  # This is the new line to include the details URL
+                    "has_put_error": False,  # Assuming no error by default, update as needed
+                }
+            ],
+            table_attrs="",  # You need to define what HTML attributes you want for the table if any
+        )
+
+        subject = "Triage Owner Update"
+
+        # Assuming mail.send is configured correctly in your environment
+        mail.send(
+            From="your-email@mozilla.com",
+            To=[old_email, new_email],
+            Subject=subject,
+            Body=body,
+            html=True,  # Assuming the email should be sent as HTML
+            dryrun=True,  # Set to False to actually send emails
+        )
 
 
 if __name__ == "__main__":
