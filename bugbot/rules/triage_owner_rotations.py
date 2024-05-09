@@ -96,14 +96,8 @@ class TriageOwnerRotations(BzCleaner):
                 ),
                 "new_triage_owner": new_triager.bugzilla_email,
                 "has_put_error": new_triager.component in failures,
-                "cc_emails": [
-                    self.component_triagers.get_current_triage_owner(
-                        new_triager.component
-                    ),
-                    new_triager.bugzilla_email,
-                ],
                 "link_to_triage": get_bug_bugdash_url(
-                    str(new_triager.component), triage=True
+                    new_triager.component, tab_name="triage"
                 ),
             }
             for new_triager in new_triagers
@@ -112,7 +106,8 @@ class TriageOwnerRotations(BzCleaner):
     def get_cc_emails(self, data: List[dict]) -> List[str]:
         cc_emails = set()
         for entry in data:
-            cc_emails.update(entry.get("cc_emails", []))
+            cc_emails.add(entry.get("old_triage_owner", ""))
+            cc_emails.add(entry.get("new_triage_owner", ""))
         return list(cc_emails)
 
 
