@@ -4,6 +4,7 @@
 
 
 from typing import List, Set
+from urllib.parse import quote_plus
 
 from jinja2 import Environment, FileSystemLoader
 from libmozdata.bugzilla import BugzillaComponent
@@ -104,11 +105,13 @@ class TriageOwnerRotations(BzCleaner):
                 }
             )
 
+            url = convert_to_url(str(new_triager.component))
+
             self.send_email_to_triage_owners(
                 old_owner,
                 new_triager.bugzilla_email,
                 new_triager.component,
-                "https://www.mozilla.org",
+                url,
             )
 
         return email_data
@@ -118,7 +121,6 @@ class TriageOwnerRotations(BzCleaner):
         env = Environment(loader=FileSystemLoader("templates"))
         template = env.get_template("triage_owner_rotations_2.html")
 
-        # Render the email body using the template and passing required details
         body = template.render(
             preamble="Triage Owner Update Notification",
             data=[
@@ -126,24 +128,34 @@ class TriageOwnerRotations(BzCleaner):
                     "component": component,
                     "old_triage_owner": old_email,
                     "new_triage_owner": new_email,
-                    "details_url": details_url,  # This is the new line to include the details URL
-                    "has_put_error": False,  # Assuming no error by default, update as needed
+                    "details_url": details_url,
+                    "has_put_error": False,
                 }
             ],
-            table_attrs="",  # You need to define what HTML attributes you want for the table if any
+            table_attrs="",
         )
 
         subject = "Triage Owner Update"
 
-        # Assuming mail.send is configured correctly in your environment
         mail.send(
-            From="your-email@mozilla.com",
+            From="xxx@xxxx.xxx",
             To=[old_email, new_email],
             Subject=subject,
             Body=body,
-            html=True,  # Assuming the email should be sent as HTML
-            dryrun=True,  # Set to False to actually send emails
+            html=True,
+            dryrun=True,
         )
+
+
+def convert_to_url(component: str) -> str:
+    # replace double colons with a single colon
+    component = component.replace("::", ":")
+
+    encoded = quote_plus(component)
+
+    url = "https://bugdash.moz.tools/?component=" + encoded
+
+    return url
 
 
 if __name__ == "__main__":
