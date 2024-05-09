@@ -773,7 +773,7 @@ def get_bug_bugdash_url(component: str, triage=False) -> str:
 
     Args:
         component: The component as a string.
-        triage: If True, append '#tab.triage' to URL.
+        triage: If True, generate a URL to the triage tab of the component.
 
     Returns:
         Bugdash URL for the component.
