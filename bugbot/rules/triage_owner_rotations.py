@@ -103,8 +103,6 @@ class TriageOwnerRotations(BzCleaner):
 
             data["cc_emails"] = [data["old_triage_owner"], data["new_triage_owner"]]
 
-            print(f"CC EMAILS: {data['cc_emails']}")
-
             email_data.append(data)
 
         return email_data
