@@ -4,7 +4,6 @@
 
 
 from typing import List, Set
-from urllib.parse import quote_plus
 
 from libmozdata.bugzilla import BugzillaComponent
 from requests import HTTPError
@@ -19,6 +18,7 @@ from tenacity import (
 from bugbot import logger
 from bugbot.bzcleaner import BzCleaner
 from bugbot.component_triagers import ComponentName, ComponentTriagers, TriageOwner
+from bugbot.utils import get_bug_bugdash_url
 
 
 class TriageOwnerRotations(BzCleaner):
@@ -102,19 +102,18 @@ class TriageOwnerRotations(BzCleaner):
                     ),
                     new_triager.bugzilla_email,
                 ],
+                "link_to_triage": get_bug_bugdash_url(
+                    str(new_triager.component), triage=True
+                ),
             }
             for new_triager in new_triagers
         ]
 
-    def convert_to_url(self, component: str) -> str:
-        # replace double colons with a single colon
-        component = component.replace("::", ":")
-
-        encoded = quote_plus(component)
-
-        url = "https://bugdash.moz.tools/?component=" + encoded
-
-        return url
+    def get_cc_emails(self, data: List[dict]) -> List[str]:
+        cc_emails = set()
+        for entry in data:
+            cc_emails.update(entry.get("cc_emails", []))
+        return list(cc_emails)
 
 
 if __name__ == "__main__":

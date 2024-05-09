@@ -214,6 +214,9 @@ class BzCleaner(object):
     def get_summary(self, bug):
         return "..." if bug["groups"] else bug["summary"]
 
+    def get_cc_emails(self, data):
+        return []
+
     def has_default_products(self):
         return True
 
@@ -764,15 +767,15 @@ class BzCleaner(object):
         if data:
             title, body = self.get_email(date, data)
             receivers = utils.get_receivers(self.name())
+            cc_list = self.get_cc_emails(data)
 
-            cc_list = {email for entry in data for email in entry.get("cc_emails", [])}
             status = "Success"
             try:
                 mail.send(
-                    From=login_info["ldap_username"],
-                    To=receivers,
-                    Subject=title,
-                    Body=body,
+                    login_info["ldap_username"],
+                    receivers,
+                    title,
+                    body,
                     Cc=cc_list,
                     html=True,
                     login=login_info,
