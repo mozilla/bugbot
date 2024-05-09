@@ -88,24 +88,23 @@ class TriageOwnerRotations(BzCleaner):
         failures = self._update_triage_owners(new_triagers)
         self.has_put_errors = len(failures) > 0
 
-        email_data = []
-
-        for new_triager in new_triagers:
-            data = {
+        return [
+            {
                 "component": new_triager.component,
                 "old_triage_owner": self.component_triagers.get_current_triage_owner(
                     new_triager.component
                 ),
                 "new_triage_owner": new_triager.bugzilla_email,
                 "has_put_error": new_triager.component in failures,
-                "link_to_triage": self.convert_to_url(str(new_triager.component)),
+                "cc_emails": [
+                    self.component_triagers.get_current_triage_owner(
+                        new_triager.component
+                    ),
+                    new_triager.bugzilla_email,
+                ],
             }
-
-            data["cc_emails"] = [data["old_triage_owner"], data["new_triage_owner"]]
-
-            email_data.append(data)
-
-        return email_data
+            for new_triager in new_triagers
+        ]
 
     def convert_to_url(self, component: str) -> str:
         # replace double colons with a single colon
