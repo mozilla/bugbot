@@ -11,6 +11,7 @@
             <th>Component</th>
             <th>Old Triage Owner</th>
             <th>New Triage Owner</th>
+            <th>Link to Triage</th>
         </tr>
     </thead>
     <tbody>
@@ -19,6 +20,9 @@
                 <td>{{ row['component'] }}</td>
                 <td>{{ row['old_triage_owner'] }}</td>
                 <td>{{ row['new_triage_owner'] }}</td>
+                <td>
+                    <a href="{{ row['link_to_triage'] }}">View Triage</a>
+                </td>
             </tr>
         {% endfor -%}
     </tbody>

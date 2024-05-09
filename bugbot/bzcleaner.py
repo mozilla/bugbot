@@ -764,13 +764,16 @@ class BzCleaner(object):
         if data:
             title, body = self.get_email(date, data)
             receivers = utils.get_receivers(self.name())
+
+            cc_list = {email for entry in data for email in entry.get("cc_emails", [])}
             status = "Success"
             try:
                 mail.send(
-                    login_info["ldap_username"],
-                    receivers,
-                    title,
-                    body,
+                    From=login_info["ldap_username"],
+                    To=receivers,
+                    Subject=title,
+                    Body=body,
+                    Cc=cc_list,
                     html=True,
                     login=login_info,
                     dryrun=self.dryrun,
