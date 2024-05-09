@@ -104,30 +104,24 @@ class TriageOwnerRotations(BzCleaner):
         failures = self._update_triage_owners(new_triagers)
         self.has_put_errors = len(failures) > 0
 
-        email_data = []
-
-        for new_triager in new_triagers:
-            old_owner = self.component_triagers.get_current_triage_owner(
-                new_triager.component
-            )
-
-            email_data.append(
-                {
-                    "component": new_triager.component,
-                    "old_triage_owner": old_owner,
-                    "new_triage_owner": new_triager.bugzilla_email,
-                    "has_put_error": new_triager.component in failures,
-                }
-            )
-
-        return email_data
+        return [
+            {
+                "component": new_triager.component,
+                "old_triage_owner": self.component_triagers.get_current_triage_owner(
+                    new_triager.component
+                ),
+                "new_triage_owner": new_triager.bugzilla_email,
+                "has_put_error": new_triager.component in failures,
+            }
+            for new_triager in new_triagers
+        ]
 
     def send_email_to_triage_owners(
         self, old_email, new_email, component, details_url, error_occurred
     ):
         """Send an email to the old and new triage owners about the switch."""
         env = Environment(loader=FileSystemLoader("templates"))
-        template = env.get_template("triage_owner_rotations_2.html")
+        template = env.get_template("triage_owner_rotations_notifications.html")
 
         body = template.render(
             preamble="Triage Owner Update Notification",
