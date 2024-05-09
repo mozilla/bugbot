@@ -57,18 +57,33 @@ class TriageOwnerRotations(BzCleaner):
                 new_triager.component,
                 new_triager.bugzilla_email,
             )
+            error_occurred = False
 
             if not self.dryrun and not self.test_mode:
                 try:
                     self._put_new_triage_owner(new_triager)
                 except (HTTPError, RetryError) as err:
                     failures.add(new_triager.component)
+                    error_occurred = True
                     logger.exception(
                         "Cannot update the triage owner for '%s' to be '%s': %s",
                         new_triager.component,
                         new_triager.bugzilla_email,
                         err,
                     )
+
+            old_owner = self.component_triagers.get_current_triage_owner(
+                new_triager.component
+            )
+            details_url = self.convert_to_url(str(new_triager.component))
+
+            self.send_email_to_triage_owners(
+                old_owner,
+                new_triager.bugzilla_email,
+                new_triager.component,
+                details_url,
+                error_occurred,
+            )
 
         return failures
 
@@ -105,18 +120,11 @@ class TriageOwnerRotations(BzCleaner):
                 }
             )
 
-            url = convert_to_url(str(new_triager.component))
-
-            self.send_email_to_triage_owners(
-                old_owner,
-                new_triager.bugzilla_email,
-                new_triager.component,
-                url,
-            )
-
         return email_data
 
-    def send_email_to_triage_owners(self, old_email, new_email, component, details_url):
+    def send_email_to_triage_owners(
+        self, old_email, new_email, component, details_url, error_occurred
+    ):
         """Send an email to the old and new triage owners about the switch."""
         env = Environment(loader=FileSystemLoader("templates"))
         template = env.get_template("triage_owner_rotations_2.html")
@@ -129,7 +137,7 @@ class TriageOwnerRotations(BzCleaner):
                     "old_triage_owner": old_email,
                     "new_triage_owner": new_email,
                     "details_url": details_url,
-                    "has_put_error": False,
+                    "has_put_error": error_occurred,
                 }
             ],
             table_attrs="",
@@ -146,16 +154,15 @@ class TriageOwnerRotations(BzCleaner):
             dryrun=True,
         )
 
+    def convert_to_url(self, component: str) -> str:
+        # replace double colons with a single colon
+        component = component.replace("::", ":")
 
-def convert_to_url(component: str) -> str:
-    # replace double colons with a single colon
-    component = component.replace("::", ":")
+        encoded = quote_plus(component)
 
-    encoded = quote_plus(component)
+        url = "https://bugdash.moz.tools/?component=" + encoded
 
-    url = "https://bugdash.moz.tools/?component=" + encoded
-
-    return url
+        return url
 
 
 if __name__ == "__main__":
