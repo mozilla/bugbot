@@ -9,7 +9,7 @@ import os
 import random
 import re
 from typing import Iterable, Union
-from urllib.parse import urlencode
+from urllib.parse import quote_plus, urlencode
 
 import dateutil.parser
 import humanize
@@ -765,3 +765,20 @@ def is_keywords_removed_by_bugbot(bug: dict, keywords: Iterable) -> bool:
         if change["field_name"] == "keywords"
         for keyword in keywords
     )
+
+
+def get_bug_bugdash_url(component, tab_name: str) -> str:
+    """
+    Generate bugdash URL for a component.
+
+    Args:
+        component: The name of the targeted component.
+        tab_name: The name of the tab that should be active.
+
+    Returns:
+         A URL pointing to Bugdash based on the provided component and tab.
+    """
+    # Bugdash uses a single colon instead of a double colon to prefix the product name.
+    encoded_component = quote_plus(f"{component.product}:{component.name}")
+
+    return f"https://bugdash.moz.tools/?component={encoded_component}#tab.{tab_name}"

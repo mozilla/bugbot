@@ -18,6 +18,7 @@ from tenacity import (
 from bugbot import logger
 from bugbot.bzcleaner import BzCleaner
 from bugbot.component_triagers import ComponentName, ComponentTriagers, TriageOwner
+from bugbot.utils import get_bug_bugdash_url
 
 
 class TriageOwnerRotations(BzCleaner):
@@ -95,9 +96,19 @@ class TriageOwnerRotations(BzCleaner):
                 ),
                 "new_triage_owner": new_triager.bugzilla_email,
                 "has_put_error": new_triager.component in failures,
+                "link_to_triage": get_bug_bugdash_url(
+                    new_triager.component, tab_name="triage"
+                ),
             }
             for new_triager in new_triagers
         ]
+
+    def get_cc_emails(self, data: List[dict]) -> List[str]:
+        cc_emails = set()
+        for entry in data:
+            cc_emails.add(entry.get("old_triage_owner", ""))
+            cc_emails.add(entry.get("new_triage_owner", ""))
+        return list(cc_emails)
 
 
 if __name__ == "__main__":
