@@ -47,7 +47,7 @@ class TestRoundRobin(unittest.TestCase):
                 "cn": "{} {}".format(x.upper(), y.upper()),
                 "ismanager": "FALSE",
                 "title": "nothing",
-                # Dummy info to satisfy the Person type:
+                # Dummy info to satisfy the Person type
                 "bugzillaEmail": "",
                 "bugzillaID": "",
                 "dn": "mail=xx@mozilla.com,o=com,dc=mozilla",
