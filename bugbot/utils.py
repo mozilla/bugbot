@@ -769,24 +769,16 @@ def is_keywords_removed_by_bugbot(bug: dict, keywords: Iterable) -> bool:
 
 def get_bug_bugdash_url(component, tab_name: str) -> str:
     """
-    Generate bugdash URL from a component.
+    Generate bugdash URL for a component.
 
     Args:
-        component: The component as a ComponentName object.
-        tab_name: Specifies the tab of the component.
+        component: The name of the targeted component.
+        tab_name: The name of the tab that should be active.
 
     Returns:
-        Bugdash URL for the component.
+         A URL pointing to Bugdash based on the provided component and tab.
     """
     # Bugdash uses a single colon instead of a double colon to prefix the product name.
     encoded_component = quote_plus(f"{component.product}:{component.name}")
 
-    valid_tabs = ["triage", "important", "stalled", "reo", "tracked"]
-    tail = ""
-
-    if tab_name and tab_name in valid_tabs:
-        tail = "#tab." + tab_name
-
-    url = "https://bugdash.moz.tools/?component=" + encoded_component + tail
-
-    return url
+    return f"https://bugdash.moz.tools/?component={encoded_component}#tab.{tab_name}"
