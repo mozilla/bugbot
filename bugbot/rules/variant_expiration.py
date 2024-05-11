@@ -24,7 +24,7 @@ VARIANT_BUG_PAT = re.compile(
     r"^The variant `(.*)` expiration is on (\d{4}-\d{2}-\d{2})$"
 )
 
-VARIANTS_PATH = "taskcluster/ci/test/variants.yml"
+VARIANTS_PATH = "taskcluster/kinds/test/variants.yml"
 VARIANTS_SEARCHFOX_URL = "https://searchfox.org/mozilla-central/source/" + VARIANTS_PATH
 VARIANTS_HG_URL = "https://hg.mozilla.org/mozilla-central/raw-file/tip/" + VARIANTS_PATH
 
