@@ -306,8 +306,7 @@ class VariantExpiration(BzCleaner, Nag):
                 "flags": [
                     {
                         "name": "needinfo",
-                        "requestee": "",
-                        "status": "",
+                        "status": "-",
                     }
                 ],
             }
