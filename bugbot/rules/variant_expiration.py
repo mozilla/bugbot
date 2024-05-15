@@ -303,6 +303,13 @@ class VariantExpiration(BzCleaner, Nag):
                 "comment": {
                     "body": f"The variant has been removed from the [variants.yml]({VARIANTS_SEARCHFOX_URL}) file."
                 },
+                "flags": [
+                    {
+                        "name": "needinfo",
+                        "requestee": bug["triage_owner"],
+                        "status": "X",
+                    }
+                ],
             }
         elif action == ExpirationAction.CLOSE_EXTENDED:
             new_date = self.variants[variant_name]["expiration"].strftime("%Y-%m-%d")
