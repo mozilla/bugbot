@@ -306,8 +306,8 @@ class VariantExpiration(BzCleaner, Nag):
                 "flags": [
                     {
                         "name": "needinfo",
-                        "requestee": bug["triage_owner"],
-                        "status": "X",
+                        "requestee": "",
+                        "status": "",
                     }
                 ],
             }
