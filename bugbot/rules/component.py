@@ -91,6 +91,9 @@ class Component(BzCleaner):
 
         results = {}
 
+        # List to store IDs of bugs classified as Fenix::General
+        fenix_general_bug_ids = []
+
         for bug_id in sorted(bugs.keys()):
             bug_data = bugs[bug_id]
 
@@ -171,6 +174,58 @@ class Component(BzCleaner):
                 # In hourly mode, we send an email with only the bugs we acted upon.
                 if self.frequency == "hourly":
                     results[bug_id] = result
+
+            # Collect bugs that were classified as Fenix::General
+            if bug["product"] == "Fenix" and bug["component"] == "General":
+                fenix_general_bug_ids.append(bug_id)
+
+        # Reclassify Fenix::General bugs using the Fenix-specific model
+        if fenix_general_bug_ids:
+            # TODO: Use the correct name for the Fenix-specific model
+            fenix_bugs = get_bug_ids_classification(
+                "fenixcomponent", fenix_general_bug_ids
+            )
+            for fenix_bug_id in sorted(fenix_bugs.keys()):
+                fenix_bug_data = fenix_bugs[fenix_bug_id]
+
+                bug = raw_bugs[fenix_bug_id]
+                prob = fenix_bug_data["prob"]
+                index = fenix_bug_data["index"]
+                suggestion = fenix_bug_data["class"]
+
+                i = suggestion.index("::")
+                suggested_product = suggestion[:i]
+                suggested_component = suggestion[i + 2 :]
+
+                result = {
+                    "id": fenix_bug_id,
+                    "summary": bug["summary"],
+                    "component": suggestion,
+                    "confidence": nice_round(prob[index]),
+                    "autofixed": False,
+                }
+
+                # In daily mode, we send an email with all results.
+                if self.frequency == "daily":
+                    results[fenix_bug_id] = result
+
+                confidence_threshold_conf = (
+                    "confidence_threshold"
+                    if bug["component"] != "General"
+                    else "general_confidence_threshold"
+                )
+
+                if prob[index] >= self.get_config(confidence_threshold_conf):
+                    self.autofix_component[fenix_bug_id] = {
+                        "product": suggested_product,
+                        "component": suggested_component,
+                    }
+
+                    result["autofixed"] = True
+
+                    # In hourly mode, we send an email with only the bugs we acted upon.
+                    if self.frequency == "hourly":
+                        results[fenix_bug_id] = result
 
         # Don't move bugs back into components they were moved out of.
         # TODO: Use the component suggestion from the service with the second highest confidence instead.
