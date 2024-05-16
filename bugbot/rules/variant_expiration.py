@@ -346,7 +346,7 @@ class VariantExpiration(BzCleaner, Nag):
                 self.autofix_changes[bugid] = {
                     "comment": {
                         "body": EXPIRED_VARIANT_COMMENT,
-                    }
+                    },
                 }
 
         return bug
