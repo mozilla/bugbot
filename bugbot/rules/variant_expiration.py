@@ -306,7 +306,7 @@ class VariantExpiration(BzCleaner, Nag):
                 "flags": [
                     {
                         "name": "needinfo",
-                        "status": "-",
+                        "status": "X",
                     }
                 ],
             }
@@ -318,6 +318,12 @@ class VariantExpiration(BzCleaner, Nag):
                 "comment": {
                     "body": f"The variant expiration date got extended to {new_date}",
                 },
+                "flags": [
+                    {
+                        "name": "needinfo",
+                        "status": "X",
+                    }
+                ],
             }
         elif action == ExpirationAction.NEEDINFO_TRIAGER:
             self.ni_extra[bugid] = {
@@ -340,7 +346,7 @@ class VariantExpiration(BzCleaner, Nag):
                 self.autofix_changes[bugid] = {
                     "comment": {
                         "body": EXPIRED_VARIANT_COMMENT,
-                    },
+                    }
                 }
 
         return bug
