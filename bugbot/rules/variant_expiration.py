@@ -296,6 +296,8 @@ class VariantExpiration(BzCleaner, Nag):
             "expiration": bug_expiration.strftime("%Y-%m-%d"),
         }
 
+        requestee = self.get_needinfo_requestee(bug)
+
         if action == ExpirationAction.CLOSE_DROPPED:
             self.autofix_changes[bugid] = {
                 "status": "RESOLVED",
@@ -307,6 +309,7 @@ class VariantExpiration(BzCleaner, Nag):
                     {
                         "name": "needinfo",
                         "status": "X",
+                        "requestee": requestee,
                     }
                 ],
             }
@@ -322,6 +325,7 @@ class VariantExpiration(BzCleaner, Nag):
                     {
                         "name": "needinfo",
                         "status": "X",
+                        "requestee": requestee,
                     }
                 ],
             }
@@ -350,6 +354,18 @@ class VariantExpiration(BzCleaner, Nag):
                 }
 
         return bug
+
+    def get_needinfo_requestee(self, bug: dict) -> str:
+        """Get the requestee of the needinfo flag"""
+        for history in bug["history"]:
+            for change in history["changes"]:
+                if change["field_name"] == "flagtypes.name" and change[
+                    "added"
+                ].startswith("needinfo?"):
+                    return change["added"].split("?")[1].strip("()")
+
+        # Default return triage owner if no requestee found for needinfo flag.
+        return bug["triage_owner"]
 
     def is_with_patch(self, bug: dict) -> bool:
         """Check if the bug has a patch (not obsolete))"""
