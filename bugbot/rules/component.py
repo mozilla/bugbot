@@ -77,6 +77,96 @@ class Component(BzCleaner):
         }
 
     def get_bugs(self, date="today", bug_ids=[]):
+        def process_bugs(bugs, raw_bugs, results, reclassify_fenix):
+            for bug_id in sorted(bugs.keys()):
+                bug_data = bugs[bug_id]
+
+                if not bug_data.get("available", True):
+                    # The bug was not available, it was either removed or is a
+                    # security bug
+                    continue
+
+                if not {"prob", "index", "class", "extra_data"}.issubset(
+                    bug_data.keys()
+                ):
+                    raise Exception(f"Invalid bug response {bug_id}: {bug_data!r}")
+
+                bug = raw_bugs[bug_id]
+                prob = bug_data["prob"]
+                index = bug_data["index"]
+                suggestion = bug_data["class"]
+                conflated_components_mapping = bug_data["extra_data"][
+                    "conflated_components_mapping"
+                ]
+
+                # Skip product-only suggestions that are not useful.
+                if "::" not in suggestion and bug["product"] == suggestion:
+                    continue
+
+                suggestion = conflated_components_mapping.get(suggestion, suggestion)
+
+                if "::" not in suggestion:
+                    logger.error(
+                        f"There is something wrong with this component suggestion! {suggestion}"
+                    )
+                    continue
+
+                i = suggestion.index("::")
+                suggested_product = suggestion[:i]
+                suggested_component = suggestion[i + 2 :]
+
+                # When moving bugs out of the 'General' component, we don't want to change the product (unless it is Firefox).
+                if bug["component"] == "General" and bug["product"] not in {
+                    suggested_product,
+                    "Firefox",
+                }:
+                    continue
+
+                # Don't move bugs from Firefox::General to Core::Internationalization.
+                if (
+                    bug["product"] == "Firefox"
+                    and bug["component"] == "General"
+                    and suggested_product == "Core"
+                    and suggested_component == "Internationalization"
+                ):
+                    continue
+
+                result = {
+                    "id": bug_id,
+                    "summary": bug["summary"],
+                    "component": suggestion,
+                    "confidence": nice_round(prob[index]),
+                    "autofixed": False,
+                }
+
+                # In daily mode, we send an email with all results.
+                if self.frequency == "daily":
+                    results[bug_id] = result
+
+                confidence_threshold_conf = (
+                    "confidence_threshold"
+                    if bug["component"] != "General"
+                    else "general_confidence_threshold"
+                )
+
+                if prob[index] >= self.get_config(confidence_threshold_conf):
+                    self.autofix_component[bug_id] = {
+                        "product": suggested_product,
+                        "component": suggested_component,
+                    }
+
+                    result["autofixed"] = True
+
+                    # In hourly mode, we send an email with only the bugs we acted upon.
+                    if self.frequency == "hourly":
+                        results[bug_id] = result
+
+                # Collect bugs that were classified as Fenix::General
+                if bug["product"] == "Fenix" and bug["component"] == "General":
+                    fenix_general_bug_ids.append(bug_id)
+
+            return fenix_general_bug_ids
+
         # Retrieve the bugs with the fields defined in get_bz_params
         raw_bugs = super().get_bugs(date=date, bug_ids=bug_ids, chunk_size=7000)
 
@@ -94,138 +184,15 @@ class Component(BzCleaner):
         # List to store IDs of bugs classified as Fenix::General
         fenix_general_bug_ids = []
 
-        for bug_id in sorted(bugs.keys()):
-            bug_data = bugs[bug_id]
+        fenix_general_bug_ids = process_bugs(
+            bugs, raw_bugs, results, fenix_general_bug_ids
+        )
 
-            if not bug_data.get("available", True):
-                # The bug was not available, it was either removed or is a
-                # security bug
-                continue
-
-            if not {"prob", "index", "class", "extra_data"}.issubset(bug_data.keys()):
-                raise Exception(f"Invalid bug response {bug_id}: {bug_data!r}")
-
-            bug = raw_bugs[bug_id]
-            prob = bug_data["prob"]
-            index = bug_data["index"]
-            suggestion = bug_data["class"]
-            conflated_components_mapping = bug_data["extra_data"][
-                "conflated_components_mapping"
-            ]
-
-            # Skip product-only suggestions that are not useful.
-            if "::" not in suggestion and bug["product"] == suggestion:
-                continue
-
-            suggestion = conflated_components_mapping.get(suggestion, suggestion)
-
-            if "::" not in suggestion:
-                logger.error(
-                    f"There is something wrong with this component suggestion! {suggestion}"
-                )
-                continue
-
-            i = suggestion.index("::")
-            suggested_product = suggestion[:i]
-            suggested_component = suggestion[i + 2 :]
-
-            # When moving bugs out of the 'General' component, we don't want to change the product (unless it is Firefox).
-            if bug["component"] == "General" and bug["product"] not in {
-                suggested_product,
-                "Firefox",
-            }:
-                continue
-
-            # Don't move bugs from Firefox::General to Core::Internationalization.
-            if (
-                bug["product"] == "Firefox"
-                and bug["component"] == "General"
-                and suggested_product == "Core"
-                and suggested_component == "Internationalization"
-            ):
-                continue
-
-            result = {
-                "id": bug_id,
-                "summary": bug["summary"],
-                "component": suggestion,
-                "confidence": nice_round(prob[index]),
-                "autofixed": False,
-            }
-
-            # In daily mode, we send an email with all results.
-            if self.frequency == "daily":
-                results[bug_id] = result
-
-            confidence_threshold_conf = (
-                "confidence_threshold"
-                if bug["component"] != "General"
-                else "general_confidence_threshold"
-            )
-
-            if prob[index] >= self.get_config(confidence_threshold_conf):
-                self.autofix_component[bug_id] = {
-                    "product": suggested_product,
-                    "component": suggested_component,
-                }
-
-                result["autofixed"] = True
-
-                # In hourly mode, we send an email with only the bugs we acted upon.
-                if self.frequency == "hourly":
-                    results[bug_id] = result
-
-            # Collect bugs that were classified as Fenix::General
-            if bug["product"] == "Fenix" and bug["component"] == "General":
-                fenix_general_bug_ids.append(bug_id)
-
-        # Reclassify Fenix::General bugs using the Fenix-specific model
         if fenix_general_bug_ids:
-            # TODO: Use the correct name for the Fenix-specific model
             fenix_bugs = get_bug_ids_classification(
                 "fenixcomponent", fenix_general_bug_ids
             )
-            for fenix_bug_id in sorted(fenix_bugs.keys()):
-                fenix_bug_data = fenix_bugs[fenix_bug_id]
-
-                bug = raw_bugs[fenix_bug_id]
-                prob = fenix_bug_data["prob"]
-                index = fenix_bug_data["index"]
-                suggestion = fenix_bug_data["class"]
-
-                i = suggestion.index("::")
-                suggested_product = suggestion[:i]
-                suggested_component = suggestion[i + 2 :]
-
-                result = {
-                    "id": fenix_bug_id,
-                    "summary": bug["summary"],
-                    "component": suggestion,
-                    "confidence": nice_round(prob[index]),
-                    "autofixed": False,
-                }
-
-                # In daily mode, we send an email with all results.
-                if self.frequency == "daily":
-                    results[fenix_bug_id] = result
-
-                confidence_threshold_conf = (
-                    "confidence_threshold"
-                    if bug["component"] != "General"
-                    else "general_confidence_threshold"
-                )
-
-                if prob[index] >= self.get_config(confidence_threshold_conf):
-                    self.autofix_component[fenix_bug_id] = {
-                        "product": suggested_product,
-                        "component": suggested_component,
-                    }
-
-                    result["autofixed"] = True
-
-                    # In hourly mode, we send an email with only the bugs we acted upon.
-                    if self.frequency == "hourly":
-                        results[fenix_bug_id] = result
+            process_bugs(fenix_bugs, raw_bugs, results)
 
         # Don't move bugs back into components they were moved out of.
         # TODO: Use the component suggestion from the service with the second highest confidence instead.
