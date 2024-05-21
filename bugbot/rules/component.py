@@ -93,7 +93,7 @@ class Component(BzCleaner):
         fenix_general_bug_ids = [
             bug_id
             for bug_id, bug_data in bugs.items()
-            if "class" in bug_data and bug_data["class"] == "Fenix::General"
+            if bug_data.get("class") == "Fenix::General"
         ]
 
         # Reclassify the Fenix::General bugs using the fenixcomponent model
@@ -101,8 +101,8 @@ class Component(BzCleaner):
             fenix_general_classification = get_bug_ids_classification(
                 "fenixcomponent", fenix_general_bug_ids
             )
-            for bug_id in fenix_general_classification:
-                bugs[bug_id] = fenix_general_classification[bug_id]
+            for bug_id, data in fenix_general_classification.items():
+                bugs[bug_id] = data
 
         results = {}
 
