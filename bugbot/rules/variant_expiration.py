@@ -296,7 +296,7 @@ class VariantExpiration(BzCleaner, Nag):
             "expiration": bug_expiration.strftime("%Y-%m-%d"),
         }
 
-        requestee = self.get_needinfo_requestee(bug)
+        needinfo_flag_id = self.get_needinfo_id(bug)
 
         if action == ExpirationAction.CLOSE_DROPPED:
             self.autofix_changes[bugid] = {
@@ -305,14 +305,17 @@ class VariantExpiration(BzCleaner, Nag):
                 "comment": {
                     "body": f"The variant has been removed from the [variants.yml]({VARIANTS_SEARCHFOX_URL}) file."
                 },
-                "flags": [
-                    {
-                        "name": "needinfo",
-                        "status": "X",
-                        "requestee": requestee,
-                    }
-                ],
             }
+
+            if needinfo_flag_id:
+                self.autofix_changes[bugid] = {
+                    "flags": [
+                        {
+                            "id": needinfo_flag_id,
+                            "status": "X",
+                        }
+                    ],
+                }
         elif action == ExpirationAction.CLOSE_EXTENDED:
             new_date = self.variants[variant_name]["expiration"].strftime("%Y-%m-%d")
             self.autofix_changes[bugid] = {
@@ -321,14 +324,18 @@ class VariantExpiration(BzCleaner, Nag):
                 "comment": {
                     "body": f"The variant expiration date got extended to {new_date}",
                 },
-                "flags": [
-                    {
-                        "name": "needinfo",
-                        "status": "X",
-                        "requestee": requestee,
-                    }
-                ],
             }
+
+            if needinfo_flag_id:
+                self.autofix_changes[bugid] = {
+                    "flags": [
+                        {
+                            "id": needinfo_flag_id,
+                            "status": "X",
+                        }
+                    ],
+                }
+
         elif action == ExpirationAction.NEEDINFO_TRIAGER:
             self.ni_extra[bugid] = {
                 "has_patch": has_patch,
@@ -355,17 +362,14 @@ class VariantExpiration(BzCleaner, Nag):
 
         return bug
 
-    def get_needinfo_requestee(self, bug: dict) -> str:
-        """Get the requestee of the needinfo flag"""
-        for history in bug["history"]:
-            for change in history["changes"]:
-                if change["field_name"] == "flagtypes.name" and change[
-                    "added"
-                ].startswith("needinfo?"):
-                    return change["added"].split("?")[1].strip("()")
+    def get_needinfo_id(self, bug: dict) -> str:
+        """Get the ID of the needinfo flag"""
 
-        # Default return triage owner if no requestee found for needinfo flag.
-        return bug["triage_owner"]
+        for flag in bug.get("flags", []):
+            if flag["name"] == "needinfo":
+                return flag["id"]
+
+        return ""
 
     def is_with_patch(self, bug: dict) -> bool:
         """Check if the bug has a patch (not obsolete))"""
