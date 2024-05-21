@@ -101,8 +101,23 @@ class Component(BzCleaner):
             fenix_general_classification = get_bug_ids_classification(
                 "fenixcomponent", fenix_general_bug_ids
             )
+
+            confidence_threshold = self.get_config("confidence_threshold")
+            general_confidence_threshold = self.get_config(
+                "general_confidence_threshold"
+            )
+
             for bug_id, data in fenix_general_classification.items():
-                bugs[bug_id] = data
+                original_data = bugs[bug_id]
+                original_confidence = original_data["prob"][original_data["index"]]
+                new_confidence = data["prob"][data["index"]]
+
+                # If the original confidence for Fenix::General met the threshold and the new classification does not, keep the old classification.
+                if not (
+                    new_confidence < confidence_threshold
+                    and original_confidence > general_confidence_threshold
+                ):
+                    bugs[bug_id] = data
 
         results = {}
 
