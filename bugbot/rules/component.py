@@ -89,14 +89,14 @@ class Component(BzCleaner):
         # Classify those bugs
         bugs = get_bug_ids_classification("component", bug_ids)
 
-        # Collect bugs classified as Fenix:General
+        # Collect bugs classified as Fenix::General
         fenix_general_bug_ids = [
             bug_id
             for bug_id, bug_data in bugs.items()
             if "class" in bug_data and bug_data["class"] == "Fenix::General"
         ]
 
-        # Reclassify the Fenix:General bugs using the fenixcomponent model
+        # Reclassify the Fenix::General bugs using the fenixcomponent model
         if fenix_general_bug_ids:
             fenix_general_classification = get_bug_ids_classification(
                 "fenixcomponent", fenix_general_bug_ids
