@@ -5,7 +5,7 @@
 import re
 from datetime import datetime, timedelta
 from enum import IntEnum, auto
-from typing import Dict, Iterable, Optional
+from typing import Dict, Iterable, List, Optional
 
 import humanize
 import requests
@@ -296,7 +296,7 @@ class VariantExpiration(BzCleaner, Nag):
             "expiration": bug_expiration.strftime("%Y-%m-%d"),
         }
 
-        needinfo_flag_id = self.get_needinfo_id(bug)
+        needinfo_flag_ids = self.get_needinfo_ids(bug)
 
         if action == ExpirationAction.CLOSE_DROPPED:
             self.autofix_changes[bugid] = {
@@ -307,15 +307,16 @@ class VariantExpiration(BzCleaner, Nag):
                 },
             }
 
-            if needinfo_flag_id:
-                self.autofix_changes[bugid] = {
-                    "flags": [
-                        {
-                            "id": needinfo_flag_id,
-                            "status": "X",
-                        }
-                    ],
-                }
+            if needinfo_flag_ids:
+                needinfo_changes = [
+                    {
+                        "id": flag_id,
+                        "status": "X",
+                    }
+                    for flag_id in needinfo_flag_ids
+                ]
+                self.autofix_changes[bugid]["flags"] = needinfo_changes
+
         elif action == ExpirationAction.CLOSE_EXTENDED:
             new_date = self.variants[variant_name]["expiration"].strftime("%Y-%m-%d")
             self.autofix_changes[bugid] = {
@@ -326,15 +327,15 @@ class VariantExpiration(BzCleaner, Nag):
                 },
             }
 
-            if needinfo_flag_id:
-                self.autofix_changes[bugid] = {
-                    "flags": [
-                        {
-                            "id": needinfo_flag_id,
-                            "status": "X",
-                        }
-                    ],
-                }
+            if needinfo_flag_ids:
+                needinfo_changes = [
+                    {
+                        "id": flag_id,
+                        "status": "X",
+                    }
+                    for flag_id in needinfo_flag_ids
+                ]
+                self.autofix_changes[bugid]["flags"] = needinfo_changes
 
         elif action == ExpirationAction.NEEDINFO_TRIAGER:
             self.ni_extra[bugid] = {
@@ -362,14 +363,16 @@ class VariantExpiration(BzCleaner, Nag):
 
         return bug
 
-    def get_needinfo_id(self, bug: dict) -> str:
-        """Get the ID of the needinfo flag"""
+    def get_needinfo_ids(self, bug: dict) -> List[str]:
+        """Get the IDs of the needinfo flags requested by the bot"""
+        bot_email = utils.get_config("common", "bot_bz_mail")[0]
+        needinfo_ids = []
 
         for flag in bug.get("flags", []):
-            if flag["name"] == "needinfo":
-                return flag["id"]
+            if flag["name"] == "needinfo" and flag["requestee"] == bot_email:
+                needinfo_ids.append(flag["id"])
 
-        return ""
+        return needinfo_ids
 
     def is_with_patch(self, bug: dict) -> bool:
         """Check if the bug has a patch (not obsolete))"""
