@@ -365,11 +365,10 @@ class VariantExpiration(BzCleaner, Nag):
 
     def get_needinfo_ids(self, bug: dict) -> List[str]:
         """Get the IDs of the needinfo flags requested by the bot"""
-        bot_email = utils.get_config("common", "bot_bz_mail")[0]
         needinfo_ids = []
 
         for flag in bug.get("flags", []):
-            if flag["name"] == "needinfo" and flag["requestee"] == bot_email:
+            if flag["name"] == "needinfo" and flag["requestee"] == History.BOT:
                 needinfo_ids.append(flag["id"])
 
         return needinfo_ids
