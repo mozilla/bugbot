@@ -365,13 +365,11 @@ class VariantExpiration(BzCleaner, Nag):
 
     def get_needinfo_ids(self, bug: dict) -> List[str]:
         """Get the IDs of the needinfo flags requested by the bot"""
-        needinfo_ids = []
-
-        for flag in bug.get("flags", []):
-            if flag["name"] == "needinfo" and flag["requestee"] == History.BOT:
-                needinfo_ids.append(flag["id"])
-
-        return needinfo_ids
+        return [
+            flag["id"]
+            for flag in bug.get("flags", [])
+            if flag["name"] == "needinfo" and flag["requestee"] == History.BOT
+        ]
 
     def is_with_patch(self, bug: dict) -> bool:
         """Check if the bug has a patch (not obsolete))"""
