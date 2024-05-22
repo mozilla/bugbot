@@ -5,7 +5,7 @@
 import re
 from datetime import datetime, timedelta
 from enum import IntEnum, auto
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable, Optional
 
 import humanize
 import requests
@@ -363,7 +363,7 @@ class VariantExpiration(BzCleaner, Nag):
 
         return bug
 
-    def get_needinfo_ids(self, bug: dict) -> List[str]:
+    def get_needinfo_ids(self, bug: dict) -> list[str]:
         """Get the IDs of the needinfo flags requested by the bot"""
         return [
             flag["id"]
