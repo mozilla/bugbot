@@ -303,7 +303,15 @@ class VariantExpiration(BzCleaner, Nag):
                 "comment": {
                     "body": f"The variant has been removed from the [variants.yml]({VARIANTS_SEARCHFOX_URL}) file."
                 },
+                "flags": [
+                    {
+                        "id": flag_id,
+                        "status": "X",
+                    }
+                    for flag_id in self.get_needinfo_ids(bug)
+                ],
             }
+
         elif action == ExpirationAction.CLOSE_EXTENDED:
             new_date = self.variants[variant_name]["expiration"].strftime("%Y-%m-%d")
             self.autofix_changes[bugid] = {
@@ -312,7 +320,15 @@ class VariantExpiration(BzCleaner, Nag):
                 "comment": {
                     "body": f"The variant expiration date got extended to {new_date}",
                 },
+                "flags": [
+                    {
+                        "id": flag_id,
+                        "status": "X",
+                    }
+                    for flag_id in self.get_needinfo_ids(bug)
+                ],
             }
+
         elif action == ExpirationAction.NEEDINFO_TRIAGER:
             self.ni_extra[bugid] = {
                 "has_patch": has_patch,
@@ -338,6 +354,14 @@ class VariantExpiration(BzCleaner, Nag):
                 }
 
         return bug
+
+    def get_needinfo_ids(self, bug: dict) -> list[str]:
+        """Get the IDs of the needinfo flags requested by the bot"""
+        return [
+            flag["id"]
+            for flag in bug.get("flags", [])
+            if flag["name"] == "needinfo" and flag["requestee"] == History.BOT
+        ]
 
     def is_with_patch(self, bug: dict) -> bool:
         """Check if the bug has a patch (not obsolete))"""
