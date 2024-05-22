@@ -181,6 +181,10 @@ class CrashSmallVolume(BzCleaner):
                 )
                 autofix["keywords"] = {"remove": list(bug["keywords_to_remove"])}
 
+                # TODO: create method to identify needinfo flags requested by the bot and are specifically for increasing severity
+                if "topcrash" in bug["keywords_to_remove"]:
+                    autofix["flags"] = {"id": 0, "status": "X"}
+
             if not bug["ignore_severity"] and all(
                 signature in low_volume_signatures for signature in bug["signatures"]
             ):
