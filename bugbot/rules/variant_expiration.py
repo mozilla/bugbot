@@ -307,15 +307,13 @@ class VariantExpiration(BzCleaner, Nag):
                 },
             }
 
-            if needinfo_flag_ids:
-                needinfo_changes = [
-                    {
-                        "id": flag_id,
-                        "status": "X",
-                    }
-                    for flag_id in needinfo_flag_ids
-                ]
-                self.autofix_changes[bugid]["flags"] = needinfo_changes
+            self.autofix_changes[bugid]["flags"] = [
+                {
+                    "id": flag_id,
+                    "status": "X",
+                }
+                for flag_id in needinfo_flag_ids
+            ]
 
         elif action == ExpirationAction.CLOSE_EXTENDED:
             new_date = self.variants[variant_name]["expiration"].strftime("%Y-%m-%d")
@@ -327,15 +325,13 @@ class VariantExpiration(BzCleaner, Nag):
                 },
             }
 
-            if needinfo_flag_ids:
-                needinfo_changes = [
-                    {
-                        "id": flag_id,
-                        "status": "X",
-                    }
-                    for flag_id in needinfo_flag_ids
-                ]
-                self.autofix_changes[bugid]["flags"] = needinfo_changes
+            self.autofix_changes[bugid]["flags"] = [
+                {
+                    "id": flag_id,
+                    "status": "X",
+                }
+                for flag_id in needinfo_flag_ids
+            ]
 
         elif action == ExpirationAction.NEEDINFO_TRIAGER:
             self.ni_extra[bugid] = {
