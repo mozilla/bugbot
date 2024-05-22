@@ -363,7 +363,7 @@ class VariantExpiration(BzCleaner, Nag):
 
         return bug
 
-    def get_needinfo_ids(self, bug: dict) -> list[str]:
+    def get_needinfo_ids(self, bug: dict) -> List[str]:
         """Get the IDs of the needinfo flags requested by the bot"""
         return [
             flag["id"]
