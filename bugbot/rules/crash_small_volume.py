@@ -3,9 +3,8 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from datetime import datetime
-from typing import Dict
+from typing import Dict, Optional
 
-import requests
 from libmozdata import utils as lmdutils
 
 from bugbot import utils
@@ -185,13 +184,9 @@ class CrashSmallVolume(BzCleaner):
 
                 # Clear needinfo flags requested by BugBot relating to increasing severity
                 if "topcrash" in bug["keywords_to_remove"]:
-                    autofix["flags"] = [
-                        {
-                            "id": flag_id,
-                            "status": "X",
-                        }
-                        for flag_id in self.get_needinfo_topcrash_ids(bug)
-                    ]
+                    flag_id = self.get_needinfo_topcrash_ids
+                    if flag_id is not None:
+                        autofix["flags"] = [{"id": flag_id, "status": "X"}]
 
             if not bug["ignore_severity"] and all(
                 signature in low_volume_signatures for signature in bug["signatures"]
@@ -214,23 +209,7 @@ class CrashSmallVolume(BzCleaner):
                 }
                 self.autofix_changes[bugid] = autofix
 
-    def get_comments(self, bug_id: int) -> list[dict]:
-        """
-        Fetch comments for a given bug ID.
-        """
-        url = f"https://bugzilla.mozilla.org/rest/bug/{bug_id}/comment"
-        response = requests.get(url)
-
-        if response.status_code != 200:
-            return []
-
-        comments_data = response.json()
-        if "bugs" not in comments_data or str(bug_id) not in comments_data["bugs"]:
-            return []
-
-        return comments_data["bugs"][str(bug_id)]["comments"]
-
-    def get_needinfo_topcrash_ids(self, bug: dict) -> list[str]:
+    def get_needinfo_topcrash_ids(self, bug: dict) -> Optional[int]:
         """Get the IDs of the needinfo flags requested by the bot regarding increasing the severity."""
         needinfo_flags = [
             flag
@@ -239,14 +218,14 @@ class CrashSmallVolume(BzCleaner):
         ]
 
         if not needinfo_flags:
-            return []
+            return None
 
         needinfo_comment = (
             "could you consider increasing the severity of this top-crash bug?"
         )
         severity_comment_time = None
 
-        for comment in self.get_comments(bug["id"]):
+        for comment in bug["comments"]:
             if needinfo_comment in comment["raw_text"]:
                 severity_comment_time = datetime.strptime(
                     comment["creation_time"], "%Y-%m-%dT%H:%M:%SZ"
@@ -254,7 +233,7 @@ class CrashSmallVolume(BzCleaner):
                 break
 
         if not severity_comment_time:
-            return []
+            return None
 
         closest_flag = None
         smallest_time_diff = None
@@ -271,7 +250,7 @@ class CrashSmallVolume(BzCleaner):
                 closest_flag = flag
                 smallest_time_diff = time_diff
 
-        return [closest_flag["id"]] if closest_flag else []
+        return closest_flag["id"] if closest_flag else None
 
     @staticmethod
     def _has_severity_downgrade_comment(bug):
@@ -321,6 +300,7 @@ class CrashSmallVolume(BzCleaner):
             "cf_crash_signature",
             "comments.raw_text",
             "comments.creator",
+            "comments.creation_time",
             "history",
         ]
         params = {
