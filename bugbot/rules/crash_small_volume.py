@@ -2,8 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from datetime import datetime
 from typing import Dict
 
+import requests
 from libmozdata import utils as lmdutils
 
 from bugbot import utils
@@ -181,7 +183,7 @@ class CrashSmallVolume(BzCleaner):
                 )
                 autofix["keywords"] = {"remove": list(bug["keywords_to_remove"])}
 
-                # TODO: create method to identify needinfo flags requested by the bot and are specifically for increasing severity
+                # Clear needinfo flags requested by BugBot relating to increasing severity
                 if "topcrash" in bug["keywords_to_remove"]:
                     autofix["flags"] = [
                         {
@@ -212,13 +214,64 @@ class CrashSmallVolume(BzCleaner):
                 }
                 self.autofix_changes[bugid] = autofix
 
+    def get_comments(self, bug_id: int) -> list[dict]:
+        """
+        Fetch comments for a given bug ID.
+        """
+        url = f"https://bugzilla.mozilla.org/rest/bug/{bug_id}/comment"
+        response = requests.get(url)
+
+        if response.status_code != 200:
+            return []
+
+        comments_data = response.json()
+        if "bugs" not in comments_data or str(bug_id) not in comments_data["bugs"]:
+            return []
+
+        return comments_data["bugs"][str(bug_id)]["comments"]
+
     def get_needinfo_topcrash_ids(self, bug: dict) -> list[str]:
-        """Get the IDs of the needinfo flags requested by the bot"""
-        return [
-            flag["id"]
+        """Get the IDs of the needinfo flags requested by the bot regarding increasing the severity."""
+        needinfo_flags = [
+            flag
             for flag in bug.get("flags", [])
             if flag["name"] == "needinfo" and flag["requestee"] == History.BOT
         ]
+
+        if not needinfo_flags:
+            return []
+
+        needinfo_comment = (
+            "could you consider increasing the severity of this top-crash bug?"
+        )
+        severity_comment_time = None
+
+        for comment in self.get_comments(bug["id"]):
+            if needinfo_comment in comment["raw_text"]:
+                severity_comment_time = datetime.strptime(
+                    comment["creation_time"], "%Y-%m-%dT%H:%M:%SZ"
+                )
+                break
+
+        if not severity_comment_time:
+            return []
+
+        closest_flag = None
+        smallest_time_diff = None
+
+        for flag in needinfo_flags:
+            flag_creation_time = datetime.strptime(
+                flag["creation_date"], "%Y-%m-%dT%H:%M:%SZ"
+            )
+            time_diff = abs(
+                (flag_creation_time - severity_comment_time).total_seconds()
+            )
+
+            if smallest_time_diff is None or time_diff < smallest_time_diff:
+                closest_flag = flag
+                smallest_time_diff = time_diff
+
+        return [closest_flag["id"]] if closest_flag else []
 
     @staticmethod
     def _has_severity_downgrade_comment(bug):
