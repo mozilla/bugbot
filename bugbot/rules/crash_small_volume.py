@@ -183,7 +183,13 @@ class CrashSmallVolume(BzCleaner):
 
                 # TODO: create method to identify needinfo flags requested by the bot and are specifically for increasing severity
                 if "topcrash" in bug["keywords_to_remove"]:
-                    autofix["flags"] = {"id": 0, "status": "X"}
+                    autofix["flags"] = [
+                        {
+                            "id": flag_id,
+                            "status": "X",
+                        }
+                        for flag_id in self.get_needinfo_topcrash_ids(bug)
+                    ]
 
             if not bug["ignore_severity"] and all(
                 signature in low_volume_signatures for signature in bug["signatures"]
@@ -205,6 +211,14 @@ class CrashSmallVolume(BzCleaner):
                     "body": "\n\n".join(reasons),
                 }
                 self.autofix_changes[bugid] = autofix
+
+    def get_needinfo_topcrash_ids(self, bug: dict) -> list[str]:
+        """Get the IDs of the needinfo flags requested by the bot"""
+        return [
+            flag["id"]
+            for flag in bug.get("flags", [])
+            if flag["name"] == "needinfo" and flag["requestee"] == History.BOT
+        ]
 
     @staticmethod
     def _has_severity_downgrade_comment(bug):
