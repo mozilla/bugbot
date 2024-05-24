@@ -125,6 +125,14 @@ class NotLanded(BzCleaner):
         if not reviewers:
             return False
 
+        # Check for dependencies in the stackGraph field
+        stack_graph = data["fields"].get("stackGraph", {})
+        current_revision_phid = data.get("phid")
+        dependencies = stack_graph.get(current_revision_phid, [])
+
+        if dependencies:
+            return None
+
         for reviewer in reviewers:
             if reviewer["status"] != "accepted":
                 return False
