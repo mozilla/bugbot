@@ -362,6 +362,13 @@ class NotLanded(BzCleaner):
             if not assignee:
                 continue
 
+            stack_graph = data.get("stackGraph", {})
+            current_revision_phid = data.get("phid")
+            dependencies = stack_graph.get(current_revision_phid, [])
+
+            if dependencies:
+                continue
+
             self.add_auto_ni(bugid, {"mail": assignee, "nickname": nickname})
 
             common = all_reviewers & data["reviewers_phid"]
