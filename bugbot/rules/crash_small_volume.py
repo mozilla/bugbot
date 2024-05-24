@@ -220,9 +220,6 @@ class CrashSmallVolume(BzCleaner):
             if flag["name"] == "needinfo" and flag["requestee"] == History.BOT
         ]
 
-        if not needinfo_flags:
-            return []
-
         needinfo_comment = (
             "could you consider increasing the severity of this top-crash bug?"
         )
@@ -233,9 +230,6 @@ class CrashSmallVolume(BzCleaner):
             if comment["creator"] == History.BOT
             and needinfo_comment in comment["raw_text"]
         ]
-
-        if not severity_comment_times:
-            return []
 
         return [
             flag["id"]
