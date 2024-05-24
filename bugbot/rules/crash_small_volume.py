@@ -183,15 +183,13 @@ class CrashSmallVolume(BzCleaner):
 
                 # Clear needinfo flags requested by BugBot relating to increasing severity
                 if "topcrash" in bug["keywords_to_remove"]:
-                    flag_id = self.get_needinfo_topcrash_ids
-                    if flag_id is not None:
-                        autofix["flags"] = [
-                            {
-                                "id": flag_id,
-                                "status": "X",
-                            }
-                            for flag_id in self.get_needinfo_topcrash_ids(bug)
-                        ]
+                    autofix["flags"] = [
+                        {
+                            "id": flag_id,
+                            "status": "X",
+                        }
+                        for flag_id in self.get_needinfo_topcrash_ids(bug)
+                    ]
 
             if not bug["ignore_severity"] and all(
                 signature in low_volume_signatures for signature in bug["signatures"]
