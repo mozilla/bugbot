@@ -148,7 +148,7 @@ class RoundRobin(object):
             if utils.is_no_assignee(mail):
                 mail, nick = None, None
 
-            if mail is None:
+            if mail is None and pc != "Firefox::Untriaged":
                 logger.error("No triage owner for {}".format(pc))
 
             self.add_component_for_triager(pc, mail)
