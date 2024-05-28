@@ -6,7 +6,7 @@ import collections
 
 from libmozdata import utils as lmdutils
 
-from bugbot import logger, people, utils
+from bugbot import logger, mail, people, utils
 from bugbot.bzcleaner import BzCleaner
 from bugbot.constants import HIGH_PRIORITY, HIGH_SEVERITY
 from bugbot.user_activity import UserActivity
@@ -21,6 +21,7 @@ class AssigneeNoLogin(BzCleaner):
         self.default_assignees = utils.get_default_assignees()
         self.people = people.People.get_instance()
         self.unassign_count = collections.defaultdict(int)
+        self.bugs_to_unassign = collections.defaultdict(list)
 
         self.extra_ni = {}
 
@@ -91,6 +92,7 @@ class AssigneeNoLogin(BzCleaner):
         return res
 
     def add_action(self, bug):
+        triage_owner = bug["triage_owner"]
         prod = bug["product"]
         comp = bug["component"]
         default_assignee = self.default_assignees[prod][comp]
@@ -121,6 +123,7 @@ class AssigneeNoLogin(BzCleaner):
             }
 
         self.add_prioritized_action(bug, bug["triage_owner"], needinfo, autofix)
+        self.bugs_to_unassign[triage_owner].append(bug)
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
@@ -167,6 +170,36 @@ class AssigneeNoLogin(BzCleaner):
         utils.get_empty_assignees(params, negation=True)
 
         return params
+
+    def send_email(self, date="today"):
+        """Override send_email to prevent individual emails from being sent."""
+        if self.dryrun:
+            logger.info("Dry run enabled; individual emails will not be sent.")
+
+    def send_consolidated_email(self):
+        login_info = utils.get_login_info()
+        for triage_owner, bugs in self.bugs_to_unassign.items():
+            if not bugs:
+                continue
+
+            subject = "[bugbot] Inactive Assignees Unassigned"
+            body = "The following bugs were unassigned due to inactive assignees:\n\n"
+            for bug in bugs:
+                body += f"Bug {bug['id']}: {bug['summary']}\n"
+            body += "\nPlease take appropriate action."
+
+            mail.send(
+                login_info["ldap_username"],
+                [triage_owner],
+                subject,
+                body,
+                login=login_info,
+                dryrun=self.dryrun,
+            )
+
+    def terminate(self):
+        self.send_consolidated_email()
+        super().terminate()
 
 
 if __name__ == "__main__":
