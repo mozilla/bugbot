@@ -108,6 +108,12 @@ class NoAssignee(BzCleaner):
             commentdata=revisions,
             comment_include_fields=["text", "author"],
             attachmenthandler=attachment_handler,
+            attachment_include_fields=[
+                "creator",
+                "is_obsolete",
+                "is_patch",
+                "content_type",
+            ],
             attachmentdata=revisions,
         ).get_data().wait()
 
