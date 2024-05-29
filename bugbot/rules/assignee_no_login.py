@@ -181,7 +181,6 @@ class AssigneeNoLogin(BzCleaner, Nag):
         self.send_mails("[bugbot] Unassigned bugs due to inactivity")
 
     def send_email(self, date="today"):
-        """Send the email"""
         super().send_email(date)
 
         if self.bugs_to_unassign:
