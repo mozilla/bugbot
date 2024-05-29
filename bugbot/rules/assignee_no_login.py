@@ -4,6 +4,7 @@
 
 import collections
 
+from jinja2 import Environment, FileSystemLoader
 from libmozdata import utils as lmdutils
 
 from bugbot import logger, mail, people, utils
@@ -22,6 +23,7 @@ class AssigneeNoLogin(BzCleaner):
         self.people = people.People.get_instance()
         self.unassign_count = collections.defaultdict(int)
         self.bugs_to_unassign = collections.defaultdict(list)
+        self.no_bugmail = True
 
         self.extra_ni = {}
 
@@ -89,10 +91,11 @@ class AssigneeNoLogin(BzCleaner):
             self.add_action(bug)
             res[bugid] = bug
 
+            self.bugs_to_unassign[bug["assigned_to"]].append(bug)
+
         return res
 
     def add_action(self, bug):
-        triage_owner = bug["triage_owner"]
         prod = bug["product"]
         comp = bug["component"]
         default_assignee = self.default_assignees[prod][comp]
@@ -123,7 +126,6 @@ class AssigneeNoLogin(BzCleaner):
             }
 
         self.add_prioritized_action(bug, bug["triage_owner"], needinfo, autofix)
-        self.bugs_to_unassign[triage_owner].append(bug)
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
@@ -171,35 +173,58 @@ class AssigneeNoLogin(BzCleaner):
 
         return params
 
-    def send_email(self, date="today"):
-        """Override send_email to prevent individual emails from being sent."""
-        if self.dryrun:
-            logger.info("Dry run enabled; individual emails will not be sent.")
+    def send_consolidated_email(self, date):
+        """Send a single email to each assignee with the list of unassigned bugs due to inactivity."""
+        assignee_bugs = self.bugs_to_unassign
 
-    def send_consolidated_email(self):
+        env = Environment(loader=FileSystemLoader("templates"))
+
+        # TODO: decide which template to use, or create new template
+        template = env.get_template(self.template())
+        common = env.get_template("common.html")
         login_info = utils.get_login_info()
-        for triage_owner, bugs in self.bugs_to_unassign.items():
-            if not bugs:
-                continue
 
-            subject = "[bugbot] Inactive Assignees Unassigned"
-            body = "The following bugs were unassigned due to inactive assignees:\n\n"
-            for bug in bugs:
-                body += f"Bug {bug['id']}: {bug['summary']}\n"
-            body += "\nPlease take appropriate action."
+        for assignee, bugs in assignee_bugs.items():
+            message = template.render(
+                date=date,
+                data=bugs,
+                extra={},
+                str=str,
+                enumerate=enumerate,
+                plural=utils.plural,
+                no_manager=self.no_manager,
+                tables_attr=self.get_config("table_attrs"),
+            )
+
+            body = common.render(
+                preamble="The following bugs assigned to you have been unassigned due to inactivity:",
+                message=message,
+            )
+
+            title = "[bugbot] Unassigned bugs due to inactivity"
 
             mail.send(
                 login_info["ldap_username"],
-                [triage_owner],
-                subject,
+                [assignee],
+                title,
                 body,
+                html=True,
                 login=login_info,
-                dryrun=self.dryrun,
+                dryrun=True,
             )
 
-    def terminate(self):
-        self.send_consolidated_email()
-        super().terminate()
+    def send_email(self, date="today"):
+        """Send the email"""
+        super().send_email(date)
+
+        if self.bugs_to_unassign:
+            self.send_consolidated_email_to_assignees(date)
+        else:
+            name = self.name().upper()
+            if date:
+                logger.info("{}: No data for {}".format(name, date))
+            else:
+                logger.info("{}: No data".format(name))
 
 
 if __name__ == "__main__":
