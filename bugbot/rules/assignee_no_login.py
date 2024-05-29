@@ -180,7 +180,7 @@ class AssigneeNoLogin(BzCleaner):
         env = Environment(loader=FileSystemLoader("templates"))
 
         # TODO: decide which template to use, or create new template
-        template = env.get_template(self.template())
+        template = env.get_template("unassign_bugs_email.html")
         common = env.get_template("common.html")
         login_info = utils.get_login_info()
 
@@ -199,6 +199,7 @@ class AssigneeNoLogin(BzCleaner):
             body = common.render(
                 preamble="The following bugs assigned to you have been unassigned due to inactivity:",
                 message=message,
+                query_url=utils.shorten_long_bz_url(self.query_url),
             )
 
             title = "[bugbot] Unassigned bugs due to inactivity"
