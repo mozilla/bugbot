@@ -354,6 +354,9 @@ class NotLanded(BzCleaner):
             if not assignee:
                 continue
 
+            if data.get("backout", False):
+                continue
+
             self.add_auto_ni(bugid, {"mail": assignee, "nickname": nickname})
 
             common = all_reviewers & data["reviewers_phid"]
