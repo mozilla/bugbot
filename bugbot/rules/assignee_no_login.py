@@ -4,16 +4,16 @@
 
 import collections
 
-from jinja2 import Environment, FileSystemLoader
 from libmozdata import utils as lmdutils
 
-from bugbot import logger, mail, people, utils
+from bugbot import logger, people, utils
 from bugbot.bzcleaner import BzCleaner
 from bugbot.constants import HIGH_PRIORITY, HIGH_SEVERITY
+from bugbot.nag_me import Nag
 from bugbot.user_activity import UserActivity
 
 
-class AssigneeNoLogin(BzCleaner):
+class AssigneeNoLogin(BzCleaner, Nag):
     def __init__(self):
         super(AssigneeNoLogin, self).__init__()
         self.unassign_weeks = utils.get_config(self.name(), "unassign_weeks", 2)
@@ -175,44 +175,10 @@ class AssigneeNoLogin(BzCleaner):
 
     def send_consolidated_email(self, date):
         """Send a single email to each assignee with the list of unassigned bugs due to inactivity."""
-        assignee_bugs = self.bugs_to_unassign
+        for assignee, bugs in self.bugs_to_unassign.items():
+            self.add(assignee, bugs)
 
-        env = Environment(loader=FileSystemLoader("templates"))
-
-        # TODO: decide which template to use, or create new template
-        template = env.get_template("unassign_bugs_email.html")
-        common = env.get_template("common.html")
-        login_info = utils.get_login_info()
-
-        for assignee, bugs in assignee_bugs.items():
-            message = template.render(
-                date=date,
-                data=bugs,
-                extra={},
-                str=str,
-                enumerate=enumerate,
-                plural=utils.plural,
-                no_manager=self.no_manager,
-                tables_attr=self.get_config("table_attrs"),
-            )
-
-            body = common.render(
-                preamble="The following bugs assigned to you have been unassigned due to inactivity:",
-                message=message,
-                query_url=utils.shorten_long_bz_url(self.query_url),
-            )
-
-            title = "[bugbot] Unassigned bugs due to inactivity"
-
-            mail.send(
-                login_info["ldap_username"],
-                [assignee],
-                title,
-                body,
-                html=True,
-                login=login_info,
-                dryrun=True,
-            )
+        self.send_mails("[bugbot] Unassigned bugs due to inactivity")
 
     def send_email(self, date="today"):
         """Send the email"""
