@@ -178,6 +178,14 @@ class NotLanded(BzCleaner):
                 ):
                     data[bugid]["backout"] = True
 
+                    # Set the status of the Phabricator revision to be "Changes Planned"
+                    phid = data.get("phid")
+
+                    if not self.dryrun:
+                        transactions = [{"type": "status", "value": "changes-planned"}]
+
+                        self.phab.edit_revision(phid, transactions)
+
         def attachment_id_handler(attachments, bugid, data):
             for a in attachments:
                 if (
