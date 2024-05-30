@@ -1,10 +1,11 @@
-<p>The following bugs assigned to you have been unassigned due to inactivity:</p>
+<p>
+    The following {{ plural('bug assigned to you has', data, pword='bugs assigned to you have') }}bugs assigned to you have been unassigned due to inactivity:
+</p>
 <table {{ table_attrs }}>
     <thead>
         <tr>
             <th>Bug ID</th>
             <th>Summary</th>
-            <th>Product</th>
             <th>Component</th>
             <th>Assignee Status</th>
         </tr>
@@ -16,8 +17,7 @@
                     <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bug.id }}">{{ bug.id }}</a>
                 </td>
                 <td>{{ bug.summary | e }}</td>
-                <td>{{ bug.product | e }}</td>
-                <td>{{ bug.component | e }}</td>
+                <td>{{ bug.product | e }} :: {{ bug.component | e }}</td>
                 <td>{{ bug.assignee_status | e }}</td>
             </tr>
         {% endfor %}
