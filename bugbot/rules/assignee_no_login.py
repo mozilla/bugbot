@@ -3,7 +3,6 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import collections
-from datetime import datetime
 
 from libmozdata import utils as lmdutils
 
@@ -23,7 +22,6 @@ class AssigneeNoLogin(BzCleaner, Nag):
         self.default_assignees = utils.get_default_assignees()
         self.people = people.People.get_instance()
         self.unassign_count = collections.defaultdict(int)
-        self.bugs_to_unassign = collections.defaultdict(list)
         self.no_bugmail = True
 
         self.extra_ni = {}
@@ -92,7 +90,9 @@ class AssigneeNoLogin(BzCleaner, Nag):
             self.add_action(bug)
             res[bugid] = bug
 
-            self.bugs_to_unassign[bug["assigned_to"]].append(bug)
+            self.add(bug["assigned_to"], bug)
+
+        self.send_mails("[bugbot] Unassigned bugs due to inactivity")
 
         return res
 
@@ -173,35 +173,6 @@ class AssigneeNoLogin(BzCleaner, Nag):
         utils.get_empty_assignees(params, negation=True)
 
         return params
-
-    def send_consolidated_email(self, date):
-        """Send a single email to each assignee with the list of unassigned bugs due to inactivity."""
-        for assignee, bugs in self.bugs_to_unassign.items():
-            self.add(assignee, bugs)
-
-        self.send_mails("[bugbot] Unassigned bugs due to inactivity")
-
-    def send_email(self, date="today"):
-        super().send_email(date)
-
-        if date:
-            date = lmdutils.get_date(date)
-            d = lmdutils.get_date_ymd(date)
-            if isinstance(self, Nag):
-                self.nag_date: datetime = d
-
-            if not self.must_run(d):
-                return
-
-        if not self.has_enough_data():
-            logger.info("The rule {} hasn't enough data to run".format(self.name()))
-            return
-
-        if self.bugs_to_unassign:
-            self.send_consolidated_email_to_assignees(date)
-        else:
-            name = self.name().upper()
-            logger.info(f"{name}: No data for {date}" if date else f"{name}: No data")
 
 
 if __name__ == "__main__":
