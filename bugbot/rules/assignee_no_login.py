@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import collections
+from datetime import datetime
 
 from libmozdata import utils as lmdutils
 
@@ -183,14 +184,24 @@ class AssigneeNoLogin(BzCleaner, Nag):
     def send_email(self, date="today"):
         super().send_email(date)
 
+        if date:
+            date = lmdutils.get_date(date)
+            d = lmdutils.get_date_ymd(date)
+            if isinstance(self, Nag):
+                self.nag_date: datetime = d
+
+            if not self.must_run(d):
+                return
+
+        if not self.has_enough_data():
+            logger.info("The rule {} hasn't enough data to run".format(self.name()))
+            return
+
         if self.bugs_to_unassign:
             self.send_consolidated_email_to_assignees(date)
         else:
             name = self.name().upper()
-            if date:
-                logger.info("{}: No data for {}".format(name, date))
-            else:
-                logger.info("{}: No data".format(name))
+            logger.info(f"{name}: No data for {date}" if date else f"{name}: No data")
 
 
 if __name__ == "__main__":
