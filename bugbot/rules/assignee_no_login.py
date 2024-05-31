@@ -90,7 +90,7 @@ class AssigneeNoLogin(BzCleaner, Nag):
             self.add_action(bug)
             res[bugid] = bug
 
-            self.add(bug["assigned_to"], bug)
+            self.add([bug["assigned_to"], bug["triage_owner"]], bug)
 
         return res
 
