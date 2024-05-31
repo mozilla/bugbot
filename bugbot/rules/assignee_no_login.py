@@ -92,8 +92,6 @@ class AssigneeNoLogin(BzCleaner, Nag):
 
             self.add(bug["assigned_to"], bug)
 
-        self.send_mails("[bugbot] Unassigned bugs due to inactivity")
-
         return res
 
     def add_action(self, bug):
