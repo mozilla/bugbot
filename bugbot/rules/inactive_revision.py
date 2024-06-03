@@ -100,5 +100,37 @@ class InactiveRevision(BzCleaner):
             }
 
     def _find_last_action(self, revision_id):
-        # TODO: implement actual logic finding last action taker
-        return "author"
+        details = self._fetch_revision_details(revision_id)
+
+        if not details:
+            return None, None
+
+        revision = details[0]
+        author_phid = revision["fields"]["authorPHID"]
+        reviewers = [
+            reviewer["reviewerPHID"]
+            for reviewer in revision["attachments"]["reviewers"]["reviewers"]
+        ]
+
+        transactions = self._fetch_revision_transactions(revision["phid"])
+
+        last_transaction = None
+        for transaction in transactions:
+            if (
+                last_transaction is None
+                or transaction["dateCreated"] > last_transaction["dateCreated"]
+            ):
+                last_transaction = transaction
+
+        if last_transaction:
+            last_action_by_phid = last_transaction["authorPHID"]
+            if last_action_by_phid == author_phid:
+                last_action_by = "author"
+            elif last_action_by_phid in reviewers:
+                last_action_by = "reviewer"
+            else:
+                last_action_by = "other"
+        else:
+            last_action_by = "unknown"
+
+        return last_action_by, last_transaction
