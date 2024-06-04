@@ -2,15 +2,18 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import datetime
 import re
 
 from dateutil.relativedelta import relativedelta
 from libmozdata import utils as lmdutils
+from libmozdata.connection import Connection
 from libmozdata.phabricator import PhabricatorAPI
 
 from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
-from bugbot.user_activity import UserActivity
+from bugbot.history import History
+from bugbot.user_activity import PHAB_CHUNK_SIZE, UserActivity, UserStatus
 
 PHAB_FILE_NAME_PAT = re.compile(r"phabricator-D([0-9]+)-url\.txt")
 PHAB_TABLE_PAT = re.compile(r"^\|\ \[D([0-9]+)\]\(h", flags=re.M)
@@ -100,7 +103,7 @@ class InactiveRevision(BzCleaner):
             }
 
     def _find_last_action(self, revision_id):
-        details = self._fetch_revision_details(revision_id)
+        details = self._fetch_revisions([revision_id])
 
         if not details:
             return None, None
@@ -134,3 +137,195 @@ class InactiveRevision(BzCleaner):
             last_action_by = "unknown"
 
         return last_action_by, last_transaction
+
+    def _get_revisions_with_inactive_action(self, rev_ids: list) -> dict:
+        revisions = []
+
+        for _rev_ids in Connection.chunks(rev_ids, PHAB_CHUNK_SIZE):
+            for revision in self._fetch_revisions(_rev_ids):
+                # Filter out irrelevant revisions
+                if (
+                    len(revision["attachments"]["reviewers"]["reviewers"]) == 0
+                    or revision["fields"]["status"]["value"] != "needs-review"
+                    or revision["fields"]["isDraft"]
+                ):
+                    continue
+
+                reviewers = [
+                    {
+                        "phid": reviewer["reviewerPHID"],
+                        "is_group": reviewer["reviewerPHID"].startswith("PHID-PROJ"),
+                        "is_blocking": reviewer["isBlocking"],
+                        "is_accepted": reviewer["status"] == "accepted",
+                        "is_resigned": reviewer["status"] == "resigned",
+                    }
+                    for reviewer in revision["attachments"]["reviewers"]["reviewers"]
+                ]
+
+                # Skip revisions where all reviewers are active or no blocking reviewer is inactive
+                if any(
+                    reviewer["is_group"] or reviewer["is_accepted"]
+                    for reviewer in reviewers
+                ) and not any(
+                    not reviewer["is_accepted"]
+                    for reviewer in reviewers
+                    if reviewer["is_blocking"]
+                ):
+                    continue
+
+                revisions.append(
+                    {
+                        "rev_id": revision["id"],
+                        "title": revision["fields"]["title"],
+                        "created_at": revision["fields"]["dateCreated"],
+                        "author_phid": revision["fields"]["authorPHID"],
+                        "reviewers": reviewers,
+                    }
+                )
+
+        user_phids = set()
+        for revision in revisions:
+            user_phids.add(revision["author_phid"])
+            for reviewer in revision["reviewers"]:
+                user_phids.add(reviewer["phid"])
+
+        users = self.user_activity.get_phab_users_with_status(
+            list(user_phids), keep_active=True
+        )
+
+        result = {}
+        for revision in revisions:
+            author_info = users[revision["author_phid"]]
+            if author_info["status"] != UserStatus.ACTIVE:
+                continue
+
+            revision["author"] = author_info
+
+            inactive_reviewers = []
+            for reviewer in revision["reviewers"]:
+                if reviewer["is_group"]:
+                    continue
+
+                reviewer_info = users[reviewer["phid"]]
+                if (
+                    not reviewer["is_resigned"]
+                    and reviewer_info["status"] == UserStatus.ACTIVE
+                ):
+                    continue
+
+                reviewer["info"] = reviewer_info
+                inactive_reviewers.append(reviewer)
+
+            last_action_by, last_transaction = self._find_last_action(
+                revision["rev_id"]
+            )
+
+            if last_action_by in ["author", "reviewer"]:
+                revision["last_action_by"] = last_action_by
+                revision["last_transaction"] = last_transaction
+                revision["reviewers"] = [
+                    {
+                        "phab_username": reviewer["info"]["phab_username"],
+                        "status_note": self._get_reviewer_status_note(reviewer),
+                    }
+                    for reviewer in inactive_reviewers
+                ]
+                result[revision["rev_id"]] = revision
+
+        return result
+
+    def _fetch_revisions(self, revision_ids):
+        return self.phab.request(
+            "differential.revision.search",
+            constraints={"ids": revision_ids},
+            attachments={"reviewers": True},
+        )["data"]
+
+    def _fetch_revision_transactions(self, revision_phid):
+        response = self.phab.request(
+            "transaction.search", objectIdentifier=revision_phid
+        )
+        return response["data"]
+
+    def handle_bug(self, bug, data):
+        rev_ids = [
+            # To avoid loading the attachment content (which can be very large),
+            # we extract the revision id from the file name, which is in the
+            # format of "phabricator-D{revision_id}-url.txt".
+            # len("phabricator-D") == 13
+            # len("-url.txt") == 8
+            int(attachment["file_name"][13:-8])
+            for attachment in bug["attachments"]
+            if attachment["content_type"] == "text/x-phabricator-request"
+            and PHAB_FILE_NAME_PAT.match(attachment["file_name"])
+            and not attachment["is_obsolete"]
+        ]
+
+        if not rev_ids:
+            return
+
+        # We should not comment about the same patch more than once.
+        rev_ids_with_ni = set()
+        for comment in bug["comments"]:
+            if comment["creator"] == History.BOT and comment["raw_text"].startswith(
+                "The following patch"
+            ):
+                rev_ids_with_ni.update(
+                    int(id) for id in PHAB_TABLE_PAT.findall(comment["raw_text"])
+                )
+
+        if rev_ids_with_ni:
+            rev_ids = [id for id in rev_ids if id not in rev_ids_with_ni]
+
+        if not rev_ids:
+            return
+
+        # It will be nicer to show a sorted list of patches
+        rev_ids.sort()
+
+        bugid = str(bug["id"])
+        data[bugid] = {
+            "rev_ids": rev_ids,
+        }
+        return bug
+
+    def get_bz_params(self, date):
+        fields = [
+            "comments.raw_text",
+            "comments.creator",
+            "attachments.file_name",
+            "attachments.content_type",
+            "attachments.is_obsolete",
+        ]
+        params = {
+            "include_fields": fields,
+            "resolution": "---",
+            "f1": "attachments.mimetype",
+            "o1": "equals",
+            "v1": "text/x-phabricator-request",
+        }
+
+        return params
+
+    @staticmethod
+    def _get_reviewer_status_note(reviewer: dict) -> str:
+        if reviewer["is_resigned"]:
+            return "Resigned from review"
+
+        status = reviewer["info"]["status"]
+        if status == UserStatus.UNAVAILABLE:
+            until = reviewer["info"]["unavailable_until"]
+            if until:
+                return_date = datetime.date.fromtimestamp(until).strftime("%b %-d, %Y")
+                return f"Back {return_date}"
+
+            return "Unavailable"
+
+        if status == UserStatus.DISABLED:
+            return "Disabled"
+
+        return "Inactive"
+
+
+if __name__ == "__main__":
+    InactiveRevision().run()
