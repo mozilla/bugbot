@@ -2,26 +2,28 @@
 <table {{ table_attrs }}>
     <thead>
         <tr>
+            <th>Triage owner</th>
+            <th>Component</th>
             <th>Bug</th>
             <th>Summary</th>
-            <th>Component</th>
             <th>Assignee</th>
             <th>Assignee Status</th>
-            <th>Triage Owner</th>
         </tr>
     </thead>
     <tbody>
-        {% for bug in data %}
-            <tr>
-                <td>
-                    <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bug.id }}">{{ bug.id }}</a>
-                </td>
-                <td>{{ bug.summary | e }}</td>
-                <td>{{ bug.product | e }} :: {{ bug.component | e }}</td>
-                <td>{{ bug.assignee | e }}</td>
-                <td>{{ bug.assignee_status | e }}</td>
-                <td>{{ bug.triage_owner | e }}</td>
-            </tr>
-        {% endfor %}
-    </tbody>
+        {% for i, (triage_owner_name, product, comp, bugid, summary, assignee, assignee_status) in enumerate(data) -%}
+            <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
+            {% endif -%}
+            >
+            <td>{{ triage_owner_name | e }}</td>
+            <td>{{ product | e }}::{{ comp | e }}</td>
+            <td>
+                <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+            </td>
+            <td>{{ summary | e }}</td>
+            <td>{{ assignee | e }}</td>
+            <td>{{ assignee_status | e }}</td>
+        </tr>
+    {% endfor -%}
+</tbody>
 </table>
