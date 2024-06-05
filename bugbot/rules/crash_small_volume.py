@@ -122,9 +122,11 @@ class CrashSmallVolume(BzCleaner):
             ),
             "keywords_to_remove": keywords_to_remove,
             "signatures": signatures,
-            "flags": bug.get("flags", []),
-            "comments": bug.get("comments", []),
         }
+
+        # Add needinfo IDs only if the keyword to remove is "topcrash"
+        if "topcrash" in keywords_to_remove:
+            data[bugid]["needinfo_ids"] = self.get_needinfo_topcrash_ids(bug)
 
         return bug
 
@@ -190,7 +192,7 @@ class CrashSmallVolume(BzCleaner):
                             "id": flag_id,
                             "status": "X",
                         }
-                        for flag_id in self.get_needinfo_topcrash_ids(bug)
+                        for flag_id in bug.get("needinfo_ids", [])
                     ]
 
             if not bug["ignore_severity"] and all(
