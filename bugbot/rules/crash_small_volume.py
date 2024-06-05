@@ -122,6 +122,8 @@ class CrashSmallVolume(BzCleaner):
             ),
             "keywords_to_remove": keywords_to_remove,
             "signatures": signatures,
+            "flags": bug.get("flags", []),
+            "comments": bug.get("comments", []),
         }
 
         return bug
