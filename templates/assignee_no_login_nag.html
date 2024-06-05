@@ -1,13 +1,15 @@
 <p>
-    The following {{ plural('bug assigned to you has', data, pword='bugs assigned to you have') }}bugs assigned to you have been unassigned due to inactivity:
+    The following {{ plural('bug assigned to the following person has', data, pword='bugs assigned to the following people have') }} been unassigned due to inactivity:
 </p>
 <table {{ table_attrs }}>
     <thead>
         <tr>
-            <th>Bug ID</th>
+            <th>Bug</th>
             <th>Summary</th>
             <th>Component</th>
+            <th>Assignee</th>
             <th>Assignee Status</th>
+            <th>Triage Owner</th>
         </tr>
     </thead>
     <tbody>
@@ -18,7 +20,9 @@
                 </td>
                 <td>{{ bug.summary | e }}</td>
                 <td>{{ bug.product | e }} :: {{ bug.component | e }}</td>
+                <td>{{ bug.assignee | e }}</td>
                 <td>{{ bug.assignee_status | e }}</td>
+                <td>{{ bug.triage_owner | e }}</td>
             </tr>
         {% endfor %}
     </tbody>
