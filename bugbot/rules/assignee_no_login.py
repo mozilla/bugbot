@@ -172,6 +172,9 @@ class AssigneeNoLogin(BzCleaner, Nag):
 
         return params
 
+    def nag_template(self):
+        return self.name() + ".html"
+
 
 if __name__ == "__main__":
     AssigneeNoLogin().run()
