@@ -122,9 +122,11 @@ class CrashSmallVolume(BzCleaner):
             ),
             "keywords_to_remove": keywords_to_remove,
             "signatures": signatures,
-            "needinfo_ids": self.get_needinfo_topcrash_ids(bug)
-            if "topcrash" in keywords_to_remove
-            else [],
+            "needinfo_ids": (
+                self.get_needinfo_topcrash_ids(bug)
+                if "topcrash" in keywords_to_remove
+                else []
+            ),
         }
 
         return bug
@@ -183,7 +185,6 @@ class CrashSmallVolume(BzCleaner):
                     )
                 )
                 autofix["keywords"] = {"remove": list(bug["keywords_to_remove"])}
-
                 autofix["flags"] = [
                     {
                         "id": flag_id,
