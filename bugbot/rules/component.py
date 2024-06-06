@@ -102,9 +102,7 @@ class Component(BzCleaner):
                 "fenixcomponent", fenix_general_bug_ids
             )
 
-            fenix_confidence_threshold = self.get_config(
-                name="component", entry="fenix_confidence_threshold"
-            )
+            fenix_confidence_threshold = self.get_config("fenix_confidence_threshold")
 
             for bug_id, data in fenix_general_classification.items():
                 new_confidence = data["prob"][data["index"]]
@@ -130,15 +128,17 @@ class Component(BzCleaner):
             prob = bug_data["prob"]
             index = bug_data["index"]
             suggestion = bug_data["class"]
-            conflated_components_mapping = bug_data["extra_data"][
-                "conflated_components_mapping"
-            ]
+
+            conflated_components_mapping = bug_data["extra_data"].get(
+                "conflated_components_mapping", {}
+            )
 
             # Skip product-only suggestions that are not useful.
             if "::" not in suggestion and bug["product"] == suggestion:
                 continue
 
-            suggestion = conflated_components_mapping.get(suggestion, suggestion)
+            if "Fenix" not in suggestion:
+                suggestion = conflated_components_mapping.get(suggestion, suggestion)
 
             if "::" not in suggestion:
                 logger.error(
