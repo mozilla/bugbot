@@ -124,11 +124,12 @@ class CrashSmallVolume(BzCleaner):
             "signatures": signatures,
         }
 
-        data[bugid]["needinfo_ids"] = []
-
         # Add needinfo IDs only if the keyword to remove is "topcrash"
-        if "topcrash" in keywords_to_remove:
-            data[bugid]["needinfo_ids"] = self.get_needinfo_topcrash_ids(bug)
+        data[bugid]["needinfo_ids"] = (
+            self.get_needinfo_topcrash_ids(bug)
+            if "topcrash" in keywords_to_remove
+            else []
+        )
 
         return bug
 
