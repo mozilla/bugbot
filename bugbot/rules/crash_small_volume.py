@@ -122,14 +122,10 @@ class CrashSmallVolume(BzCleaner):
             ),
             "keywords_to_remove": keywords_to_remove,
             "signatures": signatures,
-        }
-
-        # Add needinfo IDs only if the keyword to remove is "topcrash"
-        data[bugid]["needinfo_ids"] = (
-            self.get_needinfo_topcrash_ids(bug)
+            "needinfo_ids": self.get_needinfo_topcrash_ids(bug)
             if "topcrash" in keywords_to_remove
-            else []
-        )
+            else [],
+        }
 
         return bug
 
@@ -188,15 +184,13 @@ class CrashSmallVolume(BzCleaner):
                 )
                 autofix["keywords"] = {"remove": list(bug["keywords_to_remove"])}
 
-                # Clear needinfo flags requested by BugBot relating to increasing severity
-                if "topcrash" in bug["keywords_to_remove"]:
-                    autofix["flags"] = [
-                        {
-                            "id": flag_id,
-                            "status": "X",
-                        }
-                        for flag_id in bug.get("needinfo_ids", [])
-                    ]
+                autofix["flags"] = [
+                    {
+                        "id": flag_id,
+                        "status": "X",
+                    }
+                    for flag_id in bug.get("needinfo_ids", [])
+                ]
 
             if not bug["ignore_severity"] and all(
                 signature in low_volume_signatures for signature in bug["signatures"]
