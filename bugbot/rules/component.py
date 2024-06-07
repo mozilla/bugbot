@@ -109,6 +109,7 @@ class Component(BzCleaner):
 
                 # Only reclassify if the new confidence meets the Fenix component confidence threshold
                 if new_confidence > fenix_confidence_threshold:
+                    data["class"] = f"Fenix::{data['class']}"
                     bugs[bug_id] = data
 
         results = {}
