@@ -73,9 +73,6 @@ class InactiveRevision(BzCleaner):
 
         for revision in inactive_revs:
             last_action_by, _ = self._find_last_action(revision["rev_id"])
-
-            print(f"\n\nLAST ACTION BY >> {last_action_by}\n\n")
-
             if last_action_by == "author" and revision["reviewers"]:
                 ni_mail = revision["reviewers"][0]["phab_username"]
                 summary = (
