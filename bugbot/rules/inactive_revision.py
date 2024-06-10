@@ -2,13 +2,15 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import datetime
 import re
+from datetime import datetime
+from typing import Dict, List
 
 from dateutil.relativedelta import relativedelta
 from libmozdata import utils as lmdutils
 from libmozdata.connection import Connection
 from libmozdata.phabricator import PhabricatorAPI
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
@@ -65,10 +67,16 @@ class InactiveRevision(BzCleaner):
         return bugs
 
     def _add_needinfo(self, bugid: str, inactive_revs: list) -> None:
+        has_old_patch = any(
+            revision["created_at"] < self.old_patch_limit for revision in inactive_revs
+        )
+
         for revision in inactive_revs:
             last_action_by, _ = self._find_last_action(revision["rev_id"])
 
-            if last_action_by == "author":
+            print(f"\n\nLAST ACTION BY >> {last_action_by}\n\n")
+
+            if last_action_by == "author" and revision["reviewers"]:
                 ni_mail = revision["reviewers"][0]["phab_username"]
                 summary = (
                     "The last action was by the author, so needinfoing the reviewer."
@@ -85,7 +93,7 @@ class InactiveRevision(BzCleaner):
                 revisions=[revision],
                 nicknames=revision["author"]["nick"],
                 reviewers_status_summary=summary,
-                has_old_patch=revision["created_at"] < self.old_patch_limit,
+                has_old_patch=has_old_patch,
                 plural=utils.plural,
                 documentation=self.get_documentation(),
             )
@@ -138,12 +146,10 @@ class InactiveRevision(BzCleaner):
 
         return last_action_by, last_transaction
 
-    def _get_revisions_with_inactive_action(self, rev_ids: list) -> dict:
-        revisions = []
-
+    def _get_revisions_with_inactive_action(self, rev_ids: list) -> Dict[int, dict]:
+        revisions: List[dict] = []
         for _rev_ids in Connection.chunks(rev_ids, PHAB_CHUNK_SIZE):
             for revision in self._fetch_revisions(_rev_ids):
-                # Filter out irrelevant revisions
                 if (
                     len(revision["attachments"]["reviewers"]["reviewers"]) == 0
                     or revision["fields"]["status"]["value"] != "needs-review"
@@ -162,7 +168,6 @@ class InactiveRevision(BzCleaner):
                     for reviewer in revision["attachments"]["reviewers"]["reviewers"]
                 ]
 
-                # Skip revisions where all reviewers are active or no blocking reviewer is inactive
                 if any(
                     reviewer["is_group"] or reviewer["is_accepted"]
                     for reviewer in reviewers
@@ -193,7 +198,7 @@ class InactiveRevision(BzCleaner):
             list(user_phids), keep_active=True
         )
 
-        result = {}
+        result: Dict[int, dict] = {}
         for revision in revisions:
             author_info = users[revision["author_phid"]]
             if author_info["status"] != UserStatus.ACTIVE:
@@ -234,10 +239,33 @@ class InactiveRevision(BzCleaner):
 
         return result
 
-    def _fetch_revisions(self, revision_ids):
+    @staticmethod
+    def _get_reviewer_status_note(reviewer: dict) -> str:
+        if reviewer["is_resigned"]:
+            return "Resigned from review"
+
+        status = reviewer["info"]["status"]
+        if status == UserStatus.UNAVAILABLE:
+            until = reviewer["info"]["unavailable_until"]
+            if until:
+                return_date = datetime.fromtimestamp(until).strftime("%b %-d, %Y")
+                return f"Back {return_date}"
+
+            return "Unavailable"
+
+        if status == UserStatus.DISABLED:
+            return "Disabled"
+
+        return "Inactive"
+
+    @retry(
+        wait=wait_exponential(min=4),
+        stop=stop_after_attempt(5),
+    )
+    def _fetch_revisions(self, ids: list):
         return self.phab.request(
             "differential.revision.search",
-            constraints={"ids": revision_ids},
+            constraints={"ids": ids},
             attachments={"reviewers": True},
         )["data"]
 
@@ -306,25 +334,6 @@ class InactiveRevision(BzCleaner):
         }
 
         return params
-
-    @staticmethod
-    def _get_reviewer_status_note(reviewer: dict) -> str:
-        if reviewer["is_resigned"]:
-            return "Resigned from review"
-
-        status = reviewer["info"]["status"]
-        if status == UserStatus.UNAVAILABLE:
-            until = reviewer["info"]["unavailable_until"]
-            if until:
-                return_date = datetime.date.fromtimestamp(until).strftime("%b %-d, %Y")
-                return f"Back {return_date}"
-
-            return "Unavailable"
-
-        if status == UserStatus.DISABLED:
-            return "Disabled"
-
-        return "Inactive"
 
 
 if __name__ == "__main__":
