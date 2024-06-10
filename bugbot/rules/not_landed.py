@@ -232,6 +232,20 @@ class NotLanded(BzCleaner):
 
             if "phab" in res:
                 if res["phab"]:
+                    # Check for stackGraph dependencies
+                    rev = PHAB_URL_PAT.search(
+                        base64.b64decode(attachment["data"]).decode("utf-8")
+                    ).group(1)
+                    try:
+                        revision_data = self.phab.load_revision(rev_id=int(rev))
+                        stack_graph = revision_data.get("fields", {}).get(
+                            "stackGraph", {}
+                        )
+                        current_revision_phid = revision_data.get("phid")
+                        dependencies = stack_graph.get(current_revision_phid, [])
+                        data[bugid]["dependencies"] = dependencies
+                    except PhabricatorRevisionNotFoundException:
+                        pass
                     data[bugid]["reviewers_phid"] = res["reviewers_phid"]
                     data[bugid]["author"] = res["author"]
                     data[bugid]["count"] = res["count"]
@@ -354,9 +368,7 @@ class NotLanded(BzCleaner):
             if not assignee:
                 continue
 
-            stack_graph = data.get("stackGraph", {})
-            current_revision_phid = data.get("phid")
-            dependencies = stack_graph.get(current_revision_phid, [])
+            dependencies = data.get("dependencies", [])
 
             if dependencies:
                 continue
