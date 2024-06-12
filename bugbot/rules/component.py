@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+
 from libmozdata.bugzilla import Bugzilla
 
 from bugbot import logger
@@ -94,7 +95,33 @@ class Component(BzCleaner):
             bug_id
             for bug_id, bug_data in bugs.items()
             if bug_data.get("class") == "Fenix"
+            and bug_data["prob"][bug_data["index"]]
+            >= self.get_config("general_confidence_threshold")
         ]
+
+        def get_confidence_threshold(
+            bug_data, general_confidence_threshold, confidence_threshold
+        ):
+            if bug_data["class"] == "General":
+                return general_confidence_threshold
+            return confidence_threshold
+
+        # Collection bugs that were originally Fenix::General but reclassified to another product with low confidence
+        originally_fenix_general_bug_ids = [
+            bug_id
+            for bug_id, bug_data in bugs.items()
+            if raw_bugs[bug_id]["product"] == "Fenix"
+            and raw_bugs[bug_id]["component"] == "General"
+            and bug_data["prob"][bug_data["index"]]
+            <= get_confidence_threshold(
+                bug_data,
+                self.get_config("general_confidence_threshold"),
+                self.get_config("confidence_threshold"),
+            )
+        ]
+
+        fenix_general_bug_ids.extend(originally_fenix_general_bug_ids)
+        fenix_general_bug_ids = set(fenix_general_bug_ids)
 
         # Reclassify the Fenix::General bugs using the fenixcomponent model
         if fenix_general_bug_ids:
