@@ -9,10 +9,11 @@ from libmozdata import utils as lmdutils
 from bugbot import logger, people, utils
 from bugbot.bzcleaner import BzCleaner
 from bugbot.constants import HIGH_PRIORITY, HIGH_SEVERITY
+from bugbot.nag_me import Nag
 from bugbot.user_activity import UserActivity
 
 
-class AssigneeNoLogin(BzCleaner):
+class AssigneeNoLogin(BzCleaner, Nag):
     def __init__(self):
         super(AssigneeNoLogin, self).__init__()
         self.unassign_weeks = utils.get_config(self.name(), "unassign_weeks", 2)
@@ -21,6 +22,7 @@ class AssigneeNoLogin(BzCleaner):
         self.default_assignees = utils.get_default_assignees()
         self.people = people.People.get_instance()
         self.unassign_count = collections.defaultdict(int)
+        self.no_bugmail = True
 
         self.extra_ni = {}
 
@@ -87,6 +89,8 @@ class AssigneeNoLogin(BzCleaner):
             )
             self.add_action(bug)
             res[bugid] = bug
+
+            self.add([bug["assigned_to"], bug["triage_owner"]], bug)
 
         return res
 
@@ -167,6 +171,9 @@ class AssigneeNoLogin(BzCleaner):
         utils.get_empty_assignees(params, negation=True)
 
         return params
+
+    def nag_template(self):
+        return self.name() + ".html"
 
 
 if __name__ == "__main__":
