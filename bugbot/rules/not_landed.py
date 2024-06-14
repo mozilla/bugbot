@@ -200,12 +200,14 @@ class NotLanded(BzCleaner):
             ).group(1)
             try:
                 revision_data = self.phab.load_revision(rev_id=int(rev))
-                stack_graph = revision_data["fields"]["stackGraph"]
-                current_revision_phid = revision_data["phid"]
-                dependencies = stack_graph[current_revision_phid]
-                return bool(dependencies)
             except PhabricatorRevisionNotFoundException:
-                return False
+                # Return True, as we will skip any bugs that encountered this error
+                return True
+
+            stack_graph = revision_data["fields"]["stackGraph"]
+            current_revision_phid = revision_data["phid"]
+            dependencies = stack_graph[current_revision_phid]
+            return bool(dependencies)
 
         bugids = list(bugs.keys())
         data = {
