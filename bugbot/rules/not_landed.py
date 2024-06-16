@@ -201,8 +201,7 @@ class NotLanded(BzCleaner):
             try:
                 revision_data = self.phab.load_revision(rev_id=int(rev))
             except PhabricatorRevisionNotFoundException:
-                # Return True, as we will skip any bugs that encountered this error
-                return True
+                return None
 
             stack_graph = revision_data["fields"]["stackGraph"]
             current_revision_phid = revision_data["phid"]
@@ -211,7 +210,8 @@ class NotLanded(BzCleaner):
 
         bugids = list(bugs.keys())
         data = {
-            bugid: {"backout": False, "author": None, "count": 0} for bugid in bugids
+            bugid: {"backout": False, "author": None, "count": 0, "dependencies": False}
+            for bugid in bugids
         }
 
         # Get the ids of the attachments of interest
@@ -247,7 +247,6 @@ class NotLanded(BzCleaner):
 
             if "phab" in res:
                 if res["phab"]:
-                    # Check for stackGraph dependencies
                     data[bugid]["dependencies"] = search_dependencies(attachment)
                     data[bugid]["reviewers_phid"] = res["reviewers_phid"]
                     data[bugid]["author"] = res["author"]
@@ -265,7 +264,11 @@ class NotLanded(BzCleaner):
             comment_include_fields=["text"],
         ).get_data().wait()
 
-        data = {bugid: v for bugid, v in data.items() if not v["backout"]}
+        data = {
+            bugid: v
+            for bugid, v in data.items()
+            if not v["backout"] and not v["dependencies"]
+        }
 
         return data
 
@@ -369,11 +372,6 @@ class NotLanded(BzCleaner):
                 assignee, nickname = nicknames[bugid]
 
             if not assignee:
-                continue
-
-            dependencies = data.get("dependencies", [])
-
-            if dependencies:
                 continue
 
             self.add_auto_ni(bugid, {"mail": assignee, "nickname": nickname})
