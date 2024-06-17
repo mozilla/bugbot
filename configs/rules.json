@@ -452,6 +452,7 @@
   "regression_set_status_flags": {
     "days_lookup": 21,
     "additional_receivers": ["jcristau@mozilla.com"],
+    "exclude_products": ["Firefox for iOS"],
     "component_exception": ["Testing::geckodriver"]
   },
   "good_first_bug_unassign_inactive": {
