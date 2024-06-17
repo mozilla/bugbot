@@ -190,7 +190,7 @@ class CrashSmallVolume(BzCleaner):
                         "id": flag_id,
                         "status": "X",
                     }
-                    for flag_id in bug.get("needinfos_to_remove", [])
+                    for flag_id in bug["needinfos_to_remove"]
                 ]
 
             if not bug["ignore_severity"] and all(
