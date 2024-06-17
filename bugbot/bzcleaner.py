@@ -378,7 +378,13 @@ class BzCleaner(object):
             data[bugid] = res
 
     def get_products(self):
-        return self.get_config("products") + self.get_config("additional_products", [])
+        return list(
+            (
+                set(self.get_config("products"))
+                | set(self.get_config("additional_products", []))
+            )
+            - set(self.get_config("exclude_products", []))
+        )
 
     def amend_bzparams(self, params, bug_ids):
         """Amend the Bugzilla params"""
