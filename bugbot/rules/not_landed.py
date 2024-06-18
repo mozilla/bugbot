@@ -183,7 +183,6 @@ class NotLanded(BzCleaner):
 
                     if not self.dryrun:
                         transactions = [{"type": "status", "value": "changes-planned"}]
-
                         self.phab.edit_revision(phid, transactions)
 
         def attachment_id_handler(attachments, bugid, data):
@@ -360,9 +359,6 @@ class NotLanded(BzCleaner):
                 assignee, nickname = nicknames[bugid]
 
             if not assignee:
-                continue
-
-            if data.get("backout", False):
                 continue
 
             self.add_auto_ni(bugid, {"mail": assignee, "nickname": nickname})
