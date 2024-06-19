@@ -16,5 +16,5 @@ PyYAML==6.0.1
 recurring-ical-events==2.2.1
 requests==2.32.0
 sqlalchemy==1.3.24
-tenacity==8.2.3
+tenacity==8.4.1
 whatthepatch>=0.0.5
