@@ -37,14 +37,14 @@ class InactivePatchAuthors(BzCleaner):
 
         for bugid, bug in list(bugs.items()):
             inactive_patches = [
-                inactive_authors[rev_id]
+                {"rev_id": rev_id, "author": inactive_authors[rev_id]}
                 for rev_id in bug["rev_ids"]
                 if rev_id in inactive_authors
             ]
 
             if inactive_patches:
-                bug["authors"] = inactive_patches
-                print(f"Bug {bugid} has inactive patch authors: {inactive_patches}")
+                bug["inactive_patches"] = inactive_patches
+                print(f"Bug {bugid} has inactive patches: {inactive_patches}")
             else:
                 del bugs[bugid]
 
@@ -57,6 +57,8 @@ class InactivePatchAuthors(BzCleaner):
             for revision in self._fetch_revisions(_rev_ids):
                 author_phid = revision["fields"]["authorPHID"]
                 created_at = revision["fields"]["dateCreated"]
+                if author_phid == "PHID-USER-eltrc7x5oplwzfguutrb":
+                    continue
                 revisions.append(
                     {
                         "rev_id": revision["id"],
@@ -65,19 +67,28 @@ class InactivePatchAuthors(BzCleaner):
                     }
                 )
 
-        user_phids = {rev["author_phid"] for rev in revisions}
+        user_phids = set()
+
+        for revision in revisions:
+            user_phids.add(revision["author_phid"])
+
         users = self.user_activity.get_phab_users_with_status(
             list(user_phids), keep_active=False
         )
 
         result: Dict[int, dict] = {}
         for revision in revisions:
-            author_info = users[revision["author_phid"]]
-            if author_info["status"] != UserStatus.ACTIVE:
+            author_phid = revision["author_phid"]
+
+            if author_phid not in users:
+                continue
+
+            author_info = users[author_phid]
+            if author_info["status"] == UserStatus.INACTIVE:
                 result[revision["rev_id"]] = {
-                    "author": author_info["phab_username"],
+                    "name": author_info["name"],
                     "status": author_info["status"],
-                    "last_active": author_info.get("last_seen"),
+                    "last_active": author_info.get("last_seen_date"),
                 }
 
         return result
