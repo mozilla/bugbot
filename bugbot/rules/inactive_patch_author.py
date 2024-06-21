@@ -2,7 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from typing import Dict
+import re
+from typing import Dict, List
 
 from libmozdata.connection import Connection
 from libmozdata.phabricator import PhabricatorAPI
@@ -12,78 +13,121 @@ from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
 from bugbot.user_activity import PHAB_CHUNK_SIZE, UserActivity, UserStatus
 
+PHAB_FILE_NAME_PAT = re.compile(r"phabricator-D([0-9]+)-url\.txt")
 
-class InactivePatchAuthor(BzCleaner):
-    """Bugs with patches from inactive authors"""
+
+class InactivePatchAuthors(BzCleaner):
+    """Bugs with patches authored by inactive patch authors"""
 
     def __init__(self):
-        """Constructor"""
-        super(InactivePatchAuthor, self).__init__()
+        super(InactivePatchAuthors, self).__init__()
         self.phab = PhabricatorAPI(utils.get_login_info()["phab_api_key"])
-        self.user_activity = UserActivity(phab=self.phab)
+        self.user_activity = UserActivity(include_fields=["nick"], phab=self.phab)
 
     def description(self):
-        return "Bugs with patches from inactive authors"
+        return "Bugs with inactive patch authors"
 
     def columns(self):
-        return ["id", "summary", "author"]
+        return ["id", "summary", "authors"]
 
     def get_bugs(self, date="today", bug_ids=[], chunk_size=None):
         bugs = super().get_bugs(date, bug_ids, chunk_size)
         rev_ids = {rev_id for bug in bugs.values() for rev_id in bug["rev_ids"]}
-        revisions = self._get_revisions_with_inactive_authors(list(rev_ids))
+        inactive_authors = self._get_inactive_patch_authors(list(rev_ids))
 
         for bugid, bug in list(bugs.items()):
-            inactive_authors = [
-                revisions[rev_id] for rev_id in bug["rev_ids"] if rev_id in revisions
+            inactive_patches = [
+                inactive_authors[rev_id]
+                for rev_id in bug["rev_ids"]
+                if rev_id in inactive_authors
             ]
-            if inactive_authors:
-                bug["authors"] = inactive_authors
-                self._unassign_inactive_authors(bugid, inactive_authors)
+
+            if inactive_patches:
+                bug["authors"] = inactive_patches
+                print(f"Bug {bugid} has inactive patch authors: {inactive_patches}")
             else:
                 del bugs[bugid]
 
-        self.query_url = utils.get_bz_search_url({"bug_id": ",".join(bugs.keys())})
         return bugs
 
-    def _unassign_inactive_authors(self, bugid: str, inactive_authors: list) -> None:
-        comment = "The author of this patch has been inactive. The patch has been unassigned for others to take over."
-        for author in inactive_authors:
-            self.phab.request(
-                "differential.revision.edit",
-                {
-                    "transactions": [{"type": "authorPHID", "value": None}],
-                    "objectIdentifier": author["rev_id"],
-                },
-            )
-            self.autofix_changes[bugid] = {"comment": {"body": comment}}
+    def _get_inactive_patch_authors(self, rev_ids: list) -> Dict[int, dict]:
+        revisions: List[dict] = []
 
-    def _get_revisions_with_inactive_authors(self, rev_ids: list) -> Dict[int, dict]:
-        revisions = []
         for _rev_ids in Connection.chunks(rev_ids, PHAB_CHUNK_SIZE):
             for revision in self._fetch_revisions(_rev_ids):
-                revisions.append(revision)
+                author_phid = revision["fields"]["authorPHID"]
+                created_at = revision["fields"]["dateCreated"]
+                revisions.append(
+                    {
+                        "rev_id": revision["id"],
+                        "author_phid": author_phid,
+                        "created_at": created_at,
+                    }
+                )
 
-        user_phids = {revision["fields"]["authorPHID"] for revision in revisions}
-        users = self.user_activity.get_phab_users_with_status(list(user_phids))
+        user_phids = {rev["author_phid"] for rev in revisions}
+        users = self.user_activity.get_phab_users_with_status(
+            list(user_phids), keep_active=False
+        )
 
-        result = {}
+        result: Dict[int, dict] = {}
         for revision in revisions:
-            author_info = users[revision["fields"]["authorPHID"]]
+            author_info = users[revision["author_phid"]]
             if author_info["status"] != UserStatus.ACTIVE:
-                result[revision["id"]] = {
-                    "rev_id": revision["id"],
-                    "title": revision["fields"]["title"],
-                    "author": author_info,
+                result[revision["rev_id"]] = {
+                    "author": author_info["phab_username"],
+                    "status": author_info["status"],
+                    "last_active": author_info.get("last_seen"),
                 }
+
         return result
 
-    @retry(wait=wait_exponential(min=4), stop=stop_after_attempt(5))
+    @retry(
+        wait=wait_exponential(min=4),
+        stop=stop_after_attempt(5),
+    )
     def _fetch_revisions(self, ids: list):
         return self.phab.request(
-            "differential.revision.search", constraints={"ids": ids}
+            "differential.revision.search",
+            constraints={"ids": ids},
         )["data"]
+
+    def handle_bug(self, bug, data):
+        rev_ids = [
+            int(attachment["file_name"][13:-8])
+            for attachment in bug["attachments"]
+            if attachment["content_type"] == "text/x-phabricator-request"
+            and PHAB_FILE_NAME_PAT.match(attachment["file_name"])
+            and not attachment["is_obsolete"]
+        ]
+
+        if not rev_ids:
+            return
+
+        bugid = str(bug["id"])
+        data[bugid] = {
+            "rev_ids": rev_ids,
+        }
+        return bug
+
+    def get_bz_params(self, date):
+        fields = [
+            "comments.raw_text",
+            "comments.creator",
+            "attachments.file_name",
+            "attachments.content_type",
+            "attachments.is_obsolete",
+        ]
+        params = {
+            "include_fields": fields,
+            "resolution": "---",
+            "f1": "attachments.ispatch",
+            "o1": "equals",
+            "v1": "1",
+        }
+
+        return params
 
 
 if __name__ == "__main__":
-    InactivePatchAuthor().run()
+    InactivePatchAuthors().run()
