@@ -122,6 +122,11 @@ class CrashSmallVolume(BzCleaner):
             ),
             "keywords_to_remove": keywords_to_remove,
             "signatures": signatures,
+            "needinfos_to_remove": (
+                self.get_needinfo_topcrash_ids(bug)
+                if "topcrash" in keywords_to_remove
+                else []
+            ),
         }
 
         return bug
@@ -180,6 +185,13 @@ class CrashSmallVolume(BzCleaner):
                     )
                 )
                 autofix["keywords"] = {"remove": list(bug["keywords_to_remove"])}
+                autofix["flags"] = [
+                    {
+                        "id": flag_id,
+                        "status": "X",
+                    }
+                    for flag_id in bug["needinfos_to_remove"]
+                ]
 
             if not bug["ignore_severity"] and all(
                 signature in low_volume_signatures for signature in bug["signatures"]
@@ -201,6 +213,31 @@ class CrashSmallVolume(BzCleaner):
                     "body": "\n\n".join(reasons),
                 }
                 self.autofix_changes[bugid] = autofix
+
+    def get_needinfo_topcrash_ids(self, bug: dict) -> list[int]:
+        """Get the IDs of the needinfo flags requested by the bot regarding increasing the severity."""
+        needinfo_flags = [
+            flag
+            for flag in bug["flags"]
+            if flag["name"] == "needinfo" and flag["requestee"] == History.BOT
+        ]
+
+        needinfo_comment = (
+            "could you consider increasing the severity of this top-crash bug?"
+        )
+
+        severity_comment_times = [
+            comment["creation_time"]
+            for comment in bug["comments"]
+            if comment["creator"] == History.BOT
+            and needinfo_comment in comment["raw_text"]
+        ]
+
+        return [
+            flag["id"]
+            for flag in needinfo_flags
+            if flag["creation_date"] in severity_comment_times
+        ]
 
     @staticmethod
     def _has_severity_downgrade_comment(bug):
@@ -250,7 +287,9 @@ class CrashSmallVolume(BzCleaner):
             "cf_crash_signature",
             "comments.raw_text",
             "comments.creator",
+            "comments.creation_time",
             "history",
+            "flags",
         ]
         params = {
             "include_fields": fields,
