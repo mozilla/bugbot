@@ -28,7 +28,7 @@ class InactivePatchAuthors(BzCleaner):
         return "Bugs with inactive patch authors"
 
     def columns(self):
-        return ["id", "summary", "authors"]
+        return ["id", "summary", "revisions"]
 
     def get_bugs(self, date="today", bug_ids=[], chunk_size=None):
         bugs = super().get_bugs(date, bug_ids, chunk_size)
