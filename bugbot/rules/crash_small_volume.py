@@ -218,7 +218,7 @@ class CrashSmallVolume(BzCleaner):
         """Get the IDs of the needinfo flags requested by the bot regarding increasing the severity."""
         needinfo_flags = [
             flag
-            for flag in bug.get("flags", [])
+            for flag in bug["flags"]
             if flag["name"] == "needinfo" and flag["requestee"] == History.BOT
         ]
 
@@ -289,6 +289,7 @@ class CrashSmallVolume(BzCleaner):
             "comments.creator",
             "comments.creation_time",
             "history",
+            "flags",
         ]
         params = {
             "include_fields": fields,
