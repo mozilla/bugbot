@@ -9,7 +9,7 @@ from libmozdata.connection import Connection
 from libmozdata.phabricator import PhabricatorAPI
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-from bugbot import utils
+from bugbot import people, utils
 from bugbot.bzcleaner import BzCleaner
 from bugbot.user_activity import PHAB_CHUNK_SIZE, UserActivity, UserStatus
 
@@ -23,12 +23,14 @@ class InactivePatchAuthors(BzCleaner):
         super(InactivePatchAuthors, self).__init__()
         self.phab = PhabricatorAPI(utils.get_login_info()["phab_api_key"])
         self.user_activity = UserActivity(include_fields=["nick"], phab=self.phab)
+        self.default_assignees = utils.get_default_assignees()
+        self.people = people.People.get_instance()
 
     def description(self):
         return "Bugs with inactive patch authors"
 
     def columns(self):
-        return ["id", "summary", "revisions"]
+        return ["id", "summary"]
 
     def get_bugs(self, date="today", bug_ids=[], chunk_size=None):
         bugs = super().get_bugs(date, bug_ids, chunk_size)
@@ -44,11 +46,26 @@ class InactivePatchAuthors(BzCleaner):
 
             if inactive_patches:
                 bug["inactive_patches"] = inactive_patches
+                self.unassign_inactive_author(bugid, bug, inactive_patches)
                 print(f"Bug {bugid} has inactive patches: {inactive_patches}")
             else:
                 del bugs[bugid]
 
         return bugs
+
+    def unassign_inactive_author(self, bugid, bug, inactive_patches):
+        # print(f"\n BUG >> {bugid} >> {bug}\n")
+        # prod = bug["product"]
+        # comp = bug["component"]
+        default_assignee = "benjaminmah2004@gmail.com"
+        autofix = {"assigned_to": default_assignee}
+
+        comment = (
+            "The patch author is inactive on Bugzilla, so the assignee is being reset."
+        )
+        autofix["comment"] = {"body": comment}
+
+        self.autofix_changes[bugid] = autofix
 
     def _get_inactive_patch_authors(self, rev_ids: list) -> Dict[int, dict]:
         revisions: List[dict] = []
@@ -128,6 +145,8 @@ class InactivePatchAuthors(BzCleaner):
             "attachments.file_name",
             "attachments.content_type",
             "attachments.is_obsolete",
+            "product",
+            "component",
         ]
         params = {
             "include_fields": fields,
