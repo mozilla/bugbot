@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+
 from libmozdata.bugzilla import Bugzilla
 
 from bugbot import logger
@@ -89,6 +90,55 @@ class Component(BzCleaner):
         # Classify those bugs
         bugs = get_bug_ids_classification("component", bug_ids)
 
+        # Collect bugs classified as Fenix::General
+        fenix_general_bug_ids = [
+            bug_id
+            for bug_id, bug_data in bugs.items()
+            if bug_data.get("class") == "Fenix"
+            and bug_data["prob"][bug_data["index"]]
+            >= self.get_config("general_confidence_threshold")
+        ]
+
+        def get_confidence_threshold(
+            bug_data, general_confidence_threshold, confidence_threshold
+        ):
+            if bug_data["class"] == "General":
+                return general_confidence_threshold
+            return confidence_threshold
+
+        # Collection bugs that were originally Fenix::General but reclassified to another product with low confidence
+        originally_fenix_general_bug_ids = [
+            bug_id
+            for bug_id, bug_data in bugs.items()
+            if raw_bugs[bug_id]["product"] == "Fenix"
+            and raw_bugs[bug_id]["component"] == "General"
+            and bug_data["prob"][bug_data["index"]]
+            <= get_confidence_threshold(
+                bug_data,
+                self.get_config("general_confidence_threshold"),
+                self.get_config("confidence_threshold"),
+            )
+        ]
+
+        fenix_general_bug_ids.extend(originally_fenix_general_bug_ids)
+        fenix_general_bug_ids = set(fenix_general_bug_ids)
+
+        # Reclassify the Fenix::General bugs using the fenixcomponent model
+        if fenix_general_bug_ids:
+            fenix_general_classification = get_bug_ids_classification(
+                "fenixcomponent", fenix_general_bug_ids
+            )
+
+            fenix_confidence_threshold = self.get_config("fenix_confidence_threshold")
+
+            for bug_id, data in fenix_general_classification.items():
+                new_confidence = data["prob"][data["index"]]
+
+                # Only reclassify if the new confidence meets the Fenix component confidence threshold
+                if new_confidence > fenix_confidence_threshold:
+                    data["class"] = f"Fenix::{data['class']}"
+                    bugs[bug_id] = data
+
         results = {}
 
         for bug_id in sorted(bugs.keys()):
@@ -106,15 +156,17 @@ class Component(BzCleaner):
             prob = bug_data["prob"]
             index = bug_data["index"]
             suggestion = bug_data["class"]
-            conflated_components_mapping = bug_data["extra_data"][
-                "conflated_components_mapping"
-            ]
+
+            conflated_components_mapping = bug_data["extra_data"].get(
+                "conflated_components_mapping", {}
+            )
 
             # Skip product-only suggestions that are not useful.
             if "::" not in suggestion and bug["product"] == suggestion:
                 continue
 
-            suggestion = conflated_components_mapping.get(suggestion, suggestion)
+            if "Fenix" not in suggestion:
+                suggestion = conflated_components_mapping.get(suggestion, suggestion)
 
             if "::" not in suggestion:
                 logger.error(
