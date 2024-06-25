@@ -194,9 +194,24 @@ class NotLanded(BzCleaner):
                 else:
                     data[bugid] = [attachment]
 
+        def search_dependencies(attachment):
+            rev = PHAB_URL_PAT.search(
+                base64.b64decode(attachment["data"]).decode("utf-8")
+            ).group(1)
+            try:
+                revision_data = self.phab.load_revision(rev_id=int(rev))
+            except PhabricatorRevisionNotFoundException:
+                return None
+
+            stack_graph = revision_data["fields"]["stackGraph"]
+            current_revision_phid = revision_data["phid"]
+            dependencies = stack_graph[current_revision_phid]
+            return bool(dependencies)
+
         bugids = list(bugs.keys())
         data = {
-            bugid: {"backout": False, "author": None, "count": 0} for bugid in bugids
+            bugid: {"backout": False, "author": None, "count": 0, "dependencies": False}
+            for bugid in bugids
         }
 
         # Get the ids of the attachments of interest
@@ -232,6 +247,7 @@ class NotLanded(BzCleaner):
 
             if "phab" in res:
                 if res["phab"]:
+                    data[bugid]["dependencies"] = search_dependencies(attachment)
                     data[bugid]["reviewers_phid"] = res["reviewers_phid"]
                     data[bugid]["author"] = res["author"]
                     data[bugid]["count"] = res["count"]
@@ -248,7 +264,11 @@ class NotLanded(BzCleaner):
             comment_include_fields=["text"],
         ).get_data().wait()
 
-        data = {bugid: v for bugid, v in data.items() if not v["backout"]}
+        data = {
+            bugid: v
+            for bugid, v in data.items()
+            if not v["backout"] and not v["dependencies"]
+        }
 
         return data
 
