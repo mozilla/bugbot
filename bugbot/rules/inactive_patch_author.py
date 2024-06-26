@@ -37,7 +37,6 @@ class InactivePatchAuthors(BzCleaner):
     def get_bugs(self, date="today", bug_ids=[], chunk_size=None):
         bugs = super().get_bugs(date, bug_ids, chunk_size)
 
-        logging.info(f"BUGS RETRIEVED > {bugs}")
         rev_ids = {rev_id for bug in bugs.values() for rev_id in bug["rev_ids"]}
         inactive_authors = self._get_inactive_patch_authors(list(rev_ids))
 
@@ -58,10 +57,9 @@ class InactivePatchAuthors(BzCleaner):
         return bugs
 
     def unassign_inactive_author(self, bugid, bug, inactive_patches):
-        # print(f"\n BUG >> {bugid} >> {bug}\n")
-        # prod = bug["product"]
-        # comp = bug["component"]
-        default_assignee = "bmah@mozilla.com"
+        prod = bug["product"]
+        comp = bug["component"]
+        default_assignee = self.default_assignees[prod][comp]
         autofix = {"assigned_to": default_assignee}
 
         comment = (
@@ -139,6 +137,8 @@ class InactivePatchAuthors(BzCleaner):
         bugid = str(bug["id"])
         data[bugid] = {
             "rev_ids": rev_ids,
+            "product": bug["product"],
+            "component": bug["component"],
         }
         return bug
 
@@ -151,6 +151,8 @@ class InactivePatchAuthors(BzCleaner):
             "attachments.is_obsolete",
             "product",
             "component",
+            "assigned_to",
+            "triage_owner",
         ]
         params = {
             "include_fields": fields,
