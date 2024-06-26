@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import logging
 import re
 from typing import Dict, List
 
@@ -11,13 +12,13 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 
 from bugbot import people, utils
 from bugbot.bzcleaner import BzCleaner
-from bugbot.nag_me import Nag
 from bugbot.user_activity import PHAB_CHUNK_SIZE, UserActivity, UserStatus
 
+logging.basicConfig(level=logging.DEBUG)
 PHAB_FILE_NAME_PAT = re.compile(r"phabricator-D([0-9]+)-url\.txt")
 
 
-class InactivePatchAuthors(BzCleaner, Nag):
+class InactivePatchAuthors(BzCleaner):
     """Bugs with patches authored by inactive patch authors"""
 
     def __init__(self):
@@ -26,7 +27,6 @@ class InactivePatchAuthors(BzCleaner, Nag):
         self.user_activity = UserActivity(include_fields=["nick"], phab=self.phab)
         self.default_assignees = utils.get_default_assignees()
         self.people = people.People.get_instance()
-        self.no_bugmail = True
 
     def description(self):
         return "Bugs with inactive patch authors"
@@ -36,6 +36,8 @@ class InactivePatchAuthors(BzCleaner, Nag):
 
     def get_bugs(self, date="today", bug_ids=[], chunk_size=None):
         bugs = super().get_bugs(date, bug_ids, chunk_size)
+
+        logging.info(f"BUGS RETRIEVED > {bugs}")
         rev_ids = {rev_id for bug in bugs.values() for rev_id in bug["rev_ids"]}
         inactive_authors = self._get_inactive_patch_authors(list(rev_ids))
 
@@ -49,7 +51,6 @@ class InactivePatchAuthors(BzCleaner, Nag):
             if inactive_patches:
                 bug["inactive_patches"] = inactive_patches
                 self.unassign_inactive_author(bugid, bug, inactive_patches)
-                self.add([bug["assigned_to"], bug["triage_owner"]], bug)
                 print(f"Bug {bugid} has inactive patches: {inactive_patches}")
             else:
                 del bugs[bugid]
@@ -57,10 +58,10 @@ class InactivePatchAuthors(BzCleaner, Nag):
         return bugs
 
     def unassign_inactive_author(self, bugid, bug, inactive_patches):
-        print(f"\n BUG >> {bugid} >> {bug}\n")
+        # print(f"\n BUG >> {bugid} >> {bug}\n")
         # prod = bug["product"]
         # comp = bug["component"]
-        default_assignee = "benjaminmah2004@gmail.com"
+        default_assignee = "bmah@mozilla.com"
         autofix = {"assigned_to": default_assignee}
 
         comment = (
