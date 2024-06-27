@@ -79,13 +79,26 @@ class InactivePatchAuthors(BzCleaner, Nag):
         # Abandon the patches
         for patch in inactive_patches:
             rev_id = patch["rev_id"]
+            revision = self.phab.request(
+                "differential.revision.search",
+                constraints={"ids": [rev_id]},
+            )["data"][0]
             try:
-                self.phab.request(
-                    "differential.revision.edit",
-                    objectIdentifier=rev_id,
-                    transactions=[{"type": "abandon", "value": True}],
-                )
-                logging.info(f"Abandoned patch {rev_id} for bug {bugid}.")
+                if revision["fields"]["status"]["value"] in [
+                    "needs-review",
+                    "needs-revision",
+                    "accepted",
+                    "changed-planned",
+                ]:
+                    self.phab.request(
+                        "differential.revision.edit",
+                        objectIdentifier=rev_id,
+                        transactions=[{"type": "abandon", "value": True}],
+                    )
+                    logging.info(f"Abandoned patch {rev_id} for bug {bugid}.")
+                else:
+                    logging.info(f"Patch {rev_id} for bug {bugid} is already closed.")
+
             except Exception as e:
                 logging.error(f"Failed to abandon patch {rev_id} for bug {bugid}: {e}")
 
@@ -106,6 +119,7 @@ class InactivePatchAuthors(BzCleaner, Nag):
                             "rev_id": revision["id"],
                             "author_phid": author_phid,
                             "created_at": created_at,
+                            "status": revision["fields"]["status"]["value"],
                         }
                     )
             except Exception as e:
