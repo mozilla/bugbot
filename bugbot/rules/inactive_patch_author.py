@@ -12,13 +12,14 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 
 from bugbot import people, utils
 from bugbot.bzcleaner import BzCleaner
+from bugbot.nag_me import Nag
 from bugbot.user_activity import PHAB_CHUNK_SIZE, UserActivity, UserStatus
 
 logging.basicConfig(level=logging.DEBUG)
 PHAB_FILE_NAME_PAT = re.compile(r"phabricator-D([0-9]+)-url\.txt")
 
 
-class InactivePatchAuthors(BzCleaner):
+class InactivePatchAuthors(BzCleaner, Nag):
     """Bugs with patches authored by inactive patch authors"""
 
     def __init__(self):
@@ -27,6 +28,7 @@ class InactivePatchAuthors(BzCleaner):
         self.user_activity = UserActivity(include_fields=["nick"], phab=self.phab)
         self.default_assignees = utils.get_default_assignees()
         self.people = people.People.get_instance()
+        self.no_bugmail = True
 
     def description(self):
         return "Bugs with inactive patch authors"
@@ -51,10 +53,14 @@ class InactivePatchAuthors(BzCleaner):
                 bug["inactive_patches"] = inactive_patches
                 self.unassign_inactive_author(bugid, bug, inactive_patches)
                 print(f"Bug {bugid} has inactive patches: {inactive_patches}")
+                self.add([bug["assigned_to"], bug["triage_owner"]], bug)
             else:
                 del bugs[bugid]
 
         return bugs
+
+    def nag_template(self):
+        return self.name() + ".html"
 
     def unassign_inactive_author(self, bugid, bug, inactive_patches):
         prod = bug["product"]
@@ -139,6 +145,8 @@ class InactivePatchAuthors(BzCleaner):
             "rev_ids": rev_ids,
             "product": bug["product"],
             "component": bug["component"],
+            "assigned_to": bug["assigned_to"],
+            "triage_owner": bug["triage_owner"],
         }
         return bug
 
