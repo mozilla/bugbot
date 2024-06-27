@@ -1,6 +1,6 @@
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this file,
-# You can obtain one at http://mozilla.org/MPL/2.0/.
+# # This Source Code Form is subject to the terms of the Mozilla Public
+# # License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import logging
 import re
@@ -40,7 +40,11 @@ class InactivePatchAuthors(BzCleaner, Nag):
         bugs = super().get_bugs(date, bug_ids, chunk_size)
 
         rev_ids = {rev_id for bug in bugs.values() for rev_id in bug["rev_ids"]}
-        inactive_authors = self._get_inactive_patch_authors(list(rev_ids))
+        try:
+            inactive_authors = self._get_inactive_patch_authors(list(rev_ids))
+        except Exception as e:
+            logging.error(f"Error fetching inactive patch authors: {e}")
+            inactive_authors = {}
 
         for bugid, bug in list(bugs.items()):
             inactive_patches = [
@@ -52,7 +56,6 @@ class InactivePatchAuthors(BzCleaner, Nag):
             if inactive_patches:
                 bug["inactive_patches"] = inactive_patches
                 self.unassign_inactive_author(bugid, bug, inactive_patches)
-                print(f"Bug {bugid} has inactive patches: {inactive_patches}")
                 self.add([bug["assigned_to"], bug["triage_owner"]], bug)
             else:
                 del bugs[bugid]
@@ -73,33 +76,54 @@ class InactivePatchAuthors(BzCleaner, Nag):
         )
         autofix["comment"] = {"body": comment}
 
+        # Abandon the patches
+        for patch in inactive_patches:
+            rev_id = patch["rev_id"]
+            try:
+                self.phab.request(
+                    "differential.revision.edit",
+                    objectIdentifier=rev_id,
+                    transactions=[{"type": "abandon", "value": True}],
+                )
+                logging.info(f"Abandoned patch {rev_id} for bug {bugid}.")
+            except Exception as e:
+                logging.error(f"Failed to abandon patch {rev_id} for bug {bugid}: {e}")
+
         self.autofix_changes[bugid] = autofix
 
     def _get_inactive_patch_authors(self, rev_ids: list) -> Dict[int, dict]:
         revisions: List[dict] = []
 
         for _rev_ids in Connection.chunks(rev_ids, PHAB_CHUNK_SIZE):
-            for revision in self._fetch_revisions(_rev_ids):
-                author_phid = revision["fields"]["authorPHID"]
-                created_at = revision["fields"]["dateCreated"]
-                if author_phid == "PHID-USER-eltrc7x5oplwzfguutrb":
-                    continue
-                revisions.append(
-                    {
-                        "rev_id": revision["id"],
-                        "author_phid": author_phid,
-                        "created_at": created_at,
-                    }
-                )
+            try:
+                for revision in self._fetch_revisions(_rev_ids):
+                    author_phid = revision["fields"]["authorPHID"]
+                    created_at = revision["fields"]["dateCreated"]
+                    if author_phid == "PHID-USER-eltrc7x5oplwzfguutrb":
+                        continue
+                    revisions.append(
+                        {
+                            "rev_id": revision["id"],
+                            "author_phid": author_phid,
+                            "created_at": created_at,
+                        }
+                    )
+            except Exception as e:
+                logging.error(f"Error fetching revisions: {e}")
+                continue
 
         user_phids = set()
 
         for revision in revisions:
             user_phids.add(revision["author_phid"])
 
-        users = self.user_activity.get_phab_users_with_status(
-            list(user_phids), keep_active=False
-        )
+        try:
+            users = self.user_activity.get_phab_users_with_status(
+                list(user_phids), keep_active=False
+            )
+        except Exception as e:
+            logging.error(f"Error fetching Phabricator users with status: {e}")
+            users = {}
 
         result: Dict[int, dict] = {}
         for revision in revisions:
