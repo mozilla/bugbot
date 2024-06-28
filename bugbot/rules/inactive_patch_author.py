@@ -112,8 +112,8 @@ class InactivePatchAuthors(BzCleaner, Nag):
                 for revision in self._fetch_revisions(_rev_ids):
                     author_phid = revision["fields"]["authorPHID"]
                     created_at = revision["fields"]["dateCreated"]
-                    if author_phid == "PHID-USER-eltrc7x5oplwzfguutrb":
-                        continue
+                    # if author_phid == "PHID-USER-eltrc7x5oplwzfguutrb":
+                    #     continue
                     revisions.append(
                         {
                             "rev_id": revision["id"],
@@ -131,13 +131,9 @@ class InactivePatchAuthors(BzCleaner, Nag):
         for revision in revisions:
             user_phids.add(revision["author_phid"])
 
-        try:
-            users = self.user_activity.get_phab_users_with_status(
-                list(user_phids), keep_active=False
-            )
-        except Exception as e:
-            logging.error(f"Error fetching Phabricator users with status: {e}")
-            users = {}
+        users = self.user_activity.get_phab_users_with_status(
+            list(user_phids), keep_active=False
+        )
 
         result: Dict[int, dict] = {}
         for revision in revisions:
