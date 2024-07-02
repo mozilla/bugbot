@@ -105,23 +105,19 @@ class InactivePatchAuthors(BzCleaner, Nag):
         revisions: List[dict] = []
 
         for _rev_ids in Connection.chunks(rev_ids, PHAB_CHUNK_SIZE):
-            try:
-                for revision in self._fetch_revisions(_rev_ids):
-                    author_phid = revision["fields"]["authorPHID"]
-                    created_at = revision["fields"]["dateCreated"]
-                    # if author_phid == "PHID-USER-eltrc7x5oplwzfguutrb":
-                    #     continue
-                    revisions.append(
-                        {
-                            "rev_id": revision["id"],
-                            "author_phid": author_phid,
-                            "created_at": created_at,
-                            "status": revision["fields"]["status"]["value"],
-                        }
-                    )
-            except Exception as e:
-                logging.error(f"Error fetching revisions: {e}")
-                continue
+            for revision in self._fetch_revisions(_rev_ids):
+                author_phid = revision["fields"]["authorPHID"]
+                created_at = revision["fields"]["dateCreated"]
+                # if author_phid == "PHID-USER-eltrc7x5oplwzfguutrb":
+                #     continue
+                revisions.append(
+                    {
+                        "rev_id": revision["id"],
+                        "author_phid": author_phid,
+                        "created_at": created_at,
+                        "status": revision["fields"]["status"]["value"],
+                    }
+                )
 
         user_phids = set()
 
