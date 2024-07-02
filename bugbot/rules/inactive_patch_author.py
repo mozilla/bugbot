@@ -40,11 +40,8 @@ class InactivePatchAuthors(BzCleaner, Nag):
         bugs = super().get_bugs(date, bug_ids, chunk_size)
 
         rev_ids = {rev_id for bug in bugs.values() for rev_id in bug["rev_ids"]}
-        try:
-            inactive_authors = self._get_inactive_patch_authors(list(rev_ids))
-        except Exception as e:
-            logging.error(f"Error fetching inactive patch authors: {e}")
-            inactive_authors = {}
+
+        inactive_authors = self._get_inactive_patch_authors(list(rev_ids))
 
         for bugid, bug in list(bugs.items()):
             inactive_patches = [
