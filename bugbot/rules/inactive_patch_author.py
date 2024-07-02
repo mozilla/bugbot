@@ -108,8 +108,6 @@ class InactivePatchAuthors(BzCleaner, Nag):
             for revision in self._fetch_revisions(_rev_ids):
                 author_phid = revision["fields"]["authorPHID"]
                 created_at = revision["fields"]["dateCreated"]
-                # if author_phid == "PHID-USER-eltrc7x5oplwzfguutrb":
-                #     continue
                 revisions.append(
                     {
                         "rev_id": revision["id"],
