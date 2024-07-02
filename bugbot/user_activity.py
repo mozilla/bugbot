@@ -287,7 +287,7 @@ class UserActivity:
                     user["unavailable_until"] = phab_user["attachments"][
                         "availability"
                     ]["until"]
-                except Exception as e:
+                except KeyError as e:
                     logging.error(
                         f"Error fetching inactive patch authors: '{phab_user['phid']}' - {str(e)}"
                     )
