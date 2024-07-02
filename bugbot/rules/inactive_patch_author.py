@@ -7,7 +7,7 @@ import re
 from typing import Dict, List
 
 from libmozdata.connection import Connection
-from libmozdata.phabricator import PhabricatorAPI
+from libmozdata.phabricator import ConduitError, PhabricatorAPI
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from bugbot import people, utils
@@ -96,7 +96,7 @@ class InactivePatchAuthors(BzCleaner, Nag):
                 else:
                     logging.info(f"Patch {rev_id} for bug {bugid} is already closed.")
 
-            except Exception as e:
+            except ConduitError as e:
                 logging.error(f"Failed to abandon patch {rev_id} for bug {bugid}: {e}")
 
         self.autofix_changes[bugid] = autofix
