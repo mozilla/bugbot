@@ -36,7 +36,12 @@ class InactiveRevision(BzCleaner):
         super(InactiveRevision, self).__init__()
         self.phab = PhabricatorAPI(utils.get_login_info()["phab_api_key"])
         self.user_activity = UserActivity(include_fields=["nick"], phab=self.phab)
-        self.ni_template = self.get_needinfo_template()
+        self.ni_author_template = self.load_template(
+            self.name() + "_needinfo_author.txt"
+        )
+        self.ni_reviewer_template = self.load_template(
+            self.name() + "_needinfo_reviewer.txt"
+        )
         self.old_patch_limit = (
             lmdutils.get_date_ymd("today") - relativedelta(months=old_patch_months)
         ).timestamp()
@@ -68,7 +73,6 @@ class InactiveRevision(BzCleaner):
         return bugs
 
     def load_template(self, template_filename: str) -> Template:
-        """Load a template given its filename"""
         env = Environment(loader=FileSystemLoader("templates"))
         template = env.get_template(template_filename)
         return template
@@ -85,13 +89,13 @@ class InactiveRevision(BzCleaner):
                 summary = (
                     "The last action was by the author, so needinfoing the reviewer."
                 )
-                template = self.load_template(self.name() + "_needinfo_reviewer.txt")
+                template = self.ni_reviewer_template
             elif last_action_by == "reviewer":
                 ni_mail = revision["author"]["phab_username"]
                 summary = (
                     "The last action was by the reviewer, so needinfoing the author."
                 )
-                template = self.load_template(self.name() + "_needinfo_author.txt")
+                template = self.ni_author_template
             else:
                 continue
 
