@@ -7,6 +7,7 @@ from datetime import datetime
 from typing import Dict, List
 
 from dateutil.relativedelta import relativedelta
+from jinja2 import Environment, FileSystemLoader, Template
 from libmozdata import utils as lmdutils
 from libmozdata.connection import Connection
 from libmozdata.phabricator import PhabricatorAPI
@@ -66,6 +67,12 @@ class InactiveRevision(BzCleaner):
 
         return bugs
 
+    def load_template(self, template_filename: str) -> Template:
+        """Load a template given its filename"""
+        env = Environment(loader=FileSystemLoader("templates"))
+        template = env.get_template(template_filename)
+        return template
+
     def _add_needinfo(self, bugid: str, inactive_revs: list) -> None:
         has_old_patch = any(
             revision["created_at"] < self.old_patch_limit for revision in inactive_revs
@@ -78,15 +85,17 @@ class InactiveRevision(BzCleaner):
                 summary = (
                     "The last action was by the author, so needinfoing the reviewer."
                 )
+                template = self.load_template(self.name() + "_needinfo_reviewer.txt")
             elif last_action_by == "reviewer":
                 ni_mail = revision["author"]["phab_username"]
                 summary = (
                     "The last action was by the reviewer, so needinfoing the author."
                 )
+                template = self.load_template(self.name() + "_needinfo_author.txt")
             else:
                 continue
 
-            comment = self.ni_template.render(
+            comment = template.render(
                 revisions=[revision],
                 nicknames=revision["author"]["nick"],
                 reviewers_status_summary=summary,
