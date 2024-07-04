@@ -217,7 +217,12 @@ class NotLanded(BzCleaner):
 
         bugids = list(bugs.keys())
         data = {
-            bugid: {"backout": False, "author": None, "count": 0, "dependencies": False}
+            bugid: {
+                "backout": False,
+                "author": None,
+                "count": 0,
+                "has_blocking_dependencies": False,
+            }
             for bugid in bugids
         }
 
@@ -254,7 +259,9 @@ class NotLanded(BzCleaner):
 
             if "phab" in res:
                 if res["phab"]:
-                    data[bugid]["dependencies"] = has_blocking_dependencies(attachment)
+                    data[bugid][
+                        "has_blocking_dependencies"
+                    ] = has_blocking_dependencies(attachment)
                     data[bugid]["reviewers_phid"] = res["reviewers_phid"]
                     data[bugid]["author"] = res["author"]
                     data[bugid]["count"] = res["count"]
@@ -274,7 +281,7 @@ class NotLanded(BzCleaner):
         data = {
             bugid: v
             for bugid, v in data.items()
-            if not v["backout"] and not v["dependencies"]
+            if not v["backout"] and not v["has_blocking_dependencies"]
         }
 
         return data
