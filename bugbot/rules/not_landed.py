@@ -194,7 +194,7 @@ class NotLanded(BzCleaner):
                 else:
                     data[bugid] = [attachment]
 
-        def search_dependencies(attachment):
+        def has_blocking_dependencies(attachment):
             rev = PHAB_URL_PAT.search(
                 base64.b64decode(attachment["data"]).decode("utf-8")
             ).group(1)
@@ -206,7 +206,14 @@ class NotLanded(BzCleaner):
             stack_graph = revision_data["fields"]["stackGraph"]
             current_revision_phid = revision_data["phid"]
             dependencies = stack_graph[current_revision_phid]
-            return bool(dependencies)
+
+            for dep_phid in dependencies:
+                dep_revision_data = self.phab.load_revision(rev_phid=dep_phid)
+                dep_status = dep_revision_data["fields"]["status"]["value"]
+                if dep_status != "published":
+                    return True
+
+            return False
 
         bugids = list(bugs.keys())
         data = {
@@ -247,7 +254,7 @@ class NotLanded(BzCleaner):
 
             if "phab" in res:
                 if res["phab"]:
-                    data[bugid]["dependencies"] = search_dependencies(attachment)
+                    data[bugid]["dependencies"] = has_blocking_dependencies(attachment)
                     data[bugid]["reviewers_phid"] = res["reviewers_phid"]
                     data[bugid]["author"] = res["author"]
                     data[bugid]["count"] = res["count"]
