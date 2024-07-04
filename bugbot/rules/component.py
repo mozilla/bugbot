@@ -15,6 +15,11 @@ class Component(BzCleaner):
         super().__init__()
         self.autofix_component = {}
         self.frequency = "daily"
+        self.general_confidence_threshold = self.get_config(
+            "general_confidence_threshold"
+        )
+        self.component_confidence_threshold = self.get_config("confidence_threshold")
+        self.fenix_confidence_threshold = self.get_config("fenix_confidence_threshold")
 
     def add_custom_arguments(self, parser):
         parser.add_argument(
@@ -76,6 +81,9 @@ class Component(BzCleaner):
             "f9": "CP",
         }
 
+    def meets_threshold(self, bug_data, threshold):
+        return bug_data["prob"][bug_data["index"]] >= threshold
+
     def get_bugs(self, date="today", bug_ids=[]):
         # Retrieve the bugs with the fields defined in get_bz_params
         raw_bugs = super().get_bugs(date=date, bug_ids=bug_ids, chunk_size=7000)
@@ -90,37 +98,28 @@ class Component(BzCleaner):
         bugs = get_bug_ids_classification("component", bug_ids)
 
         # Collect bugs classified as Fenix::General
-        fenix_general_bug_ids = [
+        fenix_general_bug_ids = {
             bug_id
             for bug_id, bug_data in bugs.items()
             if bug_data.get("class") == "Fenix"
-            and bug_data["prob"][bug_data["index"]]
-            >= self.get_config("general_confidence_threshold")
-        ]
-
-        def get_confidence_threshold(
-            bug_data, general_confidence_threshold, confidence_threshold
-        ):
-            if bug_data["class"] == "General":
-                return general_confidence_threshold
-            return confidence_threshold
+            and self.meets_threshold(bug_data, self.general_confidence_threshold)
+        }
 
         # Collection bugs that were originally Fenix::General but reclassified to another product with low confidence
-        originally_fenix_general_bug_ids = [
+        originally_fenix_general_bug_ids = {
             bug_id
             for bug_id, bug_data in bugs.items()
             if raw_bugs[bug_id]["product"] == "Fenix"
             and raw_bugs[bug_id]["component"] == "General"
-            and bug_data["prob"][bug_data["index"]]
-            <= get_confidence_threshold(
+            and not self.meets_threshold(
                 bug_data,
-                self.get_config("general_confidence_threshold"),
-                self.get_config("confidence_threshold"),
+                self.general_confidence_threshold
+                if bug_data["class"] == "General"
+                else self.component_confidence_threshold,
             )
-        ]
+        }
 
-        fenix_general_bug_ids.extend(originally_fenix_general_bug_ids)
-        fenix_general_bug_ids = set(fenix_general_bug_ids)
+        fenix_general_bug_ids.update(originally_fenix_general_bug_ids)
 
         # Reclassify the Fenix::General bugs using the fenixcomponent model
         if fenix_general_bug_ids:
@@ -128,13 +127,11 @@ class Component(BzCleaner):
                 "fenixcomponent", fenix_general_bug_ids
             )
 
-            fenix_confidence_threshold = self.get_config("fenix_confidence_threshold")
-
             for bug_id, data in fenix_general_classification.items():
                 new_confidence = data["prob"][data["index"]]
 
                 # Only reclassify if the new confidence meets the Fenix component confidence threshold
-                if new_confidence > fenix_confidence_threshold:
+                if new_confidence > self.fenix_confidence_threshold:
                     data["class"] = f"Fenix::{data['class']}"
                     bugs[bug_id] = data
 
@@ -164,8 +161,7 @@ class Component(BzCleaner):
             if "::" not in suggestion and bug["product"] == suggestion:
                 continue
 
-            if "Fenix" not in suggestion:
-                suggestion = conflated_components_mapping.get(suggestion, suggestion)
+            suggestion = conflated_components_mapping.get(suggestion, suggestion)
 
             if "::" not in suggestion:
                 logger.error(
