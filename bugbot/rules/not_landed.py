@@ -194,9 +194,36 @@ class NotLanded(BzCleaner):
                 else:
                     data[bugid] = [attachment]
 
+        def has_blocking_dependencies(attachment):
+            rev = PHAB_URL_PAT.search(
+                base64.b64decode(attachment["data"]).decode("utf-8")
+            ).group(1)
+            try:
+                revision_data = self.phab.load_revision(rev_id=int(rev))
+            except PhabricatorRevisionNotFoundException:
+                return None
+
+            stack_graph = revision_data["fields"]["stackGraph"]
+            current_revision_phid = revision_data["phid"]
+            dependencies = stack_graph[current_revision_phid]
+
+            for dep_phid in dependencies:
+                dep_revision_data = self.phab.load_revision(rev_phid=dep_phid)
+                dep_status = dep_revision_data["fields"]["status"]["value"]
+                if dep_status != "published":
+                    return True
+
+            return False
+
         bugids = list(bugs.keys())
         data = {
-            bugid: {"backout": False, "author": None, "count": 0} for bugid in bugids
+            bugid: {
+                "backout": False,
+                "author": None,
+                "count": 0,
+                "has_blocking_dependencies": False,
+            }
+            for bugid in bugids
         }
 
         # Get the ids of the attachments of interest
@@ -232,6 +259,9 @@ class NotLanded(BzCleaner):
 
             if "phab" in res:
                 if res["phab"]:
+                    data[bugid][
+                        "has_blocking_dependencies"
+                    ] = has_blocking_dependencies(attachment)
                     data[bugid]["reviewers_phid"] = res["reviewers_phid"]
                     data[bugid]["author"] = res["author"]
                     data[bugid]["count"] = res["count"]
@@ -248,7 +278,11 @@ class NotLanded(BzCleaner):
             comment_include_fields=["text"],
         ).get_data().wait()
 
-        data = {bugid: v for bugid, v in data.items() if not v["backout"]}
+        data = {
+            bugid: v
+            for bugid, v in data.items()
+            if not v["backout"] and not v["has_blocking_dependencies"]
+        }
 
         return data
 
