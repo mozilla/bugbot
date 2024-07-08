@@ -15,6 +15,11 @@ class Component(BzCleaner):
         super().__init__()
         self.autofix_component = {}
         self.frequency = "daily"
+        self.general_confidence_threshold = self.get_config(
+            "general_confidence_threshold"
+        )
+        self.component_confidence_threshold = self.get_config("confidence_threshold")
+        self.fenix_confidence_threshold = self.get_config("fenix_confidence_threshold")
 
     def add_custom_arguments(self, parser):
         parser.add_argument(
@@ -77,6 +82,14 @@ class Component(BzCleaner):
         }
 
     def get_bugs(self, date="today", bug_ids=[]):
+        def meets_threshold(bug_data):
+            threshold = (
+                self.general_confidence_threshold
+                if bug_data["class"] == "Fenix" or bug_data["class"] == "General"
+                else self.component_confidence_threshold
+            )
+            return bug_data["prob"][bug_data["index"]] >= threshold
+
         # Retrieve the bugs with the fields defined in get_bz_params
         raw_bugs = super().get_bugs(date=date, bug_ids=bug_ids, chunk_size=7000)
 
@@ -88,6 +101,34 @@ class Component(BzCleaner):
 
         # Classify those bugs
         bugs = get_bug_ids_classification("component", bug_ids)
+
+        fenix_general_bug_ids = {
+            bug_id
+            for bug_id, bug_data in bugs.items()
+            if bug_data.get("class") == "Fenix" and meets_threshold(bug_data)
+        }
+
+        originally_fenix_general_bug_ids = {
+            bug_id
+            for bug_id, bug_data in bugs.items()
+            if raw_bugs[bug_id]["product"] == "Fenix"
+            and raw_bugs[bug_id]["component"] == "General"
+            and not meets_threshold(bug_data)
+        }
+
+        fenix_general_bug_ids.update(originally_fenix_general_bug_ids)
+
+        if fenix_general_bug_ids:
+            fenix_general_classification = get_bug_ids_classification(
+                "fenixcomponent", fenix_general_bug_ids
+            )
+
+            for bug_id, data in fenix_general_classification.items():
+                confidence = data["prob"][data["index"]]
+
+                if confidence > self.fenix_confidence_threshold:
+                    data["class"] = f"Fenix::{data['class']}"
+                    bugs[bug_id] = data
 
         results = {}
 
@@ -106,9 +147,10 @@ class Component(BzCleaner):
             prob = bug_data["prob"]
             index = bug_data["index"]
             suggestion = bug_data["class"]
-            conflated_components_mapping = bug_data["extra_data"][
-                "conflated_components_mapping"
-            ]
+
+            conflated_components_mapping = bug_data["extra_data"].get(
+                "conflated_components_mapping", {}
+            )
 
             # Skip product-only suggestions that are not useful.
             if "::" not in suggestion and bug["product"] == suggestion:
