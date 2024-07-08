@@ -82,14 +82,11 @@ class Component(BzCleaner):
         }
 
     def get_bugs(self, date="today", bug_ids=[]):
-        def select_threshold(bug_data):
-            if bug_data["class"] == "Fenix" or bug_data["class"] == "General":
-                return self.general_confidence_threshold
-            else:
-                return self.component_confidence_threshold
-
         def meets_threshold(bug_data):
-            threshold = select_threshold(bug_data)
+            if bug_data["class"] == "Fenix" or bug_data["class"] == "General":
+                threshold = self.general_confidence_threshold
+            else:
+                threshold = self.component_confidence_threshold
             return bug_data["prob"][bug_data["index"]] >= threshold
 
         # Retrieve the bugs with the fields defined in get_bz_params
