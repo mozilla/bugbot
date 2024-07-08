@@ -81,10 +81,17 @@ class Component(BzCleaner):
             "f9": "CP",
         }
 
-    def meets_threshold(self, bug_data, threshold):
-        return bug_data["prob"][bug_data["index"]] >= threshold
-
     def get_bugs(self, date="today", bug_ids=[]):
+        def select_threshold(bug_data):
+            if bug_data["class"] == "Fenix" or bug_data["class"] == "General":
+                return self.general_confidence_threshold
+            else:
+                return self.component_confidence_threshold
+
+        def meets_threshold(bug_data):
+            threshold = select_threshold(bug_data)
+            return bug_data["prob"][bug_data["index"]] >= threshold
+
         # Retrieve the bugs with the fields defined in get_bz_params
         raw_bugs = super().get_bugs(date=date, bug_ids=bug_ids, chunk_size=7000)
 
@@ -101,8 +108,7 @@ class Component(BzCleaner):
         fenix_general_bug_ids = {
             bug_id
             for bug_id, bug_data in bugs.items()
-            if bug_data.get("class") == "Fenix"
-            and self.meets_threshold(bug_data, self.general_confidence_threshold)
+            if bug_data.get("class") == "Fenix" and meets_threshold(bug_data)
         }
 
         # Collection bugs that were originally Fenix::General but reclassified to another product with low confidence
@@ -111,12 +117,7 @@ class Component(BzCleaner):
             for bug_id, bug_data in bugs.items()
             if raw_bugs[bug_id]["product"] == "Fenix"
             and raw_bugs[bug_id]["component"] == "General"
-            and not self.meets_threshold(
-                bug_data,
-                self.general_confidence_threshold
-                if bug_data["class"] == "General"
-                else self.component_confidence_threshold,
-            )
+            and not meets_threshold(bug_data)
         }
 
         fenix_general_bug_ids.update(originally_fenix_general_bug_ids)
