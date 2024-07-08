@@ -83,10 +83,11 @@ class Component(BzCleaner):
 
     def get_bugs(self, date="today", bug_ids=[]):
         def meets_threshold(bug_data):
-            if bug_data["class"] == "Fenix" or bug_data["class"] == "General":
-                threshold = self.general_confidence_threshold
-            else:
-                threshold = self.component_confidence_threshold
+            threshold = (
+                self.general_confidence_threshold
+                if bug_data["class"] == "Fenix" or bug_data["class"] == "General"
+                else self.component_confidence_threshold
+            )
             return bug_data["prob"][bug_data["index"]] >= threshold
 
         # Retrieve the bugs with the fields defined in get_bz_params
@@ -101,14 +102,12 @@ class Component(BzCleaner):
         # Classify those bugs
         bugs = get_bug_ids_classification("component", bug_ids)
 
-        # Collect bugs classified as Fenix::General
         fenix_general_bug_ids = {
             bug_id
             for bug_id, bug_data in bugs.items()
             if bug_data.get("class") == "Fenix" and meets_threshold(bug_data)
         }
 
-        # Collection bugs that were originally Fenix::General but reclassified to another product with low confidence
         originally_fenix_general_bug_ids = {
             bug_id
             for bug_id, bug_data in bugs.items()
@@ -119,17 +118,15 @@ class Component(BzCleaner):
 
         fenix_general_bug_ids.update(originally_fenix_general_bug_ids)
 
-        # Reclassify the Fenix::General bugs using the fenixcomponent model
         if fenix_general_bug_ids:
             fenix_general_classification = get_bug_ids_classification(
                 "fenixcomponent", fenix_general_bug_ids
             )
 
             for bug_id, data in fenix_general_classification.items():
-                new_confidence = data["prob"][data["index"]]
+                confidence = data["prob"][data["index"]]
 
-                # Only reclassify if the new confidence meets the Fenix component confidence threshold
-                if new_confidence > self.fenix_confidence_threshold:
+                if confidence > self.fenix_confidence_threshold:
                     data["class"] = f"Fenix::{data['class']}"
                     bugs[bug_id] = data
 
