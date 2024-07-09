@@ -325,4 +325,4 @@ class InactiveRevision(BzCleaner):
 
 
 if __name__ == "__main__":
-    InactiveRevision(patch_activity_months=0).run()
+    InactiveRevision().run()
