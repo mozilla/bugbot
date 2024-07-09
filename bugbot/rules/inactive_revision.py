@@ -3,7 +3,6 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import re
-from datetime import datetime
 from typing import Dict, List
 
 from dateutil.relativedelta import relativedelta
@@ -16,22 +15,23 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
 from bugbot.history import History
-from bugbot.user_activity import PHAB_CHUNK_SIZE, UserActivity, UserStatus
+from bugbot.user_activity import PHAB_CHUNK_SIZE, UserActivity
 
 PHAB_FILE_NAME_PAT = re.compile(r"phabricator-D([0-9]+)-url\.txt")
 PHAB_TABLE_PAT = re.compile(r"^\|\ \[D([0-9]+)\]\(h", flags=re.M)
 
 
 class InactiveRevision(BzCleaner):
-    """Bugs with patches that are waiting for review from inactive reviewers"""
+    """Bugs with inactive patches that are awaiting action from authors or reviewers."""
 
-    def __init__(self, old_patch_months: int = 6):
+    def __init__(self, old_patch_months: int = 6, patch_activity_months: int = 6):
         """Constructor
 
         Args:
             old_patch_months: number of months since creation of the patch to be
                 considered old. If the bug has an old patch, we will mention
                 abandon the patch as an option.
+            patch_activity_months: Number of months since the last activity on the patch.
         """
         super(InactiveRevision, self).__init__()
         self.phab = PhabricatorAPI(utils.get_login_info()["phab_api_key"])
@@ -45,9 +45,12 @@ class InactiveRevision(BzCleaner):
         self.old_patch_limit = (
             lmdutils.get_date_ymd("today") - relativedelta(months=old_patch_months)
         ).timestamp()
+        self.patch_activity_limit = (
+            lmdutils.get_date_ymd("today") - relativedelta(months=patch_activity_months)
+        ).timestamp()
 
     def description(self):
-        return "Bugs with inactive patch reviewers"
+        return "Bugs with inactive patches that are awaiting action from authors or reviewers."
 
     def columns(self):
         return ["id", "summary", "revisions"]
@@ -90,18 +93,20 @@ class InactiveRevision(BzCleaner):
                     "The last action was by the author, so needinfoing the reviewer."
                 )
                 template = self.ni_reviewer_template
+                nickname = revision["reviewers"][0]["phab_username"]
             elif last_action_by == "reviewer":
                 ni_mail = revision["author"]["phab_username"]
                 summary = (
                     "The last action was by the reviewer, so needinfoing the author."
                 )
                 template = self.ni_author_template
+                nickname = revision["author"]["phab_username"]
             else:
                 continue
 
             comment = template.render(
                 revisions=[revision],
-                nicknames=revision["author"]["nick"],
+                nicknames=nickname,
                 reviewers_status_summary=summary,
                 has_old_patch=has_old_patch,
                 plural=utils.plural,
@@ -134,14 +139,7 @@ class InactiveRevision(BzCleaner):
         ]
 
         transactions = self._fetch_revision_transactions(revision["phid"])
-
-        last_transaction = None
-        for transaction in transactions:
-            if (
-                last_transaction is None
-                or transaction["dateCreated"] > last_transaction["dateCreated"]
-            ):
-                last_transaction = transaction
+        last_transaction = transactions[0] if transactions else None
 
         if last_transaction:
             last_action_by_phid = last_transaction["authorPHID"]
@@ -158,6 +156,7 @@ class InactiveRevision(BzCleaner):
 
     def _get_revisions_with_inactive_action(self, rev_ids: list) -> Dict[int, dict]:
         revisions: List[dict] = []
+
         for _rev_ids in Connection.chunks(rev_ids, PHAB_CHUNK_SIZE):
             for revision in self._fetch_revisions(_rev_ids):
                 if (
@@ -167,36 +166,46 @@ class InactiveRevision(BzCleaner):
                 ):
                     continue
 
-                reviewers = [
-                    {
-                        "phid": reviewer["reviewerPHID"],
-                        "is_group": reviewer["reviewerPHID"].startswith("PHID-PROJ"),
-                        "is_blocking": reviewer["isBlocking"],
-                        "is_accepted": reviewer["status"] == "accepted",
-                        "is_resigned": reviewer["status"] == "resigned",
-                    }
-                    for reviewer in revision["attachments"]["reviewers"]["reviewers"]
-                ]
+                _, last_transaction = self._find_last_action(revision["id"])
 
-                if any(
-                    reviewer["is_group"] or reviewer["is_accepted"]
-                    for reviewer in reviewers
-                ) and not any(
-                    not reviewer["is_accepted"]
-                    for reviewer in reviewers
-                    if reviewer["is_blocking"]
+                if (
+                    last_transaction
+                    and last_transaction["dateCreated"] < self.patch_activity_limit
                 ):
-                    continue
+                    reviewers = [
+                        {
+                            "phid": reviewer["reviewerPHID"],
+                            "is_group": reviewer["reviewerPHID"].startswith(
+                                "PHID-PROJ"
+                            ),
+                            "is_blocking": reviewer["isBlocking"],
+                            "is_accepted": reviewer["status"] == "accepted",
+                            "is_resigned": reviewer["status"] == "resigned",
+                        }
+                        for reviewer in revision["attachments"]["reviewers"][
+                            "reviewers"
+                        ]
+                    ]
 
-                revisions.append(
-                    {
-                        "rev_id": revision["id"],
-                        "title": revision["fields"]["title"],
-                        "created_at": revision["fields"]["dateCreated"],
-                        "author_phid": revision["fields"]["authorPHID"],
-                        "reviewers": reviewers,
-                    }
-                )
+                    if any(
+                        reviewer["is_group"] or reviewer["is_accepted"]
+                        for reviewer in reviewers
+                    ) and not any(
+                        not reviewer["is_accepted"]
+                        for reviewer in reviewers
+                        if reviewer["is_blocking"]
+                    ):
+                        continue
+
+                    revisions.append(
+                        {
+                            "rev_id": revision["id"],
+                            "title": revision["fields"]["title"],
+                            "created_at": revision["fields"]["dateCreated"],
+                            "author_phid": revision["fields"]["authorPHID"],
+                            "reviewers": reviewers,
+                        }
+                    )
 
         user_phids = set()
         for revision in revisions:
@@ -210,63 +219,32 @@ class InactiveRevision(BzCleaner):
 
         result: Dict[int, dict] = {}
         for revision in revisions:
-            author_info = users[revision["author_phid"]]
-            if author_info["status"] != UserStatus.ACTIVE:
+            author_phid = revision["author_phid"]
+            if author_phid in users:
+                author_info = users[author_phid]
+                revision["author"] = author_info
+            else:
                 continue
 
-            revision["author"] = author_info
-
-            inactive_reviewers = []
+            reviewers = []
             for reviewer in revision["reviewers"]:
-                if reviewer["is_group"]:
+                reviewer_phid = reviewer["phid"]
+                if reviewer_phid in users:
+                    reviewer_info = users[reviewer_phid]
+                    reviewer["info"] = reviewer_info
+                else:
                     continue
+                reviewers.append(reviewer)
 
-                reviewer_info = users[reviewer["phid"]]
-                if (
-                    not reviewer["is_resigned"]
-                    and reviewer_info["status"] == UserStatus.ACTIVE
-                ):
-                    continue
-
-                reviewer["info"] = reviewer_info
-                inactive_reviewers.append(reviewer)
-
-            last_action_by, last_transaction = self._find_last_action(
-                revision["rev_id"]
-            )
-
-            if last_action_by in ["author", "reviewer"]:
-                revision["last_action_by"] = last_action_by
-                revision["last_transaction"] = last_transaction
-                revision["reviewers"] = [
-                    {
-                        "phab_username": reviewer["info"]["phab_username"],
-                        "status_note": self._get_reviewer_status_note(reviewer),
-                    }
-                    for reviewer in inactive_reviewers
-                ]
-                result[revision["rev_id"]] = revision
+            revision["reviewers"] = [
+                {
+                    "phab_username": reviewer["info"]["phab_username"],
+                }
+                for reviewer in reviewers
+            ]
+            result[revision["rev_id"]] = revision
 
         return result
-
-    @staticmethod
-    def _get_reviewer_status_note(reviewer: dict) -> str:
-        if reviewer["is_resigned"]:
-            return "Resigned from review"
-
-        status = reviewer["info"]["status"]
-        if status == UserStatus.UNAVAILABLE:
-            until = reviewer["info"]["unavailable_until"]
-            if until:
-                return_date = datetime.fromtimestamp(until).strftime("%b %-d, %Y")
-                return f"Back {return_date}"
-
-            return "Unavailable"
-
-        if status == UserStatus.DISABLED:
-            return "Disabled"
-
-        return "Inactive"
 
     @retry(
         wait=wait_exponential(min=4),
@@ -347,4 +325,4 @@ class InactiveRevision(BzCleaner):
 
 
 if __name__ == "__main__":
-    InactiveRevision().run()
+    InactiveRevision(patch_activity_months=0).run()
