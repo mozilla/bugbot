@@ -102,21 +102,18 @@ class Component(BzCleaner):
         # Classify those bugs
         bugs = get_bug_ids_classification("component", bug_ids)
 
-        fenix_general_bug_ids = {
-            bug_id
-            for bug_id, bug_data in bugs.items()
-            if bug_data.get("class") == "Fenix" and meets_threshold(bug_data)
-        }
-
-        originally_fenix_general_bug_ids = {
-            bug_id
-            for bug_id, bug_data in bugs.items()
-            if raw_bugs[bug_id]["product"] == "Fenix"
-            and raw_bugs[bug_id]["component"] == "General"
-            and not meets_threshold(bug_data)
-        }
-
-        fenix_general_bug_ids.update(originally_fenix_general_bug_ids)
+        fenix_general_bug_ids = []
+        for bug_id, bug_data in bugs.items():
+            if meets_threshold(bug_data):
+                if bug_data.get("class") == "Fenix":
+                    fenix_general_bug_ids.append(bug_id)
+            else:
+                current_bug_data = raw_bugs[bug_id]
+                if (
+                    current_bug_data["product"] == "Fenix"
+                    and current_bug_data["component"] == "General"
+                ):
+                    fenix_general_bug_ids.append(bug_id)
 
         if fenix_general_bug_ids:
             fenix_general_classification = get_bug_ids_classification(
