@@ -104,6 +104,10 @@ class Component(BzCleaner):
 
         fenix_general_bug_ids = []
         for bug_id, bug_data in bugs.items():
+            if not bug_data.get("available", True):
+                # The bug was not available, it was either removed or is a
+                # security bug.
+                continue
             if meets_threshold(bug_data):
                 if bug_data.get("class") == "Fenix":
                     fenix_general_bug_ids.append(bug_id)
