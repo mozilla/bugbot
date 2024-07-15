@@ -178,10 +178,9 @@ class NotLanded(BzCleaner):
                 ):
                     data[bugid]["backout"] = True
 
-                    # Set the status of the Phabricator revision to be "Changes Planned"
-                    phid = data.get("phid")
-
+                    # If the the bug has been backed out, we can mark it as "changes-planned" to prevent further nagging in the future
                     if not self.dryrun:
+                        phid = data["phid"]
                         transactions = [{"type": "status", "value": "changes-planned"}]
                         self.phab.edit_revision(phid, transactions)
 
