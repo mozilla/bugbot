@@ -178,12 +178,6 @@ class NotLanded(BzCleaner):
                 ):
                     data[bugid]["backout"] = True
 
-                    # If the the bug has been backed out, we can mark it as "changes-planned" to prevent further nagging in the future
-                    if not self.dryrun:
-                        phid = data["phid"]
-                        transactions = [{"type": "status", "value": "changes-planned"}]
-                        self.phab.edit_revision(phid, transactions)
-
         def attachment_id_handler(attachments, bugid, data):
             for a in attachments:
                 if (
