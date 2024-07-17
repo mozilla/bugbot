@@ -8,7 +8,7 @@ import os
 import sys
 import time
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List
 
 from dateutil.relativedelta import relativedelta
@@ -757,7 +757,9 @@ class BzCleaner(object):
         """Send the email"""
         if date:
             date = lmdutils.get_date(date)
+            date = (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%d %H:%M:%S%z")
             d = lmdutils.get_date_ymd(date)
+            # print(d)
             if isinstance(self, Nag):
                 self.nag_date: datetime = d
 

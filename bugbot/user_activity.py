@@ -161,7 +161,7 @@ class UserActivity:
 
     def get_status_from_bz_user(self, user: dict) -> UserStatus:
         """Get the user status from a Bugzilla user object."""
-
+        print(f"User: {user}")
         if not user["can_login"]:
             return UserStatus.DISABLED
 
@@ -212,6 +212,7 @@ class UserActivity:
                 "last_activity_time",
                 "last_seen_date",
                 "creation_time",
+                "new",
             ]
             + self.include_fields,
         ).wait()
