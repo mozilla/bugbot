@@ -36,6 +36,7 @@ class UserActivity:
         self,
         activity_weeks_count: int = 26,
         absent_weeks_count: int = 26,
+        new_user_weeks_count: int = 4,
         unavailable_max_days: int = 7,
         include_fields: list | None = None,
         phab: PhabricatorAPI | None = None,
@@ -50,6 +51,8 @@ class UserActivity:
                 to a bug before a user being considered as inactive.
             absent_weeks_count: the number of weeks since last loaded any page
                 from Bugzilla before a user being considered as inactive.
+            new_user_weeks_count: the number of weeks since last made a change
+                to a bug before a new user being considered as inactive.
             unavailable_max_days: a user will be considered inactive if they
                 have more days left to be available than `unavailable_max_days`.
             include_fields: the list of fields to include with the the Bugzilla
@@ -64,6 +67,7 @@ class UserActivity:
         """
         self.activity_weeks_count = activity_weeks_count
         self.absent_weeks_count = absent_weeks_count
+        self.new_user_weeks_count = new_user_weeks_count
         self.include_fields = include_fields or []
         self.people = people if people is not None else People.get_instance()
         self.phab = phab
