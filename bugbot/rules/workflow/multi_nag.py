@@ -5,7 +5,8 @@
 from bugbot.erroneous_bzmail import check_erroneous_bzmail
 from bugbot.multinaggers import MultiNaggers
 
-from .no_severity import NoSeverity
+from .no_severity_nag import NoSeverityNag
+from .no_severity_ni import NoSeverityNeedInfo
 from .p1_no_assignee import P1NoAssignee
 
 # from .p1_no_activity import P1NoActivity
@@ -16,8 +17,8 @@ from .p1_no_assignee import P1NoAssignee
 class WorkflowMultiNag(MultiNaggers):
     def __init__(self):
         super(WorkflowMultiNag, self).__init__(
-            NoSeverity("first"),
-            NoSeverity("second"),
+            NoSeverityNeedInfo(),
+            NoSeverityNag(),
             # P1NoActivity(),
             P1NoAssignee(),
             # P2NoActivity(),
