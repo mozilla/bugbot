@@ -182,15 +182,12 @@ class NotLanded(BzCleaner):
 
     def get_patch_data(self, bugs):
         """Get patch information in bugs"""
-        nightly_pat = Bugzilla.get_landing_patterns(channels=["nightly"])[0][0]
 
         def comment_handler(bug, bugid, data):
             # if a comment contains a backout: don't nag
             for comment in bug["comments"]:
                 comment = comment["text"].lower()
-                if nightly_pat.match(comment) and (
-                    "backed out" in comment or "backout" in comment
-                ):
+                if "backed out" in comment or "backout" in comment:
                     data[bugid]["backout"] = True
 
         def attachment_id_handler(attachments, bugid, data):
@@ -263,12 +260,11 @@ class NotLanded(BzCleaner):
             comment_include_fields=["text"],
         ).get_data().wait()
 
-        for bugid, attachments in attachments_by_bug.items():
-            if bugid in data:
-                if data[bugid]["backout"]:
-                    phab_url = base64.b64decode(attachment["data"]).decode("utf-8")
-                    rev = PHAB_URL_PAT.search(phab_url).group(1)
-                    self.update_revision_status(int(rev), "plan-changes", True)
+        for bugid, v in data.items():
+            if data[bugid]["backout"]:
+                phab_url = base64.b64decode(attachment["data"]).decode("utf-8")
+                rev = PHAB_URL_PAT.search(phab_url).group(1)
+                self.update_revision_status(int(rev), "plan-changes", True)
 
         data = {bugid: v for bugid, v in data.items() if not v["backout"]}
 
