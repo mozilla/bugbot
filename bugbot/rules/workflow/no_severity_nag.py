@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from datetime import datetime
 
 import numpy
 from libmozdata import utils as lmdutils
@@ -23,10 +22,10 @@ class NoSeverityNag(BzCleaner, Nag):
                 being considered.
         """
         super(NoSeverityNag, self).__init__()
-        self.lookup_second = utils.get_config(self.name(), "weeks_lookup", 4)
+        self.lookup_second = utils.get_config(self.name(), "weeks-lookup", 4)
         self.escalation = Escalation(
             self.people,
-            data=utils.get_config(self.name(), "escalation-{}".format("second")),
+            data=utils.get_config(self.name(), "escalation"),
             skiplist=utils.get_config("workflow", "supervisor_skiplist", []),
         )
         self.round_robin = RoundRobin.get_instance()
@@ -54,6 +53,9 @@ class NoSeverityNag(BzCleaner, Nag):
     def get_extra_for_template(self):
         return {"nweeks": self.lookup_second}
 
+    def get_extra_for_needinfo_template(self):
+        return self.get_extra_for_template()
+
     def get_extra_for_nag_template(self):
         return self.get_extra_for_template()
 
@@ -74,6 +76,9 @@ class NoSeverityNag(BzCleaner, Nag):
         ):
             return None
         return bug
+
+    def get_mail_to_auto_ni(self, bug):
+        return None
 
     def set_people_to_nag(self, bug, buginfo):
         priority = "default"
@@ -114,6 +119,7 @@ class NoSeverityNag(BzCleaner, Nag):
         }
         self.date = lmdutils.get_date_ymd(date)
         second = f"-{self.lookup_second * 7}d"
+
         params.update(
             {
                 "j2": "OR",
@@ -172,23 +178,6 @@ class NoSeverityNag(BzCleaner, Nag):
                 "o23": "changedfrom",
                 "v23": "blocker",
                 "f30": "CP",
-            }
-        )
-
-        # TODO: the following code can be removed in 2024.
-        # https://github.com/mozilla/bugbot/issues/1596
-        # Almost 500 old bugs have no severity set. The intent of the following
-        # is to have them triaged in batches where every week we include more
-        # bugs. Once the list of old bugs are reduced, we could safely remove
-        # the following code.
-        passed_time = datetime.now() - datetime.fromisoformat("2023-06-09")
-        oldest_bug_months = 56 + passed_time.days
-        n = utils.get_last_field_num(params)
-        params.update(
-            {
-                f"f{n}": "creation_ts",
-                f"o{n}": "greaterthan",
-                f"v{n}": f"-{oldest_bug_months}m",
             }
         )
 
