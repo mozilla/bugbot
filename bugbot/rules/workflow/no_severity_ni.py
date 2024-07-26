@@ -2,26 +2,35 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from datetime import datetime
 
 import numpy
 from libmozdata import utils as lmdutils
 
 from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
+from bugbot.escalation import Escalation
+from bugbot.nag_me import Nag
 from bugbot.round_robin import RoundRobin
 
 
-class NoSeverityNeedInfo(BzCleaner):
+class NoSeverityNeedInfo(BzCleaner, Nag):
     def __init__(self, inactivity_days: int = 4):
         """Constructor
 
         Args:
+            typ: the mode that the rule should run with (first or second). Nag
+                emails will be sent only if `typ` is second.
             inactivity_days: number of days that a bug should be inactive before
                 being considered.
         """
         super(NoSeverityNeedInfo, self).__init__()
         self.lookup_first = utils.get_config(self.name(), "weeks_lookup", 2)
+        self.lookup_second = utils.get_config("NoSeverityNag", "weeks_lookup", 4)
+        self.escalation = Escalation(
+            self.people,
+            data=utils.get_config(self.name(), "escalation"),
+            skiplist=utils.get_config("workflow", "supervisor_skiplist", []),
+        )
         self.round_robin = RoundRobin.get_instance()
         self.components_skiplist = utils.get_config("workflow", "components_skiplist")
         self.activity_date = str(
@@ -30,6 +39,28 @@ class NoSeverityNeedInfo(BzCleaner):
 
     def description(self):
         return "Bugs without a severity or statuses set"
+
+    def nag_template(self):
+        return self.template()
+
+    def nag_preamble(self):
+        return """<p>
+  <ul>
+    <li><a href="https://firefox-source-docs.mozilla.org/bug-mgmt/policies/triage-bugzilla.html#why-triage">Why triage?</a></li>
+    <li><a href="https://firefox-source-docs.mozilla.org/bug-mgmt/policies/triage-bugzilla.html#what-do-you-triage">What do you triage?</a></li>
+    <li><a href="https://firefox-source-docs.mozilla.org/bug-mgmt/guides/priority.html">Priority definitions</a></li>
+    <li><a href="https://firefox-source-docs.mozilla.org/bug-mgmt/guides/severity.html">Severity definitions</a></li>
+  </ul>
+</p>"""
+
+    def get_extra_for_template(self):
+        return {"nweeks": self.lookup_first}
+
+    def get_extra_for_needinfo_template(self):
+        return self.get_extra_for_template()
+
+    def get_extra_for_nag_template(self):
+        return self.get_extra_for_template()
 
     def has_product_component(self):
         return True
@@ -42,7 +73,7 @@ class NoSeverityNeedInfo(BzCleaner):
 
     def handle_bug(self, bug, data):
         if (
-            # Check if the product::component is in the list
+            # check if the product::component is in the list
             utils.check_product_component(self.components_skiplist, bug)
             or utils.get_last_no_bot_comment_date(bug) > self.activity_date
         ):
@@ -50,16 +81,18 @@ class NoSeverityNeedInfo(BzCleaner):
         return bug
 
     def get_mail_to_auto_ni(self, bug):
-        string_to_search = "The severity field is not set for this bug."
-
-        for comment in bug.get("comments", []):
-            if string_to_search in comment.get("raw_text", ""):
-                return None
-
         mail, nick = self.round_robin.get(bug, self.date)
         if mail and nick:
             return {"mail": mail, "nickname": nick}
+
         return None
+
+    def set_people_to_nag(self, bug, buginfo):
+        priority = "default"
+        if not self.filter_bug(priority):
+            return None
+
+        return bug
 
     def get_bz_params(self, date):
         fields = [
@@ -67,7 +100,6 @@ class NoSeverityNeedInfo(BzCleaner):
             "flags",
             "comments.creator",
             "comments.creation_time",
-            "comments.raw_text",
         ]
         params = {
             "include_fields": fields,
@@ -89,6 +121,15 @@ class NoSeverityNeedInfo(BzCleaner):
         }
         self.date = lmdutils.get_date_ymd(date)
         first = f"-{self.lookup_first * 7}d"
+        second = f"-{self.lookup_second * 7}d"
+
+        # TODO: change this when https://bugzilla.mozilla.org/1543984 will be fixed
+        # Here we have to get bugs where product/component have been set (bug has been triaged)
+        # between 4 and 2 weeks
+        # If the product/component never changed after bug creation, we need to get them too
+        # (second < p < first && c < first) ||
+        # (second < c < first && p < first) ||
+        # ((second < creation < first) && pc never changed)
         params.update(
             {
                 "f2": "flagtypes.name",
@@ -98,13 +139,13 @@ class NoSeverityNeedInfo(BzCleaner):
                 "f3": "OP",
                 "j4": "AND",
                 "f4": "OP",
-                "n5": 1,  # Ensure no change after the first period
+                "n5": 1,
                 "f5": "product",
                 "o5": "changedafter",
                 "v5": first,
-                "f6": "product",  # The bug has changed
+                "f6": "product",
                 "o6": "changedafter",
-                "v6": self.lookup_first * 7,
+                "v6": second,
                 "n7": 1,
                 "f7": "component",
                 "o7": "changedafter",
@@ -118,7 +159,7 @@ class NoSeverityNeedInfo(BzCleaner):
                 "v10": first,
                 "f11": "component",
                 "o11": "changedafter",
-                "v11": self.lookup_first * 7,
+                "v11": second,
                 "n12": 1,
                 "f12": "product",
                 "o12": "changedafter",
@@ -131,7 +172,7 @@ class NoSeverityNeedInfo(BzCleaner):
                 "v15": first,
                 "f16": "creation_ts",
                 "o16": "greaterthan",
-                "v16": self.lookup_first * 7,
+                "v16": second,
                 "n17": 1,
                 "f17": "product",
                 "o17": "everchanged",
@@ -152,23 +193,6 @@ class NoSeverityNeedInfo(BzCleaner):
                 "v23": "blocker",
                 "f24": "CP",
                 "f30": "CP",
-            }
-        )
-
-        # TODO: the following code can be removed in 2024.
-        # https://github.com/mozilla/bugbot/issues/1596
-        # Almost 500 old bugs have no severity set. The intent of the following
-        # is to have them triaged in batches where every week we include more
-        # bugs. Once the list of old bugs are reduced, we could safely remove
-        # the following code.
-        passed_time = datetime.now() - datetime.fromisoformat("2023-06-09")
-        oldest_bug_months = 56 + passed_time.days
-        n = utils.get_last_field_num(params)
-        params.update(
-            {
-                f"f{n}": "creation_ts",
-                f"o{n}": "greaterthan",
-                f"v{n}": f"-{oldest_bug_months}m",
             }
         )
 
