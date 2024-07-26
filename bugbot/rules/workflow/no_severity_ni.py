@@ -22,8 +22,8 @@ class NoSeverityNeedInfo(BzCleaner, Nag):
                 being considered.
         """
         super(NoSeverityNeedInfo, self).__init__()
-        self.lookup_first = utils.get_config(self.name(), "weeks_lookup", 2)
-        self.lookup_second = utils.get_config("NoSeverityNag", "weeks_lookup", 4)
+        self.lookup = utils.get_config(self.name(), "weeks_lookup", 2)
+        self.lookup_nag = utils.get_config("NoSeverityNag", "weeks_lookup", 4)
         self.escalation = Escalation(
             self.people,
             data=utils.get_config(self.name(), "escalation"),
@@ -52,7 +52,7 @@ class NoSeverityNeedInfo(BzCleaner, Nag):
 </p>"""
 
     def get_extra_for_template(self):
-        return {"nweeks": self.lookup_first}
+        return {"nweeks": self.lookup}
 
     def get_extra_for_needinfo_template(self):
         return self.get_extra_for_template()
@@ -118,8 +118,8 @@ class NoSeverityNeedInfo(BzCleaner, Nag):
             "v33": "--, n/a",
         }
         self.date = lmdutils.get_date_ymd(date)
-        first = f"-{self.lookup_first * 7}d"
-        second = f"-{self.lookup_second * 7}d"
+        lookup = f"-{self.lookup * 7}d"
+        lookup_nag = f"-{self.lookup_nag * 7}d"
 
         # TODO: change this when https://bugzilla.mozilla.org/1543984 will be fixed
         # Here we have to get bugs where product/component have been set (bug has been triaged)
@@ -140,37 +140,37 @@ class NoSeverityNeedInfo(BzCleaner, Nag):
                 "n5": 1,
                 "f5": "product",
                 "o5": "changedafter",
-                "v5": first,
+                "v5": lookup,
                 "f6": "product",
                 "o6": "changedafter",
-                "v6": second,
+                "v6": lookup_nag,
                 "n7": 1,
                 "f7": "component",
                 "o7": "changedafter",
-                "v7": first,
+                "v7": lookup,
                 "f8": "CP",
                 "j9": "AND",
                 "f9": "OP",
                 "n10": 1,
                 "f10": "component",
                 "o10": "changedafter",
-                "v10": first,
+                "v10": lookup,
                 "f11": "component",
                 "o11": "changedafter",
-                "v11": second,
+                "v11": lookup_nag,
                 "n12": 1,
                 "f12": "product",
                 "o12": "changedafter",
-                "v12": first,
+                "v12": lookup,
                 "f13": "CP",
                 "j14": "AND",
                 "f14": "OP",
                 "f15": "creation_ts",
                 "o15": "lessthaneq",
-                "v15": first,
+                "v15": lookup,
                 "f16": "creation_ts",
                 "o16": "greaterthan",
-                "v16": second,
+                "v16": lookup_nag,
                 "n17": 1,
                 "f17": "product",
                 "o17": "everchanged",

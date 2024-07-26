@@ -22,7 +22,7 @@ class NoSeverityNag(BzCleaner, Nag):
                 being considered.
         """
         super(NoSeverityNag, self).__init__()
-        self.lookup_second = utils.get_config(self.name(), "weeks-lookup", 4)
+        self.lookup = utils.get_config(self.name(), "weeks-lookup", 4)
         self.escalation = Escalation(
             self.people,
             data=utils.get_config(self.name(), "escalation"),
@@ -51,7 +51,7 @@ class NoSeverityNag(BzCleaner, Nag):
 </p>"""
 
     def get_extra_for_template(self):
-        return {"nweeks": self.lookup_second}
+        return {"nweeks": self.lookup}
 
     def get_extra_for_needinfo_template(self):
         return self.get_extra_for_template()
@@ -118,7 +118,7 @@ class NoSeverityNag(BzCleaner, Nag):
             "v33": "--, n/a",
         }
         self.date = lmdutils.get_date_ymd(date)
-        second = f"-{self.lookup_second * 7}d"
+        lookup = f"-{self.lookup * 7}d"
 
         params.update(
             {
@@ -128,35 +128,35 @@ class NoSeverityNag(BzCleaner, Nag):
                 "f3": "OP",
                 "f4": "product",
                 "o4": "changedbefore",
-                "v4": second,
+                "v4": lookup,
                 "n5": 1,
                 "f5": "product",
                 "o5": "changedafter",
-                "v5": second,
+                "v5": lookup,
                 "n6": 1,
                 "f6": "component",
                 "o6": "changedafter",
-                "v6": second,
+                "v6": lookup,
                 "f7": "CP",
                 "j8": "AND",
                 "f8": "OP",
                 "f9": "component",
                 "o9": "changedbefore",
-                "v9": second,
+                "v9": lookup,
                 "n10": 1,
                 "f10": "product",
                 "o10": "changedafter",
-                "v10": second,
+                "v10": lookup,
                 "n11": 1,
                 "f11": "component",
                 "o11": "changedafter",
-                "v11": second,
+                "v11": lookup,
                 "f12": "CP",
                 "j13": "AND",
                 "f13": "OP",
                 "f14": "creation_ts",
                 "o14": "lessthaneq",
-                "v14": second,
+                "v14": lookup,
                 "n15": 1,
                 "f15": "product",
                 "o15": "everchanged",
