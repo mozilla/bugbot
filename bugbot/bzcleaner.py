@@ -127,7 +127,7 @@ class BzCleaner(object):
         for day in days:
             if week[day] == weekday:
                 return True
-        return True
+        return False
 
     def has_enough_data(self):
         """Check if the rule has enough data to run"""
