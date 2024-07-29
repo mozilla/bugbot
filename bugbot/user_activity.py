@@ -81,6 +81,17 @@ class UserActivity:
         self.activity_limit_ts = lmdutils.get_date_ymd(self.activity_limit).timestamp()
         self.seen_limit = lmdutils.get_date(reference_date, self.absent_weeks_count * 7)
 
+        self.new_user_activity_limit = lmdutils.get_date(
+            reference_date, self.new_user_weeks_count
+        )
+        self.new_user_activity_limit_ts = lmdutils.get_date_ymd(
+            self.new_user_activity_limit
+        ).timestamp()
+        self.new_user_seen_limit = lmdutils.get_date(
+            reference_date, self.new_user_weeks_count * 7
+        )
+        self.new_user_limit = self.seen_limit = lmdutils.get_date(reference_date, 61)
+
     def _get_phab(self):
         if not self.phab:
             self.phab = PhabricatorAPI(utils.get_login_info()["phab_api_key"])
@@ -161,7 +172,27 @@ class UserActivity:
 
     def get_status_from_bz_user(self, user: dict) -> UserStatus:
         """Get the user status from a Bugzilla user object."""
-        print(f"User: {user}")
+        if user["creation_time"] > self.new_user_limit:
+            if (
+                user["last_seen_date"] is None
+                or user["last_seen_date"] < self.new_user_seen_limit
+            ):
+                return UserStatus.ABSENT
+
+            if (
+                user["last_activity_time"] is None
+                or user["last_activity_time"] < self.new_user_activity_limit
+            ):
+                return UserStatus.INACTIVE
+
+            if user["creation_time"] > self.new_user_seen_limit:
+                return UserStatus.ACTIVE
+
+            if not user["can_login"]:
+                return UserStatus.DISABLED
+
+            return UserStatus.ACTIVE
+
         if not user["can_login"]:
             return UserStatus.DISABLED
 
@@ -212,7 +243,6 @@ class UserActivity:
                 "last_activity_time",
                 "last_seen_date",
                 "creation_time",
-                "new",
             ]
             + self.include_fields,
         ).wait()
