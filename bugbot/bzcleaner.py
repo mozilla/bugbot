@@ -8,7 +8,7 @@ import os
 import sys
 import time
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Dict, List
 
 from dateutil.relativedelta import relativedelta
@@ -127,7 +127,7 @@ class BzCleaner(object):
         for day in days:
             if week[day] == weekday:
                 return True
-        return False
+        return True
 
     def has_enough_data(self):
         """Check if the rule has enough data to run"""
@@ -757,9 +757,7 @@ class BzCleaner(object):
         """Send the email"""
         if date:
             date = lmdutils.get_date(date)
-            date = (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%d %H:%M:%S%z")
             d = lmdutils.get_date_ymd(date)
-            # print(d)
             if isinstance(self, Nag):
                 self.nag_date: datetime = d
 
