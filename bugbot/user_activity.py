@@ -173,6 +173,9 @@ class UserActivity:
     def get_status_from_bz_user(self, user: dict) -> UserStatus:
         """Get the user status from a Bugzilla user object."""
         if user["creation_time"] > self.new_user_limit:
+            if not user["can_login"]:
+                return UserStatus.DISABLED
+
             if (
                 user["last_seen_date"] is None
                 or user["last_seen_date"] < self.new_user_seen_limit
@@ -187,9 +190,6 @@ class UserActivity:
 
             if user["creation_time"] > self.new_user_seen_limit:
                 return UserStatus.ACTIVE
-
-            if not user["can_login"]:
-                return UserStatus.DISABLED
 
             return UserStatus.ACTIVE
 
