@@ -99,6 +99,16 @@ class NoSeverityNeedInfo(BzCleaner, Nag):
             "comments.creator",
             "comments.creation_time",
         ]
+        lookup = f"-{self.lookup * 7}d"
+        lookup_nag = f"-{self.lookup_nag * 7}d"
+
+        # TODO: change this when https://bugzilla.mozilla.org/1543984 will be fixed
+        # Here we have to get bugs where product/component have been set (bug has been triaged)
+        # between 4 and 2 weeks
+        # If the product/component never changed after bug creation, we need to get them too
+        # (second < p < first && c < first) ||
+        # (second < c < first && p < first) ||
+        # ((second < creation < first) && pc never changed)
         params = {
             "include_fields": fields,
             "keywords": "intermittent-failure",
@@ -116,83 +126,70 @@ class NoSeverityNeedInfo(BzCleaner, Nag):
             "f33": "bug_severity",
             "o33": "anyexact",
             "v33": "--, n/a",
+            "f2": "flagtypes.name",
+            "o2": "notequals",
+            "v2": "needinfo?",
+            "j3": "OR",
+            "f3": "OP",
+            "j4": "AND",
+            "f4": "OP",
+            "n5": 1,
+            "f5": "product",
+            "o5": "changedafter",
+            "v5": lookup,
+            "f6": "product",
+            "o6": "changedafter",
+            "v6": lookup_nag,
+            "n7": 1,
+            "f7": "component",
+            "o7": "changedafter",
+            "v7": lookup,
+            "f8": "CP",
+            "j9": "AND",
+            "f9": "OP",
+            "n10": 1,
+            "f10": "component",
+            "o10": "changedafter",
+            "v10": lookup,
+            "f11": "component",
+            "o11": "changedafter",
+            "v11": lookup_nag,
+            "n12": 1,
+            "f12": "product",
+            "o12": "changedafter",
+            "v12": lookup,
+            "f13": "CP",
+            "j14": "AND",
+            "f14": "OP",
+            "f15": "creation_ts",
+            "o15": "lessthaneq",
+            "v15": lookup,
+            "f16": "creation_ts",
+            "o16": "greaterthan",
+            "v16": lookup_nag,
+            "n17": 1,
+            "f17": "product",
+            "o17": "everchanged",
+            "n18": 1,
+            "f18": "component",
+            "o18": "everchanged",
+            "f19": "CP",
+            "j20": "OR",
+            "f20": "OP",
+            "f21": "bug_severity",
+            "o21": "changedfrom",
+            "v21": "critical",
+            "f22": "bug_severity",
+            "o22": "changedfrom",
+            "v22": "major",
+            "f23": "bug_severity",
+            "o23": "changedfrom",
+            "v23": "blocker",
+            "f24": "CP",
+            "f30": "CP",
         }
-        self.date = lmdutils.get_date_ymd(date)
-        lookup = f"-{self.lookup * 7}d"
-        lookup_nag = f"-{self.lookup_nag * 7}d"
 
-        # TODO: change this when https://bugzilla.mozilla.org/1543984 will be fixed
-        # Here we have to get bugs where product/component have been set (bug has been triaged)
-        # between 4 and 2 weeks
-        # If the product/component never changed after bug creation, we need to get them too
-        # (second < p < first && c < first) ||
-        # (second < c < first && p < first) ||
-        # ((second < creation < first) && pc never changed)
-        params.update(
-            {
-                "f2": "flagtypes.name",
-                "o2": "notequals",
-                "v2": "needinfo?",
-                "j3": "OR",
-                "f3": "OP",
-                "j4": "AND",
-                "f4": "OP",
-                "n5": 1,
-                "f5": "product",
-                "o5": "changedafter",
-                "v5": lookup,
-                "f6": "product",
-                "o6": "changedafter",
-                "v6": lookup_nag,
-                "n7": 1,
-                "f7": "component",
-                "o7": "changedafter",
-                "v7": lookup,
-                "f8": "CP",
-                "j9": "AND",
-                "f9": "OP",
-                "n10": 1,
-                "f10": "component",
-                "o10": "changedafter",
-                "v10": lookup,
-                "f11": "component",
-                "o11": "changedafter",
-                "v11": lookup_nag,
-                "n12": 1,
-                "f12": "product",
-                "o12": "changedafter",
-                "v12": lookup,
-                "f13": "CP",
-                "j14": "AND",
-                "f14": "OP",
-                "f15": "creation_ts",
-                "o15": "lessthaneq",
-                "v15": lookup,
-                "f16": "creation_ts",
-                "o16": "greaterthan",
-                "v16": lookup_nag,
-                "n17": 1,
-                "f17": "product",
-                "o17": "everchanged",
-                "n18": 1,
-                "f18": "component",
-                "o18": "everchanged",
-                "f19": "CP",
-                "j20": "OR",
-                "f20": "OP",
-                "f21": "bug_severity",
-                "o21": "changedfrom",
-                "v21": "critical",
-                "f22": "bug_severity",
-                "o22": "changedfrom",
-                "v22": "major",
-                "f23": "bug_severity",
-                "o23": "changedfrom",
-                "v23": "blocker",
-                "f24": "CP",
-                "f30": "CP",
-            }
-        )
+        self.date = lmdutils.get_date_ymd(date)
 
         return params
 
