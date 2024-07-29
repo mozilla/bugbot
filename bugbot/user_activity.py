@@ -342,16 +342,22 @@ class UserActivity:
 
         return False
 
-    def get_string_status(self, status: UserStatus):
+    def get_string_status(self, status: UserStatus, user_creation_time: str):
         """Get a string representation of the user status."""
+
+        is_new_user = user_creation_time > self.new_user_limit
 
         if status == UserStatus.UNDEFINED:
             return "Not specified"
         if status == UserStatus.DISABLED:
             return "Account disabled"
         if status == UserStatus.INACTIVE:
+            if is_new_user:
+                return f"Inactive on Bugzilla in last {self.new_user_weeks_count} weeks (new user)"
             return f"Inactive on Bugzilla in last {self.activity_weeks_count} weeks"
         if status == UserStatus.ABSENT:
+            if is_new_user:
+                return f"Not seen on Bugzilla in last {self.new_user_weeks_count} weeks (new user)"
             return f"Not seen on Bugzilla in last {self.absent_weeks_count} weeks"
 
         return status.name
