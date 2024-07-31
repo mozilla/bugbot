@@ -270,18 +270,20 @@
       "NSS::Build"
     ]
   },
-  "no_severity": {
-    "first-step": 2,
-    "second-step": 4,
-    "escalation-first": {
+  "no_severity_ni": {
+    "weeks_lookup": 2,
+    "escalation": {
       "default": {
         "[0;+∞[": {
           "supervisor": "self",
           "days": ["Mon", "Tue", "Wed", "Thu", "Fri"]
         }
       }
-    },
-    "escalation-second": {
+    }
+  },
+  "no_severity_nag": {
+    "weeks_lookup": 4,
+    "escalation": {
       "default": {
         "[0;+∞[": {
           "supervisor": "n+1",
