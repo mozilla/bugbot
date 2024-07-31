@@ -176,6 +176,9 @@ class UserActivity:
             if not user["can_login"]:
                 return UserStatus.DISABLED
 
+            if user["creation_time"] > self.new_user_seen_limit:
+                return UserStatus.ACTIVE
+
             if (
                 user["last_seen_date"] is None
                 or user["last_seen_date"] < self.new_user_seen_limit
@@ -187,9 +190,6 @@ class UserActivity:
                 or user["last_activity_time"] < self.new_user_activity_limit
             ):
                 return UserStatus.INACTIVE
-
-            if user["creation_time"] > self.new_user_seen_limit:
-                return UserStatus.ACTIVE
 
             return UserStatus.ACTIVE
 
