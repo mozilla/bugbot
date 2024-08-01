@@ -90,6 +90,8 @@ class UserActivity:
         self.new_user_seen_limit = lmdutils.get_date(
             reference_date, self.new_user_weeks_count * 7
         )
+
+        # Bugzilla accounts younger than 61 days are considered new users
         self.new_user_limit = lmdutils.get_date(reference_date, 61)
 
     def _get_phab(self):
