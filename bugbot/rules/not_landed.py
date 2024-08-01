@@ -66,21 +66,6 @@ class NotLanded(BzCleaner):
 
         return bug
 
-    def update_revision_status(self, rev_id, status_type, value):
-        try:
-            self.phab.request(
-                "differential.revision.edit",
-                objectIdentifier=rev_id,
-                transactions=[{"type": status_type, "value": value}],
-            )
-            print(
-                f"Successfully updated revision {rev_id} with {status_type} to {value}"
-            )
-        except Exception as e:
-            print(
-                f"Failed to update revision {rev_id} with {status_type} to {value}: {e}"
-            )
-
     def filter_bugs(self, bugs):
         # We must remove bugs which have open dependencies (except meta bugs)
         # because devs may wait for those bugs to be fixed before their patch
@@ -259,12 +244,6 @@ class NotLanded(BzCleaner):
             commentdata=data,
             comment_include_fields=["text"],
         ).get_data().wait()
-
-        for bugid, v in data.items():
-            if data[bugid]["backout"]:
-                phab_url = base64.b64decode(attachment["data"]).decode("utf-8")
-                rev = PHAB_URL_PAT.search(phab_url).group(1)
-                self.update_revision_status(int(rev), "plan-changes", True)
 
         data = {bugid: v for bugid, v in data.items() if not v["backout"]}
 
