@@ -74,7 +74,7 @@ class InactiveNeedinfoPending(BzCleaner):
 
                 requestee_bugs[flag["requestee"]].append(bugid)
 
-        user_activity = UserActivity(include_fields=["groups"])
+        user_activity = UserActivity(include_fields=["groups", "creation_time"])
         needinfo_requestees = set(requestee_bugs.keys())
         triage_owners = {bug["triage_owner"] for bug in bugs.values()}
         inactive_users = user_activity.check_users(
@@ -101,7 +101,8 @@ class InactiveNeedinfoPending(BzCleaner):
                     "setter": flag["setter"],
                     "requestee": flag["requestee"],
                     "requestee_status": user_activity.get_string_status(
-                        inactive_users[flag["requestee"]]["status"]
+                        inactive_users[flag["requestee"]]["status"],
+                        inactive_users[flag["requestee"]]["creation_time"],
                     ),
                     "requestee_canconfirm": has_canconfirm_group(flag["requestee"]),
                 }
