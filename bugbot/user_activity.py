@@ -172,39 +172,25 @@ class UserActivity:
 
     def get_status_from_bz_user(self, user: dict) -> UserStatus:
         """Get the user status from a Bugzilla user object."""
-        if user["creation_time"] > self.new_user_limit:
-            if not user["can_login"]:
-                return UserStatus.DISABLED
+        is_new_user = user["creation_time"] > self.new_user_limit
 
-            if user["creation_time"] > self.new_user_seen_limit:
-                return UserStatus.ACTIVE
-
-            if (
-                user["last_seen_date"] is None
-                or user["last_seen_date"] < self.new_user_seen_limit
-            ):
-                return UserStatus.ABSENT
-
-            if (
-                user["last_activity_time"] is None
-                or user["last_activity_time"] < self.new_user_activity_limit
-            ):
-                return UserStatus.INACTIVE
-
-            return UserStatus.ACTIVE
+        seen_limit = self.seen_limit if not is_new_user else self.new_user_seen_limit
+        activity_limit = (
+            self.activity_limit if not is_new_user else self.new_user_activity_limit
+        )
 
         if not user["can_login"]:
             return UserStatus.DISABLED
 
-        if user["creation_time"] > self.seen_limit:
+        if user["creation_time"] > seen_limit:
             return UserStatus.ACTIVE
 
-        if user["last_seen_date"] is None or user["last_seen_date"] < self.seen_limit:
+        if user["last_seen_date"] is None or user["last_seen_date"] < seen_limit:
             return UserStatus.ABSENT
 
         if (
             user["last_activity_time"] is None
-            or user["last_activity_time"] < self.activity_limit
+            or user["last_activity_time"] < activity_limit
         ):
             return UserStatus.INACTIVE
 
