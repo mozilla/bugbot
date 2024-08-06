@@ -53,7 +53,7 @@ class InactiveRevision(BzCleaner):
         return "Bugs with inactive patches that are awaiting action from authors or reviewers."
 
     def columns(self):
-        return ["id", "summary", "revisions"]
+        return ["id", "summary", "revisions", "needinfo_user"]
 
     def get_bugs(self, date="today", bug_ids=[], chunk_size=None):
         bugs = super().get_bugs(date, bug_ids, chunk_size)
