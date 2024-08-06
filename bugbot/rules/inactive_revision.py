@@ -67,7 +67,8 @@ class InactiveRevision(BzCleaner):
             ]
             if inactive_revs:
                 bug["revisions"] = inactive_revs
-                self._add_needinfo(bugid, inactive_revs)
+                needinfo_user = self._add_needinfo(bugid, inactive_revs)
+                bug["needinfo_user"] = needinfo_user
             else:
                 del bugs[bugid]
 
@@ -80,7 +81,7 @@ class InactiveRevision(BzCleaner):
         template = env.get_template(template_filename)
         return template
 
-    def _add_needinfo(self, bugid: str, inactive_revs: list) -> None:
+    def _add_needinfo(self, bugid: str, inactive_revs: list) -> str:
         has_old_patch = any(
             revision["created_at"] < self.old_patch_limit for revision in inactive_revs
         )
@@ -124,6 +125,8 @@ class InactiveRevision(BzCleaner):
                     }
                 ],
             }
+            return nickname
+        return ""
 
     def _find_last_action(self, revision_id):
         details = self._fetch_revisions([revision_id])
