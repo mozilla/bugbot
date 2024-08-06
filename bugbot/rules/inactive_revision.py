@@ -190,8 +190,8 @@ class InactiveRevision(BzCleaner):
                     if any(
                         reviewer["is_group"] or reviewer["is_accepted"]
                         for reviewer in reviewers
-                    ) and not any(
-                        not reviewer["is_accepted"]
+                    ) and all(
+                        reviewer["is_accepted"]
                         for reviewer in reviewers
                         if reviewer["is_blocking"]
                     ):
