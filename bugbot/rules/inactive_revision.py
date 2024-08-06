@@ -139,18 +139,26 @@ class InactiveRevision(BzCleaner):
         ]
 
         transactions = self._fetch_revision_transactions(revision["phid"])
-        last_transaction = transactions[0] if transactions else None
+        if not transactions:
+            return "unknown", None
 
-        if last_transaction:
-            last_action_by_phid = last_transaction["authorPHID"]
-            if last_action_by_phid == author_phid:
-                last_action_by = "author"
-            elif last_action_by_phid in reviewers:
-                last_action_by = "reviewer"
-            else:
-                last_action_by = "other"
+        filtered_transactions = [
+            transaction
+            for transaction in transactions
+            if transaction["authorPHID"] == author_phid
+            or transaction["authorPHID"] in reviewers
+        ]
+
+        if not filtered_transactions:
+            return "unknown", None
+
+        last_transaction = filtered_transactions[0]
+        last_action_by_phid = last_transaction["authorPHID"]
+
+        if last_action_by_phid == author_phid:
+            last_action_by = "author"
         else:
-            last_action_by = "unknown"
+            last_action_by = "reviewer"
 
         return last_action_by, last_transaction
 
