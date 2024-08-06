@@ -205,6 +205,12 @@ class InactiveRevision(BzCleaner):
                     ):
                         continue
 
+                    reviewers = [
+                        reviewer
+                        for reviewer in reviewers
+                        if not reviewer["is_resigned"]
+                    ]
+
                     revisions.append(
                         {
                             "rev_id": revision["id"],
