@@ -48,9 +48,13 @@ class InactiveRevision(BzCleaner):
         self.patch_activity_limit = (
             lmdutils.get_date_ymd("today") - relativedelta(months=patch_activity_months)
         ).timestamp()
+        self.max_actions = utils.get_config(self.name(), "max_actions", 1)
 
     def description(self):
         return "Bugs with inactive patches that are awaiting action from authors or reviewers."
+
+    def get_max_actions(self):
+        return self.max_actions
 
     def columns(self):
         return ["id", "summary", "revisions", "needinfo_user"]
