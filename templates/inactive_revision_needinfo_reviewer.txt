@@ -1,0 +1,3 @@
+:{{ nicknames }}, you have been asked to review this patch but it is still waiting for your response. Could you please review it {%- if has_old_patch %} or let the author know if it is no longer relevant {%- endif %}?
+
+{{ documentation }}
