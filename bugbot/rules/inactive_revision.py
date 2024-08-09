@@ -183,49 +183,45 @@ class InactiveRevision(BzCleaner):
                 _, last_transaction = self._find_last_action(revision["id"])
 
                 if (
-                    last_transaction
-                    and last_transaction["dateCreated"] < self.patch_activity_limit
+                    not last_transaction
+                    or last_transaction["dateCreated"] >= self.patch_activity_limit
                 ):
-                    reviewers = [
-                        {
-                            "phid": reviewer["reviewerPHID"],
-                            "is_group": reviewer["reviewerPHID"].startswith(
-                                "PHID-PROJ"
-                            ),
-                            "is_blocking": reviewer["isBlocking"],
-                            "is_accepted": reviewer["status"] == "accepted",
-                            "is_resigned": reviewer["status"] == "resigned",
-                        }
-                        for reviewer in revision["attachments"]["reviewers"][
-                            "reviewers"
-                        ]
-                    ]
+                    continue
 
-                    if any(
-                        reviewer["is_group"] or reviewer["is_accepted"]
-                        for reviewer in reviewers
-                    ) and all(
-                        reviewer["is_accepted"]
-                        for reviewer in reviewers
-                        if reviewer["is_blocking"]
-                    ):
-                        continue
+                reviewers = [
+                    {
+                        "phid": reviewer["reviewerPHID"],
+                        "is_group": reviewer["reviewerPHID"].startswith("PHID-PROJ"),
+                        "is_blocking": reviewer["isBlocking"],
+                        "is_accepted": reviewer["status"] == "accepted",
+                        "is_resigned": reviewer["status"] == "resigned",
+                    }
+                    for reviewer in revision["attachments"]["reviewers"]["reviewers"]
+                ]
 
-                    reviewers = [
-                        reviewer
-                        for reviewer in reviewers
-                        if not reviewer["is_resigned"]
-                    ]
+                if any(
+                    reviewer["is_group"] or reviewer["is_accepted"]
+                    for reviewer in reviewers
+                ) and all(
+                    reviewer["is_accepted"]
+                    for reviewer in reviewers
+                    if reviewer["is_blocking"]
+                ):
+                    continue
 
-                    revisions.append(
-                        {
-                            "rev_id": revision["id"],
-                            "title": revision["fields"]["title"],
-                            "created_at": revision["fields"]["dateCreated"],
-                            "author_phid": revision["fields"]["authorPHID"],
-                            "reviewers": reviewers,
-                        }
-                    )
+                reviewers = [
+                    reviewer for reviewer in reviewers if not reviewer["is_resigned"]
+                ]
+
+                revisions.append(
+                    {
+                        "rev_id": revision["id"],
+                        "title": revision["fields"]["title"],
+                        "created_at": revision["fields"]["dateCreated"],
+                        "author_phid": revision["fields"]["authorPHID"],
+                        "reviewers": reviewers,
+                    }
+                )
 
         user_phids = set()
         for revision in revisions:
