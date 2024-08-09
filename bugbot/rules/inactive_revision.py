@@ -3,7 +3,6 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import re
-from typing import Dict, List
 
 from dateutil.relativedelta import relativedelta
 from jinja2 import Environment, FileSystemLoader, Template
@@ -169,8 +168,8 @@ class InactiveRevision(BzCleaner):
 
         return last_action_by, last_transaction
 
-    def _get_revisions_with_inactive_action(self, rev_ids: list) -> Dict[int, dict]:
-        revisions: List[dict] = []
+    def _get_revisions_with_inactive_action(self, rev_ids: list) -> dict[int, dict]:
+        revisions: list[dict] = []
 
         for _rev_ids in Connection.chunks(rev_ids, PHAB_CHUNK_SIZE):
             for revision in self._fetch_revisions(_rev_ids):
@@ -238,7 +237,7 @@ class InactiveRevision(BzCleaner):
             list(user_phids), keep_active=True
         )
 
-        result: Dict[int, dict] = {}
+        result: dict[int, dict] = {}
         for revision in revisions:
             author_phid = revision["author_phid"]
             if author_phid in users:
