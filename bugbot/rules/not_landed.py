@@ -168,12 +168,13 @@ class NotLanded(BzCleaner):
     def get_patch_data(self, bugs):
         """Get patch information in bugs"""
         nightly_pat = Bugzilla.get_landing_patterns(channels=["nightly"])[0][0]
+        autoland_pat = Bugzilla.get_landing_patterns(channels=["autoland"])[0][0]
 
         def comment_handler(bug, bugid, data):
             # if a comment contains a backout: don't nag
             for comment in bug["comments"]:
                 comment = comment["text"].lower()
-                if nightly_pat.match(comment) and (
+                if (nightly_pat.match(comment) or autoland_pat.match(comment)) and (
                     "backed out" in comment or "backout" in comment
                 ):
                     data[bugid]["backout"] = True
