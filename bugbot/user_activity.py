@@ -82,7 +82,7 @@ class UserActivity:
         self.seen_limit = lmdutils.get_date(reference_date, self.absent_weeks_count * 7)
 
         self.new_user_activity_limit = lmdutils.get_date(
-            reference_date, self.new_user_weeks_count
+            reference_date, self.new_user_weeks_count * 7
         )
         self.new_user_activity_limit_ts = lmdutils.get_date_ymd(
             self.new_user_activity_limit
