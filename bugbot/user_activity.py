@@ -36,6 +36,7 @@ class UserActivity:
         self,
         activity_weeks_count: int = 26,
         absent_weeks_count: int = 26,
+        new_user_weeks_count: int = 4,
         unavailable_max_days: int = 7,
         include_fields: list | None = None,
         phab: PhabricatorAPI | None = None,
@@ -50,6 +51,8 @@ class UserActivity:
                 to a bug before a user being considered as inactive.
             absent_weeks_count: the number of weeks since last loaded any page
                 from Bugzilla before a user being considered as inactive.
+            new_user_weeks_count: the number of weeks since last made a change
+                to a bug before a new user being considered as inactive.
             unavailable_max_days: a user will be considered inactive if they
                 have more days left to be available than `unavailable_max_days`.
             include_fields: the list of fields to include with the the Bugzilla
@@ -64,6 +67,7 @@ class UserActivity:
         """
         self.activity_weeks_count = activity_weeks_count
         self.absent_weeks_count = absent_weeks_count
+        self.new_user_weeks_count = new_user_weeks_count
         self.include_fields = include_fields or []
         self.people = people if people is not None else People.get_instance()
         self.phab = phab
@@ -76,6 +80,19 @@ class UserActivity:
         )
         self.activity_limit_ts = lmdutils.get_date_ymd(self.activity_limit).timestamp()
         self.seen_limit = lmdutils.get_date(reference_date, self.absent_weeks_count * 7)
+
+        self.new_user_activity_limit = lmdutils.get_date(
+            reference_date, self.new_user_weeks_count * 7
+        )
+        self.new_user_activity_limit_ts = lmdutils.get_date_ymd(
+            self.new_user_activity_limit
+        ).timestamp()
+        self.new_user_seen_limit = lmdutils.get_date(
+            reference_date, self.new_user_weeks_count * 7
+        )
+
+        # Bugzilla accounts younger than 61 days are considered new users
+        self.new_user_limit = lmdutils.get_date(reference_date, 61)
 
     def _get_phab(self):
         if not self.phab:
@@ -157,19 +174,25 @@ class UserActivity:
 
     def get_status_from_bz_user(self, user: dict) -> UserStatus:
         """Get the user status from a Bugzilla user object."""
+        is_new_user = user["creation_time"] > self.new_user_limit
+
+        seen_limit = self.seen_limit if not is_new_user else self.new_user_seen_limit
+        activity_limit = (
+            self.activity_limit if not is_new_user else self.new_user_activity_limit
+        )
 
         if not user["can_login"]:
             return UserStatus.DISABLED
 
-        if user["creation_time"] > self.seen_limit:
+        if user["creation_time"] > seen_limit:
             return UserStatus.ACTIVE
 
-        if user["last_seen_date"] is None or user["last_seen_date"] < self.seen_limit:
+        if user["last_seen_date"] is None or user["last_seen_date"] < seen_limit:
             return UserStatus.ABSENT
 
         if (
             user["last_activity_time"] is None
-            or user["last_activity_time"] < self.activity_limit
+            or user["last_activity_time"] < activity_limit
         ):
             return UserStatus.INACTIVE
 
@@ -307,16 +330,22 @@ class UserActivity:
 
         return False
 
-    def get_string_status(self, status: UserStatus):
+    def get_string_status(self, status: UserStatus, user_creation_time: str):
         """Get a string representation of the user status."""
+
+        is_new_user = user_creation_time > self.new_user_limit
 
         if status == UserStatus.UNDEFINED:
             return "Not specified"
         if status == UserStatus.DISABLED:
             return "Account disabled"
         if status == UserStatus.INACTIVE:
+            if is_new_user:
+                return f"Inactive on Bugzilla in last {self.new_user_weeks_count} weeks (new user)"
             return f"Inactive on Bugzilla in last {self.activity_weeks_count} weeks"
         if status == UserStatus.ABSENT:
+            if is_new_user:
+                return f"Not seen on Bugzilla in last {self.new_user_weeks_count} weeks (new user)"
             return f"Not seen on Bugzilla in last {self.absent_weeks_count} weeks"
 
         return status.name
