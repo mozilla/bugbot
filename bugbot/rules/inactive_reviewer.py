@@ -4,7 +4,7 @@
 
 import re
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict
 
 from dateutil.relativedelta import relativedelta
 from libmozdata import utils as lmdutils
@@ -15,7 +15,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
 from bugbot.history import History
-from bugbot.inactive_utils import handle_bug_util, process_bugs
+from bugbot.inactive_utils import get_revisions, handle_bug_util, process_bugs
 from bugbot.user_activity import PHAB_CHUNK_SIZE, UserActivity, UserStatus
 
 PHAB_FILE_NAME_PAT = re.compile(r"phabricator-D([0-9]+)-url\.txt")
@@ -105,98 +105,13 @@ class InactiveReviewer(BzCleaner):
         }
 
     def _get_revisions_with_inactive_reviewers(self, rev_ids: list) -> Dict[int, dict]:
-        revisions: List[dict] = []
-        for _rev_ids in Connection.chunks(rev_ids, PHAB_CHUNK_SIZE):
-            for revision in self._fetch_revisions(_rev_ids):
-                if (
-                    len(revision["attachments"]["reviewers"]["reviewers"]) == 0
-                    or revision["fields"]["status"]["value"] != "needs-review"
-                    or revision["fields"]["isDraft"]
-                ):
-                    continue
-
-                reviewers = [
-                    {
-                        "phid": reviewer["reviewerPHID"],
-                        "is_group": reviewer["reviewerPHID"].startswith("PHID-PROJ"),
-                        "is_blocking": reviewer["isBlocking"],
-                        "is_accepted": reviewer["status"] == "accepted",
-                        "is_resigned": reviewer["status"] == "resigned",
-                    }
-                    for reviewer in revision["attachments"]["reviewers"]["reviewers"]
-                ]
-
-                # Group reviewers will be consider always active; so if there is
-                # no other reviewers blocking, we don't need to check further.
-                if any(
-                    reviewer["is_group"] or reviewer["is_accepted"]
-                    for reviewer in reviewers
-                ) and not any(
-                    not reviewer["is_accepted"]
-                    for reviewer in reviewers
-                    if reviewer["is_blocking"]
-                ):
-                    continue
-
-                revisions.append(
-                    {
-                        "rev_id": revision["id"],
-                        "title": revision["fields"]["title"],
-                        "created_at": revision["fields"]["dateCreated"],
-                        "author_phid": revision["fields"]["authorPHID"],
-                        "reviewers": reviewers,
-                    }
-                )
-
-        user_phids = set()
-        for revision in revisions:
-            user_phids.add(revision["author_phid"])
-            for reviewer in revision["reviewers"]:
-                user_phids.add(reviewer["phid"])
-
-        users = self.user_activity.get_phab_users_with_status(
-            list(user_phids), keep_active=True
+        return get_revisions(
+            Connection.chunks(rev_ids, PHAB_CHUNK_SIZE),
+            self._fetch_revisions,
+            self.user_activity.get_phab_users_with_status,
+            self._get_reviewer_status_note,
+            UserStatus.ACTIVE,
         )
-
-        result: Dict[int, dict] = {}
-        for revision in revisions:
-            # It is not useful to notify an inactive author about an inactive
-            # reviewer, thus we should exclude revisions with inactive authors.
-            author_info = users[revision["author_phid"]]
-            if author_info["status"] != UserStatus.ACTIVE:
-                continue
-
-            revision["author"] = author_info
-
-            inactive_reviewers = []
-            for reviewer in revision["reviewers"]:
-                if reviewer["is_group"]:
-                    continue
-
-                reviewer_info = users[reviewer["phid"]]
-                if (
-                    not reviewer["is_resigned"]
-                    and reviewer_info["status"] == UserStatus.ACTIVE
-                ):
-                    continue
-
-                reviewer["info"] = reviewer_info
-                inactive_reviewers.append(reviewer)
-
-            if len(inactive_reviewers) == len(revision["reviewers"]) or any(
-                reviewer["is_blocking"] and not reviewer["is_accepted"]
-                for reviewer in inactive_reviewers
-            ):
-                revision["reviewers"] = [
-                    {
-                        "phab_username": reviewer["info"]["phab_username"],
-                        "status_note": self._get_reviewer_status_note(reviewer),
-                    }
-                    for reviewer in inactive_reviewers
-                ]
-                result[revision["rev_id"]] = revision
-
-        return result
 
     @staticmethod
     def _get_reviewer_status_note(reviewer: dict) -> str:
