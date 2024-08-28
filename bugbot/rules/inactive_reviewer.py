@@ -15,6 +15,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
 from bugbot.history import History
+from bugbot.inactive_utils import process_bugs
 from bugbot.user_activity import PHAB_CHUNK_SIZE, UserActivity, UserStatus
 
 PHAB_FILE_NAME_PAT = re.compile(r"phabricator-D([0-9]+)-url\.txt")
@@ -48,23 +49,9 @@ class InactiveReviewer(BzCleaner):
 
     def get_bugs(self, date="today", bug_ids=[], chunk_size=None):
         bugs = super().get_bugs(date, bug_ids, chunk_size)
-
-        rev_ids = {rev_id for bug in bugs.values() for rev_id in bug["rev_ids"]}
-        revisions = self._get_revisions_with_inactive_reviewers(list(rev_ids))
-
-        for bugid, bug in list(bugs.items()):
-            inactive_revs = [
-                revisions[rev_id] for rev_id in bug["rev_ids"] if rev_id in revisions
-            ]
-            if inactive_revs:
-                bug["revisions"] = inactive_revs
-                self._add_needinfo(bugid, inactive_revs)
-            else:
-                del bugs[bugid]
-
-        # Resolving https://github.com/mozilla/bugbot/issues/1300 should clean this
-        # including improve the wording in the template (i.e., "See the search query on Bugzilla").
-        self.query_url = utils.get_bz_search_url({"bug_id": ",".join(bugs.keys())})
+        bugs, self.query_url = process_bugs(
+            bugs, self._get_revisions_with_inactive_reviewers, self._add_needinfo
+        )
 
         return bugs
 
