@@ -45,7 +45,7 @@ class SeverityHighSecurity(BzCleaner):
         return None
 
     def get_bz_params(self, date):
-        fields = ["triage_owner", "assigned_to", "severity", "keywords"]
+        fields = ["triage_owner", "assigned_to", "severity", "keywords", "cf_status_firefox_release"]
 
         params = {
             "include_fields": fields,
@@ -56,6 +56,10 @@ class SeverityHighSecurity(BzCleaner):
             "f4": "bug_severity",
             "o4": "anyexact",
             "v4": ["S3", "normal", "S4", "minor", "trivial", "enhancement"],
+            "n5": 1,
+            "f5": "cf_status_firefox_release",
+            "o5": "equals",
+            "v5": "disabled",
             "n15": 1,
             "f15": "longdesc",
             "o15": "casesubstring",
