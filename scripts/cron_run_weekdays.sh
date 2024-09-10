@@ -198,4 +198,7 @@ python -m bugbot.rules.severity_high_performance_impact --production
 # Request potential missing info when a bug is moved to Core::Performance
 python -m bugbot.rules.moved_to_performance --production
 
+# Add `webcompat:platform-bug` keyword to bugs without a platform keyword
+python -m bugbot.rules.webcompat_platform_without_keyword --production
+
 source ./scripts/cron_common_end.sh
