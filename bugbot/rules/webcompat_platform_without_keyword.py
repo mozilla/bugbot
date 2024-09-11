@@ -2,8 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from libmozdata.bugzilla import Bugzilla
+from google.cloud import bigquery
+from google.oauth2 import service_account
 
+from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
 
 
@@ -11,7 +13,7 @@ class WebcompatPlatformWithoutKeyword(BzCleaner):
     normal_changes_max = 200
 
     def description(self):
-        return "Core bugs blocking webcompat knowledge base entries without webcompat:platform-bug"
+        return "Web Compat platform bugs without webcompat:platform-bug keyword"
 
     def filter_no_nag_keyword(self):
         return False
@@ -19,52 +21,38 @@ class WebcompatPlatformWithoutKeyword(BzCleaner):
     def has_default_products(self):
         return False
 
-    def handle_bug(self, bug, data):
-        data[bug["id"]] = {"depends_on": set(bug.get("depends_on", []))}
-        return bug
-
-    def get_core_bugs(self, bugs):
-        core_bugs = set()
-        for bug_data in bugs.values():
-            core_bugs |= bug_data.get("depends_on", set())
-
-        def bug_handler(bug, data):
-            if "webcompat:platform-bug" not in bug["keywords"]:
-                data[bug["id"]] = bug
-
-        core_bug_data = {}
-
-        Bugzilla(
-            bugids=list(core_bugs),
-            include_fields=["id", "summary", "keywords"],
-            bughandler=bug_handler,
-            bugdata=core_bug_data,
-        ).get_data().wait()
-
-        return core_bug_data
-
     def get_autofix_change(self):
         return {
             "keywords": {"add": ["webcompat:platform-bug"]},
         }
 
     def get_bz_params(self, date):
-        fields = [
-            "id",
-            "depends_on",
-        ]
-        params = {
-            "include_fields": fields,
-            "product": "Web Compatibility",
-            "component": "Knowledge Base",
-        }
+        fields = ["id", "summary", "keywords"]
+        return {"include_fields": fields, "id": self.get_core_bug_ids()}
 
-        return params
+    def get_core_bug_ids(self):
+        project = "moz-fx-dev-dschubert-wckb"
+        dataset = "webcompat_knowledge_base"
 
-    def get_bugs(self, *args, **kwargs):
-        bugs = super().get_bugs(*args, **kwargs)
-        bugs = self.get_core_bugs(bugs)
-        return bugs
+        credentials = service_account.Credentials.from_service_account_info(
+            utils.get_gcp_service_account_info()
+        ).with_scopes(
+            [
+                "https://www.googleapis.com/auth/cloud-platform",
+                "https://www.googleapis.com/auth/drive",
+            ]
+        )
+
+        client = bigquery.Client(project=project, credentials=credentials)
+
+        query = f"""
+        SELECT core_bug FROM `{project}.{dataset}.prioritized_kb_entries` as kb_entries
+        JOIN `moz-fx-dev-dschubert-wckb.webcompat_knowledge_base.bugzilla_bugs` as bugzilla_bugs ON bugzilla_bugs.number = kb_entries.core_bug
+        WHERE "webcompat:platform-bug" not in UNNEST(bugzilla_bugs.keywords)
+        LIMIT {self.normal_changes_max}
+        """
+
+        return list(row["core_bug"] for row in client.query(query).result())
 
 
 if __name__ == "__main__":
