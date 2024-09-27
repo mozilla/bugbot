@@ -61,7 +61,6 @@ class Intermittents(BzCleaner):
             "f10": "keywords",
             "o10": "nowords",
             "v10": "leave-open, test-verify-fail",
-            "priority": ["P3", "P4", "P5"],
             "resolution": "---",
             "status_whiteboard_type": "notregexp",
             "status_whiteboard": "(leave open|leave-open|leaveopen|test disabled|test-disabled|testdisabled)",
