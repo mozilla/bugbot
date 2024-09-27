@@ -54,7 +54,7 @@ class Intermittents(BzCleaner):
             "f7": "CP",
             "f8": "bug_severity",
             "o8": "notequals",
-            "v8": ["S1", "critical"],
+            "v8": "S1",
             "f9": "keywords",
             "o9": "allwords",
             "v9": "intermittent-failure",
