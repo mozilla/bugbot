@@ -60,10 +60,10 @@ class Intermittents(BzCleaner):
             "v9": "intermittent-failure",
             "f10": "keywords",
             "o10": "nowords",
-            "v10": "leave-open, test-verify-fail",
+            "v10": "test-verify-fail",
             "resolution": "---",
             "status_whiteboard_type": "notregexp",
-            "status_whiteboard": "(leave open|leave-open|leaveopen|test disabled|test-disabled|testdisabled)",
+            "status_whiteboard": "(test disabled|test-disabled|testdisabled)",
         }
 
         return params
