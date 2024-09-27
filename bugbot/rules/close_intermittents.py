@@ -7,7 +7,7 @@ from bugbot.components import ComponentName, fetch_component_teams
 
 
 class Intermittents(BzCleaner):
-    normal_changes_max: int = 300
+    normal_changes_max: int = 2100
 
     def __init__(self):
         super().__init__()
@@ -17,7 +17,7 @@ class Intermittents(BzCleaner):
         return "Intermittent test failure bugs unchanged in 21 days"
 
     def get_max_actions(self):
-        limit_per_run = 140
+        limit_per_run = 2100
         limit_per_team = 42
 
         # Number of teams that have bugs to be autoclosed
