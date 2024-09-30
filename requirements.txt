@@ -1,4 +1,4 @@
-alembic==1.13.2
+alembic==1.13.3
 argparse==1.4.0
 filelock==3.16.1
 gspread==6.1.2
