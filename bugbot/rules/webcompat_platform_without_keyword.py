@@ -2,10 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from google.cloud import bigquery
-from google.oauth2 import service_account
-
-from bugbot import utils
+from bugbot import gcp
 from bugbot.bzcleaner import BzCleaner
 
 
@@ -34,17 +31,7 @@ class WebcompatPlatformWithoutKeyword(BzCleaner):
         project = "moz-fx-dev-dschubert-wckb"
         dataset = "webcompat_knowledge_base"
 
-        credentials = service_account.Credentials.from_service_account_info(
-            utils.get_gcp_service_account_info()
-        ).with_scopes(
-            [
-                "https://www.googleapis.com/auth/cloud-platform",
-                "https://www.googleapis.com/auth/drive",
-            ]
-        )
-
-        client = bigquery.Client(project=project, credentials=credentials)
-
+        client = gcp.get_bigquery_client(project, ["cloud-platform", "drive"])
         query = f"""
         SELECT core_bug
         FROM `{project}.{dataset}.prioritized_kb_entries` as kb_entries
