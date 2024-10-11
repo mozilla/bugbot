@@ -47,6 +47,7 @@ tasks:
             - "-lcx"
             - "git clone --quiet ${repository} bugbot &&
               cd bugbot &&
+              chmod +x pre-commit/check_json_indentation.py &&
               git -c advice.detachedHead=false checkout ${head_rev} &&
               pip install --quiet -r requirements-test.txt &&
               pre-commit run --all-files --show-diff-on-failure &&
