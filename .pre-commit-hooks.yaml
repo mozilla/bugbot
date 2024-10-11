@@ -1,0 +1,8 @@
+- id: check-json-indentation
+  name: Check JSON Indentation Consistency
+  description: This hook checks that JSON files do not have mixed tabs and spaces for indentation.
+  entry: pre-commit/check_json_indentation.py
+  language: python
+  files: \.json$
+  types: [text]
+  verbose: true
