@@ -68,5 +68,3 @@ repos:
         entry: pre-commit/check_json_indentation.py
         language: python
         files: \.json$
-default_language_version:
-  python: python3.10
