@@ -60,7 +60,7 @@ class Intermittents(BzCleaner):
             "v9": "intermittent-failure",
             "f10": "keywords",
             "o10": "nowords",
-            "v10": "test-verify-fail",
+            "v10": "test-verify-fail,test-disabled",
             "resolution": "---",
             "status_whiteboard_type": "notregexp",
             "status_whiteboard": "(test disabled|test-disabled|testdisabled)",
