@@ -80,9 +80,6 @@ class SecurityApprovalTracking(BzCleaner):
             "o1": "anywords",
             "n1": "1",
             "v1": ",".join(["unaffected", "affected"]),
-            "f5": self.status,
-            "o5": "changedafter",
-            "v5": "-5d",
         }
 
         return params
