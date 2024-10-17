@@ -468,5 +468,8 @@
   "leave_open_sec": {
     "additional_receivers": "rm",
     "days_lookup": 2
+  },
+  "inactive_revision": {
+    "max_actions": 1
   }
 }
