@@ -46,8 +46,9 @@ class WebcompatPlatformWithoutKeyword(BzCleaner):
         client = bigquery.Client(project=project, credentials=credentials)
 
         query = f"""
-        SELECT core_bug FROM `{project}.{dataset}.prioritized_kb_entries` as kb_entries
-        JOIN `moz-fx-dev-dschubert-wckb.webcompat_knowledge_base.bugzilla_bugs` as bugzilla_bugs ON bugzilla_bugs.number = kb_entries.core_bug
+        SELECT core_bug 
+        FROM `{project}.{dataset}.prioritized_kb_entries` as kb_entries
+            JOIN `moz-fx-dev-dschubert-wckb.webcompat_knowledge_base.bugzilla_bugs` as bugzilla_bugs ON bugzilla_bugs.number = kb_entries.core_bug
         WHERE "webcompat:platform-bug" not in UNNEST(bugzilla_bugs.keywords)
         LIMIT {self.normal_changes_max}
         """
