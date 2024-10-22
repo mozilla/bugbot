@@ -70,9 +70,6 @@ class SecurityApprovalTracking(BzCleaner):
             self.status,
         ]
 
-        # TODO: include the custom script to search for open bugs with sec-approval?
-        # https://bugzilla.mozilla.org/buglist.cgi?cmdtype=dorem&remaction=run&namedcmd=open%20bugs%20with%20sec-approval%3F&sharer_id=75935
-
         params = {
             "include_fields": self.fields,
             "resolution": "---",
@@ -80,6 +77,9 @@ class SecurityApprovalTracking(BzCleaner):
             "o1": "anywords",
             "n1": "1",
             "v1": ",".join(["unaffected", "affected"]),
+            "f2": "flagtypes.name",
+            "o2": "substring",
+            "v2": "sec-approval?",
         }
 
         return params
