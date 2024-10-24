@@ -85,7 +85,8 @@ class AssigneeNoLogin(BzCleaner, Nag):
                 continue
 
             bug["assignee_status"] = user_activity.get_string_status(
-                inactive_users[bug["assigned_to"]]["status"]
+                inactive_users[bug["assigned_to"]]["status"],
+                inactive_users[bug["assigned_to"]]["creation_time"],
             )
             self.add_action(bug)
             res[bugid] = bug
