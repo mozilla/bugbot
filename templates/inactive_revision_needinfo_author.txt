@@ -1,0 +1,3 @@
+:{{ nicknames }}, your patch is still waiting for action. Could you please address the feedback from the reviewer {%- if has_old_patch %} or consider abandoning the patch if it is no longer relevant {%- endif %}?
+
+{{ documentation }}
