@@ -102,7 +102,6 @@ class InactiveNeedinfoPending(BzCleaner):
                     "requestee": flag["requestee"],
                     "requestee_status": user_activity.get_string_status(
                         inactive_users[flag["requestee"]]["status"],
-                        inactive_users[flag["requestee"]]["creation_time"],
                     ),
                     "requestee_canconfirm": has_canconfirm_group(flag["requestee"]),
                 }
