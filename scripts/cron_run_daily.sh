@@ -15,6 +15,9 @@ python -m bugbot.rules.accessibilitybug --production
 # Try to detect potential performance-related bugs using bugbug
 python -m bugbot.rules.performancebug --production
 
+# Try to detect potential worksforme bugs using bugbug
+python -m bugbot.rules.worksforme --production
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m bugbot.log --send
