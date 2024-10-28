@@ -82,6 +82,34 @@ class UpliftBeta(BzCleaner):
 
         return bugs_without_regr
 
+    def filter_bugs_by_ni(self, bugs):
+        bugs_without_ni_on_assignee = {}
+
+        def bug_handler(bug, data):
+            bugid = str(bug["id"])
+
+            needinfos = [
+                {"requestee": flag["requestee"], "type": flag["name"]}
+                for flag in bug.get("flags", [])
+                if flag["name"] == "needinfo"
+            ]
+
+            assignee = bug.get("assigned_to", "Unassigned")
+
+            ni_for_assignee = any(ni["requestee"] == assignee for ni in needinfos)
+
+            if not ni_for_assignee:
+                data[bugid] = bugs[bugid]
+
+        Bugzilla(
+            bugids=list(bugs.keys()),
+            include_fields=["id", "flags", "assigned_to"],
+            bughandler=bug_handler,
+            bugdata=bugs_without_ni_on_assignee,
+        ).get_data().wait()
+
+        return bugs_without_ni_on_assignee
+
     def get_bz_params(self, date):
         self.date = lmdutils.get_date_ymd(date)
         fields = [
@@ -105,23 +133,20 @@ class UpliftBeta(BzCleaner):
             "f3": "flagtypes.name",
             "o3": "notsubstring",
             "v3": "approval-mozilla-beta",
-            "f4": "flagtypes.name",
-            "o4": "notsubstring",
-            "v4": "needinfo",
             # Don't nag several times
-            "n5": 1,
-            "f5": "longdesc",
-            "o5": "casesubstring",
+            "n4": 1,
+            "f4": "longdesc",
+            "o4": "casesubstring",
             # this a part of the comment we've in templates/uplift_beta_needinfo.txt
-            "v5": ", is this bug important enough to require an uplift?",
+            "v4": ", is this bug important enough to require an uplift?",
             # Check if have at least one attachment which is a Phabricator request
-            "f6": "attachments.mimetype",
-            "o6": "anyexact",
-            "v6": ["text/x-phabricator-request", "text/x-github-pull-request"],
+            "f5": "attachments.mimetype",
+            "o5": "anyexact",
+            "v5": ["text/x-phabricator-request", "text/x-github-pull-request"],
             # skip if whiteboard contains checkin-needed-beta (e.g. test-only uplift)
-            "f7": "status_whiteboard",
-            "o7": "notsubstring",
-            "v7": "[checkin-needed-beta]",
+            "f6": "status_whiteboard",
+            "o6": "notsubstring",
+            "v6": "[checkin-needed-beta]",
         }
 
         return params
@@ -129,6 +154,7 @@ class UpliftBeta(BzCleaner):
     def get_bugs(self, date="today", bug_ids=[]):
         bugs = super(UpliftBeta, self).get_bugs(date=date, bug_ids=bug_ids)
         bugs = self.filter_by_regr(bugs)
+        bugs = self.filter_bugs_by_ni(bugs)
 
         for bugid, data in bugs.items():
             if data["mail"] and data["nickname"]:
