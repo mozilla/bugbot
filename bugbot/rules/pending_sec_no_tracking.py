@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import Bugzilla
 
 from bugbot import utils
@@ -58,7 +57,8 @@ class SecurityApprovalTracking(BzCleaner):
         return ["id", "summary", "assignee"]
 
     def get_bz_params(self, date):
-        date = lmdutils.get_date_ymd(date)
+        start_date, _ = self.get_dates(date)
+
         self.status = utils.get_flag(self.version, "status", self.channel)
         self.tracking = utils.get_flag(self.version, "tracking", self.channel)
         self.fields = [
@@ -73,13 +73,16 @@ class SecurityApprovalTracking(BzCleaner):
         params = {
             "include_fields": self.fields,
             "resolution": "---",
-            "f1": self.status,
-            "o1": "anywords",
-            "n1": "1",
-            "v1": ",".join(["unaffected", "affected"]),
-            "f2": "flagtypes.name",
-            "o2": "substring",
-            "v2": "sec-approval?",
+            "f1": "creation_ts",
+            "o1": "greaterthan",
+            "v1": start_date,
+            "f2": self.status,
+            "o2": "anywords",
+            "n2": "1",
+            "v2": ",".join(["unaffected", "affected"]),
+            "f3": "flagtypes.name",
+            "o3": "substring",
+            "v3": "sec-approval?",
         }
 
         return params
