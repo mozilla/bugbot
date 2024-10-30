@@ -146,24 +146,24 @@ class NeedinfoRegressionAuthor(BzCleaner):
 
         # Exclude bugs where the regressor author is inactive or blocked needinfo.
         # TODO: We can drop this when https://github.com/mozilla/bugbot/issues/1465 is implemented.
-        # users_info = UserActivity(include_fields=["groups", "requests"]).check_users(
-        #     set(bug["regressor_author_email"] for bug in bugs.values()),
-        #     keep_active=True,
-        #     fetch_employee_info=False,
-        # )
+        users_info = UserActivity(include_fields=["groups", "requests"]).check_users(
+            set(bug["regressor_author_email"] for bug in bugs.values()),
+            keep_active=True,
+            fetch_employee_info=False,
+        )
 
-        # for bug_id, bug in list(bugs.items()):
-        #     user_info = users_info[bug["regressor_author_email"]]
-        #     if (
-        #         user_info["status"] != UserStatus.ACTIVE
-        #         or user_info["requests"]["needinfo"]["blocked"]
-        #     ):
-        #         del bugs[bug_id]
-        #     else:
-        #         bug["suggest_set_severity"] = bug["severity"] in (
-        #             "--",
-        #             "n/a",
-        #         ) and user_info.get("is_employee")
+        for bug_id, bug in list(bugs.items()):
+            user_info = users_info[bug["regressor_author_email"]]
+            if (
+                user_info["status"] != UserStatus.ACTIVE
+                or user_info["requests"]["needinfo"]["blocked"]
+            ):
+                del bugs[bug_id]
+            else:
+                bug["suggest_set_severity"] = bug["severity"] in (
+                    "--",
+                    "n/a",
+                ) and user_info.get("is_employee")
 
         Bugzilla(
             bugids=self.get_list_bugs(bugs),
