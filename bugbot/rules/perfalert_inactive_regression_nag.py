@@ -2,15 +2,21 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import collections
+
+from libmozdata.bugzilla import Bugzilla
+
 from bugbot import logger, utils
-from bugbot.rules.needinfo_regression_author import NeedinfoRegressionAuthor
+from bugbot.bzcleaner import BzCleaner
 from bugbot.user_activity import UserActivity, UserStatus
 
 
-class PerfAlertInactiveRegressionNag(NeedinfoRegressionAuthor):
+class PerfAlertInactiveRegressionNag(BzCleaner):
     def __init__(self, nweeks=1):
         super().__init__()
         self.nweeks = nweeks
+        self.extra_ni = {}
+        self.private_regressor_ids: set[str] = set()
 
     def description(self):
         return f"PerfAlert regressions nag with {self.nweeks} week of inactivity"
@@ -56,6 +62,28 @@ class PerfAlertInactiveRegressionNag(NeedinfoRegressionAuthor):
 
         return params
 
+    def retrieve_regressors(self, bugs):
+        regressor_to_bugs = collections.defaultdict(list)
+        for bug in bugs.values():
+            regressor_to_bugs[bug["regressor_id"]].append(bug)
+
+        def bug_handler(regressor_bug):
+            if regressor_bug.get("groups"):
+                regressor_bug_id = str(regressor_bug["id"])
+                self.private_regressor_ids.add(regressor_bug_id)
+
+            for bug in regressor_to_bugs[regressor_bug["id"]]:
+                bug["regressor_author_email"] = regressor_bug["assigned_to"]
+                bug["regressor_author_nickname"] = regressor_bug["assigned_to_detail"][
+                    "nick"
+                ]
+
+        Bugzilla(
+            bugids={bug["regressor_id"] for bug in bugs.values()},
+            bughandler=bug_handler,
+            include_fields=["id", "assigned_to", "groups"],
+        ).get_data().wait()
+
     def filter_bugs(self, bugs):
         # TODO: Attempt to needinfo the triage owner instead of ignoring the bugs
         # Exclude bugs whose regressor author is nobody.
@@ -89,6 +117,9 @@ class PerfAlertInactiveRegressionNag(NeedinfoRegressionAuthor):
     def get_autofix_change(self):
         pass
 
+    def get_extra_for_needinfo_template(self):
+        return self.extra_ni
+
     def get_extra_for_template(self):
         return {"nweeks": self.nweeks}
 
@@ -107,11 +138,20 @@ class PerfAlertInactiveRegressionNag(NeedinfoRegressionAuthor):
             )
 
     def get_bugs(self, *args, **kwargs):
-        bugs = super(NeedinfoRegressionAuthor, self).get_bugs(*args, **kwargs)
+        bugs = super().get_bugs(*args, **kwargs)
         self.retrieve_regressors(bugs)
         bugs = self.filter_bugs(bugs)
         self.set_autofix(bugs)
         return bugs
+
+    def set_needinfo(self):
+        res = super().set_needinfo()
+        for bug_id, needinfo_action in res.items():
+            needinfo_action["comment"]["is_private"] = (
+                bug_id in self.private_regressor_ids
+            )
+
+        return res
 
 
 if __name__ == "__main__":
