@@ -134,19 +134,19 @@ class UpliftBeta(BzCleaner):
             "o3": "notsubstring",
             "v3": "approval-mozilla-beta",
             # Don't nag several times
-            "n4": 1,
-            "f4": "longdesc",
-            "o4": "casesubstring",
+            "n5": 1,
+            "f5": "longdesc",
+            "o5": "casesubstring",
             # this a part of the comment we've in templates/uplift_beta_needinfo.txt
-            "v4": ", is this bug important enough to require an uplift?",
+            "v5": ", is this bug important enough to require an uplift?",
             # Check if have at least one attachment which is a Phabricator request
-            "f5": "attachments.mimetype",
-            "o5": "anyexact",
-            "v5": ["text/x-phabricator-request", "text/x-github-pull-request"],
+            "f6": "attachments.mimetype",
+            "o6": "anyexact",
+            "v6": ["text/x-phabricator-request", "text/x-github-pull-request"],
             # skip if whiteboard contains checkin-needed-beta (e.g. test-only uplift)
-            "f6": "status_whiteboard",
-            "o6": "notsubstring",
-            "v6": "[checkin-needed-beta]",
+            "f7": "status_whiteboard",
+            "o7": "notsubstring",
+            "v7": "[checkin-needed-beta]",
         }
 
         return params
