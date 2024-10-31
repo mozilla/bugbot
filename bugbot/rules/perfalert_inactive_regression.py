@@ -11,7 +11,7 @@ from bugbot.bzcleaner import BzCleaner
 from bugbot.user_activity import UserActivity, UserStatus
 
 
-class PerfAlertInactiveRegressionNag(BzCleaner):
+class PerfAlertInactiveRegression(BzCleaner):
     def __init__(self, nweeks=1):
         super().__init__()
         self.nweeks = nweeks
@@ -114,9 +114,6 @@ class PerfAlertInactiveRegressionNag(BzCleaner):
 
         return bugs
 
-    def get_autofix_change(self):
-        pass
-
     def get_extra_for_needinfo_template(self):
         return self.extra_ni
 
@@ -155,4 +152,4 @@ class PerfAlertInactiveRegressionNag(BzCleaner):
 
 
 if __name__ == "__main__":
-    PerfAlertInactiveRegressionNag().run()
+    PerfAlertInactiveRegression().run()
