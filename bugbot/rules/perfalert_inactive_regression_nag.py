@@ -23,15 +23,9 @@ class PerfAlertInactiveRegressionNag(NeedinfoRegressionAuthor):
             # or there's more than one, either way leave things alone
             return
 
-        bug_id = str(bug["id"])
-        data[bug_id] = {
-            "creator": bug["creator"],
+        data[str(bug["id"])] = {
             "regressor_id": bug["regressed_by"][0],
-            "severity": bug["severity"],
         }
-
-        if "triage_owner_detail" in bug:
-            data[bug_id]["triage_owner"] = bug["triage_owner_detail"]
 
         return bug
 
@@ -40,11 +34,7 @@ class PerfAlertInactiveRegressionNag(NeedinfoRegressionAuthor):
 
         fields = [
             "id",
-            "triage_owner",
-            "creator",
             "regressed_by",
-            "assigned_to",
-            "severity",
         ]
 
         # Find all bugs with regressed_by information which were open after start_date or
@@ -95,11 +85,6 @@ class PerfAlertInactiveRegressionNag(NeedinfoRegressionAuthor):
                 or user_info["requests"]["needinfo"]["blocked"]
             ):
                 del bugs[bug_id]
-
-        Bugzilla(
-            bugids=self.get_list_bugs(bugs),
-            comment_include_fields=["creator"],
-        ).get_data().wait()
 
         return bugs
 
