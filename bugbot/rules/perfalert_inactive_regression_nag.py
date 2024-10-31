@@ -15,7 +15,7 @@ class PerfAlertInactiveRegressionNag(NeedinfoRegressionAuthor):
         self.nweeks = nweeks
 
     def description(self):
-        return "PerfAlert regressions nag with 1 week of inactivity"
+        return f"PerfAlert regressions nag with {self.nweeks} week of inactivity"
 
     def handle_bug(self, bug, data):
         if len(bug["regressed_by"]) != 1:
@@ -85,7 +85,7 @@ class PerfAlertInactiveRegressionNag(NeedinfoRegressionAuthor):
         users_info = UserActivity(include_fields=["groups", "requests"]).check_users(
             set(bug["regressor_author_email"] for bug in bugs.values()),
             keep_active=True,
-            fetch_employee_info=False,
+            fetch_employee_info=True,
         )
 
         for bug_id, bug in list(bugs.items()):
@@ -106,10 +106,14 @@ class PerfAlertInactiveRegressionNag(NeedinfoRegressionAuthor):
     def get_autofix_change(self):
         pass
 
+    def get_extra_for_template(self):
+        return {"nweeks": self.nweeks}
+
     def set_autofix(self, bugs):
         for bugid, info in bugs.items():
             self.extra_ni[bugid] = {
                 "regressor_id": str(info["regressor_id"]),
+                "nweeks": self.nweeks,
             }
             self.add_auto_ni(
                 bugid,
