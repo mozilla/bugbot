@@ -2,16 +2,15 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import dateutil.parser
-from libmozdata.bugzilla import Bugzilla, BugzillaUser
+from libmozdata.bugzilla import Bugzilla
 
-from bugbot import utils
-from bugbot.bzcleaner import BzCleaner
+from bugbot import logger, utils
 from bugbot.rules.needinfo_regression_author import NeedinfoRegressionAuthor
+from bugbot.user_activity import UserActivity, UserStatus
 
 
 class PerfAlertInactiveRegressionNag(NeedinfoRegressionAuthor):
-    def __init__(self, nweeks: int = 1):
+    def __init__(self, nweeks=1):
         super().__init__()
         self.nweeks = nweeks
 
@@ -69,10 +68,9 @@ class PerfAlertInactiveRegressionNag(NeedinfoRegressionAuthor):
 
         return params
 
-
     def filter_bugs(self, bugs):
+        # TODO: Attempt to needinfo the triage owner instead of ignoring the bugs
         # Exclude bugs whose regressor author is nobody.
-        bugs_with_no_authors = []
         for bug in list(bugs.values()):
             if utils.is_no_assignee(bug["regressor_author_email"]):
                 logger.warning(
@@ -80,25 +78,23 @@ class PerfAlertInactiveRegressionNag(NeedinfoRegressionAuthor):
                         bug["regressor_id"], bug["id"]
                     )
                 )
-                bugs_with_no_authors.append(bug["id"])
+                del bugs[bug["id"]]
 
         # Exclude bugs where the regressor author is inactive or blocked needinfo.
         # TODO: We can drop this when https://github.com/mozilla/bugbot/issues/1465 is implemented.
-        # users_info = UserActivity(include_fields=["groups", "requests"]).check_users(
-        #     set(bug["regressor_author_email"] for bug in bugs.values()),
-        #     keep_active=True,
-        #     fetch_employee_info=False,
-        # )
+        users_info = UserActivity(include_fields=["groups", "requests"]).check_users(
+            set(bug["regressor_author_email"] for bug in bugs.values()),
+            keep_active=True,
+            fetch_employee_info=False,
+        )
 
-        # for bug_id, bug in list(bugs.items()):
-        #     user_info = users_info[bug["regressor_author_email"]]
-        #     if (
-        #         user_info["status"] != UserStatus.ACTIVE
-        #         or user_info["requests"]["needinfo"]["blocked"]
-        #     ):
-        #         bugs_with_no_authors.append(bug_id)
-
-        # TODO: Attempt to needinfo the triage owner instead
+        for bug_id, bug in list(bugs.items()):
+            user_info = users_info[bug["regressor_author_email"]]
+            if (
+                user_info["status"] != UserStatus.ACTIVE
+                or user_info["requests"]["needinfo"]["blocked"]
+            ):
+                del bugs[bug_id]
 
         Bugzilla(
             bugids=self.get_list_bugs(bugs),
@@ -129,7 +125,6 @@ class PerfAlertInactiveRegressionNag(NeedinfoRegressionAuthor):
         bugs = self.filter_bugs(bugs)
         self.set_autofix(bugs)
         return bugs
-
 
 
 if __name__ == "__main__":
