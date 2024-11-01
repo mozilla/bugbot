@@ -1,0 +1,23 @@
+<p>
+    The following {{ plural('bug is a performance alert which has had', data, pword='bugs are performance alerts which have had') }} no activity in the last {{ extra['nweeks'] * 7 }} days:
+</p>
+<table {{ table_attrs }}>
+    <thead>
+        <tr>
+            <th>Bug</th>
+            <th>Summary</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for i, (bugid, summary) in enumerate(data) -%}
+            <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
+            {% endif -%}
+            >
+            <td>
+                <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+            </td>
+            <td>{{ summary | e }}</td>
+        </tr>
+    {% endfor -%}
+</tbody>
+</table>
