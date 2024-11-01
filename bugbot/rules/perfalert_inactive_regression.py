@@ -15,7 +15,7 @@ class PerfAlertInactiveRegression(BzCleaner):
     def __init__(self, nweeks=1):
         super().__init__()
         self.nweeks = nweeks
-        self.extra_ni = {}
+        self.extra_ni = {"nweeks": self.nweeks}
         self.private_regressor_ids: set[str] = set()
 
     def description(self):
@@ -41,8 +41,9 @@ class PerfAlertInactiveRegression(BzCleaner):
             "regressed_by",
         ]
 
-        # Find all bugs with regressed_by information which were open after start_date or
-        # whose regressed_by field was set after start_date.
+        # Find all bugs that have perf-alert, and regression in their keywords. Only
+        # look for bugs after October 1st, 2024 to prevent triggering comments on older
+        # performance regressions
         params = {
             "include_fields": fields,
             "f3": "creation_ts",
@@ -118,14 +119,11 @@ class PerfAlertInactiveRegression(BzCleaner):
         return self.extra_ni
 
     def get_extra_for_template(self):
-        return {"nweeks": self.nweeks}
+        return self.extra_ni
 
     def set_autofix(self, bugs):
         for bugid, info in bugs.items():
-            self.extra_ni[bugid] = {
-                "regressor_id": str(info["regressor_id"]),
-                "nweeks": self.nweeks,
-            }
+            self.extra_ni[bugid] = {"regressor_id": str(info["regressor_id"])}
             self.add_auto_ni(
                 bugid,
                 {
