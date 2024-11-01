@@ -19,7 +19,7 @@ class PerfAlertInactiveRegression(BzCleaner):
         self.private_regressor_ids: set[str] = set()
 
     def description(self):
-        return f"PerfAlert regressions nag with {self.nweeks} week of inactivity"
+        return f"PerfAlert regressions with {self.nweeks} week(s) of inactivity"
 
     def handle_bug(self, bug, data):
         if len(bug["regressed_by"]) != 1:
