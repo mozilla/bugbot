@@ -52,6 +52,8 @@ class UpliftBeta(BzCleaner):
             "nickname": nickname,
             "summary": self.get_summary(bug),
             "regressions": bug["regressions"],
+            "assigned_to": assignee,
+            "flags": bug.get("flags", []),
         }
         return bug
 
@@ -85,28 +87,19 @@ class UpliftBeta(BzCleaner):
     def filter_bugs_by_ni(self, bugs):
         bugs_without_ni_on_assignee = {}
 
-        def bug_handler(bug, data):
-            bugid = str(bug["id"])
-
+        for bugid, data in bugs.items():
             needinfos = [
                 {"requestee": flag["requestee"], "type": flag["name"]}
-                for flag in bug.get("flags", [])
-                if flag["name"] == "needinfo"
+                for flag in data["flags"]
+                if flag["name"] == "needinfo" and flag["status"] == "?"
             ]
 
-            assignee = bug.get("assigned_to", "Unassigned")
+            assignee = data["assigned_to"]
 
             ni_for_assignee = any(ni["requestee"] == assignee for ni in needinfos)
 
             if not ni_for_assignee:
-                data[bugid] = bugs[bugid]
-
-        Bugzilla(
-            bugids=list(bugs.keys()),
-            include_fields=["id", "flags", "assigned_to"],
-            bughandler=bug_handler,
-            bugdata=bugs_without_ni_on_assignee,
-        ).get_data().wait()
+                bugs_without_ni_on_assignee[bugid] = data
 
         return bugs_without_ni_on_assignee
 
@@ -119,6 +112,8 @@ class UpliftBeta(BzCleaner):
             "attachments.is_obsolete",
             "attachments.content_type",
             "cf_last_resolved",
+            "assigned_to",
+            "flags",
         ]
         params = {
             "include_fields": fields,
