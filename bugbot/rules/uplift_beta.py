@@ -46,6 +46,9 @@ class UpliftBeta(BzCleaner):
         else:
             nickname = bug["assigned_to_detail"]["nick"]
 
+        if self.is_needinfo_on_assignee(bug.get("flags", []), assignee):
+            return None
+
         data[bugid] = {
             "id": bugid,
             "mail": assignee,
@@ -55,6 +58,7 @@ class UpliftBeta(BzCleaner):
             "assigned_to": assignee,
             "flags": bug.get("flags", []),
         }
+
         return bug
 
     def filter_by_regr(self, bugs):
@@ -84,24 +88,15 @@ class UpliftBeta(BzCleaner):
 
         return bugs_without_regr
 
-    def filter_bugs_by_ni(self, bugs):
-        bugs_without_ni_on_assignee = {}
-
-        for bugid, data in bugs.items():
-            needinfos = [
-                {"requestee": flag["requestee"], "type": flag["name"]}
-                for flag in data["flags"]
-                if flag["name"] == "needinfo" and flag["status"] == "?"
-            ]
-
-            assignee = data["assigned_to"]
-
-            ni_for_assignee = any(ni["requestee"] == assignee for ni in needinfos)
-
-            if not ni_for_assignee:
-                bugs_without_ni_on_assignee[bugid] = data
-
-        return bugs_without_ni_on_assignee
+    def is_needinfo_on_assignee(self, flags, assignee):
+        for flag in flags:
+            if (
+                flag["name"] == "needinfo"
+                and flag["status"] == "?"
+                and flag["requestee"] == assignee
+            ):
+                return True
+        return False
 
     def get_bz_params(self, date):
         self.date = lmdutils.get_date_ymd(date)
@@ -149,7 +144,6 @@ class UpliftBeta(BzCleaner):
     def get_bugs(self, date="today", bug_ids=[]):
         bugs = super(UpliftBeta, self).get_bugs(date=date, bug_ids=bug_ids)
         bugs = self.filter_by_regr(bugs)
-        bugs = self.filter_bugs_by_ni(bugs)
 
         for bugid, data in bugs.items():
             if data["mail"] and data["nickname"]:
