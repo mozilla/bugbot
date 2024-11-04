@@ -55,8 +55,6 @@ class UpliftBeta(BzCleaner):
             "nickname": nickname,
             "summary": self.get_summary(bug),
             "regressions": bug["regressions"],
-            "assigned_to": assignee,
-            "flags": bug.get("flags", []),
         }
 
         return bug
@@ -89,14 +87,12 @@ class UpliftBeta(BzCleaner):
         return bugs_without_regr
 
     def is_needinfo_on_assignee(self, flags, assignee):
-        for flag in flags:
-            if (
-                flag["name"] == "needinfo"
-                and flag["status"] == "?"
-                and flag["requestee"] == assignee
-            ):
-                return True
-        return False
+        return any(
+            flag["name"] == "needinfo"
+            and flag["status"] == "?"
+            and flag["requestee"] == assignee
+            for flag in flags
+        )
 
     def get_bz_params(self, date):
         self.date = lmdutils.get_date_ymd(date)
