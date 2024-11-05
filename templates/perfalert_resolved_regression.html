@@ -1,0 +1,39 @@
+<p>The following bug list contains performance alerts whose resolution has changed in the last week:</p>
+<table {{ table_attrs }}>
+    <thead>
+        <tr>
+            <th>Bug</th>
+            <th>Summary</th>
+            <th>Resolution</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for i, (bugid, summary) in enumerate(data) -%}
+            <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
+            {% endif -%}
+            >
+            <td>
+                <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+            </td>
+            <td>
+                <table>
+                    <tr>
+                        <td>{{ summary | e }}</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <b>Resolution Comment:</b> {{ extra[bugid]["resolution_comment"] }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <i>Resolved by {{ extra[bugid]["resolution_author"] }}</i>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td>{{ extra[bugid]["resolution"] }}</td>
+        </tr>
+    {% endfor -%}
+</tbody>
+</table>

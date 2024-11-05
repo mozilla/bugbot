@@ -471,5 +471,8 @@
   },
   "perfalert_inactive_regression": {
     "additional_receivers": ["perfalert-activity@mozilla.com", "sparky@mozilla.com"]
+  },
+  "perfalert_resolved_regression": {
+    "additional_receivers": ["perfalert-activity@mozilla.com", "sparky@mozilla.com"]
   }
 }
