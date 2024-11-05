@@ -1,0 +1,35 @@
+<p>
+    The following {{ plural('bug has', data, pword='bugs have') }} inactive patches that need action from either the author or a reviewer:
+</p>
+<table {{ table_attrs }}>
+    <thead>
+        <tr>
+            <th>Bug</th>
+            <th>Summary</th>
+            <th>Patches</th>
+            <th>Needinfo Requested</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for i, (bugid, summary, revisions, needinfo_user) in enumerate(data) -%}
+            <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
+            {% endif -%}
+            >
+            <td {% if bugid in no_manager %}style="background:red;"{% endif %}>
+                <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+            </td>
+            <td>{{ summary | e }}</td>
+            <td>
+                <ul style="padding: 0; margin: 0">
+                    {% for rev in revisions -%}
+                        <li>
+                            <a href="https://phabricator.services.mozilla.com/D{{ rev['rev_id'] }}">D{{ rev['rev_id'] }}</a>
+                        </li>
+                    {% endfor -%}
+                </ul>
+            </td>
+            <td>{{ needinfo_user }}</td>
+        </tr>
+    {% endfor -%}
+</tbody>
+</table>
