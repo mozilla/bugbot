@@ -75,6 +75,7 @@ class NoSeverityNag(BzCleaner, Nag):
             utils.check_product_component(self.components_skiplist, bug)
             or utils.get_last_no_bot_comment_date(bug) > self.activity_date
             or any(keyword in SECURITY_KEYWORDS for keyword in bug["keywords"])
+            or bug["groups"]
         ):
             return None
         return bug
