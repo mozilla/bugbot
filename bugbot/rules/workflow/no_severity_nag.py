@@ -8,6 +8,7 @@ from libmozdata import utils as lmdutils
 
 from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
+from bugbot.constants import SECURITY_KEYWORDS
 from bugbot.escalation import Escalation
 from bugbot.nag_me import Nag
 from bugbot.round_robin import RoundRobin
@@ -73,6 +74,7 @@ class NoSeverityNag(BzCleaner, Nag):
             # check if the product::component is in the list
             utils.check_product_component(self.components_skiplist, bug)
             or utils.get_last_no_bot_comment_date(bug) > self.activity_date
+            or any(keyword in SECURITY_KEYWORDS for keyword in bug["keywords"])
         ):
             return None
         return bug
