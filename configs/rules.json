@@ -52,6 +52,7 @@
       "Remote Protocol",
       "Testing",
       "Toolkit",
+      "Web Compatibility",
       "WebExtensions"
     ],
     "log": "/tmp/bugbot_errors.txt",
