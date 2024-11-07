@@ -4,6 +4,7 @@
         <tr>
             <th>Bug</th>
             <th>Summary</th>
+            <th>Status</th>
             <th>Resolution</th>
         </tr>
     </thead>
@@ -27,12 +28,13 @@
                     </tr>
                     <tr>
                         <td>
-                            <i>Resolved by {{ extra[bugid]["resolution_author"] }}</i>
+                            <i>Resolved by {{ extra[bugid]["status_author"] }}</i>
                         </td>
                     </tr>
                 </table>
             </td>
-            <td>{{ extra[bugid]["resolution"] }}</td>
+            <td>{{ extra[bugid]["status"] }}</td>
+            <td>{{ extra[bugid]["resolution_previous"] }} -> {{ extra[bugid]["resolution"] }}</td>
         </tr>
     {% endfor -%}
 </tbody>
