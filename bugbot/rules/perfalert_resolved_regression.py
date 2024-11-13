@@ -3,7 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from libmozdata import utils as lmdutils
-from libmozdata.bugzilla import Bugzilla, BugzillaUser
+from libmozdata.bugzilla import BugzillaUser
 
 from bugbot.bzcleaner import BzCleaner
 from bugbot.constants import BOT_MAIN_ACCOUNT
@@ -16,16 +16,23 @@ class PerfAlertResolvedRegression(BzCleaner):
         super().__init__(*args, **kwargs)
         self.extra_email_info = {}
         self.extra_ni = {}
-        self._bug_history = {}
-        self._bug_comments = {}
 
     def description(self):
         return "PerfAlert regressions whose resolution has changed recently"
 
+    def get_extra_for_template(self):
+        return self.extra_email_info
+
+    def get_extra_for_needinfo_template(self):
+        return self.extra_ni
+
     def get_bz_params(self, date):
         fields = [
             "id",
-            "resolution",
+            "history",
+            "comments.text",
+            "comments.creation_time",
+            "comments.author",
         ]
 
         # Find all bugs that have perf-alert, and regression in their keywords. Search
@@ -48,79 +55,8 @@ class PerfAlertResolvedRegression(BzCleaner):
 
         return params
 
-    def get_extra_for_template(self):
-        return self.extra_email_info
-
-    def get_extra_for_needinfo_template(self):
-        return self.extra_ni
-
-    def get_resolution_comments(self, bugs):
-        # Match all the resolutions with resolution comments if they exist
-        for bug_id, bug in bugs.items():
-            bug_comments = self._bug_comments.get(bug_id, [])
-            bug_history = self._bug_history.get(bug_id, {})
-
-            # Sometimes a resolution comment is not provided so use a default
-            bug_history["resolution_comment"] = DEFAULT_RESOLUTION_COMMENT
-            for comment in bug_comments[::-1]:
-                if (
-                    comment["creation_time"] == bug_history["status_time"]
-                    and comment["author"] == bug_history["status_author"]
-                ):
-                    bug_history["resolution_comment"] = comment["text"]
-                    break
-            else:
-                # Check if the bugbot has already needinfo'ed on the bug since
-                # the last status change before making one
-                skip_ni = False
-                status_time = lmdutils.get_date_ymd(bug_history["status_time"])
-                for comment in bug_comments[::-1]:
-                    if lmdutils.get_date_ymd(comment["creation_time"]) <= status_time:
-                        break
-
-                    if comment["author"] == BOT_MAIN_ACCOUNT:
-                        if (
-                            "comment containing a reason for why"
-                            "the performance regression"
-                            in comment["text"]
-                            or "could you provide a comment explaining the resolution?"
-                            in comment["text"]
-                        ):
-                            # Bugbot has already commented on this bug since the last
-                            # status change. No need to comment again since this was
-                            # just a resolution change
-                            skip_ni = True
-
-                if not skip_ni:
-                    self.extra_ni[bug_id] = bug_history
-
-            self.extra_email_info[bug_id] = bug_history
-
-    def get_needinfo_nicks(self):
-        if not self.extra_ni:
-            return
-
-        def _user_handler(user, data):
-            data[user["name"]] = user.get("nick", "")
-
-        user_emails_to_names = {}
-        BugzillaUser(
-            user_names=[bug_ni["status_author"] for bug_ni in self.extra_ni.values()],
-            include_fields=["nick", "name"],
-            user_handler=_user_handler,
-            user_data=user_emails_to_names,
-        ).wait()
-
-        for bug_id, bug_info in self.extra_ni.items():
-            if bug_info["status_author"] in user_emails_to_names:
-                bug_info["nickname"] = user_emails_to_names[bug_info["status_author"]]
-
-    def comment_handler(self, bug, bug_id, bugs):
-        # Gather all comments to match them with the history after
-        self._bug_comments[bug_id] = bug["comments"]
-
-    def history_handler(self, bug):
-        bug_info = self._bug_history.setdefault(str(bug["id"]), {})
+    def get_resolution_history(self, bug):
+        bug_info = {}
 
         # Get the last resolution change that was made in this bug
         for change in bug["history"][::-1]:
@@ -150,22 +86,70 @@ class PerfAlertResolvedRegression(BzCleaner):
             if bug_info.get("status"):
                 break
 
-    def gather_bugs_info(self, bugs):
-        Bugzilla(
-            bugids=self.get_list_bugs(bugs),
-            historyhandler=self.history_handler,
-            commenthandler=self.comment_handler,
-            commentdata=bugs,
-            comment_include_fields=["text", "creation_time", "author"],
-        ).get_data().wait()
+        return bug_info
 
-        # Match the history with comments to get resolution reasons
-        self.get_resolution_comments(bugs)
+    def get_resolution_info(self, bug):
+        # Match all the resolutions with resolution comments if they exist
+        bug_id = str(bug["id"])
+        bug_comments = bug["comments"]
+        bug_history = self.get_resolution_history(bug)
 
-        # Get info for needinfos
-        self.get_needinfo_nicks()
+        # Sometimes a resolution comment is not provided so use a default
+        bug_history["resolution_comment"] = DEFAULT_RESOLUTION_COMMENT
+        for comment in bug_comments[::-1]:
+            if (
+                comment["creation_time"] == bug_history["status_time"]
+                and comment["author"] == bug_history["status_author"]
+            ):
+                bug_history["resolution_comment"] = comment["text"]
+                break
+        else:
+            # Check if the bugbot has already needinfo'ed on the bug since
+            # the last status change before making one
+            skip_ni = False
+            status_time = lmdutils.get_date_ymd(bug_history["status_time"])
+            for comment in bug_comments[::-1]:
+                if lmdutils.get_date_ymd(comment["creation_time"]) <= status_time:
+                    break
 
-    def set_autofix(self, bugs):
+                if comment["author"] == BOT_MAIN_ACCOUNT:
+                    if (
+                        "comment containing a reason for why"
+                        "the performance regression"
+                        in comment["text"]
+                        or "could you provide a comment explaining the resolution?"
+                        in comment["text"]
+                    ):
+                        # Bugbot has already commented on this bug since the last
+                        # status change. No need to comment again since this was
+                        # just a resolution change
+                        skip_ni = True
+
+            if not skip_ni:
+                self.extra_ni[bug_id] = bug_history
+
+        self.extra_email_info[bug_id] = bug_history
+
+    def get_needinfo_nicks(self):
+        if not self.extra_ni:
+            return
+
+        def _user_handler(user, data):
+            data[user["name"]] = user.get("nick", "")
+
+        user_emails_to_names = {}
+        BugzillaUser(
+            user_names=[bug_ni["status_author"] for bug_ni in self.extra_ni.values()],
+            include_fields=["nick", "name"],
+            user_handler=_user_handler,
+            user_data=user_emails_to_names,
+        ).wait()
+
+        for bug_id, bug_info in self.extra_ni.items():
+            if bug_info["status_author"] in user_emails_to_names:
+                bug_info["nickname"] = user_emails_to_names[bug_info["status_author"]]
+
+    def set_autofix(self):
         for bug_id, bug_info in self.extra_ni.items():
             self.add_auto_ni(
                 bug_id,
@@ -179,10 +163,14 @@ class PerfAlertResolvedRegression(BzCleaner):
                 },
             )
 
+    def handle_bug(self, bug, data):
+        self.get_resolution_info(bug)
+        return bug
+
     def get_bugs(self, *args, **kwargs):
         bugs = super().get_bugs(*args, **kwargs)
-        self.gather_bugs_info(bugs)
-        self.set_autofix(bugs)
+        self.get_needinfo_nicks()
+        self.set_autofix()
         return bugs
 
 
