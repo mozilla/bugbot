@@ -49,7 +49,6 @@ class CheckWikiPage:
         "several_cc.py",
         "several_comments.py",
         "several_see_also.py",
-        "pdfjs_tag_change.py",
         "pdfjs_update.py",
         "leave_open_sec.py",
         # Experimental rules:
