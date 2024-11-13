@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from datetime import timedelta
+
 from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import BugzillaUser
 
@@ -27,6 +29,9 @@ class PerfAlertResolvedRegression(BzCleaner):
         return self.extra_ni
 
     def get_bz_params(self, date):
+        end_date = lmdutils.get_date_ymd("today")
+        start_date = end_date - timedelta(1)
+
         fields = [
             "id",
             "history",
@@ -50,7 +55,10 @@ class PerfAlertResolvedRegression(BzCleaner):
             "v2": ["regression", "perf-alert"],
             "f4": "resolution",
             "o4": "changedafter",
-            "v4": date,
+            "v4": start_date,
+            "f5": "resolution",
+            "o5": "changedbefore",
+            "v5": end_date,
         }
 
         return params
