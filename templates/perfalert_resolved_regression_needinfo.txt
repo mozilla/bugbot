@@ -1,6 +1,6 @@
 A comment containing a reason for why the performance regression was {{ "resolved as " + extra[bugid]["resolution"] if extra[bugid]["status"].lower() == "resolved" else "reopened" }} could not be found. It should provided when the status of the bug is changed.
 
-{{ nickname }}, since you resolved this bug, could you provide a comment explaining the resolution? If one has already been provided, this needinfo can be ignored/removed.
+:{{ nickname }}, since you resolved this bug, could you provide a comment explaining the resolution? If one has already been provided, this needinfo can be ignored/removed.
 
 If you need additional information/help, reach out in [#perftest](https://matrix.to/#/#perftest:mozilla.org), or [#perfsheriffs](https://matrix.to/#/#perfsheriffs:mozilla.org) on Element.
 

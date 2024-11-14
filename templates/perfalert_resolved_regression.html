@@ -9,7 +9,7 @@
         </tr>
     </thead>
     <tbody>
-        {% for i, (bugid, summary) in enumerate(data) -%}
+        {% for i, (bugid, summary, status, status_author, resolution, resolution_comment, resolution_previous) in enumerate(data) -%}
             <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
             {% endif -%}
             >
@@ -23,18 +23,18 @@
                     </tr>
                     <tr>
                         <td>
-                            <b>Resolution Comment:</b> {{ extra[bugid]["resolution_comment"] }}
+                            <b>Resolution Comment:</b> {{ resolution_comment }}
                         </td>
                     </tr>
                     <tr>
                         <td>
-                            <i>Resolved by {{ extra[bugid]["status_author"] }}</i>
+                            <i>Resolved by {{ status_author }}</i>
                         </td>
                     </tr>
                 </table>
             </td>
-            <td>{{ extra[bugid]["status"] }}</td>
-            <td>{{ extra[bugid]["resolution_previous"] }} -> {{ extra[bugid]["resolution"] }}</td>
+            <td>{{ status }}</td>
+            <td>{{ resolution_previous }} -> {{ resolution }}</td>
         </tr>
     {% endfor -%}
 </tbody>
