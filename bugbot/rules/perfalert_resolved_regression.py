@@ -142,7 +142,7 @@ class PerfAlertResolvedRegression(BzCleaner):
 
     def get_needinfo_nicks(self, bugs):
         def _user_handler(user, data):
-            data[user["name"]] = user.get("nick", "")
+            data[user["name"]] = user["nick"]
 
         authors_to_ni = set()
         for bug_id, bug_info in bugs.items():
