@@ -10,8 +10,6 @@ from libmozdata.bugzilla import BugzillaUser
 from bugbot.bzcleaner import BzCleaner
 from bugbot.constants import BOT_MAIN_ACCOUNT
 
-DEFAULT_RESOLUTION_COMMENT = "No resolution comment provided."
-
 
 class PerfAlertResolvedRegression(BzCleaner):
     def __init__(self, *args, **kwargs):
@@ -75,14 +73,12 @@ class PerfAlertResolvedRegression(BzCleaner):
         # Check if the bugbot has already needinfo'ed on the bug since
         # the last status change before making one
         for comment in bug_comments[::-1]:
-            if lmdutils.get_date_ymd(comment["creation_time"]) <= status_time:
+            if comment["creation_time"] <= status_time:
                 break
 
             if comment["author"] == BOT_MAIN_ACCOUNT:
                 if (
-                    "comment containing a reason for why the performance regression"
-                    in comment["text"]
-                    or "could you provide a comment explaining the resolution?"
+                    "could you provide a comment explaining the resolution?"
                     in comment["text"]
                 ):
                     # Bugbot has already commented on this bug since the last
@@ -172,7 +168,7 @@ class PerfAlertResolvedRegression(BzCleaner):
 
         # Sometimes a resolution comment is not provided so use a default
         bug_history["needinfo"] = False
-        bug_history["resolution_comment"] = DEFAULT_RESOLUTION_COMMENT
+        bug_history["resolution_comment"] = "N/A"
         for comment in bug_comments[::-1]:
             if (
                 comment["creation_time"] == bug_history["status_time"]
@@ -182,7 +178,7 @@ class PerfAlertResolvedRegression(BzCleaner):
                 break
         else:
             bug_history["needinfo"] = self.should_needinfo(
-                bug_comments, lmdutils.get_date_ymd(bug_history["status_time"])
+                bug_comments, bug_history["status_time"]
             )
 
         data[bug_id] = bug_history
