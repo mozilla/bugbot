@@ -14,7 +14,6 @@ from bugbot.constants import BOT_MAIN_ACCOUNT
 class PerfAlertResolvedRegression(BzCleaner):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.extra_email_info = {}
         self.extra_ni = {}
 
     def description(self):
