@@ -75,7 +75,7 @@ python -m bugbot.rules.duplicate_copy_metadata --production
 # Add `webcompat:platform-bug` keyword to bugs without a platform keyword
 python -m bugbot.rules.webcompat_platform_without_keyword --production
 
-# Add `[webcompat:sightline]` whiteboard entry to bugs in sightline metric set
+# Update `[webcompat:sightline]` whiteboard entry to bugs in sightline metric set
 python -m bugbot.rules.webcompat_sightline --production
 
 source ./scripts/cron_common_end.sh

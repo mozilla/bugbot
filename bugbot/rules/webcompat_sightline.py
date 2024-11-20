@@ -16,7 +16,7 @@ class WebcompatSightline(BzCleaner):
         self.sightline_ids = set()
 
     def description(self) -> str:
-        return "Web Compat site report in the sightline metric set"
+        return "Bugs with the [webcompat:sightline] whiteboard tag updated"
 
     def filter_no_nag_keyword(self) -> bool:
         return False
@@ -36,11 +36,12 @@ class WebcompatSightline(BzCleaner):
                     "whiteboard": whiteboard + self.WHITEBOARD_ENTRY
                 }
                 return bug
-        elif self.WHITEBOARD_ENTRY in whiteboard:
-            self.autofix_changes[bug_id] = {
-                "whiteboard": whiteboard.replace(self.WHITEBOARD_ENTRY, "")
-            }
-            return bug
+        else:
+            if self.WHITEBOARD_ENTRY in whiteboard:
+                self.autofix_changes[bug_id] = {
+                    "whiteboard": whiteboard.replace(self.WHITEBOARD_ENTRY, "")
+                }
+                return bug
 
         return None
 
