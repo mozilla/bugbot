@@ -1,0 +1,23 @@
+<p>
+    The following {{ plural('bug has', data, pword='bugs have') }} had the <code>[webcompat:sightline]</code> whiteboard entry updated to match their URL:
+</p>
+<table {{ table_attrs }}>
+    <thead>
+        <tr>
+            <th>Bug</th>
+            <th>Summary</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for i, (bugid, summary) in enumerate(data) -%}
+            <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
+            {% endif -%}
+            >
+            <td>
+                <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+            </td>
+            <td>{{ summary | e }}</td>
+        </tr>
+    {% endfor -%}
+</tbody>
+</table>
