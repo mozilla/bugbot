@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from libmozdata.bugzilla import Bugzilla
 
 from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
@@ -37,19 +36,6 @@ class SecurityApprovalTracking(BzCleaner):
 
         return bug
 
-    def get_bugs(self, date="today", bug_ids=[], chunk_size=None):
-        bugs = super().get_bugs(date, bug_ids, chunk_size)
-
-        Bugzilla(
-            bugs.keys(),
-            include_fields=self.fields,
-            bughandler=self.handle_bug,
-            bugdata=bugs,
-        ).wait()
-
-        self.extra_ni = bugs
-        return bugs
-
     def get_extra_for_needinfo_template(self):
         return self.extra_ni
 
@@ -61,17 +47,15 @@ class SecurityApprovalTracking(BzCleaner):
 
         self.status = utils.get_flag(self.version, "status", self.channel)
         self.tracking = utils.get_flag(self.version, "tracking", self.channel)
-        self.fields = [
+        fields = [
             "id",
             "assigned_to",
             "nickname",
             "flags",
-            self.tracking,
-            self.status,
         ]
 
         params = {
-            "include_fields": self.fields,
+            "include_fields": fields,
             "resolution": "---",
             "f1": "creation_ts",
             "o1": "greaterthan",
