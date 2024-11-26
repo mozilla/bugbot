@@ -6,7 +6,6 @@ import collections
 from datetime import datetime, timedelta
 
 from libmozdata import utils as lmdutils
-from libmozdata.bugzilla import Bugzilla
 
 from bugbot import logger, people, utils
 from bugbot.bzcleaner import BzCleaner
@@ -64,12 +63,6 @@ class AssigneeNoLogin(BzCleaner, Nag):
     def get_bugs(self, *args, **kwargs):
         bugs = super().get_bugs(*args, **kwargs)
 
-        bug_ids = list(bugs.keys())
-        bug_histories = self.fetch_bug_histories(bug_ids)
-
-        for bugid, bug in bugs.items():
-            bug["history"] = bug_histories.get(bugid, [])
-
         bugs = self.handle_inactive_assignees(bugs)
 
         # Resolving https://github.com/mozilla/bugbot/issues/1300 should clean this
@@ -77,34 +70,6 @@ class AssigneeNoLogin(BzCleaner, Nag):
         self.query_url = utils.get_bz_search_url({"bug_id": ",".join(bugs.keys())})
 
         return bugs
-
-    def fetch_bug_histories(self, bug_ids):
-        bug_histories = {}
-
-        def history_handler(bug):
-            bug_id = str(bug["id"])
-
-            history_entries = []
-            for history in bug["history"]:
-                for change in history["changes"]:
-                    history_entries.append(
-                        {
-                            "field_name": change["field_name"],
-                            "removed": change["removed"],
-                            "added": change["added"],
-                            "when": history["when"],
-                            "who": history["who"],
-                        }
-                    )
-
-            bug_histories[bug_id] = history_entries
-
-        Bugzilla(
-            bugids=bug_ids,
-            historyhandler=history_handler,
-        ).get_data().wait()
-
-        return bug_histories
 
     def handle_inactive_assignees(self, bugs):
         user_activity = UserActivity()
@@ -200,6 +165,7 @@ class AssigneeNoLogin(BzCleaner, Nag):
             "priority": bug["priority"],
             "severity": bug["severity"],
             "keywords": bug["keywords"],
+            "history": bug["history"],
         }
 
         return bug
@@ -216,6 +182,7 @@ class AssigneeNoLogin(BzCleaner, Nag):
             "priority",
             "severity",
             "keywords",
+            "history",
         ]
         params = {
             "include_fields": fields,
