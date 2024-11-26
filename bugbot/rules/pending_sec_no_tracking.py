@@ -45,8 +45,7 @@ class SecurityApprovalTracking(BzCleaner):
     def get_bz_params(self, date):
         start_date, _ = self.get_dates(date)
 
-        self.status = utils.get_flag(self.version, "status", self.channel)
-        self.tracking = utils.get_flag(self.version, "tracking", self.channel)
+        status = utils.get_flag(self.version, "status", self.channel)
         fields = [
             "id",
             "assigned_to",
@@ -60,7 +59,7 @@ class SecurityApprovalTracking(BzCleaner):
             "f1": "creation_ts",
             "o1": "greaterthan",
             "v1": start_date,
-            "f2": self.status,
+            "f2": status,
             "o2": "anywords",
             "n2": "1",
             "v2": ",".join(["unaffected", "affected"]),
