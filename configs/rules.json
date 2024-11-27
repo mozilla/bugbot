@@ -268,7 +268,9 @@
       "Core::MFBT",
       "WebExtensions::Developer Outreach",
       "NSS::Tools",
-      "NSS::Build"
+      "NSS::Build",
+      "Web Compatibility::Knowledge Base",
+      "Web Compatibility::Tooling & Investigations"
     ]
   },
   "no_severity_ni": {
