@@ -2,6 +2,8 @@ It has been over {{ extra["nweeks"] * 7 }} days with no activity on this perform
 
 :{{ nickname }}, since you are the author of the regressor, bug {{ extra[bugid]["regressor_id"] }}, which triggered this performance alert, could you please provide a progress update?
 
-If you need additional information/help, please needinfo the performance sheriff who filed this alert (they can be found in comment #0), or reach out in [#perftest](https://matrix.to/#/#perftest:mozilla.org), or [#perfsheriffs](https://matrix.to/#/#perfsheriffs:mozilla.org) on Element.
+If this regression is something that fixes a bug, changes the baseline of the regression metrics, or otherwise will not be fixed, please consider closing it as WONTFIX. [See this documentation for more information on how to handle regressions](https://firefox-source-docs.mozilla.org/testing/perfdocs/perftest-in-a-nutshell.html#help-i-have-a-regression-what-do-i-do).
+
+For additional information/help, please needinfo the performance sheriff who filed this alert (they can be found in comment #0), or reach out in [#perftest](https://matrix.to/#/#perftest:mozilla.org), or [#perfsheriffs](https://matrix.to/#/#perfsheriffs:mozilla.org) on Element.
 
 {{ documentation }}

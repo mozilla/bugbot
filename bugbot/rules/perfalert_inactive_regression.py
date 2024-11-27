@@ -46,17 +46,20 @@ class PerfAlertInactiveRegression(BzCleaner):
         # performance regressions
         params = {
             "include_fields": fields,
-            "f3": "creation_ts",
-            "o3": "greaterthan",
-            "v3": "2024-10-01T00:00:00Z",
-            "f1": "regressed_by",
-            "o1": "isnotempty",
-            "f2": "keywords",
-            "o2": "allwords",
-            "v2": ["regression", "perf-alert"],
-            "f9": "days_elapsed",
-            "o9": "greaterthan",
-            "v9": self.nweeks * 7,
+            "f1": "creation_ts",
+            "o1": "greaterthan",
+            "v1": "2024-10-01T00:00:00Z",
+            "f2": "regressed_by",
+            "o2": "isnotempty",
+            "f3": "keywords",
+            "o3": "allwords",
+            "v3": ["regression", "perf-alert"],
+            "f4": "keywords",
+            "o4": "nowords",
+            "v4": "backlog-deferred",
+            "f5": "days_elapsed",
+            "o5": "greaterthan",
+            "v5": self.nweeks * 7,
             "status": ["UNCONFIRMED", "NEW", "REOPENED"],
             "resolution": ["---"],
         }
@@ -89,7 +92,7 @@ class PerfAlertInactiveRegression(BzCleaner):
         # TODO: Attempt to needinfo the triage owner instead of ignoring the bugs
         # Exclude bugs whose regressor author is nobody.
         for bug in list(bugs.values()):
-            if utils.is_no_assignee(bug["regressor_author_email"]):
+            if utils.is_no_assignee(bug.get("regressor_author_email", "")):
                 logger.warning(
                     "Bug {}, regressor of bug {}, doesn't have an author".format(
                         bug["regressor_id"], bug["id"]
