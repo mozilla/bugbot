@@ -103,10 +103,7 @@ class AssigneeNoLogin(BzCleaner, Nag):
         default_assignee = self.default_assignees[prod][comp]
         autofix = {"assigned_to": default_assignee}
 
-        priority_change_date = self.get_priority_change_date(bug)
-        is_old_priority = (
-            priority_change_date and priority_change_date < self.one_year_ago
-        )
+        is_old_priority = bug["is_old_priority"]
 
         # Avoid to ni if the bug has low priority and low severity.
         # It's not paramount for triage owners to make an explicit decision here, it's enough for them
@@ -155,6 +152,11 @@ class AssigneeNoLogin(BzCleaner, Nag):
             logger.warning("Skip bug %s: no triage owner", bugid)
             return None
 
+        priority_change_date = self.get_priority_change_date(bug)
+        is_old_priority = (
+            priority_change_date and priority_change_date < self.one_year_ago
+        )
+
         data[bugid] = {
             "assigned_to": bug["assigned_to"],
             "triage_owner": bug["triage_owner"],
@@ -165,7 +167,7 @@ class AssigneeNoLogin(BzCleaner, Nag):
             "priority": bug["priority"],
             "severity": bug["severity"],
             "keywords": bug["keywords"],
-            "history": bug["history"],
+            "is_old_priority": is_old_priority,
         }
 
         return bug
