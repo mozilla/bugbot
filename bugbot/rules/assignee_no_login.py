@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import collections
+from datetime import datetime, timedelta
 
 from libmozdata import utils as lmdutils
 
@@ -23,6 +24,7 @@ class AssigneeNoLogin(BzCleaner, Nag):
         self.people = people.People.get_instance()
         self.unassign_count = collections.defaultdict(int)
         self.no_bugmail = True
+        self.one_year_ago = datetime.now() - timedelta(days=365)
 
         self.extra_ni = {}
 
@@ -60,6 +62,7 @@ class AssigneeNoLogin(BzCleaner, Nag):
 
     def get_bugs(self, *args, **kwargs):
         bugs = super().get_bugs(*args, **kwargs)
+
         bugs = self.handle_inactive_assignees(bugs)
 
         # Resolving https://github.com/mozilla/bugbot/issues/1300 should clean this
@@ -100,13 +103,19 @@ class AssigneeNoLogin(BzCleaner, Nag):
         default_assignee = self.default_assignees[prod][comp]
         autofix = {"assigned_to": default_assignee}
 
+        is_old_priority = bug["is_old_priority"]
+
         # Avoid to ni if the bug has low priority and low severity.
         # It's not paramount for triage owners to make an explicit decision here, it's enough for them
         # to receive the notification about the unassignment from Bugzilla via email.
         if (
-            bug["priority"] not in HIGH_PRIORITY
-            and bug["severity"] not in HIGH_SEVERITY
-        ) or "stalled" in bug["keywords"]:
+            (
+                bug["priority"] not in HIGH_PRIORITY
+                and bug["severity"] not in HIGH_SEVERITY
+            )
+            or "stalled" in bug["keywords"]
+            or (is_old_priority and bug["priority"] in HIGH_PRIORITY)
+        ):
             needinfo = None
             autofix["comment"] = {
                 "body": "The bug assignee is inactive on Bugzilla, so the assignee is being reset."
@@ -126,11 +135,27 @@ class AssigneeNoLogin(BzCleaner, Nag):
 
         self.add_prioritized_action(bug, bug["triage_owner"], needinfo, autofix)
 
+    def get_priority_change_date(self, bug):
+        current_priority = bug["priority"]
+
+        for change in reversed(bug["history"]):
+            if (
+                change["field_name"] == "priority"
+                and change["added"] == current_priority
+            ):
+                return datetime.strptime(change["when"], "%Y-%m-%dT%H:%M:%SZ")
+        return None
+
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
         if "triage_owner_detail" not in bug:
             logger.warning("Skip bug %s: no triage owner", bugid)
             return None
+
+        priority_change_date = self.get_priority_change_date(bug)
+        is_old_priority = (
+            priority_change_date and priority_change_date < self.one_year_ago
+        )
 
         data[bugid] = {
             "assigned_to": bug["assigned_to"],
@@ -142,6 +167,7 @@ class AssigneeNoLogin(BzCleaner, Nag):
             "priority": bug["priority"],
             "severity": bug["severity"],
             "keywords": bug["keywords"],
+            "is_old_priority": is_old_priority,
         }
 
         return bug
@@ -158,6 +184,7 @@ class AssigneeNoLogin(BzCleaner, Nag):
             "priority",
             "severity",
             "keywords",
+            "history",
         ]
         params = {
             "include_fields": fields,
