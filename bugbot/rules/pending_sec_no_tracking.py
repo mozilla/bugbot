@@ -66,6 +66,15 @@ class SecurityApprovalTracking(BzCleaner):
             "f3": "flagtypes.name",
             "o3": "substring",
             "v3": "sec-approval?",
+            "f4": "cf_status_firefox_nightly",
+            "o4": "equals",
+            "v4": "---",
+            "f5": "cf_status_firefox_beta",
+            "o5": "equals",
+            "v5": "---",
+            "f6": "cf_status_firefox_release",
+            "o6": "equals",
+            "v6": "---",
         }
 
         return params
