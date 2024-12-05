@@ -290,7 +290,8 @@
           "days": ["Mon", "Thu"]
         }
       }
-    }
+    },
+    "sec": false
   },
   "p3_p4_p5": {
     "months_lookup": 6
