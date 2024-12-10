@@ -283,6 +283,7 @@
   },
   "no_severity_nag": {
     "weeks_lookup": 4,
+    "sec": false,
     "escalation": {
       "default": {
         "[0;+∞[": {
@@ -290,8 +291,7 @@
           "days": ["Mon", "Thu"]
         }
       }
-    },
-    "sec": false
+    }
   },
   "p3_p4_p5": {
     "months_lookup": 6
