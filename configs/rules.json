@@ -286,6 +286,7 @@
   },
   "no_severity_nag": {
     "weeks_lookup": 4,
+    "sec": false,
     "escalation": {
       "default": {
         "[0;+∞[": {
