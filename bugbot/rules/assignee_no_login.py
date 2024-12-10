@@ -62,7 +62,6 @@ class AssigneeNoLogin(BzCleaner, Nag):
 
     def get_bugs(self, *args, **kwargs):
         bugs = super().get_bugs(*args, **kwargs)
-
         bugs = self.handle_inactive_assignees(bugs)
 
         # Resolving https://github.com/mozilla/bugbot/issues/1300 should clean this
@@ -103,8 +102,6 @@ class AssigneeNoLogin(BzCleaner, Nag):
         default_assignee = self.default_assignees[prod][comp]
         autofix = {"assigned_to": default_assignee}
 
-        is_old_priority = bug["is_old_priority"]
-
         # Avoid to ni if the bug has low priority and low severity.
         # It's not paramount for triage owners to make an explicit decision here, it's enough for them
         # to receive the notification about the unassignment from Bugzilla via email.
@@ -114,7 +111,7 @@ class AssigneeNoLogin(BzCleaner, Nag):
                 and bug["severity"] not in HIGH_SEVERITY
             )
             or "stalled" in bug["keywords"]
-            or (is_old_priority and bug["priority"] in HIGH_PRIORITY)
+            or (bug["is_old_priority"] and bug["priority"] in HIGH_PRIORITY)
         ):
             needinfo = None
             autofix["comment"] = {
