@@ -21,6 +21,9 @@ python -m bugbot.rules.perfalert_inactive_regression --production
 # Send an email about all performance alerts who were recently resolved
 python -m bugbot.rules.perfalert_resolved_regression --production
 
+# Update the webcompat score fields
+python -m bugbot.rules.webcompat_score --production
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m bugbot.log --send
