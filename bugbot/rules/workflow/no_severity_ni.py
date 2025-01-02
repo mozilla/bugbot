@@ -212,9 +212,6 @@ class NoSeverityNeedInfo(BzCleaner, Nag):
         bugid = str(bug["id"])
         res = {"id": bugid}
 
-        auto_ni = self.get_mail_to_auto_ni(bug)
-        self.add_auto_ni(bugid, auto_ni)
-
         triage_owner = bug.get("triage_owner")
         users_info = UserActivity(include_fields=["groups", "requests"]).check_users(
             {triage_owner}, keep_active=True, fetch_employee_info=True
