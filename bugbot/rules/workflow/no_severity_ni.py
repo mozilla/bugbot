@@ -201,55 +201,23 @@ class NoSeverityNeedInfo(BzCleaner, Nag):
 
         return params
 
-    def bughandler(self, bug, data):
-        """bug handler for the Bugzilla query"""
-        if bug["id"] in self.cache:
-            return
-
-        if self.handle_bug(bug, data) is None:
-            return
-
-        bugid = str(bug["id"])
-        res = {"id": bugid}
-
-        triage_owner = bug.get("triage_owner")
+    def filter_bugs(self, bugs):
         users_info = UserActivity(include_fields=["groups", "requests"]).check_users(
-            {triage_owner}, keep_active=True, fetch_employee_info=True
+            set(bug["triage_owner"] for bug in bugs.values()),
+            keep_active=True,
+            fetch_employee_info=True,
         )
-        if not (
-            triage_owner in users_info
-            and users_info[triage_owner]["requests"]["needinfo"]["blocked"]
-        ):
-            auto_ni = self.get_mail_to_auto_ni(bug)
-            self.add_auto_ni(bugid, auto_ni)
 
-        res["summary"] = self.get_summary(bug)
-
-        if self.has_assignee():
-            res["assignee"] = utils.get_name_from_user_detail(bug["assigned_to_detail"])
-
-        if self.has_needinfo():
-            s = set()
-            for flag in utils.get_needinfo(bug):
-                s.add(flag["requestee"])
-            res["needinfos"] = sorted(s)
-
-        if self.has_product_component():
-            for k in ["product", "component"]:
-                res[k] = bug[k]
-
-        if isinstance(self, Nag):
-            bug = self.set_people_to_nag(bug, res)
-            if not bug:
-                return
-
-        if bugid in data:
-            data[bugid].update(res)
-        else:
-            data[bugid] = res
+        filtered_bugs = {
+            bug_id: bug
+            for bug_id, bug in bugs.items()
+            if not users_info[bug["triage_owner"]]["requests"]["needinfo"]["blocked"]
+        }
+        return filtered_bugs
 
     def get_bugs(self, *args, **kwargs):
         bugs = super().get_bugs(*args, **kwargs)
+        bugs = self.filter_bugs(bugs)
         return bugs
 
 
