@@ -208,12 +208,17 @@ class NoSeverityNeedInfo(BzCleaner, Nag):
             fetch_employee_info=True,
         )
 
-        for bug_id, bug in list(bugs.items()):
-            user_info = users_info[bug["triage_owner"]]
-            if "requests" in user_info:
-                if user_info["requests"]["needinfo"]["blocked"]:
-                    del bugs[bug_id]
-        return bugs
+        # for bug_id, bug in list(bugs.items()):
+        #     user_info = users_info[bug["triage_owner"]]
+        #     if "requests" in user_info:
+        #         if user_info["requests"]["needinfo"]["blocked"]:
+        #             del bugs[bug_id]
+        filtered_bugs = {
+            bug_id: bug
+            for bug_id, bug in bugs.items()
+            if not users_info[bug["triage_owner"]]["requests"]["needinfo"]["blocked"]
+        }
+        return filtered_bugs
 
     def get_bugs(self, *args, **kwargs):
         bugs = super().get_bugs(*args, **kwargs)
