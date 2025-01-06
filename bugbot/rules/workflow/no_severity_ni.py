@@ -211,7 +211,8 @@ class NoSeverityNeedInfo(BzCleaner, Nag):
         filtered_bugs = {
             bug_id: bug
             for bug_id, bug in bugs.items()
-            if not users_info[bug["triage_owner"]]["requests"]["needinfo"]["blocked"]
+            if "requests" in users_info[bug["triage_owner"]]
+            and not users_info[bug["triage_owner"]]["requests"]["needinfo"]["blocked"]
         }
         return filtered_bugs
 
