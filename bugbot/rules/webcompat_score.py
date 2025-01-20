@@ -2,10 +2,17 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from typing import Any, Optional
+from dataclasses import dataclass
+from typing import Any, Iterator, Optional, cast
 
 from bugbot import gcp
 from bugbot.bzcleaner import BzCleaner
+
+
+@dataclass
+class Score:
+    bucket: str
+    score: str
 
 
 class WebcompatScore(BzCleaner):
@@ -22,25 +29,74 @@ class WebcompatScore(BzCleaner):
     def has_default_products(self) -> bool:
         return False
 
+    def parse_user_story(self, user_story: str) -> Iterator[tuple[str, str]]:
+        """Parse the user story assuming it's lines of the form key: value.
+
+        If there isn't a colon in the line we simply set value to the full line."""
+
+        for line in user_story.splitlines():
+            parts = line.split(":", 1)
+            if len(parts) == 1:
+                yield "", parts[0]
+            yield cast(tuple[str, str], tuple(parts))
+
+    def updated_user_story(self, user_story: str, score: str) -> Optional[str]:
+        new_user_story = []
+        has_user_impact_score = False
+        updated_user_impact_score = False
+
+        for key, value in self.parse_user_story(user_story):
+            if not key:
+                new_user_story.append(value)
+                continue
+
+            if key.strip() == "user-impact-score":
+                if has_user_impact_score:
+                    continue
+                has_user_impact_score = True
+                if value.strip() != score:
+                    value = score
+                    updated_user_impact_score = True
+            new_user_story.append(f"{key}:{value}")
+
+        if not has_user_impact_score:
+            new_user_story.append(f"user-impact-score:{score}")
+            updated_user_impact_score = True
+
+        if updated_user_impact_score:
+            return "\n".join(new_user_story)
+
+        return None
+
     def handle_bug(
         self, bug: dict[str, Any], data: dict[str, Any]
     ) -> Optional[dict[str, Any]]:
         scored_bugs_key = bug["id"]
         bug_id = str(bug["id"])
 
-        if (
-            scored_bugs_key in self.scored_bugs
-            and bug["cf_webcompat_score"] != self.scored_bugs[scored_bugs_key]
-        ):
-            self.autofix_changes[bug_id] = {
-                "cf_webcompat_score": self.scored_bugs[scored_bugs_key]
-            }
+        changes = {}
+        if scored_bugs_key in self.scored_bugs:
+            bug_score = self.scored_bugs[scored_bugs_key]
+
+            if bug["cf_webcompat_score"] != bug_score.bucket:
+                changes["cf_webcompat_score"] = bug_score.bucket
+
+            updated_user_story = self.updated_user_story(
+                bug["cf_user_story"], bug_score.score
+            )
+
+            if updated_user_story:
+                changes["cf_user_story"] = updated_user_story
+
+        if changes:
+            self.autofix_changes[bug_id] = changes
             return bug
 
         return None
 
     def get_bz_params(self, date) -> dict[str, Any]:
         fields = ["id", "cf_webcompat_score"]
+        fields = ["id", "cf_webcompat_score", "cf_user_story"]
         self.scored_bugs = self.get_bug_scores()
         return {
             "include_fields": fields,
@@ -64,19 +120,22 @@ class WebcompatScore(BzCleaner):
             "f8": "CP",
         }
 
-    def get_bug_scores(self) -> dict[int, str]:
+    def get_bug_scores(self) -> dict[int, Score]:
         project = "moz-fx-dev-dschubert-wckb"
         dataset = "webcompat_knowledge_base"
 
         client = gcp.get_bigquery_client(project, ["cloud-platform", "drive"])
         query = f"""
-        SELECT bugs.number, cast(buckets.score_bucket as string) as score_bucket FROM `{project}.{dataset}.site_reports_bugzilla_buckets` as buckets
+        SELECT bugs.number,
+               cast(buckets.score as string) as score,
+               cast(buckets.score_bucket as string) as bucket FROM `{project}.{dataset}.site_reports_bugzilla_buckets` as buckets
         JOIN `{project}.{dataset}.bugzilla_bugs` as bugs ON bugs.number = buckets.number
         WHERE bugs.resolution = ""
         """
 
         return {
-            row["number"]: row["score_bucket"] for row in client.query(query).result()
+            row["number"]: Score(score=row["score"], bucket=row["bucket"])
+            for row in client.query(query).result()
         }
 
 
