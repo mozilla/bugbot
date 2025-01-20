@@ -32,7 +32,7 @@ class WebcompatScore(BzCleaner):
             scored_bugs_key in self.scored_bugs
             and bug["cf_webcompat_score"] != self.scored_bugs[scored_bugs_key]
         ):
-            self.autofix_changes[str(bug_id)] = {
+            self.autofix_changes[bug_id] = {
                 "cf_webcompat_score": self.scored_bugs[scored_bugs_key]
             }
             return bug
