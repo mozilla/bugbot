@@ -64,6 +64,9 @@ class PerfAlertInactiveRegression(BzCleaner):
             "f6": "longdesc",
             "o6": "casesubstring",
             "v6": "which triggered this performance alert, could you please provide a progress update?",
+            "f7": "flagtypes.name",
+            "o7": "notsubstring",
+            "v7": "needinfo?",
             "status": ["UNCONFIRMED", "NEW", "REOPENED"],
             "resolution": ["---"],
         }
