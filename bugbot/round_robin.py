@@ -132,7 +132,9 @@ class RoundRobin(object):
             def handler(user):
                 self.nicks[bzmail] = user["nick"]
 
-            BugzillaUser(user_names=[bzmail], user_handler=handler).wait()
+            BugzillaUser(
+                user_names=[bzmail], user_handler=handler, include_fields=["nick"]
+            ).wait()
 
         if bzmail not in self.nicks:
             self.add_erroneous_bzmail(bzmail, prod_comp, cal)
