@@ -10,6 +10,21 @@ from libmozdata.bugzilla import BugzillaUser
 from bugbot.bzcleaner import BzCleaner
 from bugbot.constants import BOT_MAIN_ACCOUNT
 
+RESOLUTION_KEYWORDS = (
+    "backedout",
+    "backed out",
+    "back out",
+    "backout",
+    "wontfix",
+    "invalid",
+    "incomplete",
+    "duplicate",
+    "fixed",
+    "resolved",
+    "resolve",
+    "resolution",
+)
+
 
 class PerfAlertResolvedRegression(BzCleaner):
     def __init__(self, *args, **kwargs):
@@ -28,6 +43,7 @@ class PerfAlertResolvedRegression(BzCleaner):
             "resolution",
             "resolution_comment",
             "resolution_previous",
+            "needinfo",
         ]
 
     def get_extra_for_needinfo_template(self):
@@ -86,6 +102,53 @@ class PerfAlertResolvedRegression(BzCleaner):
                     return False
 
         return True
+
+    def accept_comment_keywords(self, comment):
+        if any(keyword in comment["text"].lower() for keyword in RESOLUTION_KEYWORDS):
+            return True
+        return False
+
+    def accept_resolution_comment(self, comment, bug_history):
+        if comment["author"] == bug_history["status_author"]:
+            return True
+        return False
+
+    def get_resolution_comments(self, comments, status_time):
+        resolution_comment = None
+        preceding_comment = None
+
+        for comment in comments:
+            if comment["creation_time"] > status_time:
+                break
+            if comment["creation_time"] == status_time:
+                resolution_comment = comment
+            if comment["author"] != BOT_MAIN_ACCOUNT:
+                preceding_comment = comment
+
+        return resolution_comment, preceding_comment
+
+    def check_resolution_comments(self, comments, bug_history):
+        resolution_comment, preceding_comment = self.get_resolution_comments(
+            comments, bug_history["status_time"]
+        )
+
+        if resolution_comment and self.accept_resolution_comment(
+            resolution_comment, bug_history
+        ):
+            # Accept if status author provided a comment at the same time
+            bug_history["resolution_comment"] = resolution_comment["text"]
+        elif preceding_comment:
+            if self.accept_resolution_comment(preceding_comment, bug_history):
+                # Accept if status author provided a comment before setting
+                # resolution
+                bug_history["resolution_comment"] = preceding_comment["text"]
+            elif self.accept_comment_keywords(preceding_comment):
+                # Accept if a non-status author provided a comment before a
+                # resolution was set, and hit some keywords
+                bug_history["resolution_comment"] = (
+                    preceding_comment["text"]
+                    + f" (provided by {preceding_comment['author']})"
+                )
 
     def get_resolution_history(self, bug):
         bug_info = {}
@@ -168,14 +231,9 @@ class PerfAlertResolvedRegression(BzCleaner):
         # Sometimes a resolution comment is not provided so use a default
         bug_history["needinfo"] = False
         bug_history["resolution_comment"] = "N/A"
-        for comment in bug_comments[::-1]:
-            if (
-                comment["creation_time"] == bug_history["status_time"]
-                and comment["author"] == bug_history["status_author"]
-            ):
-                bug_history["resolution_comment"] = comment["text"]
-                break
-        else:
+
+        self.check_resolution_comments(bug_comments, bug_history)
+        if bug_history["resolution_comment"] == "N/A":
             bug_history["needinfo"] = self.should_needinfo(
                 bug_comments, bug_history["status_time"]
             )

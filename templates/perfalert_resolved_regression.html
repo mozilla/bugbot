@@ -6,10 +6,11 @@
             <th>Summary</th>
             <th>Status</th>
             <th>Resolution</th>
+            <th>Needinfo</th>
         </tr>
     </thead>
     <tbody>
-        {% for i, (bugid, summary, status, status_author, resolution, resolution_comment, resolution_previous) in enumerate(data) -%}
+        {% for i, (bugid, summary, status, status_author, resolution, resolution_comment, resolution_previous, needinfo) in enumerate(data) -%}
             <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
             {% endif -%}
             >
@@ -35,6 +36,7 @@
             </td>
             <td>{{ status }}</td>
             <td>{{ resolution_previous }} -> {{ resolution }}</td>
+            <td>{{ "Yes" if needinfo else "No"}}</td>
         </tr>
     {% endfor -%}
 </tbody>
