@@ -128,12 +128,11 @@ class Component(BzCleaner):
             for bug_id, data in fenix_general_classification.items():
                 confidence = data["prob"][data["index"]]
 
-                if confidence > self.fenix_confidence_threshold:
-                    print(f"classification: {data['class']}")
-                    if data["class"] == "General":
-                        data["class"] = "GeckoView::General"
-                    else:
-                        data["class"] = f"Fenix::{data['class']}"
+                if (
+                    confidence > self.fenix_confidence_threshold
+                    and data["class"] != "General"
+                ):
+                    data["class"] = f"Fenix::{data['class']}"
                     bugs[bug_id] = data
 
         results = {}
