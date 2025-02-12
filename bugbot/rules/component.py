@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+
 from libmozdata.bugzilla import Bugzilla
 
 from bugbot import logger
@@ -155,6 +156,12 @@ class Component(BzCleaner):
 
             # Skip product-only suggestions that are not useful.
             if "::" not in suggestion and bug["product"] == suggestion:
+                continue
+
+            # No need to move a Fenix::General bug to Fenix::General
+            if (
+                bug["product"] == "Fenix" and bug["component"] == "General"
+            ) and suggestion == "Fenix::General":
                 continue
 
             suggestion = conflated_components_mapping.get(suggestion, suggestion)
