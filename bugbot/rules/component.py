@@ -129,7 +129,11 @@ class Component(BzCleaner):
                 confidence = data["prob"][data["index"]]
 
                 if confidence > self.fenix_confidence_threshold:
-                    data["class"] = f"Fenix::{data['class']}"
+                    print(f"classification: {data['class']}")
+                    if data["class"] == "General":
+                        data["class"] = "GeckoView::General"
+                    else:
+                        data["class"] = f"Fenix::{data['class']}"
                     bugs[bug_id] = data
 
         results = {}
@@ -158,10 +162,8 @@ class Component(BzCleaner):
             if "::" not in suggestion and bug["product"] == suggestion:
                 continue
 
-            # No need to move a Fenix::General bug to Fenix::General
-            if (
-                bug["product"] == "Fenix" and bug["component"] == "General"
-            ) and suggestion == "Fenix::General":
+            # No need to move a bug to the same component.
+            if f"{bug["product"]}::{bug["component"]}" == suggestion:
                 continue
 
             suggestion = conflated_components_mapping.get(suggestion, suggestion)
