@@ -130,6 +130,12 @@ class Component(BzCleaner):
                 if confidence > self.fenix_confidence_threshold:
                     data["class"] = f"Fenix::{data['class']}"
                     bugs[bug_id] = data
+                else:
+                    if (
+                        raw_bugs[bug_id]["product"] == "Fenix"
+                        and raw_bugs[bug_id]["component"] == "General"
+                    ):
+                        continue
 
         results = {}
 
