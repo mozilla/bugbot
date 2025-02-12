@@ -163,7 +163,7 @@ class Component(BzCleaner):
                 continue
 
             # No need to move a bug to the same component.
-            if f"{bug["product"]}::{bug["component"]}" == suggestion:
+            if f"{bug['product']}::{bug['component']}" == suggestion:
                 continue
 
             suggestion = conflated_components_mapping.get(suggestion, suggestion)
