@@ -10,6 +10,7 @@ from libmozdata.bugzilla import BugzillaUser
 from bugbot.bzcleaner import BzCleaner
 from bugbot.constants import BOT_MAIN_ACCOUNT
 
+ACCEPTANCE_TIME = 86400
 RESOLUTION_KEYWORDS = (
     "backedout",
     "backed out",
@@ -103,6 +104,11 @@ class PerfAlertResolvedRegression(BzCleaner):
 
         return True
 
+    def accept_recent_comment(self, comment, status_time):
+        comment_time = lmdutils.get_timestamp(comment["creation_time"])
+        status_time = lmdutils.get_timestamp(status_time)
+        return status_time - comment_time < ACCEPTANCE_TIME
+
     def accept_comment_keywords(self, comment):
         if any(keyword in comment["text"].lower() for keyword in RESOLUTION_KEYWORDS):
             return True
@@ -122,14 +128,18 @@ class PerfAlertResolvedRegression(BzCleaner):
                 break
             if comment["creation_time"] == status_time:
                 resolution_comment = comment
-            if comment["author"] != BOT_MAIN_ACCOUNT:
+            if (
+                comment["author"] != BOT_MAIN_ACCOUNT
+                and comment["author"] != "intermittent-bug-filer@mozilla.bugs"
+            ):
                 preceding_comment = comment
 
         return resolution_comment, preceding_comment
 
     def check_resolution_comments(self, comments, bug_history):
+        status_time = bug_history["status_time"]
         resolution_comment, preceding_comment = self.get_resolution_comments(
-            comments, bug_history["status_time"]
+            comments, status_time
         )
 
         if resolution_comment and self.accept_resolution_comment(
@@ -145,6 +155,13 @@ class PerfAlertResolvedRegression(BzCleaner):
             elif self.accept_comment_keywords(preceding_comment):
                 # Accept if a non-status author provided a comment before a
                 # resolution was set, and hit some keywords
+                bug_history["resolution_comment"] = (
+                    preceding_comment["text"]
+                    + f" (provided by {preceding_comment['author']})"
+                )
+            elif self.accept_recent_comment(preceding_comment, status_time):
+                # Accept if the previous comment from another author is
+                # within the last 24 hours
                 bug_history["resolution_comment"] = (
                     preceding_comment["text"]
                     + f" (provided by {preceding_comment['author']})"
