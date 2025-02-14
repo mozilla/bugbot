@@ -128,7 +128,10 @@ class Component(BzCleaner):
                 confidence = data["prob"][data["index"]]
 
                 if confidence > self.fenix_confidence_threshold:
-                    data["class"] = f"Fenix::{data['class']}"
+                    if data["class"] == "General":
+                        data["class"] = "GeckoView::General"
+                    else:
+                        data["class"] = f"Fenix::{data['class']}"
                     bugs[bug_id] = data
 
         results = {}
