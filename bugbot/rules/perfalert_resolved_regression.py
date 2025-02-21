@@ -64,7 +64,7 @@ class PerfAlertResolvedRegression(BzCleaner):
 
     def get_bz_params(self, date):
         end_date = lmdutils.get_date_ymd("today")
-        start_date = end_date - timedelta(14)
+        start_date = end_date - timedelta(1)
 
         fields = [
             "id",
