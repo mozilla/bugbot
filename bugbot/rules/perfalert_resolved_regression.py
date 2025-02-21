@@ -9,6 +9,7 @@ from libmozdata.bugzilla import BugzillaUser
 
 from bugbot.bzcleaner import BzCleaner
 from bugbot.constants import BOT_MAIN_ACCOUNT
+from bugbot.utils import is_bot_email
 
 RESOLUTION_KEYWORDS = (
     "backedout",
@@ -27,9 +28,9 @@ RESOLUTION_KEYWORDS = (
 
 
 class PerfAlertResolvedRegression(BzCleaner):
-    def __init__(self, acceptance_time=86400):
+    def __init__(self, max_seconds_to_status=86400):
         super().__init__()
-        self.acceptance_time = acceptance_time
+        self.max_seconds_to_status = max_seconds_to_status
         self.extra_ni = {}
 
     def description(self):
@@ -52,7 +53,7 @@ class PerfAlertResolvedRegression(BzCleaner):
 
     def get_bz_params(self, date):
         end_date = lmdutils.get_date_ymd("today")
-        start_date = end_date - timedelta(1)
+        start_date = end_date - timedelta(14)
 
         fields = [
             "id",
@@ -113,10 +114,7 @@ class PerfAlertResolvedRegression(BzCleaner):
                 break
             if comment["creation_time"] == status_time:
                 resolution_comment = comment
-            if (
-                comment["author"] != BOT_MAIN_ACCOUNT
-                and comment["author"] != "intermittent-bug-filer@mozilla.bugs"
-            ):
+            if not is_bot_email(comment["author"]):
                 preceding_comment = comment
 
         return resolution_comment, preceding_comment
@@ -133,33 +131,29 @@ class PerfAlertResolvedRegression(BzCleaner):
         ):
             # Accept if status author provided a comment at the same time
             return resolution_comment["text"]
-        elif preceding_comment:
+        if preceding_comment:
             if preceding_comment["author"] == bug_history["status_author"]:
                 # Accept if status author provided a comment before setting
                 # resolution
                 return preceding_comment["text"]
-            elif any(
+
+            preceding_resolution_comment = f"{preceding_comment['text']} (provided by {preceding_comment['author']})"
+            if any(
                 keyword in preceding_comment["text"].lower()
                 for keyword in RESOLUTION_KEYWORDS
             ):
                 # Accept if a non-status author provided a comment before a
                 # resolution was set, and hit some keywords
-                return (
-                    preceding_comment["text"]
-                    + f" (provided by {preceding_comment['author']})"
-                )
-            elif (
+                return preceding_resolution_comment
+            if (
                 lmdutils.get_timestamp(status_time)
                 - lmdutils.get_timestamp(preceding_comment["creation_time"])
-            ) < self.acceptance_time:
+            ) < self.max_seconds_to_status:
                 # Accept if the previous comment from another author is
-                # within the last 24 hours
-                return (
-                    preceding_comment["text"]
-                    + f" (provided by {preceding_comment['author']})"
-                )
+                # within the time limit
+                return preceding_resolution_comment
 
-        return "N/A"
+        return None
 
     def get_resolution_history(self, bug):
         bug_info = {}
@@ -239,12 +233,13 @@ class PerfAlertResolvedRegression(BzCleaner):
         bug_comments = bug["comments"]
         bug_history = self.get_resolution_history(bug)
 
-        # Sometimes a resolution comment is not provided so use a default
         bug_history["needinfo"] = False
         bug_history["resolution_comment"] = self.get_resolution_comment(
             bug_comments, bug_history
         )
-        if bug_history["resolution_comment"] == "N/A":
+        if bug_history["resolution_comment"] is None:
+            # Use N/A to signify no resolution comment was provided
+            bug_history["resolution_comment"] = "N/A"
             bug_history["needinfo"] = self.should_needinfo(
                 bug_comments, bug_history["status_time"]
             )
