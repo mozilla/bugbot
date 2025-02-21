@@ -28,20 +28,20 @@ RESOLUTION_KEYWORDS = (
 
 
 class PerfAlertResolvedRegression(BzCleaner):
-    def __init__(self, max_seconds_to_status=86400):
+    def __init__(self, max_seconds_before_status=86400):
         """
         Initializes the bugbot rule for ensuring performance alerts
         have a valid resolution comment when they are closed.
 
-        :param max_seconds_to_status int: When a resolution comment is not provided
+        :param max_seconds_before_status int: When a resolution comment is not provided
             at the time of resolution, the preceding comment can be considered as a
-            resolution comment as long it hasn't been more than `max_seconds_to_status`
+            resolution comment as long it hasn't been more than `max_seconds_before_status`
             seconds since the comment was made. Only applies when the resolution
             author is different from the preceding comment author, otherwise, the
             comment is accepted without checking the time that has elapsed.
         """
         super().__init__()
-        self.max_seconds_to_status = max_seconds_to_status
+        self.max_seconds_before_status = max_seconds_before_status
         self.extra_ni = {}
 
     def description(self):
@@ -159,7 +159,7 @@ class PerfAlertResolvedRegression(BzCleaner):
             if (
                 lmdutils.get_timestamp(status_time)
                 - lmdutils.get_timestamp(preceding_comment["creation_time"])
-            ) < self.max_seconds_to_status:
+            ) < self.max_seconds_before_status:
                 # Accept if the previous comment from another author is
                 # within the time limit
                 return preceding_resolution_comment
