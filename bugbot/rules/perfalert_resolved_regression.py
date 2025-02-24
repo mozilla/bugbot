@@ -33,7 +33,7 @@ class PerfAlertResolvedRegression(BzCleaner):
         Initializes the bugbot rule for ensuring performance alerts
         have a valid resolution comment when they are closed.
 
-        :param max_seconds_before_status int: When a resolution comment is not provided
+        max_seconds_before_status int: When a resolution comment is not provided
             at the time of resolution, the preceding comment can be considered as a
             resolution comment as long it hasn't been more than `max_seconds_before_status`
             seconds since the comment was made. Only applies when the resolution
