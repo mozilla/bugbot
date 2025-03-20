@@ -79,6 +79,9 @@ class Component(BzCleaner):
             "o8": "anyexact",
             "v8": "Untriaged,Foxfooding",
             "f9": "CP",
+            "f10": "reporter",
+            "o10": "notequals",
+            "v10": "update-bot@bmo.tld",
         }
 
     def get_bugs(self, date="today", bug_ids=[]):
