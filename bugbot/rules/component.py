@@ -130,7 +130,10 @@ class Component(BzCleaner):
             for bug_id, data in fenix_general_classification.items():
                 confidence = data["prob"][data["index"]]
 
-                if confidence > self.fenix_confidence_threshold:
+                if (
+                    confidence > self.fenix_confidence_threshold
+                    and data["class"] != "General"
+                ):
                     data["class"] = f"Fenix::{data['class']}"
                     bugs[bug_id] = data
 
@@ -158,6 +161,10 @@ class Component(BzCleaner):
 
             # Skip product-only suggestions that are not useful.
             if "::" not in suggestion and bug["product"] == suggestion:
+                continue
+
+            # No need to move a bug to the same component.
+            if f"{bug['product']}::{bug['component']}" == suggestion:
                 continue
 
             suggestion = conflated_components_mapping.get(suggestion, suggestion)
