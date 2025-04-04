@@ -88,7 +88,8 @@ class Component(BzCleaner):
         def meets_threshold(bug_data):
             threshold = (
                 self.general_confidence_threshold
-                if bug_data["class"] == "Fenix" or bug_data["class"] == "General"
+                if bug_data["class"] == "Firefox for Android"
+                or bug_data["class"] == "General"
                 else self.component_confidence_threshold
             )
             return bug_data["prob"][bug_data["index"]] >= threshold
@@ -112,12 +113,12 @@ class Component(BzCleaner):
                 # security bug.
                 continue
             if meets_threshold(bug_data):
-                if bug_data.get("class") == "Fenix":
+                if bug_data.get("class") == "Firefox for Android":
                     fenix_general_bug_ids.append(bug_id)
             else:
                 current_bug_data = raw_bugs[bug_id]
                 if (
-                    current_bug_data["product"] == "Fenix"
+                    current_bug_data["product"] == "Firefox for Android"
                     and current_bug_data["component"] == "General"
                 ):
                     fenix_general_bug_ids.append(bug_id)
@@ -134,7 +135,7 @@ class Component(BzCleaner):
                     confidence > self.fenix_confidence_threshold
                     and data["class"] != "General"
                 ):
-                    data["class"] = f"Fenix::{data['class']}"
+                    data["class"] = f"Firefox for Android::{data['class']}"
                     bugs[bug_id] = data
 
         results = {}
