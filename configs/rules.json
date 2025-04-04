@@ -478,5 +478,9 @@
   },
   "perfalert_resolved_regression": {
     "additional_receivers": ["perfalert-activity@mozilla.com", "sparky@mozilla.com"]
+  },
+  "release_notes": {
+    "must_run": ["Mon"],
+    "receivers": ["release-mgmt@mozilla.com"]
   }
 }
