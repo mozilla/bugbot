@@ -2,7 +2,7 @@ alembic==1.14.1
 argparse==1.4.0
 filelock==3.17.0
 google-cloud-bigquery==3.29.0
-gspread==6.1.4
+gspread==6.2.0
 humanize>=0.5.1
 icalendar==6.1.1
 Jinja2==3.1.4
