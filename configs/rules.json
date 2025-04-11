@@ -67,6 +67,7 @@
   },
   "fuzz_blockers": {
     "must_run": ["Mon"]
+    "additional_receivers": ["fbraun@mozilla.com"]
   },
   "patch_closed_bug": {
     "additional_receivers": "rm"
