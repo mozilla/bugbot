@@ -20,8 +20,6 @@ PHAB_FILE_NAME_PAT = re.compile(r"phabricator-D([0-9]+)-url\.txt")
 
 
 class InactivePatchAuthors(BzCleaner, Nag):
-    """Bugs with patches authored by inactive patch authors"""
-
     def __init__(self):
         super().__init__()
         self.phab = PhabricatorAPI(utils.get_login_info()["phab_api_key"])
