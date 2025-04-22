@@ -23,9 +23,9 @@ class InactivePatchAuthors(BzCleaner, Nag):
     """Bugs with patches authored by inactive patch authors"""
 
     def __init__(self):
-        super(InactivePatchAuthors, self).__init__()
+        super().__init__()
         self.phab = PhabricatorAPI(utils.get_login_info()["phab_api_key"])
-        self.user_activity = UserActivity(include_fields=["nick"], phab=self.phab)
+        self.user_activity = UserActivity(phab=self.phab)
         self.default_assignees = utils.get_default_assignees()
         self.people = people.People.get_instance()
         self.no_bugmail = True
