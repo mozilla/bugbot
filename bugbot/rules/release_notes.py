@@ -1,3 +1,4 @@
+import requests
 from jinja2 import Environment, FileSystemLoader
 
 from bugbot import mail, utils
@@ -6,8 +7,9 @@ from bugbot.nag_me import Nag
 
 
 class ReleaseNotes(BzCleaner, Nag):
-    def __init__(self):
+    def __init__(self, version=None):
         super().__init__()
+        self.version = version
 
     def description(self):
         return "Weekly Release Notes Digest"
@@ -16,21 +18,33 @@ class ReleaseNotes(BzCleaner, Nag):
         return "release_notes.html"
 
     def get_email_data(self, date: str):
-        # Simulate API call to fetch release notes
-        return [
-            {"title": "New Dark Mode in Settings", "link": "https://example.com/1"},
-            {
-                "title": "Performance Improvements in Rendering",
-                "link": "https://example.com/2",
-            },
-            {"title": "Security Fixes", "link": "https://example.com/3"},
-        ]
+        params = {"date": date}
+        if self.version:
+            params["version"] = self.version
+        base_url = "http://localhost:8080/"
+        resp = requests.get(base_url, params=params)
+        resp.raise_for_status()
+        data = resp.json()
+        results = []
+        for row in data["commits"]:
+            parts = row.split(",")
+            if len(parts) >= 4:
+                results.append(
+                    {
+                        "category": parts[0].strip("[] "),
+                        "title": parts[1].strip(),
+                        "bug": parts[2].strip(),
+                        "desc": parts[3].strip(),
+                    }
+                )
+        return results
 
     def send_email(self, date="today"):
         login_info = utils.get_login_info()
         data = self.get_email_data(date)
         if data:
-            title, body = self.get_email(date, data)
+            preamble = f"The following were the identified relevant commits for version {self.version or '(unknown)'}"
+            title, body = self.get_email(date, data, preamble=preamble)
             receivers = utils.get_config(self.name(), "receivers")
             mail.send(
                 login_info["ldap_username"],
@@ -46,7 +60,6 @@ class ReleaseNotes(BzCleaner, Nag):
         env = Environment(loader=FileSystemLoader("templates"))
         template = env.get_template(self.template())
         message = template.render(date=date, data=data)
-
         common = env.get_template("common.html")
         body = common.render(
             preamble=preamble,
@@ -57,4 +70,4 @@ class ReleaseNotes(BzCleaner, Nag):
 
 
 if __name__ == "__main__":
-    ReleaseNotes().run()
+    ReleaseNotes(version="FIREFOX_BETA_136_BASE").run()
