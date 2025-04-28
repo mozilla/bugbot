@@ -481,6 +481,7 @@
   },
   "release_notes": {
     "must_run": ["Mon"],
-    "receivers": ["release-mgmt@mozilla.com"]
+    "receivers": ["release-mgmt@mozilla.com"],
+    "weeks_lookup": 4
   }
 }
