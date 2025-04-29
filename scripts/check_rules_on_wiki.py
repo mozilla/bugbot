@@ -51,6 +51,7 @@ class CheckWikiPage:
         "several_see_also.py",
         "pdfjs_update.py",
         "leave_open_sec.py",
+        "webcompat_score.py",
         # Experimental rules:
         "accessibilitybug.py",
         "performancebug.py",
