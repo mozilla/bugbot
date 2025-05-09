@@ -58,7 +58,7 @@ class Intermittents(BzCleaner):
             "v9": "intermittent-failure",
             "f10": "keywords",
             "o10": "nowords",
-            "v10": "test-verify-fail,test-disabled",
+            "v10": "test-verify-fail,test-disabled,topcrash",
             "j11": "OR",
             "f11": "OP",
             "f12": "blocked",
