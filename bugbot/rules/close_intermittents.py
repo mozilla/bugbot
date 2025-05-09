@@ -38,8 +38,6 @@ class Intermittents(BzCleaner):
             "f1": "longdescs.count",
             "o1": "changedafter",
             "v1": "-3w",
-            "f2": "blocked",
-            "o2": "isempty",
             "f3": "flagtypes.name",
             "o3": "notequals",
             "v3": "needinfo?",
@@ -60,7 +58,18 @@ class Intermittents(BzCleaner):
             "v9": "intermittent-failure",
             "f10": "keywords",
             "o10": "nowords",
-            "v10": "test-verify-fail,test-disabled",
+            "v10": "test-verify-fail,test-disabled,topcrash",
+            "j11": "OR",
+            "f11": "OP",
+            "f12": "blocked",
+            "o12": "isempty",
+            # We want to include bugs that are blocked by sm-defects-intermittent
+            # since it is rooting all SpiderMonkey's intermittent failures.
+            # See https://github.com/mozilla/bugbot/issues/2635
+            "f13": "blocked",
+            "o13": "equals",
+            "v13": 1729503,
+            "f14": "CP",
             "resolution": "---",
             "status_whiteboard_type": "notregexp",
             "status_whiteboard": "(test disabled|test-disabled|testdisabled)",
