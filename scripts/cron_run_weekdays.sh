@@ -115,7 +115,9 @@ python -m bugbot.rules.stepstoreproduce --production
 python -m bugbot.rules.good_first_bug_unassign_inactive --production
 
 # Look for missing bugzilla comments for recently-landed changesets
-python -m bugbot.rules.missed_landing_comment --production
+# NOTE: Temporarily disabled until backout commit messages are well-formatted
+# again by lando_cli tool.
+# python -m bugbot.rules.missed_landing_comment --production
 
 # Look for recently landed changesets referencing leave-open security bugs
 python -m bugbot.rules.leave_open_sec --production
