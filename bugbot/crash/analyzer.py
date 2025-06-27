@@ -760,10 +760,40 @@ class SignaturesDataFetcher:
                 "_histogram.date",
                 "_cardinality.install_time",
                 "_cardinality.oom_allocation_size",
+                "cpu_info",
+                "cpu_microcode_version",
             ],
             "_results_number": 0,
             "_facets_size": 10000,
         }
+
+        def is_potential_broken_cpu(facets) -> bool:
+            """Determine if the CPU info indicates a potential broken CPU.
+
+            Crashes with CPU info `family 6 model 183 stepping 1` and
+            microcode version 0x12b and lower are usually affected by a CPU bug.
+            """
+
+            for cpu_info in facets["cpu_info"]:
+                if cpu_info["term"] == "family 6 model 183 stepping 1":
+                    # We are only interested in the microcode version 0x12b and
+                    # lower. But since we cannot link the microcode version
+                    # to the CPU info, we will use the count as a proxy to
+                    # determine if all crashes with this CPU info are likely to
+                    # be from the targeted microcode versions.
+                    if (
+                        sum(
+                            microcode["count"]
+                            for microcode in facets["cpu_microcode_version"]
+                            if int(microcode["term"], 16) <= 0x12B
+                        )
+                        >= cpu_info["count"]
+                    ):
+                        return True
+
+                    break
+
+            return False
 
         def handler(search_resp: dict, data: list):
             logger.debug(
@@ -789,6 +819,10 @@ class SignaturesDataFetcher:
                 first_date = facets["histogram_date"][0]["term"]
                 if first_date < earliest_allowed_date:
                     # The crash is not new, skip it.
+                    continue
+
+                if is_potential_broken_cpu(facets):
+                    # Ignore crashes that are likely caused by a broken CPU.
                     continue
 
                 if any(
