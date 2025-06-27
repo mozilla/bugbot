@@ -781,14 +781,12 @@ class SignaturesDataFetcher:
                     # to the CPU info, we will use the count as a proxy to
                     # determine if all crashes with this CPU info are likely to
                     # be from the targeted microcode versions.
-                    if (
-                        sum(
-                            microcode["count"]
-                            for microcode in facets["cpu_microcode_version"]
-                            if int(microcode["term"], 16) <= 0x12B
-                        )
-                        >= cpu_info["count"]
-                    ):
+                    targeted_versions_count = sum(
+                        microcode["count"]
+                        for microcode in facets["cpu_microcode_version"]
+                        if int(microcode["term"], 16) <= 0x12B
+                    )
+                    if targeted_versions_count >= cpu_info["count"]:
                         return True
 
                     break
