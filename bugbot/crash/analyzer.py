@@ -792,11 +792,13 @@ class SignaturesDataFetcher:
                     # The crash is not new, skip it.
                     continue
 
-                if any(
-                    cpu_info["term"] == "family 6 model 183 stepping 1"
+                broken_cpu_count = sum(
+                    cpu_info["count"]
                     for cpu_info in facets["cpu_info"]
-                ):
-                    # Ignore crashes that are likely caused by a broken CPU.
+                    if cpu_info["term"] == "family 6 model 183 stepping 1"
+                )
+                if broken_cpu_count / crash["count"] >= 0.7:
+                    # Ignore signatures that are likely caused by a broken CPU.
                     continue
 
                 if any(
