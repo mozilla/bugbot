@@ -6,7 +6,7 @@ gspread==6.2.1
 humanize>=0.5.1
 icalendar==6.3.1
 Jinja2==3.1.6
-libmozdata==0.2.10
+libmozdata==0.2.11
 numpy==2.2.4
 pep8==1.7.1
 pyflakes==3.4.0
