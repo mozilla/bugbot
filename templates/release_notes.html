@@ -1,0 +1,8 @@
+<h2>Release Notes Summary for {{ date }}</h2>
+<ul>
+    {% for note in data %}
+        <li>
+            <a href="{{ note.link }}">{{ note.title }}</a>
+        </li>
+    {% endfor %}
+</ul>
