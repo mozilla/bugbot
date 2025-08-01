@@ -79,6 +79,7 @@ class Intermittents(BzCleaner):
             **status_flags,
             "status": "RESOLVED",
             "resolution": "INCOMPLETE",
+            "keywords": {"remove": ["leave-open"]},
             "comment": {
                 "body": f"https://wiki.mozilla.org/Bug_Triage#Intermittent_Test_Failure_Cleanup\n{self.get_documentation()}"
             },
