@@ -24,6 +24,9 @@ python -m bugbot.rules.perfalert_resolved_regression --production
 # Update the webcompat score fields
 python -m bugbot.rules.webcompat_score --production
 
+# Update the links in bugs associated with web features
+python -m bugbot.rules.web_platform_features --production
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m bugbot.log --send
