@@ -48,6 +48,19 @@ test = [
 [tool.setuptools]
 packages = ["bugbot"]
 
+[tool.tox]
+envlist = ["py310", "py311", "py312", "py313"]
+skipsdist = true
+
+[tool.tox.env_run_base]
+setenv = { PYTHONDONTWRITEBYTECODE = "1", PYTHONPATH = "{toxinidir}/vendor/lib/python" }
+deps = [".[dev]"]
+commands = [
+  ["alembic", "upgrade", "head"],
+  ["coverage", "erase"],
+  ["coverage", "run", "--branch", "--source", "{toxinidir}/bugbot", "-m", "unittest", "-v", { replace="posargs", extend = true }]
+]
+
 [tool.djlint]
 profile="jinja"
 linter_output_format = "{filename}:{line}: {code} {message} {match}"
