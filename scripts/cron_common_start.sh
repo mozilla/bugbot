@@ -25,7 +25,7 @@ trap ErrorHandler ERR
 . venv/bin/activate
 
 # force the update of dependencies
-pip install -r requirements.txt
+uv sync --locked --no-dev
 
 # Clean the log files
 python -m bugbot.log --clean
