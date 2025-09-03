@@ -11,7 +11,6 @@ The tool will also notify release managers about potential issues in bugzilla an
 The list of checkers is documented on the Mozilla wiki:
 https://wiki.mozilla.org/BugBot
 
-
 This package currently uses Mozilla's `Bugzilla REST API <https://wiki.mozilla.org/Bugzilla:REST_API>`_, and the Mozilla IAM `phonebook <https://github.com/mozilla-iam/cis/blob/master/docs/PersonAPI.md>`_ (to access bug assignees' managers & Mozilla email addresses).
 
 
@@ -22,27 +21,16 @@ Installation
 
     git clone https://github.com/mozilla/bugbot.git
 
-#. (optional) Create your virtualenv using virtualenvwrapper::
-
-    virtualenv -p python3 venv
-    source venv/bin/activate
-
-#. Install the dependencies for Python 3 too::
-
-    pip install -r requirements.txt
+bugbot uses `uv <https://docs.astral.sh/uv/>`_ to manage the Python environment; this must be installed locally.
 
 Auto-formatting with pre-commit
 -------------------------------
 
 This project uses `pre-commit <https://pre-commit.com/>`_.
 
-#. Install test dependencies, if not already installed::
+#. Install pre-commit::
 
-    pip install -r requirements-test.txt
-
-#. Set up the git pre-commit hooks in your clone::
-
-    pre-commit install
+    uv tool install pre-commit
 
 Every time you try to commit, pre-commit checks your files to ensure they follow our style standards and aren't affected by some simple issues. If the checks fail, pre-commit won't let you commit.
 
@@ -74,7 +62,8 @@ Before running:
     }
 
 Do a dryrun::
-    python -m bugbot.rules.stalled
+
+   uv run -m bugbot.rules.stalled
 
 There is a ton of rules in bugbot/rules/ so you should be able to find some good examples.
 
