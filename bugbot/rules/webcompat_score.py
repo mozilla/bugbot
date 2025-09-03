@@ -95,7 +95,6 @@ class WebcompatScore(BzCleaner):
         return None
 
     def get_bz_params(self, date) -> dict[str, Any]:
-        fields = ["id", "cf_webcompat_score"]
         fields = ["id", "cf_webcompat_score", "cf_user_story"]
         self.scored_bugs = self.get_bug_scores()
         return {

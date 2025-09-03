@@ -1,0 +1,32 @@
+<p>
+    The following {{ plural('bug is', data, pword='bugs are') }} are marked as for specific web-features, but were missing relevant see-also links:
+</p>
+<table {{ table_attrs }}>
+    <thead>
+        <tr>
+            <th>Bug</th>
+            <th>Links added</th>
+            <th>Summary</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for i, (bugid, summary, added) in enumerate(data) -%}
+            <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
+            {% endif -%}
+            >
+            <td>
+                <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+            </td>
+            <td>
+                <ul>
+                    {% for link in added -%}
+                        <li>
+                            <a href="{{ link }}">{{ link | e }}</a>
+                        </li>
+                    {% endfor -%}
+                </ul>
+                <td>{{ summary | e }}</td>
+            </tr>
+        {% endfor -%}
+    </tbody>
+</table>
