@@ -1,3 +1,66 @@
+[project]
+name = "bugbot"
+description = "Bugzilla management bot"
+authors = [
+  {name = "Mozilla Corporation"}
+]
+version = "0.1.0"
+requires-python = ">=3.10"
+readme = "README.rst"
+license = "BSD-3-clause"
+dependencies = [
+  "alembic==1.14.1",
+  "argparse==1.4.0",
+  "filelock==3.18.0",
+  "google-cloud-bigquery==3.34.0",
+  "gspread==6.2.1",
+  "humanize>=0.5.1",
+  "icalendar==6.3.1",
+  "Jinja2==3.1.6",
+  "libmozdata==0.2.10",
+  "numpy==2.2.4",
+  "pep8==1.7.1",
+  "pyflakes==3.4.0",
+  "python-dateutil>=2.8.2",
+  "python-Levenshtein>=0.12.0",
+  "pytz>=2018.9",
+  "PyYAML==6.0.2",
+  "recurring-ical-events==3.8.0",
+  "requests==2.32.4",
+  "sqlalchemy==1.3.24",
+  "tenacity==9.1.2",
+  "whatthepatch>=0.0.5"
+]
+
+[project.optional-dependencies]
+dev = [
+  "coverage==7.9.1",
+  "mock==5.2.0",
+  "responses==0.25.7"
+]
+
+test = [
+  "coveralls==4.0.1",
+  "pre-commit==4.2.0",
+  "tox==4.27.0"
+]
+
+[tool.setuptools]
+packages = ["bugbot"]
+
+[tool.tox]
+envlist = ["py310", "py311", "py312", "py313"]
+skipsdist = true
+
+[tool.tox.env_run_base]
+setenv = { PYTHONDONTWRITEBYTECODE = "1", PYTHONPATH = "{toxinidir}/vendor/lib/python" }
+deps = [".[dev]"]
+commands = [
+  ["alembic", "upgrade", "head"],
+  ["coverage", "erase"],
+  ["coverage", "run", "--branch", "--source", "{toxinidir}/bugbot", "-m", "unittest", "-v", { replace="posargs", extend = true }]
+]
+
 [tool.djlint]
 profile="jinja"
 linter_output_format = "{filename}:{line}: {code} {message} {match}"
