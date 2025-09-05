@@ -48,7 +48,7 @@ tasks:
             - "git clone --quiet ${repository} bugbot &&
               cd bugbot &&
               git -c advice.detachedHead=false checkout ${head_rev} &&
-              pip install --quiet -r requirements-test.txt &&
+              pip install --quiet -e '.[test]' &&
               pre-commit run --all-files --show-diff-on-failure &&
               tox -e $TOX_ENV &&
               coveralls"
