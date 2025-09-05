@@ -36,7 +36,7 @@ dependencies = [
 dev = [
   "coverage==7.9.1",
   "mock==5.2.0",
-  "responses==0.25.7"
+  "responses==0.25.8"
 ]
 
 test = [
