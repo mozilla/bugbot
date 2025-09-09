@@ -11,7 +11,7 @@ license = "BSD-3-clause"
 dependencies = [
   "alembic==1.14.1",
   "argparse==1.4.0",
-  "filelock==3.18.0",
+  "filelock==3.19.1",
   "google-cloud-bigquery==3.37.0",
   "gspread==6.2.1",
   "humanize>=0.5.1",
