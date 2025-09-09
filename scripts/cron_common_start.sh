@@ -22,7 +22,7 @@ ErrorHandler() {
 
 trap ErrorHandler ERR
 
-. venv/bin/activate
+. .venv/bin/activate
 
 # force the update of dependencies
 uv sync --locked --no-dev
