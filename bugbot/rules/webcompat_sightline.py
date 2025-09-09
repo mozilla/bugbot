@@ -60,15 +60,13 @@ class WebcompatSightline(BzCleaner):
         self.metric_bugs = self.get_metric_bugs()
         # Get all bugs that either have, or should have, the [webcompat:sightline]
         # whiteboard entry
-        query = {
+        return {
             "include_fields": fields,
             "j_top": "OR",
             "f1": "bug_id",
             "o1": "anyexact",
             "v1": ",".join(str(item) for item in self.metric_bugs.keys()),
         }
-
-        return query
 
     def get_metric_bugs(self) -> Mapping[int, Mapping[MetricType, bool]]:
         project = "moz-fx-dev-dschubert-wckb"
