@@ -82,7 +82,7 @@ requires-dist = [
     { name = "humanize", specifier = ">=0.5.1" },
     { name = "icalendar", specifier = "==6.3.1" },
     { name = "jinja2", specifier = "==3.1.6" },
-    { name = "libmozdata", specifier = "==0.2.10" },
+    { name = "libmozdata", specifier = "==0.2.11" },
     { name = "mock", marker = "extra == 'dev'", specifier = "==5.2.0" },
     { name = "numpy", specifier = "==2.2.6" },
     { name = "pep8", specifier = "==1.7.1" },
@@ -681,7 +681,7 @@ wheels = [
 
 [[package]]
 name = "libmozdata"
-version = "0.2.10"
+version = "0.2.11"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "icalendar" },
@@ -694,9 +694,9 @@ dependencies = [
     { name = "six" },
     { name = "whatthepatch" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f7/39/da461d6bd544e11d0566133b02680abc63d61ff484d7360968a44f2e4dcf/libmozdata-0.2.10.tar.gz", hash = "sha256:ba6b867594d70f15786576962418765c67461412592257f4becf83529f307e58", size = 62179, upload-time = "2025-05-05T20:29:06.867Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/39/82/f4fc8b1f9fd89a79a5128af6bc358e212fd5bdb0572144ff5ce3c6e4bae5/libmozdata-0.2.11.tar.gz", hash = "sha256:0ed61f8db301f85a3dad7d023f9b6360c130caf18932974be1defcd08abf3e19", size = 62362, upload-time = "2025-07-04T15:14:24.03Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2f/89/f5e18ed75450423bd9ed072fc00d245388dcdb224f324cfcdde5993500a7/libmozdata-0.2.10-py3-none-any.whl", hash = "sha256:b7c782e64ad59823d8c975a0c994d3334533faba0636165abc64b4a363355bdb", size = 72644, upload-time = "2025-05-05T20:29:05.249Z" },
+    { url = "https://files.pythonhosted.org/packages/6c/1e/0cfcd68287d0d2aa00f0aea6dc2cf46b8af331b6b46f04236f92a42c76aa/libmozdata-0.2.11-py3-none-any.whl", hash = "sha256:030a828e7ff77b3e0a5eda14bef69d8162668e17299da7277ebaab486603ef49", size = 72846, upload-time = "2025-07-04T15:14:22.9Z" },
 ]
 
 [[package]]
