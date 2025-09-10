@@ -5,7 +5,7 @@
 from datetime import datetime
 from typing import Any, Optional
 
-import dateutil
+from dateutil import parser
 
 from bugbot import gcp
 from bugbot.bzcleaner import BzCleaner
@@ -41,8 +41,7 @@ class WebcompatPlatformWithoutKeyword(BzCleaner):
         # so prefer to do nothing.
         if (
             self.last_bugzilla_import_time
-            and dateutil.parser.parse(bug["last_change_time"])
-            > self.last_bugzilla_import_time
+            and parser.parse(bug["last_change_time"]) > self.last_bugzilla_import_time
         ):
             return None
 
