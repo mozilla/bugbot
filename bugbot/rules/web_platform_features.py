@@ -72,7 +72,7 @@ class WebPlatformFeatures(BzCleaner):
                 url for key, url in expected_keys.items() if key not in see_also_keys
             ]
             if add_urls:
-                changes["see_also"] = bug["see_also"] + add_urls
+                changes["see_also"] = {"add": add_urls}
                 data[bug_id]["added"] = add_urls
 
         if changes:
