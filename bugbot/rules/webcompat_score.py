@@ -11,7 +11,7 @@ from bugbot.bzcleaner import BzCleaner
 
 @dataclass
 class Score:
-    bucket: str
+    bucket: Optional[str]
     score: str
 
 
@@ -78,7 +78,10 @@ class WebcompatScore(BzCleaner):
         if scored_bugs_key in self.scored_bugs:
             bug_score = self.scored_bugs[scored_bugs_key]
 
-            if bug["cf_webcompat_score"] != bug_score.bucket:
+            if (
+                bug_score.bucket is not None
+                and bug["cf_webcompat_score"] != bug_score.bucket
+            ):
                 changes["cf_webcompat_score"] = bug_score.bucket
 
             updated_user_story = self.updated_user_story(
@@ -117,6 +120,14 @@ class WebcompatScore(BzCleaner):
             "o7": "equals",
             "v7": "webcompat:site-report",
             "f8": "CP",
+            "f9": "OP",
+            "f10": "product",
+            "o10": "notequals",
+            "v10": "Web Compatibility",
+            "f11": "keywords",
+            "o11": "equals",
+            "v11": "webcompat:platform-bug",
+            "f12": "CP",
         }
 
     def get_bug_scores(self) -> dict[int, Score]:
@@ -125,11 +136,18 @@ class WebcompatScore(BzCleaner):
 
         client = gcp.get_bigquery_client(project, ["cloud-platform", "drive"])
         query = f"""
-        SELECT bugs.number,
+        SELECT number,
                cast(buckets.score as string) as score,
-               cast(buckets.score_bucket as string) as bucket FROM `{project}.{dataset}.site_reports_bugzilla_buckets` as buckets
-        JOIN `{project}.{dataset}.bugzilla_bugs` as bugs ON bugs.number = buckets.number
+               cast(buckets.score_bucket as string) as bucket
+        FROM `{project}.{dataset}.site_reports_bugzilla_buckets` as buckets
+        JOIN `{project}.{dataset}.bugzilla_bugs` as bugs USING(number)
         WHERE bugs.resolution = ""
+        UNION ALL
+        SELECT number,
+               cast(score_all as string) as score,
+               NULL as bucket
+        FROM `{project}.{dataset}.core_bugs_scores`
+        WHERE resolution = ""
         """
 
         return {
