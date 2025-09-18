@@ -59,8 +59,7 @@ class WebPlatformFeatures(BzCleaner):
             data[bug_id] = {}
         data[bug_id]["added"] = []
         if features_key in self.feature_bugs:
-            existing_keys = url_keys(bug["see_also"])
-            existing_keys.update(url_keys([bug["url"]]))
+            existing_keys = url_keys(bug["see_also"] + [bug["url"]])
 
             feature_urls = self.feature_bugs[features_key]
             expected_urls = [feature_urls.feature_url]
