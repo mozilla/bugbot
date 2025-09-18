@@ -59,7 +59,7 @@ class WebPlatformFeatures(BzCleaner):
             data[bug_id] = {}
         data[bug_id]["added"] = []
         if features_key in self.feature_bugs:
-            see_also_keys = url_keys(bug["see_also"])
+            existing_keys = url_keys(bug["see_also"] + [bug["url"]])
 
             feature_urls = self.feature_bugs[features_key]
             expected_urls = [feature_urls.feature_url]
@@ -69,7 +69,7 @@ class WebPlatformFeatures(BzCleaner):
                 expected_urls.extend(feature_urls.spec_url)
             expected_keys = url_keys(expected_urls)
             add_urls = [
-                url for key, url in expected_keys.items() if key not in see_also_keys
+                url for key, url in expected_keys.items() if key not in existing_keys
             ]
             if add_urls:
                 changes["see_also"] = {"add": add_urls}
@@ -82,9 +82,8 @@ class WebPlatformFeatures(BzCleaner):
         return None
 
     def get_bz_params(self, date) -> dict[str, str | int | list[str] | list[int]]:
-        fields = ["id", "see_also"]
+        fields = ["id", "url", "see_also"]
         self.feature_bugs = self.get_feature_bugs()
-        print(self.feature_bugs)
         return {"include_fields": fields, "id": list(self.feature_bugs.keys())}
 
     def get_feature_bugs(self) -> Mapping[int, FeatureUrls]:
