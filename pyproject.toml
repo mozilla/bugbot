@@ -49,7 +49,7 @@ test = [
 packages = ["bugbot"]
 
 [tool.tox]
-envlist = ["py310", "py311", "py312", "py313"]
+envlist = ["py310", "py311", "py312"]
 skipsdist = true
 
 [tool.tox.env_run_base]
