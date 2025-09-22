@@ -34,7 +34,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-  "coverage==7.10.6",
+  "coverage==7.10.7",
   "mock==5.2.0",
   "responses==0.25.8"
 ]
