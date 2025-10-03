@@ -54,7 +54,7 @@ class CodeFreezeWeek(BzCleaner):
         return False
 
     def must_run(self, date):
-        schedule = FirefoxTrains().get_release_schedule("nightly")
+        schedule = FirefoxTrains.get_instance().get_release_schedule("nightly")
         freeze = lmdutils.get_date_ymd(schedule["soft_code_freeze"])
         merge = lmdutils.get_date_ymd(schedule["merge_day"])
 
