@@ -212,7 +212,7 @@ def get_cycle_span() -> str:
     """Return the cycle span in the format YYYYMMDD-YYYYMMDD"""
     global _CYCLE_SPAN
     if _CYCLE_SPAN is None:
-        schedule = FirefoxTrains().get_release_schedule("nightly")
+        schedule = FirefoxTrains.get_instance().get_release_schedule("nightly")
         start = lmdutils.get_date_ymd(schedule["nightly_start"])
         end = lmdutils.get_date_ymd(schedule["merge_day"])
 
@@ -226,7 +226,7 @@ def get_cycle_span() -> str:
 
 def get_next_release_date() -> datetime.datetime:
     """Return the next release date"""
-    schedule = FirefoxTrains().get_release_schedule("beta")
+    schedule = FirefoxTrains.get_instance().get_release_schedule("beta")
     release_date = lmdutils.get_date_ymd(schedule["release"])
     release_date = release_date.replace(hour=0, minute=0, second=0, microsecond=0)
     return release_date
@@ -244,7 +244,7 @@ def is_merge_day(date: datetime.datetime | None = None) -> bool:
     if date is None:
         date = lmdutils.get_date_ymd("today")
 
-    schedule = FirefoxTrains().get_release_schedule("nightly")
+    schedule = FirefoxTrains.get_instance().get_release_schedule("nightly")
     last_merge = lmdutils.get_date_ymd(schedule["nightly_start"])
     next_merge = lmdutils.get_date_ymd(schedule["merge_day"])
 
