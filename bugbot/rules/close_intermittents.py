@@ -2,6 +2,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from datetime import datetime
+
+import requests
+from dateutil.relativedelta import relativedelta
+
 from bugbot.bzcleaner import BzCleaner
 from bugbot.components import ComponentName, fetch_component_teams
 
@@ -12,6 +17,17 @@ class Intermittents(BzCleaner):
     def __init__(self):
         super().__init__()
         self.component_teams = fetch_component_teams()
+        r = requests.get(
+            "https://treeherder.mozilla.org/api/failures/?startday={}&endday={}&tree=trunk".format(
+                (datetime.today() - relativedelta(weeks=1)).strftime("%Y-%m-%d"),
+                datetime.today().strftime("%Y-%m-%d"),
+            ),
+            headers={"Accept": "application/json", "User-Agent": "bugbot"},
+        )
+        r.raise_for_status()
+        self.failure_bugs = {
+            item["bug_id"] for item in r.json() if item["bug_id"] is not None
+        }
 
     def description(self):
         return "Intermittent test failure bugs unchanged in 21 days"
@@ -78,6 +94,9 @@ class Intermittents(BzCleaner):
         return params
 
     def handle_bug(self, bug, data):
+        if bug["id"] in self.failure_bugs:
+            return None
+
         status_flags = {
             field: "wontfix"
             for field, value in bug.items()
