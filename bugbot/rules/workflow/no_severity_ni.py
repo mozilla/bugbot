@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from datetime import datetime
 
 import numpy
 from libmozdata import utils as lmdutils
@@ -23,7 +24,6 @@ class NoSeverityNeedInfo(BzCleaner, Nag):
         """
         super(NoSeverityNeedInfo, self).__init__()
         self.lookup = utils.get_config(self.name(), "weeks_lookup", 2)
-        self.lookup_nag = utils.get_config("NoSeverityNag", "weeks_lookup", 4)
         self.escalation = Escalation(
             self.people,
             data=utils.get_config(self.name(), "escalation"),
@@ -100,15 +100,8 @@ class NoSeverityNeedInfo(BzCleaner, Nag):
             "comments.creation_time",
         ]
         lookup = f"-{self.lookup * 7}d"
-        lookup_nag = f"-{self.lookup_nag * 7}d"
 
-        # TODO: change this when https://bugzilla.mozilla.org/1543984 will be fixed
-        # Here we have to get bugs where product/component have been set (bug has been triaged)
-        # between 4 and 2 weeks
-        # If the product/component never changed after bug creation, we need to get them too
-        # (second < p < first && c < first) ||
-        # (second < c < first && p < first) ||
-        # ((second < creation < first) && pc never changed)
+        # Find bugs that have been filed since `lookup` weeks, or whose component or product have been set since `lookup` weeks
         params = {
             "include_fields": fields,
             "keywords": "intermittent-failure",
@@ -117,15 +110,19 @@ class NoSeverityNeedInfo(BzCleaner, Nag):
             "emailreporter2": "1",
             "emailtype2": "notequals",
             "resolution": "---",
-            "f31": "bug_type",
-            "o31": "equals",
-            "v31": "defect",
-            "f32": "flagtypes.name",
-            "o32": "notsubstring",
-            "v32": "needinfo?",
-            "f33": "bug_severity",
-            "o33": "anyexact",
-            "v33": "--, n/a",
+            "f15": "bug_type",
+            "o15": "equals",
+            "v15": "defect",
+            "f16": "flagtypes.name",
+            "o16": "notsubstring",
+            "v16": "needinfo?",
+            "f17": "bug_severity",
+            "o17": "anyexact",
+            "v17": "--, n/a",
+            # TODO: Remove when it is not needed anymore
+            "f18": "days_elapsed",
+            "o18": "lessthaneq",
+            "v18": 14 * (datetime.today() - datetime(2025, 10, 1)).days / 7,
             "f2": "flagtypes.name",
             "o2": "notequals",
             "v2": "needinfo?",
@@ -137,56 +134,27 @@ class NoSeverityNeedInfo(BzCleaner, Nag):
             "f5": "product",
             "o5": "changedafter",
             "v5": lookup,
-            "f6": "product",
+            "n6": 1,
+            "f6": "component",
             "o6": "changedafter",
-            "v6": lookup_nag,
-            "n7": 1,
-            "f7": "component",
-            "o7": "changedafter",
+            "v6": lookup,
+            "f7": "creation_ts",
+            "o7": "lessthaneq",
             "v7": lookup,
             "f8": "CP",
-            "j9": "AND",
+            "j9": "OR",
             "f9": "OP",
-            "n10": 1,
-            "f10": "component",
-            "o10": "changedafter",
-            "v10": lookup,
-            "f11": "component",
-            "o11": "changedafter",
-            "v11": lookup_nag,
-            "n12": 1,
-            "f12": "product",
-            "o12": "changedafter",
-            "v12": lookup,
+            "f10": "bug_severity",
+            "o10": "changedfrom",
+            "v10": "critical",
+            "f11": "bug_severity",
+            "o11": "changedfrom",
+            "v11": "major",
+            "f12": "bug_severity",
+            "o12": "changedfrom",
+            "v12": "blocker",
             "f13": "CP",
-            "j14": "AND",
-            "f14": "OP",
-            "f15": "creation_ts",
-            "o15": "lessthaneq",
-            "v15": lookup,
-            "f16": "creation_ts",
-            "o16": "greaterthan",
-            "v16": lookup_nag,
-            "n17": 1,
-            "f17": "product",
-            "o17": "everchanged",
-            "n18": 1,
-            "f18": "component",
-            "o18": "everchanged",
-            "f19": "CP",
-            "j20": "OR",
-            "f20": "OP",
-            "f21": "bug_severity",
-            "o21": "changedfrom",
-            "v21": "critical",
-            "f22": "bug_severity",
-            "o22": "changedfrom",
-            "v22": "major",
-            "f23": "bug_severity",
-            "o23": "changedfrom",
-            "v23": "blocker",
-            "f24": "CP",
-            "f30": "CP",
+            "f14": "CP",
         }
 
         self.date = lmdutils.get_date_ymd(date)
