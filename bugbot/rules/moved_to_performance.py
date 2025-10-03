@@ -158,6 +158,10 @@ class MovedToPerformance(BzCleaner):
             "f5": "longdesc",
             "o5": "casesubstring",
             "v5": "could you make sure the following information is on this bug?",
+            "n6": 1,
+            "f6": "cf_performance_impact",
+            "o6": "equals",
+            "v6": "none",
         }
 
         return params
