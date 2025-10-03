@@ -72,6 +72,9 @@ class TopcrashNotify(BzCleaner, Nag):
             "f3": "keywords",
             "o3": "anyexact",
             "v3": ["topcrash", "topcrash-startup"],
+            "f4": "keywords",
+            "o4": "nowords",
+            "v4": ["meta", "stalled"],
         }
 
         return params
