@@ -13,7 +13,6 @@
     "receivers": [
       "calixte@mozilla.com",
       "sylvestre@mozilla.com",
-      "mcastelluccio@mozilla.com",
       "smujahid@mozilla.com",
       "jwalker@mozilla.com"
     ],
@@ -431,7 +430,6 @@
     "confidence_threshold": 0.9,
     "cc": [
       "sledru@mozilla.com",
-      "mcastelluccio@mozilla.com",
       "cdenizet@mozilla.com"
     ]
   },
