@@ -76,7 +76,7 @@ requires-dist = [
     { name = "coverage", marker = "extra == 'dev'", specifier = "==7.10.6" },
     { name = "coveralls", marker = "extra == 'test'", specifier = "==4.0.1" },
     { name = "filelock", specifier = "==3.19.1" },
-    { name = "google-cloud-bigquery", specifier = "==3.37.0" },
+    { name = "google-cloud-bigquery", specifier = "==3.38.0" },
     { name = "gspread", specifier = "==6.2.1" },
     { name = "humanize", specifier = ">=0.5.1" },
     { name = "icalendar", specifier = "==6.3.1" },
@@ -335,7 +335,7 @@ wheels = [
 
 [[package]]
 name = "google-cloud-bigquery"
-version = "3.37.0"
+version = "3.38.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "google-api-core", extra = ["grpc"] },
@@ -346,9 +346,9 @@ dependencies = [
     { name = "python-dateutil" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/5e/01/3e1b7858817ba8f9555ae10f5269719f5d1d6e0a384ea0105c0228c0ce22/google_cloud_bigquery-3.37.0.tar.gz", hash = "sha256:4f8fe63f5b8d43abc99ce60b660d3ef3f63f22aabf69f4fe24a1b450ef82ed97", size = 502826, upload-time = "2025-09-09T17:24:16.652Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/07/b2/a17e40afcf9487e3d17db5e36728ffe75c8d5671c46f419d7b6528a5728a/google_cloud_bigquery-3.38.0.tar.gz", hash = "sha256:8afcb7116f5eac849097a344eb8bfda78b7cfaae128e60e019193dd483873520", size = 503666, upload-time = "2025-09-17T20:33:33.47Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/47/90/f0f7db64ee5b96e30434b45ead3452565d0f65f6c0d85ec9ef6e059fb748/google_cloud_bigquery-3.37.0-py3-none-any.whl", hash = "sha256:f006611bcc83b3c071964a723953e918b699e574eb8614ba564ae3cdef148ee1", size = 258889, upload-time = "2025-09-09T17:24:15.249Z" },
+    { url = "https://files.pythonhosted.org/packages/39/3c/c8cada9ec282b29232ed9aed5a0b5cca6cf5367cb2ffa8ad0d2583d743f1/google_cloud_bigquery-3.38.0-py3-none-any.whl", hash = "sha256:e06e93ff7b245b239945ef59cb59616057598d369edac457ebf292bd61984da6", size = 259257, upload-time = "2025-09-17T20:33:31.404Z" },
 ]
 
 [[package]]
