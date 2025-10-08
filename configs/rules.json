@@ -479,5 +479,8 @@
   },
   "perfalert_resolved_regression": {
     "additional_receivers": ["perfalert-activity@mozilla.com", "sparky@mozilla.com"]
+  },
+  "topcrash_notify": {
+    "additional_receivers": ["rm"]
   }
 }
