@@ -1,0 +1,29 @@
+<p>
+    The following {{ plural('bug has', data, pword='bugs have') }} a needinfo, {{ plural('is a top crash', data, pword='are top crashes') }}, and {{ plural('has', data, pword='have') }} no activity for the last {{ extra['nweeks'] }} {{ plural('week', extra['nweeks']) }}:
+</p>
+<table {{ table_attrs }}>
+    <thead>
+        <tr>
+            <th>Bug</th>
+            <th>Summary</th>
+            <th>Needinfo</th>
+            <th>Last comment</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for i, (bugid, summary, to, from, last_comment) in enumerate(data) -%}
+            <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
+            {% endif -%}
+            >
+            <td>
+                <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+            </td>
+            <td>{{ summary | e }}</td>
+            <td>
+                <a href="mailto:{{ to }}">{{ to }}</a> from <a href="mailto:{{ from }}">{{ from }}</a>
+            </td>
+            <td>{{ last_comment }}</td>
+        </tr>
+    {% endfor -%}
+</tbody>
+</table>
