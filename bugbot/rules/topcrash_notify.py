@@ -8,9 +8,15 @@ from bugbot.nag_me import Nag
 
 
 class TopcrashNotify(BzCleaner, Nag):
-    def __init__(self):
+    def __init__(self, number_of_weeks: int = 1):
+        """Constructor
+
+        Args:
+            number_of_weeks: Number of weeks to consider when looking for
+                recent activity
+        """
         super(TopcrashNotify, self).__init__()
-        self.nweeks = utils.get_config(self.name(), "number_of_weeks", 1)
+        self.nweeks = number_of_weeks
 
     def description(self):
         return "Bugs with a ni on a bug with topcrash keyword without activity for the last {} {}".format(
