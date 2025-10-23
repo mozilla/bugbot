@@ -24,9 +24,14 @@ VARIANT_BUG_PAT = re.compile(
     r"^The variant `(.*)` expiration is on (\d{4}-\d{2}-\d{2})$"
 )
 
-VARIANTS_PATH = "taskcluster/kinds/test/variants.yml"
-VARIANTS_SEARCHFOX_URL = "https://searchfox.org/mozilla-central/source/" + VARIANTS_PATH
-VARIANTS_HG_URL = "https://hg.mozilla.org/mozilla-central/raw-file/tip/" + VARIANTS_PATH
+VARIANTS_PATH = "taskcluster/test_configs/variants.yml"
+VARIANTS_SEARCHFOX_URL = (
+    "https://github.com/mozilla-firefox/firefox/blob/main/" + VARIANTS_PATH
+)
+VARIANTS_HG_URL = (
+    "https://raw.githubusercontent.com/mozilla-firefox/firefox/refs/heads/main/"
+    + VARIANTS_PATH
+)
 
 BUG_DESCRIPTION = f"""
 If the variant is not used anymore, please drop it from the [variants.yml]({VARIANTS_SEARCHFOX_URL}) file. If there is a need to keep the variant, please submit a patch to modify the expiration date. Variants will not be scheduled to run after the expiration date.
