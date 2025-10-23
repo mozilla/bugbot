@@ -25,10 +25,8 @@ VARIANT_BUG_PAT = re.compile(
 )
 
 VARIANTS_PATH = "taskcluster/test_configs/variants.yml"
-VARIANTS_SEARCHFOX_URL = (
-    "https://github.com/mozilla-firefox/firefox/blob/main/" + VARIANTS_PATH
-)
-VARIANTS_HG_URL = (
+VARIANTS_SEARCHFOX_URL = "https://searchfox.org/mozilla-central/source/" + VARIANTS_PATH
+VARIANTS_URL = (
     "https://raw.githubusercontent.com/mozilla-firefox/firefox/refs/heads/main/"
     + VARIANTS_PATH
 )
@@ -138,7 +136,7 @@ class VariantExpiration(BzCleaner, Nag):
     def get_variants(self) -> dict:
         """Get the variants from the variants.yml file"""
 
-        resp = requests.get(VARIANTS_HG_URL, timeout=20)
+        resp = requests.get(VARIANTS_URL, timeout=20)
         resp.raise_for_status()
 
         variants = yaml.safe_load(resp.text)
