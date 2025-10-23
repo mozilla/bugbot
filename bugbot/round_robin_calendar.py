@@ -69,11 +69,32 @@ class Calendar:
             self.team.append((p, bzmail))
 
     @staticmethod
+    def _convert_hg_to_github_url(url):
+        """Convert hg.mozilla.org URLs to GitHub raw URLs
+        
+        Args:
+            url: URL that may be an hg.mozilla.org URL
+            
+        Returns:
+            Converted URL if it was an hg.mozilla.org URL, otherwise original URL
+        """
+        # Convert hg.mozilla.org URLs to GitHub URLs
+        # From: https://hg.mozilla.org/mozilla-central/raw-file/tip/<path>
+        # To: https://raw.githubusercontent.com/mozilla-firefox/firefox/main/<path>
+        if url.startswith("https://hg.mozilla.org/mozilla-central/raw-file/tip/"):
+            path = url.replace("https://hg.mozilla.org/mozilla-central/raw-file/tip/", "")
+            return f"https://raw.githubusercontent.com/mozilla-firefox/firefox/main/{path}"
+        return url
+
+    @staticmethod
     def get(url, fallback, team_name, people=None):
         data = None
         if url.startswith("private://"):
             name = url.split("//", 1)[1]
             url = utils.get_private()[name]
+
+        # Convert hg.mozilla.org URLs to GitHub URLs
+        url = Calendar._convert_hg_to_github_url(url)
 
         if url.startswith("http"):
             r = requests.get(url)
