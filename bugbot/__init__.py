@@ -11,11 +11,17 @@ import sentry_sdk
 
 from . import config
 
-__version__ = (
-    check_output(["git", "tag", "--sort=-version:refname"])
-    .decode("utf-8")
-    .splitlines()[0]
-)
+
+def get_version():
+    git_tags = (
+        check_output(["git", "tag", "--sort=-version:refname"])
+        .decode("utf-8")
+        .splitlines()
+    )
+    return git_tags[0] if git_tags else None
+
+
+__version__ = get_version()
 
 
 sentry_sdk.init(
