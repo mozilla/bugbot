@@ -3,9 +3,47 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import logging
+import os
 import sys
+from subprocess import check_output
+
+import sentry_sdk
 
 from . import config
+
+
+def get_version():
+    git_tags = (
+        check_output(["git", "tag", "--sort=-version:refname"])
+        .decode("utf-8")
+        .splitlines()
+    )
+    return git_tags[0] if git_tags else None
+
+
+__version__ = get_version()
+
+
+sentry_sdk.init(
+    dsn="https://866f146f649d6ffcac86175a1e2513f2@o1069899.ingest.us.sentry.io/4510268495101953",
+    release=__version__,
+    environment=os.getenv("ENVIRONMENT", "development"),
+    dist=check_output(["git", "rev-parse", "HEAD"]).decode("utf-8").rstrip(),
+    server_name=check_output("hostname").decode("utf-8").rstrip(),
+    # Add data like request headers and IP for users,
+    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+    send_default_pii=True,
+    # Enable sending logs to Sentry
+    enable_logs=True,
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for tracing.
+    traces_sample_rate=1.0,
+    # Set profile_session_sample_rate to 1.0 to profile 100%
+    # of profile sessions.
+    profile_session_sample_rate=1.0,
+)
+
+sentry_sdk.profiler.start_profiler()
 
 config.load()
 
@@ -15,10 +53,6 @@ try:
     from . import utils
 except ModuleNotFoundError:
     raise
-
-
-VERSION = (0, 0, 1)
-__version__ = ".".join(map(str, VERSION))
 
 
 path = utils.get_config("common", "log")
