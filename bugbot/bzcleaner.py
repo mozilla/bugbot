@@ -17,8 +17,7 @@ from libmozdata import config
 from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import Bugzilla
 
-import bugbot
-from bugbot import db, logger, mail, utils
+from bugbot import db, logger, logger_extra, mail, utils
 from bugbot.cache import Cache
 from bugbot.nag_me import Nag
 
@@ -843,7 +842,7 @@ class BzCleaner(object):
 
     def run(self):
         """Run the rule"""
-        bugbot.logger_extra["bugbot_rule"] = self.name()
+        logger_extra["bugbot_rule"] = self.name()
 
         args = self.get_args_parser().parse_args()
         self.parse_custom_arguments(args)
