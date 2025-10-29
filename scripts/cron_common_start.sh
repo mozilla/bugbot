@@ -1,10 +1,5 @@
 #!/bin/bash
 
-PATH_SCRIPT="$(cd "$(dirname "$0")/.." pwd -P)"
-cd "$PATH_SCRIPT"
-
-export PYTHONPATH="$(pwd)"
-
 if test ! -f configs/config.json; then
     echo "Cannot run without the config.json file in /configs/"
     exit -1
