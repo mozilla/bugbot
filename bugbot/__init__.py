@@ -55,19 +55,29 @@ except ModuleNotFoundError:
     raise
 
 
-path = utils.get_config("common", "log")
+logger_extra = {"bugbot_rule": None}
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-handler = logging.StreamHandler(sys.stdout)
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-handler.setFormatter(formatter)
-logger.addHandler(handler)
 
-error = logging.FileHandler(path)
-error.setLevel(logging.ERROR)
-error.setFormatter(formatter)
-logger.addHandler(error)
+def create_logger(logger_extra):
+    path = utils.get_config("common", "log")
+    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+    error = logging.FileHandler(path)
+    error.setLevel(logging.ERROR)
+    error.setFormatter(formatter)
+    logger.addHandler(error)
+
+    return logging.LoggerAdapter(logger, logger_extra)
+
+
+logger = create_logger(logger_extra)
 
 
 def _handle_uncaught_exception(exc_type, exc_value, exc_traceback):
