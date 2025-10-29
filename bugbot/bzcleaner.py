@@ -63,7 +63,6 @@ class BzCleaner(object):
         self.cache = Cache(self.name(), self.max_days_in_cache())
         self.test_mode = utils.get_config("common", "test", False)
         self.versions = None
-        logger.info("Run rule {}".format(self.get_rule_path()))
 
     def _set_rule_name(self):
         module = sys.modules[self.__class__.__module__]
@@ -843,6 +842,7 @@ class BzCleaner(object):
     def run(self):
         """Run the rule"""
         logger_extra["bugbot_rule"] = self.name()
+        logger.info("Run rule %s", self.get_rule_path())
 
         args = self.get_args_parser().parse_args()
         self.parse_custom_arguments(args)

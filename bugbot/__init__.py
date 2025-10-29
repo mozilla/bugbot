@@ -55,7 +55,7 @@ except ModuleNotFoundError:
     raise
 
 
-logger_extra = {"bugbot_rule": None}
+logger_extra: dict[str, str] = {}
 
 
 def create_logger(logger_extra):
