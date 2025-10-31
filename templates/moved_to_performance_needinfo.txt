@@ -1,4 +1,4 @@
-This bug was moved into the Performance component.
+This bug was moved into the Performance: General component.
 
 :{{ nickname }}, could you make sure the following information is on this bug?
 
