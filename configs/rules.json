@@ -274,7 +274,6 @@
     ]
   },
   "no_severity_ni": {
-    "needinfo_skiplist": ["jmathies@mozilla.com"],
     "weeks_lookup": 2,
     "escalation": {
       "default": {
