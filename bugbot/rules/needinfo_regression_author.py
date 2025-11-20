@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import collections
+
 from libmozdata.bugzilla import Bugzilla
 
 from bugbot import logger, utils
@@ -19,15 +21,12 @@ class NeedinfoRegressionAuthor(BzCleaner):
         return "Unassigned regressions with non-empty Regressed By field"
 
     def handle_bug(self, bug, data):
-        # Accept any non-empty 'regressed_by' and pick the newest by the largest bug id.
         if not bug["regressed_by"]:
             return
 
-        regressor_id = max(bug["regressed_by"])
-
         data[str(bug["id"])] = {
             "creator": bug["creator"],
-            "regressor_id": regressor_id,
+            "regressor_id": max(bug["regressed_by"]),
             "severity": bug["severity"],
         }
 
@@ -97,36 +96,26 @@ class NeedinfoRegressionAuthor(BzCleaner):
         return params
 
     def retrieve_regressors(self, bugs):
-        # Map chosen regressor ids to their reporter bugs so we can fill author info.
-        regressor_to_bugs = {}
+        regressor_to_bugs = collections.defaultdict(list)
         for bug in bugs.values():
-            rid = bug["regressor_id"]
-            regressor_to_bugs.setdefault(rid, []).append(bug)
+            regressor_to_bugs[bug["regressor_id"]].append(bug)
 
         def bug_handler(regressor_bug):
-            reg_id = regressor_bug["id"]
             if regressor_bug.get("groups"):
-                self.private_regressor_ids.add(str(reg_id))
+                regressor_bug_id = str(regressor_bug["id"])
+                self.private_regressor_ids.add(regressor_bug_id)
 
-            for b in regressor_to_bugs.get(reg_id, []):
-                b["regressor_author_email"] = regressor_bug["assigned_to"]
-                b["regressor_author_nickname"] = regressor_bug.get(
-                    "assigned_to_detail", {}
-                ).get("nick")
+            for bug in regressor_to_bugs[regressor_bug["id"]]:
+                bug["regressor_author_email"] = regressor_bug["assigned_to"]
+                bug["regressor_author_nickname"] = regressor_bug["assigned_to_detail"][
+                    "nick"
+                ]
 
         Bugzilla(
-            bugids=set(regressor_to_bugs.keys()),
+            bugids={bug["regressor_id"] for bug in bugs.values()},
             bughandler=bug_handler,
-            include_fields=["id", "assigned_to", "assigned_to_detail", "groups"],
+            include_fields=["id", "assigned_to", "groups"],
         ).get_data().wait()
-
-        # Drop bugs whose chosen regressor was inaccessible / not returned (no author info set).
-        to_delete = []
-        for b in bugs.values():
-            if "regressor_author_email" not in b:
-                to_delete.append(b["id"])
-        for bid in to_delete:
-            del bugs[bid]
 
     def filter_bugs(self, bugs):
         # Exclude bugs whose regressor author is nobody.
