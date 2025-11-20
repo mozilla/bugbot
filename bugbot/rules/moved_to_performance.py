@@ -13,7 +13,7 @@ from bugbot.bzcleaner import BzCleaner
 
 
 class MovedToPerformance(BzCleaner):
-    """Add a comment to bugs that recently moved to the performance component"""
+    """Add a comment to bugs that recently moved to the Performance: General component"""
 
     def __init__(self, recent_date_weeks: int = 26):
         """Constructor
@@ -146,7 +146,7 @@ class MovedToPerformance(BzCleaner):
             "v1": "Core",
             "f2": "component",
             "o2": "equals",
-            "v2": "Performance",
+            "v2": "Performance: General",
             "f3": "component",
             "o3": "changedafter",
             "v3": "-7d",
