@@ -21,13 +21,12 @@ class NeedinfoRegressionAuthor(BzCleaner):
         return "Unassigned regressions with non-empty Regressed By field"
 
     def handle_bug(self, bug, data):
-        if len(bug["regressed_by"]) != 1:
-            # either we don't have access to the regressor, or there's more than one, either way leave things alone
+        if not bug["regressed_by"]:
             return
 
         data[str(bug["id"])] = {
             "creator": bug["creator"],
-            "regressor_id": bug["regressed_by"][0],
+            "regressor_id": max(bug["regressed_by"]),
             "severity": bug["severity"],
         }
 
