@@ -2,8 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from typing import Any, Dict, List, Tuple
-
 from libmozdata.bugzilla import Bugzilla
 
 from bugbot import logger, utils
@@ -16,34 +14,20 @@ class NeedinfoRegressionAuthor(BzCleaner):
         super().__init__()
         self.extra_ni = {}
         self.private_regressor_ids: set[str] = set()
-        # Cache of regressor bug metadata, keyed by bug id
-        self.regressor_info: Dict[int, Dict[str, Any]] = {}
 
     def description(self):
         return "Unassigned regressions with non-empty Regressed By field"
 
     def handle_bug(self, bug, data):
-        # Accept any non-empty 'regressed_by'. We will pick the most recent accessible regressor later.
+        # Accept any non-empty 'regressed_by' and pick the newest by the largest bug id.
         if not bug["regressed_by"]:
             return
 
-        # Keep only numeric bug IDs (ignore changesets or non-bug references).
-        regressor_ids: List[int] = []
-        for r in bug["regressed_by"]:
-            try:
-                regressor_ids.append(int(r))
-            except Exception:
-                # Non-bug regressor (e.g., changeset); ignore here.
-                continue
-
-        if not regressor_ids:
-            # No bug IDs among regressors; nothing to do.
-            return
+        regressor_id = max(bug["regressed_by"])
 
         data[str(bug["id"])] = {
             "creator": bug["creator"],
-            # Defer selection; we'll resolve the most recent accessible regressor in retrieve_regressors.
-            "regressor_ids": regressor_ids,
+            "regressor_id": regressor_id,
             "severity": bug["severity"],
         }
 
@@ -113,61 +97,34 @@ class NeedinfoRegressionAuthor(BzCleaner):
         return params
 
     def retrieve_regressors(self, bugs):
-        # Collect all candidate regressor bug IDs across all bugs.
-        candidate_ids = set()
+        # Map chosen regressor ids to their reporter bugs so we can fill author info.
+        regressor_to_bugs = {}
         for bug in bugs.values():
-            candidate_ids.update(bug["regressor_ids"])
+            rid = bug["regressor_id"]
+            regressor_to_bugs.setdefault(rid, []).append(bug)
 
         def bug_handler(regressor_bug):
-            # Cache data for later selection (most recent)
-            self.regressor_info[int(regressor_bug["id"])] = {
-                "id": int(regressor_bug["id"]),
-                "assigned_to": regressor_bug["assigned_to"],
-                "assigned_to_nick": regressor_bug.get("assigned_to_detail", {}).get(
-                    "nick"
-                ),
-                "groups": regressor_bug.get("groups") or [],
-                "creation_time": regressor_bug.get("creation_time"),  # ISO 8601
-            }
+            reg_id = regressor_bug["id"]
+            if regressor_bug.get("groups"):
+                self.private_regressor_ids.add(str(reg_id))
+
+            for b in regressor_to_bugs.get(reg_id, []):
+                b["regressor_author_email"] = regressor_bug["assigned_to"]
+                b["regressor_author_nickname"] = regressor_bug.get(
+                    "assigned_to_detail", {}
+                ).get("nick")
 
         Bugzilla(
-            bugids=candidate_ids,
+            bugids=set(regressor_to_bugs.keys()),
             bughandler=bug_handler,
-            include_fields=[
-                "id",
-                "assigned_to",
-                "assigned_to_detail",
-                "groups",
-                "creation_time",
-            ],
+            include_fields=["id", "assigned_to", "assigned_to_detail", "groups"],
         ).get_data().wait()
 
-        # For each bug, pick the most recent accessible regressor (by creation_time).
+        # Drop bugs whose chosen regressor was inaccessible / not returned (no author info set).
         to_delete = []
-        for bug in bugs.values():
-            candidates: List[Tuple[str, Dict[str, Any]]] = []
-            for rid in bug["regressor_ids"]:
-                info = self.regressor_info.get(int(rid))
-                if info and info.get("creation_time"):
-                    candidates.append((info["creation_time"], info))
-
-            if not candidates:
-                # None of the regressors were accessible or had timestamps; skip this bug.
-                to_delete.append(bug["id"])
-                continue
-
-            # Sort by creation_time descending (ISO strings compare correctly).
-            candidates.sort(key=lambda x: x[0], reverse=True)
-            chosen = candidates[0][1]
-
-            bug["regressor_id"] = chosen["id"]
-            bug["regressor_author_email"] = chosen["assigned_to"]
-            bug["regressor_author_nickname"] = chosen.get("assigned_to_nick")
-
-            if chosen.get("groups"):
-                self.private_regressor_ids.add(str(chosen["id"]))
-
-        # Drop bugs for which we couldn't resolve any accessible regressor
+        for b in bugs.values():
+            if "regressor_author_email" not in b:
+                to_delete.append(b["id"])
         for bid in to_delete:
             del bugs[bid]
 
