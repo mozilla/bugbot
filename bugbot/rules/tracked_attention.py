@@ -41,7 +41,7 @@ class TrackedAttention(BzCleaner):
 
         self.team_managers = TeamManagers()
 
-        schedule = FirefoxTrains().get_release_schedule("nightly")
+        schedule = FirefoxTrains.get_instance().get_release_schedule("nightly")
         soft_freeze_date = lmdutils.get_date_ymd(schedule["soft_code_freeze"])
         today = lmdutils.get_date_ymd("today")
         soft_freeze_delta = soft_freeze_date - today

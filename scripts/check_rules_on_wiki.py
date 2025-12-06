@@ -49,9 +49,9 @@ class CheckWikiPage:
         "several_cc.py",
         "several_comments.py",
         "several_see_also.py",
-        "pdfjs_tag_change.py",
         "pdfjs_update.py",
         "leave_open_sec.py",
+        "webcompat_score.py",
         # Experimental rules:
         "accessibilitybug.py",
         "performancebug.py",
@@ -64,6 +64,13 @@ class CheckWikiPage:
     def get_rules_on_wiki_page(self) -> set:
         """Get the list of rules on the wiki page."""
         req = Request(self.wiki_page_url)
+
+        # When running on GitHub Actions, we need to add the token to the request
+        # to access the wiki page. Otherwise, we get a 403 error.
+        wiki_token = os.environ.get("WIKI_TOKEN_GHA")
+        if wiki_token:
+            req.add_header("bugbotgha", wiki_token)
+
         with urlopen(req) as resp:
             wiki_page_content = resp.read().decode("utf-8")
 

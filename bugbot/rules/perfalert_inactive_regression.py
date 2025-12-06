@@ -11,87 +11,58 @@ from bugbot.bzcleaner import BzCleaner
 from bugbot.user_activity import UserActivity, UserStatus
 
 
-class NeedinfoRegressionAuthor(BzCleaner):
-    def __init__(self):
+class PerfAlertInactiveRegression(BzCleaner):
+    def __init__(self, nweeks=1):
         super().__init__()
-        self.extra_ni = {}
+        self.nweeks = nweeks
+        self.extra_ni = {"nweeks": self.nweeks}
         self.private_regressor_ids: set[str] = set()
 
     def description(self):
-        return "Unassigned regressions with non-empty Regressed By field"
+        return f"PerfAlert regressions with {self.nweeks} week(s) of inactivity"
 
     def handle_bug(self, bug, data):
-        if not bug["regressed_by"]:
+        if len(bug["regressed_by"]) != 1:
+            # either we don't have access to the regressor,
+            # or there's more than one, either way leave things alone
             return
 
         data[str(bug["id"])] = {
-            "creator": bug["creator"],
-            "regressor_id": max(bug["regressed_by"]),
-            "severity": bug["severity"],
+            "regressor_id": bug["regressed_by"][0],
         }
 
         return bug
-
-    def get_extra_for_needinfo_template(self):
-        return self.extra_ni
-
-    def get_autofix_change(self):
-        return {
-            "keywords": {"add": ["regression"]},
-        }
-
-    def set_autofix(self, bugs):
-        for bugid, info in bugs.items():
-            self.extra_ni[bugid] = {
-                "regressor_id": str(info["regressor_id"]),
-                "suggest_set_severity": info["suggest_set_severity"],
-            }
-            self.add_auto_ni(
-                bugid,
-                {
-                    "mail": info["regressor_author_email"],
-                    "nickname": info["regressor_author_nickname"],
-                },
-            )
 
     def get_bz_params(self, date):
         start_date, _ = self.get_dates(date)
 
         fields = [
             "id",
-            "creator",
             "regressed_by",
-            "assigned_to",
-            "severity",
         ]
 
-        # Find all bugs with regressed_by information which were open after start_date or
-        # whose regressed_by field was set after start_date.
+        # Find all bugs that have perf-alert, and regression in their keywords. Only
+        # look for bugs after October 1st, 2024 to prevent triggering comments on older
+        # performance regressions
         params = {
             "include_fields": fields,
-            "f1": "OP",
-            "j1": "OR",
-            "f2": "creation_ts",
-            "o2": "greaterthan",
-            "v2": start_date,
-            "f3": "regressed_by",
-            "o3": "changedafter",
-            "v3": start_date,
-            "f4": "CP",
-            "f5": "regressed_by",
-            "o5": "isnotempty",
-            "n6": 1,
-            "f6": "longdesc",
-            "o6": "casesubstring",
-            "v6": "since you are the author of the regressor",
-            "f7": "flagtypes.name",
-            "o7": "notsubstring",
-            "v7": "needinfo?",
+            "f1": "creation_ts",
+            "o1": "greaterthan",
+            "v1": "2024-10-01T00:00:00Z",
+            "f2": "regressed_by",
+            "o2": "isnotempty",
+            "f3": "keywords",
+            "o3": "allwords",
+            "v3": ["regression", "perf-alert"],
+            "f4": "keywords",
+            "o4": "nowords",
+            "v4": "backlog-deferred",
+            "f5": "days_elapsed",
+            "o5": "greaterthan",
+            "v5": self.nweeks * 7,
             "status": ["UNCONFIRMED", "NEW", "REOPENED"],
             "resolution": ["---"],
         }
-
-        utils.get_empty_assignees(params)
 
         return params
 
@@ -118,30 +89,16 @@ class NeedinfoRegressionAuthor(BzCleaner):
         ).get_data().wait()
 
     def filter_bugs(self, bugs):
+        # TODO: Attempt to needinfo the triage owner instead of ignoring the bugs
         # Exclude bugs whose regressor author is nobody.
         for bug in list(bugs.values()):
-            if utils.is_no_assignee(bug["regressor_author_email"]):
+            if utils.is_no_assignee(bug.get("regressor_author_email", "")):
                 logger.warning(
                     "Bug {}, regressor of bug {}, doesn't have an author".format(
                         bug["regressor_id"], bug["id"]
                     )
                 )
                 del bugs[bug["id"]]
-
-        # Exclude bugs whose creator is the regressor author.
-        bugs = {
-            bug["id"]: bug
-            for bug in bugs.values()
-            if bug["creator"] != bug["regressor_author_email"]
-        }
-
-        # Exclude bugs where a commentor is the regressor author.
-        def comment_handler(bug, bug_id):
-            if any(
-                comment["creator"] == bugs[bug_id]["regressor_author_email"]
-                for comment in bug["comments"]
-            ):
-                del bugs[str(bug_id)]
 
         # Exclude bugs where the regressor author is inactive or blocked needinfo.
         # TODO: We can drop this when https://github.com/mozilla/bugbot/issues/1465 is implemented.
@@ -158,19 +115,25 @@ class NeedinfoRegressionAuthor(BzCleaner):
                 or user_info["requests"]["needinfo"]["blocked"]
             ):
                 del bugs[bug_id]
-            else:
-                bug["suggest_set_severity"] = bug["severity"] in (
-                    "--",
-                    "n/a",
-                ) and user_info.get("is_employee")
-
-        Bugzilla(
-            bugids=self.get_list_bugs(bugs),
-            commenthandler=comment_handler,
-            comment_include_fields=["creator"],
-        ).get_data().wait()
 
         return bugs
+
+    def get_extra_for_needinfo_template(self):
+        return self.extra_ni
+
+    def get_extra_for_template(self):
+        return self.extra_ni
+
+    def set_autofix(self, bugs):
+        for bugid, info in bugs.items():
+            self.extra_ni[bugid] = {"regressor_id": str(info["regressor_id"])}
+            self.add_auto_ni(
+                bugid,
+                {
+                    "mail": info["regressor_author_email"],
+                    "nickname": info["regressor_author_nickname"],
+                },
+            )
 
     def get_bugs(self, *args, **kwargs):
         bugs = super().get_bugs(*args, **kwargs)
@@ -190,4 +153,4 @@ class NeedinfoRegressionAuthor(BzCleaner):
 
 
 if __name__ == "__main__":
-    NeedinfoRegressionAuthor().run()
+    PerfAlertInactiveRegression().run()

@@ -8,9 +8,7 @@ from typing import Iterable
 
 import requests
 
-BUGBUG_HTTP_SERVER = os.environ.get(
-    "BUGBUG_HTTP_SERVER", "https://bugbug.herokuapp.com/"
-)
+BUGBUG_HTTP_SERVER = os.environ.get("BUGBUG_HTTP_SERVER", "https://bugbug.moz.tools/")
 
 
 def classification_http_request(url, bug_ids):

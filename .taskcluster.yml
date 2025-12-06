@@ -50,6 +50,7 @@ tasks:
               git -c advice.detachedHead=false checkout ${head_rev} &&
               chmod +x pre-commit/check_json_indentation.py &&
               pip install --quiet -r requirements-test.txt &&
+              pip install --quiet -e '.[test]' &&
               pre-commit run --all-files --show-diff-on-failure &&
               tox -e $TOX_ENV &&
               coveralls"

@@ -1,0 +1,43 @@
+<p>The following bug list contains performance alerts whose resolution has changed during the previous day:</p>
+<table {{ table_attrs }}>
+    <thead>
+        <tr>
+            <th>Bug</th>
+            <th>Summary</th>
+            <th>Status</th>
+            <th>Resolution</th>
+            <th>Needinfo</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for i, (bugid, summary, status, status_author, resolution, resolution_comment, resolution_previous, needinfo) in enumerate(data) -%}
+            <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
+            {% endif -%}
+            >
+            <td>
+                <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+            </td>
+            <td>
+                <table>
+                    <tr>
+                        <td>{{ summary | e }}</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <b>Resolution Comment:</b> {{ resolution_comment }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <i>Resolved by {{ status_author }}</i>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td>{{ status }}</td>
+            <td>{{ resolution_previous }} -> {{ resolution }}</td>
+            <td>{{ "Yes" if needinfo else "No"}}</td>
+        </tr>
+    {% endfor -%}
+</tbody>
+</table>

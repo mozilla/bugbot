@@ -760,6 +760,7 @@ class SignaturesDataFetcher:
                 "_histogram.date",
                 "_cardinality.install_time",
                 "_cardinality.oom_allocation_size",
+                "cpu_info",
             ],
             "_results_number": 0,
             "_facets_size": 10000,
@@ -789,6 +790,15 @@ class SignaturesDataFetcher:
                 first_date = facets["histogram_date"][0]["term"]
                 if first_date < earliest_allowed_date:
                     # The crash is not new, skip it.
+                    continue
+
+                broken_cpu_count = sum(
+                    cpu_info["count"]
+                    for cpu_info in facets["cpu_info"]
+                    if cpu_info["term"] == "family 6 model 183 stepping 1"
+                )
+                if broken_cpu_count / crash["count"] >= 0.7:
+                    # Ignore signatures that are likely caused by a broken CPU.
                     continue
 
                 if any(

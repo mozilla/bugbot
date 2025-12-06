@@ -1,6 +1,7 @@
 The patch landed in nightly and beta is affected.
 :{{ nickname }}, is this bug important enough to require an uplift?
 - If yes, please nominate the patch for beta approval.{% if extra[bugid]["regression"] %} Also, don't forget to request an uplift for the patches in the {{ plural('regression', extra[bugid]["regression"]) }} caused by this fix.{% endif %}
+  - See https://wiki.mozilla.org/Release_Management/Requesting_an_Uplift for documentation on how to request an uplift.
 - If no, please set `{{ extra["status_beta"] }}` to `wontfix`.
 
 {{ documentation }}

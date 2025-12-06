@@ -1,0 +1,35 @@
+<p>
+    The following {{ plural('bug has', data, pword='bugs have') }} a needinfo, {{ plural('is a top crash', data, pword='are top crashes') }}, and {{ plural('has', data, pword='have') }} no activity for the last {{ extra['nweeks'] }} {{ plural('week', extra['nweeks']) }} (when the bug is red, then the needinfo is on a person with no manager):
+</p>
+<table {{ table_attrs }}>
+    <thead>
+        <tr>
+            <th>Bug</th>
+            <th>Summary</th>
+            <th>Needinfos</th>
+            <th>Last comment</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for i, (bugid, summary, needinfos, last_comment) in enumerate(data) -%}
+            <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
+            {% endif -%}
+            >
+            <td {% if bugid in no_manager %}style="background:red;"{% endif %}>
+                <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+            </td>
+            <td>{{ summary | e }}</td>
+            <td>
+                <ul style="padding: 0; margin: 0">
+                    {% for ni in needinfos -%}
+                        <li>
+                            <a href="mailto:{{ ni }}">{{ ni | e }}</a>
+                        </li>
+                    {% endfor -%}
+                </ul>
+            </td>
+            <td>{{ last_comment }}</td>
+        </tr>
+    {% endfor -%}
+</tbody>
+</table>

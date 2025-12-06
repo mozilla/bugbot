@@ -1,10 +1,5 @@
 #!/bin/bash
 
-PATH_SCRIPT="$(cd "$(dirname "$0")/.." pwd -P)"
-cd "$PATH_SCRIPT"
-
-export PYTHONPATH="$(pwd)"
-
 if test ! -f configs/config.json; then
     echo "Cannot run without the config.json file in /configs/"
     exit -1
@@ -22,10 +17,10 @@ ErrorHandler() {
 
 trap ErrorHandler ERR
 
-. venv/bin/activate
+. .venv/bin/activate
 
 # force the update of dependencies
-pip install -r requirements.txt
+uv sync --locked --no-dev
 
 # Clean the log files
 python -m bugbot.log --clean

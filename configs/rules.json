@@ -13,7 +13,6 @@
     "receivers": [
       "calixte@mozilla.com",
       "sylvestre@mozilla.com",
-      "mcastelluccio@mozilla.com",
       "smujahid@mozilla.com",
       "jwalker@mozilla.com"
     ],
@@ -39,7 +38,7 @@
       "Developer Infrastructure",
       "DevTools",
       "External Software Affecting Firefox",
-      "Fenix",
+      "Firefox for Android",
       "Firefox",
       "Firefox for iOS",
       "Firefox Build System",
@@ -52,6 +51,7 @@
       "Remote Protocol",
       "Testing",
       "Toolkit",
+      "Web Compatibility",
       "WebExtensions"
     ],
     "log": "/tmp/bugbot_errors.txt",
@@ -65,7 +65,8 @@
     "must_run": ["Mon"]
   },
   "fuzz_blockers": {
-    "must_run": ["Mon"]
+    "must_run": ["Mon"],
+    "additional_receivers": ["fbraun@mozilla.com"]
   },
   "patch_closed_bug": {
     "additional_receivers": "rm"
@@ -267,7 +268,9 @@
       "Core::MFBT",
       "WebExtensions::Developer Outreach",
       "NSS::Tools",
-      "NSS::Build"
+      "NSS::Build",
+      "Web Compatibility::Knowledge Base",
+      "Web Compatibility::Tooling & Investigations"
     ]
   },
   "no_severity_ni": {
@@ -283,6 +286,7 @@
   },
   "no_severity_nag": {
     "weeks_lookup": 4,
+    "sec": false,
     "escalation": {
       "default": {
         "[0;+∞[": {
@@ -411,7 +415,7 @@
   },
   "spambug": {
     "max_days_in_cache": 7,
-    "additional_receivers": ["glob@mozilla.com"],
+    "additional_receivers": [],
     "days_lookup": 7,
     "confidence_threshold": 0.95,
     "cc": []
@@ -426,7 +430,6 @@
     "confidence_threshold": 0.9,
     "cc": [
       "sledru@mozilla.com",
-      "mcastelluccio@mozilla.com",
       "cdenizet@mozilla.com"
     ]
   },
@@ -468,5 +471,14 @@
   "leave_open_sec": {
     "additional_receivers": "rm",
     "days_lookup": 2
+  },
+  "perfalert_inactive_regression": {
+    "additional_receivers": ["perfalert-activity@mozilla.com", "sparky@mozilla.com"]
+  },
+  "perfalert_resolved_regression": {
+    "additional_receivers": ["perfalert-activity@mozilla.com", "sparky@mozilla.com"]
+  },
+  "topcrash_notify": {
+    "additional_receivers": ["rm"]
   }
 }

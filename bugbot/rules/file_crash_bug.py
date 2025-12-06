@@ -200,7 +200,6 @@ class FileCrashBug(BzCleaner):
                 # removed at some point after we move to production.
                 "cc": [
                     "smujahid@mozilla.com",
-                    "mcastelluccio@mozilla.com",
                     "aryx.bugmail@gmx-topmail.de",
                 ],
             }

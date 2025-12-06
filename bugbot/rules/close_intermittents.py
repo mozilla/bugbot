@@ -2,6 +2,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from datetime import datetime
+
+import requests
+from dateutil.relativedelta import relativedelta
+
 from bugbot.bzcleaner import BzCleaner
 from bugbot.components import ComponentName, fetch_component_teams
 
@@ -12,6 +17,17 @@ class Intermittents(BzCleaner):
     def __init__(self):
         super().__init__()
         self.component_teams = fetch_component_teams()
+        r = requests.get(
+            "https://treeherder.mozilla.org/api/failures/?startday={}&endday={}&tree=trunk".format(
+                (datetime.today() - relativedelta(weeks=1)).strftime("%Y-%m-%d"),
+                datetime.today().strftime("%Y-%m-%d"),
+            ),
+            headers={"Accept": "application/json", "User-Agent": "bugbot"},
+        )
+        r.raise_for_status()
+        self.failure_bugs = {
+            item["bug_id"] for item in r.json() if item["bug_id"] is not None
+        }
 
     def description(self):
         return "Intermittent test failure bugs unchanged in 21 days"
@@ -38,8 +54,6 @@ class Intermittents(BzCleaner):
             "f1": "longdescs.count",
             "o1": "changedafter",
             "v1": "-3w",
-            "f2": "blocked",
-            "o2": "isempty",
             "f3": "flagtypes.name",
             "o3": "notequals",
             "v3": "needinfo?",
@@ -60,7 +74,18 @@ class Intermittents(BzCleaner):
             "v9": "intermittent-failure",
             "f10": "keywords",
             "o10": "nowords",
-            "v10": "test-verify-fail",
+            "v10": "test-verify-fail,test-disabled,topcrash",
+            "j11": "OR",
+            "f11": "OP",
+            "f12": "blocked",
+            "o12": "isempty",
+            # We want to include bugs that are blocked by sm-defects-intermittent
+            # since it is rooting all SpiderMonkey's intermittent failures.
+            # See https://github.com/mozilla/bugbot/issues/2635
+            "f13": "blocked",
+            "o13": "equals",
+            "v13": 1729503,
+            "f14": "CP",
             "resolution": "---",
             "status_whiteboard_type": "notregexp",
             "status_whiteboard": "(test disabled|test-disabled|testdisabled)",
@@ -69,6 +94,9 @@ class Intermittents(BzCleaner):
         return params
 
     def handle_bug(self, bug, data):
+        if bug["id"] in self.failure_bugs:
+            return None
+
         status_flags = {
             field: "wontfix"
             for field, value in bug.items()
@@ -79,6 +107,7 @@ class Intermittents(BzCleaner):
             **status_flags,
             "status": "RESOLVED",
             "resolution": "INCOMPLETE",
+            "keywords": {"remove": ["leave-open"]},
             "comment": {
                 "body": f"https://wiki.mozilla.org/Bug_Triage#Intermittent_Test_Failure_Cleanup\n{self.get_documentation()}"
             },

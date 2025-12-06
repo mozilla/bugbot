@@ -46,6 +46,9 @@ class UpliftBeta(BzCleaner):
         else:
             nickname = bug["assigned_to_detail"]["nick"]
 
+        if self.is_needinfo_on_assignee(bug.get("flags", []), assignee):
+            return None
+
         data[bugid] = {
             "id": bugid,
             "mail": assignee,
@@ -53,6 +56,7 @@ class UpliftBeta(BzCleaner):
             "summary": self.get_summary(bug),
             "regressions": bug["regressions"],
         }
+
         return bug
 
     def filter_by_regr(self, bugs):
@@ -82,6 +86,14 @@ class UpliftBeta(BzCleaner):
 
         return bugs_without_regr
 
+    def is_needinfo_on_assignee(self, flags, assignee):
+        return any(
+            flag["name"] == "needinfo"
+            and flag["status"] == "?"
+            and flag["requestee"] == assignee
+            for flag in flags
+        )
+
     def get_bz_params(self, date):
         self.date = lmdutils.get_date_ymd(date)
         fields = [
@@ -91,6 +103,8 @@ class UpliftBeta(BzCleaner):
             "attachments.is_obsolete",
             "attachments.content_type",
             "cf_last_resolved",
+            "assigned_to",
+            "flags",
         ]
         params = {
             "include_fields": fields,
@@ -105,9 +119,6 @@ class UpliftBeta(BzCleaner):
             "f3": "flagtypes.name",
             "o3": "notsubstring",
             "v3": "approval-mozilla-beta",
-            "f4": "flagtypes.name",
-            "o4": "notsubstring",
-            "v4": "needinfo",
             # Don't nag several times
             "n5": 1,
             "f5": "longdesc",
