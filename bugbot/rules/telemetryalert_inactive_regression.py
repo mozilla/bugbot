@@ -2,12 +2,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import collections
 
-from libmozdata.bugzilla import Bugzilla
 from libmozdata.bugzilla import BugzillaUser
 
-from bugbot import logger, utils
 from bugbot.bzcleaner import BzCleaner
 from bugbot.user_activity import UserActivity, UserStatus
 
@@ -54,7 +51,6 @@ class TelemetryAlertInactiveRegression(BzCleaner):
 
         return params
 
-
     def get_probe_owner(self, bug_history):
         probe_owner = ""
 
@@ -81,14 +77,13 @@ class TelemetryAlertInactiveRegression(BzCleaner):
 
         return probe_owner
 
-
     def handle_bug(self, bug, data):
         probe_owner = self.get_probe_owner(bug["history"])
         if not probe_owner:
             # Could not find a probe owner for some reason
             return
 
-        data[str(bug["id"])] = { "probe_owner": probe_owner }
+        data[str(bug["id"])] = {"probe_owner": probe_owner}
 
         return bug
 
@@ -113,7 +108,6 @@ class TelemetryAlertInactiveRegression(BzCleaner):
 
         for bug_info in bugs.values():
             bug_info["nickname"] = user_emails_to_names[bug_info["probe_owner"]]
-
 
     def filter_bugs(self, bugs):
         # Exclude bugs where the regressor author is inactive or blocked needinfo.
