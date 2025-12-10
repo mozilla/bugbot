@@ -1,0 +1,7 @@
+It has been over {{ extra["nweeks"] * 7 }} days with no activity on this telemetry alert.
+
+:{{ nickname }}, since you are the owner of the probe that alerted, could you please provide a progress update?
+
+If there are any questions about how to proceed for finding a culprit please check comment #0 for information on how to find help.
+
+{{ documentation }}
