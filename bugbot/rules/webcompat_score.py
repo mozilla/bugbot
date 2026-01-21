@@ -13,6 +13,7 @@ from bugbot.bzcleaner import BzCleaner
 class Score:
     bucket: Optional[str]
     score: str
+    webcompat_priority: Optional[str]
 
 
 class WebcompatScore(BzCleaner):
@@ -78,11 +79,12 @@ class WebcompatScore(BzCleaner):
         if scored_bugs_key in self.scored_bugs:
             bug_score = self.scored_bugs[scored_bugs_key]
 
-            if (
-                bug_score.bucket is not None
-                and bug["cf_webcompat_score"] != bug_score.bucket
-            ):
-                changes["cf_webcompat_score"] = bug_score.bucket
+            for key, new_value in [
+                ("cf_webcompat_priority", bug_score.webcompat_priority),
+                ("cf_webcompat_score", bug_score.bucket),
+            ]:
+                if new_value is not None and bug[key] != new_value:
+                    changes[key] = new_value
 
             updated_user_story = self.updated_user_story(
                 bug["cf_user_story"], bug_score.score
@@ -98,7 +100,7 @@ class WebcompatScore(BzCleaner):
         return None
 
     def get_bz_params(self, date) -> dict[str, Any]:
-        fields = ["id", "cf_webcompat_score", "cf_user_story"]
+        fields = ["id", "cf_webcompat_score", "cf_user_story", "cf_webcompat_priority"]
         self.scored_bugs = self.get_bug_scores()
         return {
             "include_fields": fields,
@@ -138,20 +140,26 @@ class WebcompatScore(BzCleaner):
         query = f"""
         SELECT number,
                cast(buckets.score as string) as score,
-               cast(buckets.score_bucket as string) as bucket
+               cast(buckets.score_bucket as string) as bucket,
+               CONCAT("P", CAST(buckets.webcompat_priority AS STRING)) AS webcompat_priority
         FROM `{project}.{dataset}.site_reports_bugzilla_buckets` as buckets
         JOIN `{project}.{dataset}.bugzilla_bugs` as bugs USING(number)
         WHERE bugs.resolution = ""
         UNION ALL
         SELECT number,
                cast(score_all as string) as score,
-               NULL as bucket
+               NULL as bucket,
+               NULL as webcompat_priority
         FROM `{project}.{dataset}.core_bugs_scores`
         WHERE resolution = ""
         """
 
         return {
-            row["number"]: Score(score=row["score"], bucket=row["bucket"])
+            row["number"]: Score(
+                score=row["score"],
+                bucket=row["bucket"],
+                webcompat_priority=row["webcompat_priority"],
+            )
             for row in client.query(query).result()
         }
 
