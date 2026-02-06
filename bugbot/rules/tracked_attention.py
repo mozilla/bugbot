@@ -29,6 +29,7 @@ class TrackedAttention(BzCleaner):
             return
 
         self.team_managers = TeamManagers()
+        self.extra_ni = {}
 
         self.version_flags = [
             {
