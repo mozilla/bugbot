@@ -362,10 +362,6 @@
     "max_days_in_cache": 7,
     "cc": []
   },
-  "code_freeze_week": {
-    "additional_receivers": "rm",
-    "assignee_skiplist": ["wptsync@mozilla.bugs"]
-  },
   "defectenhancementtask": {
     "max_days_in_cache": 7,
     "days_lookup": 3,
