@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import argparse
+import logging
 import os
 import re
 from os import path
@@ -78,6 +79,7 @@ class CheckWikiPage:
         rules = pat.findall(wiki_page_content)
 
         if not rules:
+            logging.error("The content of the wiki page is:\n%s", wiki_page_content)
             raise Exception(f"No rules found on the wiki page {self.wiki_page_url}")
 
         return set(rules)
