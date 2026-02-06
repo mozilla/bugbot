@@ -29,7 +29,7 @@ class TrackedAttention(BzCleaner):
             return
 
         self.team_managers = TeamManagers()
-        self.extra_ni = {}
+        self.extra_ni: dict[str, dict] = {}
 
         self.version_flags = [
             {
