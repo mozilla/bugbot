@@ -8,11 +8,10 @@
             <th>Summary</th>
             <th>Tracking Flags</th>
             <th>Issues</th>
-            <th>Action</th>
         </tr>
     </thead>
     <tbody>
-        {% for i, (bugid, summary, tracking_statuses, is_regression, reasons, action) in enumerate(data) -%}
+        {% for i, (bugid, summary, tracking_statuses, is_regression, reasons) in enumerate(data) -%}
             <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
             {% endif -%}
             >
@@ -34,7 +33,6 @@
                     {% endfor -%}
                 </ul>
             </td>
-            <td>{{ action }}</td>
         </tr>
     {% endfor -%}
 </tbody>

@@ -4,10 +4,6 @@
 
 from typing import Optional
 
-import humanize
-from libmozdata import utils as lmdutils
-from libmozdata.fx_trains import FirefoxTrains
-
 from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
 from bugbot.constants import LOW_PRIORITY, LOW_SEVERITY
@@ -21,44 +17,19 @@ class TrackedAttention(BzCleaner):
     def __init__(
         self,
         target_channels: tuple = ("esr", "release", "beta", "nightly"),
-        show_soft_freeze_days: int = 14,
-        reminder_interval: int = 5,
     ):
         """Constructor
 
         Args:
             target_channels: the list of channels that we target to find tracked
                 and unassigned bugs.
-            show_soft_freeze_days: number of days before the soft freeze date to
-                start showing the soft freeze comment in the needinfo requests.
-            reminder_interval: number of days to wait before posting a reminder
-                comment. We remind only if the bug is not assigned, it is not a
-                weekend, and we are close to the soft-freeze date.
         """
         super().__init__()
         if not self.init_versions():
             return
 
         self.team_managers = TeamManagers()
-
-        schedule = FirefoxTrains.get_instance().get_release_schedule("nightly")
-        soft_freeze_date = lmdutils.get_date_ymd(schedule["soft_code_freeze"])
-        today = lmdutils.get_date_ymd("today")
-        soft_freeze_delta = soft_freeze_date - today
-
-        self.is_soft_freeze_soon = 0 < soft_freeze_delta.days <= show_soft_freeze_days
-        self.soft_freeze_delta = (
-            "today"
-            if soft_freeze_delta.days == 0
-            else f"in { humanize.naturaldelta(soft_freeze_delta)}"
-        )
-        self.extra_ni = {
-            "soft_freeze_delta": self.soft_freeze_delta,
-        }
-
-        # Determine the date to decide if a bug will receive a reminder comment
-        self.reminder_comment_date = lmdutils.get_date(today, reminder_interval)
-        self.is_weekend = utils.is_weekend(today)
+        self.extra_ni: dict[str, dict] = {}
 
         self.version_flags = [
             {
@@ -87,29 +58,14 @@ class TrackedAttention(BzCleaner):
             "tracking_statuses",
             "is_regression",
             "reasons",
-            "action",
         ]
 
     def handle_bug(self, bug, data):
-        is_no_assignee = utils.is_no_assignee(bug["assigned_to"])
         last_comment = self._get_last_comment(bug)
+        if last_comment:
+            return None
 
-        # If we commented before, we want to send reminders when we are close to
-        # the soft freeze.
-        is_reminder = bool(last_comment)
-        if is_reminder:
-            if self.is_weekend or not is_no_assignee or not self.is_soft_freeze_soon:
-                return None
-
-            # Post reminders based on the configured interval
-            last_reminder_comment = self._get_last_reminder_comment(bug)
-            last_comment_time = (
-                last_reminder_comment["time"]
-                if last_reminder_comment
-                else last_comment["time"]
-            )
-            if last_comment_time > self.reminder_comment_date:
-                return None
+        is_no_assignee = utils.is_no_assignee(bug["assigned_to"])
 
         bugid = str(bug["id"])
 
@@ -137,7 +93,7 @@ class TrackedAttention(BzCleaner):
         if bug["priority"] in LOW_PRIORITY:
             reasons.append("has low priority")
             solutions.append("increase the priority")
-        if not is_reminder and bug["severity"] in LOW_SEVERITY:
+        if bug["severity"] in LOW_SEVERITY:
             reasons.append("has low severity")
             solutions.append("increase the severity")
         assert reasons and solutions
@@ -147,39 +103,19 @@ class TrackedAttention(BzCleaner):
         # can only suggest backout if we know the exact cause of the regression.
         is_regression = bool(bug["regressed_by"])
 
-        # This is a workaround to pass the information to get_mail_to_auto_ni()
-        bug["is_reminder"] = is_reminder
-
         data[bugid] = {
             "tracking_statuses": tracking_statuses,
             "reasons": reasons,
             "is_regression": is_regression,
-            "action": "Reminder comment" if is_reminder else "Needinfo",
         }
 
-        if is_reminder:
-            assert self.is_soft_freeze_soon
-            comment_num = last_comment["count"]
-            self.autofix_changes[bugid] = {
-                "comment": {
-                    "body": (
-                        f"This is a reminder regarding comment #{comment_num}!\n\n"
-                        f"The bug is marked as { utils.english_list(tracking_statuses) }. "
-                        "We have limited time to fix this, "
-                        f"the soft freeze is { self.soft_freeze_delta }. "
-                        f"However, the bug still { utils.english_list(reasons) }."
-                    )
-                },
-            }
-        else:
-            need_action = is_no_assignee or bug["priority"] in LOW_PRIORITY
-            self.extra_ni[bugid] = {
-                "tracking_statuses": utils.english_list(tracking_statuses),
-                "reasons": utils.english_list(reasons),
-                "solutions": utils.english_list(solutions),
-                "show_soft_freeze_comment": self.is_soft_freeze_soon and need_action,
-                "show_regression_comment": is_regression and need_action,
-            }
+        need_action = is_no_assignee or bug["priority"] in LOW_PRIORITY
+        self.extra_ni[bugid] = {
+            "tracking_statuses": utils.english_list(tracking_statuses),
+            "reasons": utils.english_list(reasons),
+            "solutions": utils.english_list(solutions),
+            "show_regression_comment": is_regression and need_action,
+        }
 
         return bug
 
@@ -254,10 +190,6 @@ class TrackedAttention(BzCleaner):
         params[f"f{n}"] = "CP"
 
     def get_mail_to_auto_ni(self, bug):
-        # If this is not the first time, we will needinfo no body
-        if bug["is_reminder"]:
-            return None
-
         manager = self.team_managers.get_component_manager(
             bug["product"], bug["component"], False
         )
@@ -281,17 +213,6 @@ class TrackedAttention(BzCleaner):
         for comment in reversed(bug["comments"]):
             if comment["author"] == History.BOT and comment["text"].startswith(
                 "The bug is marked as"
-            ):
-                return comment
-
-        return None
-
-    @staticmethod
-    def _get_last_reminder_comment(bug: dict) -> Optional[dict]:
-        """Get the the last comment generated by this rule"""
-        for comment in reversed(bug["comments"]):
-            if comment["author"] == History.BOT and comment["text"].startswith(
-                "This is a reminder regarding"
             ):
                 return comment
 
