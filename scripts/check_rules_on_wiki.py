@@ -3,6 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import argparse
+import html
 import os
 import re
 from os import path
@@ -73,6 +74,9 @@ class CheckWikiPage:
 
         with urlopen(req) as resp:
             wiki_page_content = resp.read().decode("utf-8")
+
+        # Decode HTML entities (e.g., &#x2F; to /) before pattern matching
+        wiki_page_content = html.unescape(wiki_page_content)
 
         pat = re.compile(rf"""['"]{re.escape(self.github_tree_address)}(.*)['"]""")
         rules = pat.findall(wiki_page_content)
