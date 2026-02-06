@@ -58,7 +58,6 @@ class TrackedAttention(BzCleaner):
             "tracking_statuses",
             "is_regression",
             "reasons",
-            "action",
         ]
 
     def handle_bug(self, bug, data):
