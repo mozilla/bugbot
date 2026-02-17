@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import logging
 from datetime import timedelta
 from enum import Enum, auto
 from typing import Iterable, List, Optional
@@ -14,6 +15,8 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 
 from bugbot import utils
 from bugbot.people import People
+
+logging.basicConfig(level=logging.DEBUG)
 
 # The chunk size here should not be more than 100; which is the maximum number of
 # items that Phabricator could return in one response.
@@ -289,25 +292,31 @@ class UserActivity:
         # will rely on the calendar from phab.
         for _user_phids in Connection.chunks(user_phids, PHAB_CHUNK_SIZE):
             for phab_user in self._fetch_phab_users(_user_phids):
-                user = users[phab_user["phid"]]
-                phab_status = self._get_status_from_phab_user(phab_user)
-                if phab_status:
-                    user["status"] = phab_status
+                try:
+                    user = users[phab_user["phid"]]
+                    phab_status = self._get_status_from_phab_user(phab_user)
+                    if phab_status:
+                        user["status"] = phab_status
 
-                elif user["status"] in (
-                    UserStatus.ABSENT,
-                    UserStatus.INACTIVE,
-                ) and self.is_active_on_phab(phab_user["phid"]):
-                    user["status"] = UserStatus.ACTIVE
+                    elif user["status"] in (
+                        UserStatus.ABSENT,
+                        UserStatus.INACTIVE,
+                    ) and self.is_active_on_phab(phab_user["phid"]):
+                        user["status"] = UserStatus.ACTIVE
 
-                if not keep_active and user["status"] == UserStatus.ACTIVE:
-                    del users[phab_user["phid"]]
+                    if not keep_active and user["status"] == UserStatus.ACTIVE:
+                        del users[phab_user["phid"]]
+                        continue
+
+                    user["phab_username"] = phab_user["fields"]["username"]
+                    user["unavailable_until"] = phab_user["attachments"][
+                        "availability"
+                    ]["until"]
+                except KeyError as e:
+                    logging.error(
+                        f"Error fetching inactive patch authors: '{phab_user['phid']}' - {str(e)}"
+                    )
                     continue
-
-                user["phab_username"] = phab_user["fields"]["username"]
-                user["unavailable_until"] = phab_user["attachments"]["availability"][
-                    "until"
-                ]
 
         return users
 
