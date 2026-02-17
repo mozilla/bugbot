@@ -15,6 +15,8 @@ from bugbot.round_robin import RoundRobin
 
 
 class NoSeverityNeedInfo(BzCleaner, Nag):
+    normal_changes_max = 100
+
     def __init__(self, inactivity_days: int = 4):
         """Constructor
 
