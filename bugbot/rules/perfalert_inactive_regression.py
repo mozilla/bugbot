@@ -60,6 +60,13 @@ class PerfAlertInactiveRegression(BzCleaner):
             "f5": "days_elapsed",
             "o5": "greaterthan",
             "v5": self.nweeks * 7,
+            "n6": 1,
+            "f6": "longdesc",
+            "o6": "casesubstring",
+            "v6": "which triggered this performance alert, could you please provide a progress update?",
+            "f7": "flagtypes.name",
+            "o7": "notsubstring",
+            "v7": "needinfo?",
             "status": ["UNCONFIRMED", "NEW", "REOPENED"],
             "resolution": ["---"],
         }
