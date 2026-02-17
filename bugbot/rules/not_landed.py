@@ -286,7 +286,7 @@ class NotLanded(BzCleaner):
 
         return data
 
-    def get_bz_userid(self, phids):
+    def get_bz_users(self, phids):
         if not phids:
             return {}
 
@@ -297,36 +297,17 @@ class NotLanded(BzCleaner):
             return {}
 
         def handler(user, data):
-            data[str(user["id"])] = user["name"]
+            data[str(user["id"])] = user
 
         data = {}
         BugzillaUser(
             user_names=list(users.values()),
-            include_fields=["id", "name"],
+            include_fields=["id", "name", "nick"],
             user_handler=handler,
             user_data=data,
         ).wait()
 
         return {phid: data[id] for phid, id in users.items()}
-
-    def get_nicks(self, nicknames):
-        def handler(user, data):
-            data[user["name"]] = user["nick"]
-
-        users = set(nicknames.values())
-        data = {}
-        if users:
-            BugzillaUser(
-                user_names=list(users),
-                include_fields=["name", "nick"],
-                user_handler=handler,
-                user_data=data,
-            ).wait()
-
-        for bugid, name in nicknames.items():
-            nicknames[bugid] = (name, data[name])
-
-        return nicknames
 
     def get_bz_params(self, date):
         self.date = lmdutils.get_date_ymd(date)
@@ -364,33 +345,33 @@ class NotLanded(BzCleaner):
         res = {}
 
         reviewers_phid = set()
-        nicknames = {}
+        bug_assignee_map = {}
         for bugid, data in bugs_patch.items():
             reviewers_phid |= data["reviewers_phid"]
             assignee = bugs[bugid]["assigned_to"]
             if not assignee:
                 assignee = max(data["author"], key=data["author"].get)
-                nicknames[bugid] = assignee
+                bug_assignee_map[bugid] = assignee
 
-        bz_reviewers = self.get_bz_userid(reviewers_phid)
+        bz_reviewers = self.get_bz_users(reviewers_phid)
         all_reviewers = set(bz_reviewers.keys())
-        nicknames = self.get_nicks(nicknames)
 
         for bugid, data in bugs_patch.items():
             res[bugid] = d = bugs[bugid]
             self.extra_ni[bugid] = data["count"]
             assignee = d["assigned_to"]
-            nickname = d["nickname"]
 
             if not assignee:
-                assignee, nickname = nicknames[bugid]
+                user_details = bz_reviewers[assignee]
+                assignee = user_details["id"]
+                nickname = user_details["nick"]
 
             if not assignee:
                 continue
 
             self.add_auto_ni(bugid, {"mail": assignee, "nickname": nickname})
 
-            common = all_reviewers & data["reviewers_phid"]
+            common = all_reviewers["name"] & data["reviewers_phid"]
             if common:
                 reviewer = random.choice(list(common))
                 self.add_auto_ni(
