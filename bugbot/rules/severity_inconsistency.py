@@ -30,7 +30,7 @@ class SeverityInconsistency(BzCleaner):
         return ["id", "summary", "severity", "accessibility_severity"]
 
     def get_mail_to_auto_ni(self, bug):
-        for field in ["assigned_to", "triage_owner"]:
+        for field in ["triage_owner", "assigned_to"]:
             person = bug.get(field, "")
             if person and not utils.is_no_assignee(person):
                 return {"mail": person, "nickname": bug[f"{field}_detail"]["nick"]}
