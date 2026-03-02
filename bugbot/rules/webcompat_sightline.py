@@ -18,6 +18,7 @@ class MetricType:
 metrics = [
     MetricType("is_sightline", "[webcompat:sightline]"),
     MetricType("is_japan_1000", "[webcompat:japan]"),
+    MetricType("is_core", "[webcompat:core]"),
 ]
 
 
