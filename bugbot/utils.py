@@ -526,6 +526,17 @@ def get_checked_versions():
 
     from . import logger
 
+    if v[0] == v[1] and v[0] + 1 == v[2]:
+        # Beta version not yet updated in product-details after a new release
+        # cycle starts (release=N, beta=N stale, nightly=N+1). Treat beta as
+        # nightly until the first beta builds land and product-details catches up.
+        logger.info(
+            "Beta version not yet updated in product-details, treating beta as %d",
+            v[2],
+        )
+        versions["beta"] = str(v[2])
+        return versions
+
     logger.info("Not consecutive versions in product/details")
     return {}
 
