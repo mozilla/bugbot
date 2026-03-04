@@ -17,6 +17,8 @@ class Score:
 
 
 class WebcompatScore(BzCleaner):
+    normal_changes_max = 200
+
     def __init__(self):
         super().__init__()
         self.scored_bugs = {}
