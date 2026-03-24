@@ -197,7 +197,7 @@ python -m bugbot.rules.regression_new_set_nightly_affected --production
 # Suggest increasing the severity of performance-impacting bugs
 python -m bugbot.rules.severity_high_performance_impact --production
 
-# Request potential missing info when a bug is moved to Core::Performance
+# Request potential missing info when a bug is moved to Core::Performance: General
 python -m bugbot.rules.moved_to_performance --production
 
 source ./scripts/cron_common_end.sh
