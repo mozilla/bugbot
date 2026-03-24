@@ -64,6 +64,9 @@ class SeverityHighSecurity(BzCleaner):
             "f15": "longdesc",
             "o15": "casesubstring",
             "v15": "could you consider increasing the severity of this security bug?",
+            "f16": "keywords",
+            "o16": "nowords",
+            "v16": "unsupported-config",
         }
 
         return params
