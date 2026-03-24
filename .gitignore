@@ -15,4 +15,3 @@ db/*
 cache/
 .coverage
 .tox/
-*.egg-info/
