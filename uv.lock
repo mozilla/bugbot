@@ -92,7 +92,7 @@ requires-dist = [
     { name = "python-levenshtein", specifier = ">=0.12.0" },
     { name = "pytz", specifier = ">=2018.9" },
     { name = "pyyaml", specifier = "==6.0.2" },
-    { name = "recurring-ical-events", specifier = "==3.8.0" },
+    { name = "recurring-ical-events", specifier = "==3.8.1" },
     { name = "requests", specifier = "==2.32.5" },
     { name = "responses", marker = "extra == 'dev'", specifier = "==0.25.8" },
     { name = "sentry-sdk", specifier = ">=2.42.1" },
@@ -986,7 +986,7 @@ wheels = [
 
 [[package]]
 name = "recurring-ical-events"
-version = "3.8.0"
+version = "3.8.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "icalendar" },
@@ -994,9 +994,9 @@ dependencies = [
     { name = "tzdata" },
     { name = "x-wr-timezone" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/83/90/05dfcc02ecf58bd170305c88db9e3e3933aa73a1f8abac2b326c7fdc1a98/recurring_ical_events-3.8.0.tar.gz", hash = "sha256:3e8c7c35d9bd8956a7ab91afad51477c60d972e1236d3fd1b55087a66bce7d04", size = 602665, upload-time = "2025-06-10T13:23:50.662Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f1/d4/51c9361bb0efb2290dfd850c036b49acb502794e0fe9cc3520dbf60fd7db/recurring_ical_events-3.8.1.tar.gz", hash = "sha256:c3eb2490a00559fb963d2bdee39acf2f287c91c07dcea4ce80ade1c60a8c3acf", size = 603730, upload-time = "2026-02-18T11:45:53.272Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/36/25/88a4218cccae06ce6b15e41d2f263dd4a73e8e8cbe41537cd7784a17479b/recurring_ical_events-3.8.0-py3-none-any.whl", hash = "sha256:cf958eb17c92d4dca5c621e44c2b3fffd4ba700dca0db66287c5dc11438f63ba", size = 238228, upload-time = "2025-06-10T13:23:49.048Z" },
+    { url = "https://files.pythonhosted.org/packages/14/67/4d4aead359164de68d30ee67efcdbe3784063cb21535c85b9a9a03dd2ebb/recurring_ical_events-3.8.1-py3-none-any.whl", hash = "sha256:3bb3aaa0c87a4d3ab5951360480686bd69f1512945f478be6a2c0f141da0bf78", size = 238286, upload-time = "2026-02-18T11:45:51.631Z" },
 ]
 
 [[package]]
