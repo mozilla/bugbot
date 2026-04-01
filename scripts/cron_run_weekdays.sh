@@ -200,7 +200,4 @@ python -m bugbot.rules.severity_high_performance_impact --production
 # Request potential missing info when a bug is moved to Core::Performance
 python -m bugbot.rules.moved_to_performance --production
 
-# Try to detect potential accessibility bugs using bugbug
-python -m bugbot.rules.accessibilitybug --production
-
 source ./scripts/cron_common_end.sh

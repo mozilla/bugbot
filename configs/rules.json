@@ -352,8 +352,7 @@
   },
   "accessibilitybug": {
     "max_days_in_cache": 7,
-    "days_lookup": 7,
-    "additional_receivers": ["jteh@mozilla.com"]
+    "days_lookup": 7
   },
   "component": {
     "confidence_threshold": 0.35,
