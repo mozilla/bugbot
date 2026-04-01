@@ -38,16 +38,6 @@ class AccessibilityBug(BzCleaner):
             "f3": "keywords",
             "o3": "notsubstring",
             "v3": "access",
-            "j4": "AND",
-            "n4": 1,
-            "f4": "OP",
-            "f5": "product",
-            "o5": "equals",
-            "v5": "Firefox",
-            "f6": "component",
-            "o6": "equals",
-            "v6": "Disability Access",
-            "f7": "CP",
         }
 
     def get_bugs(self, date="today", bug_ids=[]):
