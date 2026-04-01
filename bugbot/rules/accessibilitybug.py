@@ -18,6 +18,7 @@ class AccessibilityBug(BzCleaner):
         """
         super().__init__()
         self.confidence_threshold = confidence_threshold
+        self.autofix_access: list[int] = []
 
     def description(self):
         return "[Using ML] Detected accessibility bugs"
@@ -81,10 +82,29 @@ class AccessibilityBug(BzCleaner):
                 "id": bug_id,
                 "summary": bug["summary"],
                 "confidence": nice_round(prob[1]),
-                "autofixed": prob[1] >= self.confidence_threshold,
+                "autofixed": False,
             }
 
+            # Only autofix results for which we are sure enough.
+            if prob[1] >= self.confidence_threshold:
+                results[bug_id]["autofixed"] = True
+                self.autofix_access.append(bug_id)
+
         return results
+
+    def get_autofix_change(self) -> dict:
+        cc = self.get_config("cc")
+
+        return {
+            bug_id: {
+                "keywords": {"add": ["access"]},
+                "cc": {"add": cc},
+                "comment": {
+                    "body": "The [Bugbug](https://github.com/mozilla/bugbug/) bot thinks this bug is an accessibility bug, but please revert this change in case of error."
+                },
+            }
+            for bug_id in self.autofix_access
+        }
 
 
 if __name__ == "__main__":
