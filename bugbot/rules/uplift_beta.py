@@ -2,11 +2,17 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import base64
+import re
+
 from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import Bugzilla
 
 from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
+
+PHAB_URL_PAT = re.compile(r"https://phabricator\.services\.mozilla\.com/D([0-9]+)")
+LANDO_BASE_URL = "https://lando.moz.tools/"
 
 
 class UpliftBeta(BzCleaner):
@@ -36,6 +42,27 @@ class UpliftBeta(BzCleaner):
     def columns(self):
         return ["id", "summary", "assignee"]
 
+    @staticmethod
+    def get_lando_url(attachments):
+        """Get the Lando URL for the most recently created non-obsolete
+        Phabricator attachment, or None if no such attachment exists."""
+        phab_attachments = [
+            a
+            for a in attachments
+            if a["content_type"] == "text/x-phabricator-request"
+            and not a["is_obsolete"]
+        ]
+        if not phab_attachments:
+            return None
+
+        latest = max(phab_attachments, key=lambda a: a["creation_time"])
+        phab_url = base64.b64decode(latest["data"]).decode("utf-8")
+        m = PHAB_URL_PAT.search(phab_url)
+        if not m:
+            return None
+
+        return f"{LANDO_BASE_URL}D{m.group(1)}"
+
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
 
@@ -55,6 +82,7 @@ class UpliftBeta(BzCleaner):
             "nickname": nickname,
             "summary": self.get_summary(bug),
             "regressions": bug["regressions"],
+            "lando_url": self.get_lando_url(bug.get("attachments", [])),
         }
 
         return bug
@@ -102,6 +130,7 @@ class UpliftBeta(BzCleaner):
             "attachments.creation_time",
             "attachments.is_obsolete",
             "attachments.content_type",
+            "attachments.data",
             "cf_last_resolved",
             "assigned_to",
             "flags",
@@ -143,7 +172,10 @@ class UpliftBeta(BzCleaner):
 
         for bugid, data in bugs.items():
             if data["mail"] and data["nickname"]:
-                self.extra_ni[bugid] = {"regression": len(data["regressions"])}
+                self.extra_ni[bugid] = {
+                    "regression": len(data["regressions"]),
+                    "lando_url": data["lando_url"],
+                }
                 self.add_auto_ni(
                     bugid, {"mail": data["mail"], "nickname": data["nickname"]}
                 )
