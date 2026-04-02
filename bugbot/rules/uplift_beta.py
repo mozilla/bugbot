@@ -2,14 +2,16 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import re
+
 from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import Bugzilla
 
 from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
 
-PHAB_BASE_URL = "https://phabricator.services.mozilla.com/"
 LANDO_BASE_URL = "https://lando.moz.tools/"
+PHAB_FILE_NAME_PAT = re.compile(r"phabricator-D([0-9]+)-url\.txt")
 
 
 class UpliftBeta(BzCleaner):
@@ -40,28 +42,31 @@ class UpliftBeta(BzCleaner):
         return ["id", "summary", "assignee"]
 
     @staticmethod
-    def get_lando_urls(attachments):
-        """Get Lando URLs for all non-obsolete Phabricator attachments."""
-        urls = []
-        for attachment in attachments:
-            if (
-                attachment["content_type"] == "text/x-phabricator-request"
-                and not attachment["is_obsolete"]
-            ):
-                urls.append(LANDO_BASE_URL + attachment["file_name"].strip())
-        return urls
+    def get_lando_url(attachments):
+        """Get Lando URL if there is exactly one non-obsolete Phabricator attachment."""
+        rev_ids = [
+            int(m.group(1))
+            for attachment in attachments
+            if attachment["content_type"] == "text/x-phabricator-request"
+            and not attachment["is_obsolete"]
+            for m in [PHAB_FILE_NAME_PAT.match(attachment["file_name"])]
+            if m
+        ]
+        if len(rev_ids) == 1:
+            return f"{LANDO_BASE_URL}D{rev_ids[0]}"
+        return None
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
 
-        assignee = bug["assigned_to"]
+        assignee = bug.get("assigned_to", "")
         if utils.is_no_assignee(assignee):
             assignee = ""
             nickname = ""
         else:
             nickname = bug["assigned_to_detail"]["nick"]
 
-        if self.is_needinfo_on_assignee(bug["flags"], assignee):
+        if self.is_needinfo_on_assignee(bug.get("flags", []), assignee):
             return None
 
         data[bugid] = {
@@ -70,7 +75,7 @@ class UpliftBeta(BzCleaner):
             "nickname": nickname,
             "summary": self.get_summary(bug),
             "regressions": bug["regressions"],
-            "lando_urls": self.get_lando_urls(bug["attachments"]),
+            "lando_url": self.get_lando_url(bug.get("attachments", [])),
         }
 
         return bug
@@ -162,7 +167,7 @@ class UpliftBeta(BzCleaner):
             if data["mail"] and data["nickname"]:
                 self.extra_ni[bugid] = {
                     "regression": len(data["regressions"]),
-                    "lando_urls": data["lando_urls"],
+                    "lando_url": data["lando_url"],
                 }
                 self.add_auto_ni(
                     bugid, {"mail": data["mail"], "nickname": data["nickname"]}
