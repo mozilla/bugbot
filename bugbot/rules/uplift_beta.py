@@ -48,22 +48,20 @@ class UpliftBeta(BzCleaner):
                 attachment["content_type"] == "text/x-phabricator-request"
                 and not attachment["is_obsolete"]
             ):
-                phab_url = attachment["file_name"].strip()
-                if phab_url.startswith(PHAB_BASE_URL):
-                    urls.append(phab_url.replace(PHAB_BASE_URL, LANDO_BASE_URL, 1))
+                urls.append(LANDO_BASE_URL + attachment["file_name"].strip())
         return urls
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
 
-        assignee = bug.get("assigned_to", "")
+        assignee = bug["assigned_to"]
         if utils.is_no_assignee(assignee):
             assignee = ""
             nickname = ""
         else:
             nickname = bug["assigned_to_detail"]["nick"]
 
-        if self.is_needinfo_on_assignee(bug.get("flags", []), assignee):
+        if self.is_needinfo_on_assignee(bug["flags"], assignee):
             return None
 
         data[bugid] = {
@@ -72,7 +70,7 @@ class UpliftBeta(BzCleaner):
             "nickname": nickname,
             "summary": self.get_summary(bug),
             "regressions": bug["regressions"],
-            "lando_urls": self.get_lando_urls(bug.get("attachments", [])),
+            "lando_urls": self.get_lando_urls(bug["attachments"]),
         }
 
         return bug
@@ -117,6 +115,7 @@ class UpliftBeta(BzCleaner):
         fields = [
             self.status_beta,
             "regressions",
+            "attachments.creation_time",
             "attachments.is_obsolete",
             "attachments.content_type",
             "attachments.file_name",
