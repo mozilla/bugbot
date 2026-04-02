@@ -2,8 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import base64
-
 from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import Bugzilla
 
@@ -50,7 +48,7 @@ class UpliftBeta(BzCleaner):
                 attachment["content_type"] == "text/x-phabricator-request"
                 and not attachment["is_obsolete"]
             ):
-                phab_url = base64.b64decode(attachment["data"]).decode("utf-8").strip()
+                phab_url = attachment["file_name"].strip()
                 if phab_url.startswith(PHAB_BASE_URL):
                     urls.append(phab_url.replace(PHAB_BASE_URL, LANDO_BASE_URL, 1))
         return urls
@@ -119,10 +117,9 @@ class UpliftBeta(BzCleaner):
         fields = [
             self.status_beta,
             "regressions",
-            "attachments.creation_time",
             "attachments.is_obsolete",
             "attachments.content_type",
-            "attachments.data",
+            "attachments.file_name",
             "cf_last_resolved",
             "assigned_to",
             "flags",
