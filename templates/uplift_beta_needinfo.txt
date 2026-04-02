@@ -1,8 +1,8 @@
 The patch landed in nightly and beta is affected.
 :{{ nickname }}, is this bug important enough to require an uplift?
 - If yes, please nominate the patch for beta approval.{% if extra[bugid]["regression"] %} Also, don't forget to request an uplift for the patches in the {{ plural('regression', extra[bugid]["regression"]) }} caused by this fix.{% endif %}
-  - See https://wiki.mozilla.org/Release_Management/Requesting_an_Uplift for documentation on how to request an uplift.{% if extra[bugid]["lando_url"] %}
-  - The patch is available at {{ extra[bugid]["lando_url"] }}.{% endif %}
+  - See https://wiki.mozilla.org/Release_Management/Requesting_an_Uplift for documentation on how to request an uplift.{% for url in extra[bugid]["lando_urls"] %}
+  - The patch is available at {{ url }}.{% endfor %}
 - If no, please set `{{ extra["status_beta"] }}` to `wontfix`.
 
 {{ documentation }}
