@@ -106,6 +106,20 @@ class Component(BzCleaner):
         # Classify those bugs
         bugs = get_bug_ids_classification("component", bug_ids)
 
+        # For Firefox::General bugs, use the componentspecific model to decide
+        # whether to move them out of General.
+        ff_general_bug_ids = [
+            bug_id
+            for bug_id in bug_ids
+            if raw_bugs[bug_id]["product"] == "Firefox"
+            and raw_bugs[bug_id]["component"] == "General"
+        ]
+        componentspecific_results = {}
+        if ff_general_bug_ids:
+            componentspecific_results = get_bug_ids_classification(
+                "componentspecific", ff_general_bug_ids
+            )
+
         fenix_general_bug_ids = []
         for bug_id, bug_data in bugs.items():
             if not bug_data.get("available", True):
@@ -187,6 +201,13 @@ class Component(BzCleaner):
             }:
                 continue
 
+            # For Firefox::General bugs, only proceed if the componentspecific
+            # model is confident enough that the bug should be moved out.
+            if bug["product"] == "Firefox" and bug["component"] == "General":
+                cs = componentspecific_results.get(bug_id, {})
+                if cs["prob"][1] < self.general_confidence_threshold:
+                    continue
+
             result = {
                 "id": bug_id,
                 "summary": bug["summary"],
@@ -199,13 +220,7 @@ class Component(BzCleaner):
             if self.frequency == "daily":
                 results[bug_id] = result
 
-            confidence_threshold_conf = (
-                "confidence_threshold"
-                if bug["component"] != "General"
-                else "general_confidence_threshold"
-            )
-
-            if prob[index] >= self.get_config(confidence_threshold_conf):
+            if prob[index] >= self.component_confidence_threshold:
                 self.autofix_component[bug_id] = {
                     "product": suggested_product,
                     "component": suggested_component,
