@@ -225,9 +225,18 @@ class Component(BzCleaner):
                     "product": suggested_product,
                     "component": suggested_component,
                 }
-
+                result["autofixed"] = True
+            # Move Firefox::Untriaged bugs with no/low-confidence predictions to Firefox::General.
+            elif bug["product"] == "Firefox" and bug["component"] == "Untriaged":
+                self.autofix_component[bug_id] = {
+                    "product": "Firefox",
+                    "component": "General",
+                    "suggested_product": suggested_product,
+                    "suggested_component": suggested_component,
+                }
                 result["autofixed"] = True
 
+            if result["autofixed"]:
                 # In hourly mode, we send an email with only the bugs we acted upon.
                 if self.frequency == "hourly":
                     results[bug_id] = result
@@ -275,6 +284,11 @@ class Component(BzCleaner):
                         "cc": {"add": cc},
                         "comment": {
                             "body": f"The [Bugbug](https://github.com/mozilla/bugbug/) bot thinks this bug should belong to the '{data['product']}::{data['component']}' component, and is moving the bug to that component. Please correct in case you think the bot is wrong."
+                            if (
+                                data["product"] != "Firefox"
+                                or data["component"] != "General"
+                            )
+                            else f"The [Bugbug](https://github.com/mozilla/bugbug/) bot thinks this bug should belong to the '{data['suggested_product']}::{data['suggested_component']}' component, but is not confident enough to move the bug to that component."
                         },
                     }
                 )
