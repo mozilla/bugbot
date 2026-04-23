@@ -220,14 +220,12 @@ class Component(BzCleaner):
             if self.frequency == "daily":
                 results[bug_id] = result
 
-            autofixed = False
             if prob[index] >= self.component_confidence_threshold:
                 self.autofix_component[bug_id] = {
                     "product": suggested_product,
                     "component": suggested_component,
                 }
-
-                autofixed = True
+                result["autofixed"] = True
             # Move Firefox::Untriaged bugs with no/low-confidence predictions to Firefox::General.
             elif bug["product"] == "Firefox" and bug["component"] == "Untriaged":
                 self.autofix_component[bug_id] = {
@@ -236,11 +234,9 @@ class Component(BzCleaner):
                     "suggested_product": suggested_product,
                     "suggested_component": suggested_component,
                 }
-                autofixed = True
-
-            if autofixed:
                 result["autofixed"] = True
 
+            if result["autofixed"]:
                 # In hourly mode, we send an email with only the bugs we acted upon.
                 if self.frequency == "hourly":
                     results[bug_id] = result
