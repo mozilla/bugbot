@@ -43,6 +43,10 @@ class PDFJSUpdate(BzCleaner):
             "f3": "blocked",
             "o3": "changedby",
             "v3": utils.get_config("common", "bot_bz_mail")[0],
+            "n4": 1,
+            "f4": "resolution",
+            "o4": "equals",
+            "v4": "DUPLICATE",
         }
 
     def set_autofix(self, bugs):
