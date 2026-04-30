@@ -33,7 +33,7 @@ class CopyDuplicateInfo(BzCleaner):
         data[bugid] = {
             "id": bugid,
             "summary": self.get_summary(bug),
-            "signature": bug.get("cf_crash_signature", ""),
+            "signature": bug.get("cf_crash_signature"),
             "dupe": str(bug["dupe_of"]),
             "version": bug["version"],
             "is_private": bool(bug["groups"]),
@@ -73,6 +73,12 @@ class CopyDuplicateInfo(BzCleaner):
             dup = dups[dupid]
             if info["is_private"] and not dup["is_private"]:
                 # We avoid copying signatures from private to public bugs
+                continue
+
+            if dup["signature"] is None:
+                # cf_crash_signature was omitted from the API response, so we
+                # cannot tell whether the dup-of bug already has the
+                # signatures (see issue #2864).
                 continue
 
             bs = utils.get_signatures(info["signature"])
