@@ -274,7 +274,7 @@
     ]
   },
   "no_severity_ni": {
-    "weeks_lookup": 2,
+    "weeks_lookup": 1,
     "escalation": {
       "default": {
         "[0;+∞[": {
