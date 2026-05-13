@@ -123,7 +123,7 @@
     "must_run": ["Mon"]
   },
   "not_landed": {
-    "number_of_weeks": 2,
+    "number_of_weeks": 1,
     "number_of_years": 2
   },
   "ni_from_manager": {

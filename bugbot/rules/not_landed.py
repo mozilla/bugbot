@@ -23,13 +23,13 @@ PHAB_URL_PAT = re.compile(r"https://phabricator\.services\.mozilla\.com/D([0-9]+
 class NotLanded(BzCleaner):
     def __init__(self):
         super(NotLanded, self).__init__()
-        self.nweeks = utils.get_config(self.name(), "number_of_weeks", 2)
+        self.nweeks = utils.get_config(self.name(), "number_of_weeks", 1)
         self.nyears = utils.get_config(self.name(), "number_of_years", 2)
         self.phab = PhabricatorAPI(utils.get_login_info()["phab_api_key"])
         self.extra_ni = {}
 
     def description(self):
-        return "Open bugs with no activity for {} weeks and a r+ patch which hasn't landed".format(
+        return "Open bugs with no activity for {} week(s) and a r+ patch which hasn't landed".format(
             self.nweeks
         )
 
