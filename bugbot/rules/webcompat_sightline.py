@@ -25,7 +25,7 @@ metrics = [
 class WebcompatSightline(BzCleaner):
     def __init__(self):
         super().__init__()
-        self.metric_bugs = {}
+        self.update_bugs = {}
 
     def description(self) -> str:
         return "Bugs with the [webcompat:<metric name>] whiteboard tag updated"
@@ -42,13 +42,13 @@ class WebcompatSightline(BzCleaner):
         bug_id = str(bug["id"])
         whiteboard = bug["whiteboard"]
 
-        bug_metrics = self.metric_bugs[bug["id"]]
+        bug_metrics = self.update_bugs[bug["id"]]
 
-        for metric, include in bug_metrics.items():
-            if include and metric.whiteboard_entry not in whiteboard:
-                whiteboard += metric.whiteboard_entry
-            elif not include and metric.whiteboard_entry in whiteboard:
-                whiteboard = whiteboard.replace(metric.whiteboard_entry, "")
+        for whiteboard_entry, include in bug_metrics.items():
+            if include and whiteboard_entry not in whiteboard:
+                whiteboard += whiteboard_entry
+            elif not include and whiteboard_entry in whiteboard:
+                whiteboard = whiteboard.replace(whiteboard_entry, "")
 
         if whiteboard != bug["whiteboard"]:
             self.autofix_changes[bug_id] = {"whiteboard": whiteboard}
@@ -58,7 +58,7 @@ class WebcompatSightline(BzCleaner):
 
     def get_bz_params(self, date) -> dict[str, Any]:
         fields = ["id", "summary", "whiteboard"]
-        self.metric_bugs = self.get_metric_bugs()
+        self.update_bugs = self.get_update_bugs()
         # Get all bugs that either have, or should have, the [webcompat:sightline]
         # whiteboard entry
         return {
@@ -66,15 +66,16 @@ class WebcompatSightline(BzCleaner):
             "j_top": "OR",
             "f1": "bug_id",
             "o1": "anyexact",
-            "v1": ",".join(str(item) for item in self.metric_bugs.keys()),
+            "v1": ",".join(str(item) for item in self.update_bugs.keys()),
         }
 
-    def get_metric_bugs(self) -> Mapping[int, Mapping[MetricType, bool]]:
+    def get_update_bugs(self) -> Mapping[int, Mapping[str, bool]]:
         project = "moz-fx-dev-dschubert-wckb"
         dataset = "webcompat_knowledge_base"
 
         fields = []
         conditions = []
+        results = {}
 
         for metric in metrics:
             fields.append(metric.field)
@@ -83,15 +84,25 @@ class WebcompatSightline(BzCleaner):
             )
 
         client = gcp.get_bigquery_client(project, ["cloud-platform", "drive"])
-        query = f"""
+        query_metrics = f"""
         SELECT number, {", ".join(fields)} FROM `{project}.{dataset}.scored_site_reports` as bugs
         WHERE bugs.resolution = "" AND ({" OR ".join(conditions)})
         """
 
-        results = {}
-        for row in client.query(query).result():
-            result = {metric: row[metric.field] for metric in metrics}
+        for row in client.query(query_metrics).result():
+            result = {metric.whiteboard_entry: row[metric.field] for metric in metrics}
             results[row.number] = result
+
+        query_wc = f"""
+        SELECT DISTINCT number, wc_urls.url IS NOT NULL AS is_wc_2026 FROM `{project}.{dataset}.site_reports` as bugs
+        LEFT JOIN `{project}.{dataset}.world_cup_2026_urls` AS wc_urls ON `moz-fx-dev-dschubert-wckb.webcompat_knowledge_base.WEBCOMPAT_HOST`(bugs.url) = `moz-fx-dev-dschubert-wckb.webcompat_knowledge_base.WEBCOMPAT_HOST`(wc_urls.url)
+        WHERE bugs.resolution = "" AND (wc_urls.url IS NOT NULL) != CONTAINS_SUBSTR(bugs.whiteboard, "[webcompat:wc2026]")
+        """
+
+        for row in client.query(query_wc).result():
+            if row.number not in results:
+                results[row.number] = {}
+            results[row.number]["[webcompat:wc2026]"] = row["is_wc_2026"]
 
         return results
 
