@@ -25,7 +25,7 @@ from bugbot.cache import Cache
 from bugbot.nag_me import Nag
 
 BzParams = dict[str, str | int | list[str] | list[int]]
-EmailData = list[tuple[Any, ...]] | list[dict[Any, Any]]
+EmailData = list[Any | tuple[Any, ...] | dict[Any, Any]]
 Bug = Mapping[str, Any]
 
 
@@ -299,7 +299,7 @@ class BzCleaner(object):
 
         self.quota_actions[quota_name].append(action)
 
-    def get_bug_sort_key(self, bug: int) -> str | None:
+    def get_bug_sort_key(self, bug: Bug) -> str | None:
         return None
 
     def _populate_prioritized_actions(self, bugs: dict[str, Bug]) -> dict[str, Any]:
