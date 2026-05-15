@@ -12,6 +12,7 @@ from bugbot.bzcleaner import BzCleaner
 from bugbot.escalation import Escalation
 from bugbot.nag_me import Nag
 from bugbot.round_robin import RoundRobin
+from bugbot.user_activity import UserActivity
 
 
 class NoSeverityNeedInfo(BzCleaner, Nag):
@@ -78,6 +79,13 @@ class NoSeverityNeedInfo(BzCleaner, Nag):
             or utils.get_last_no_bot_comment_date(bug) > self.activity_date
         ):
             return None
+
+        bugid = str(bug["id"])
+
+        data[bugid] = {
+            "triage_owner": bug["triage_owner"],
+        }
+
         return bug
 
     def get_mail_to_auto_ni(self, bug):
@@ -141,6 +149,26 @@ class NoSeverityNeedInfo(BzCleaner, Nag):
         self.date = lmdutils.get_date_ymd(date)
 
         return params
+
+    def filter_bugs(self, bugs):
+        users_info = UserActivity(include_fields=["groups", "requests"]).check_users(
+            set(bug["triage_owner"] for bug in bugs.values()),
+            keep_active=True,
+            fetch_employee_info=True,
+        )
+
+        filtered_bugs = {
+            bug_id: bug
+            for bug_id, bug in bugs.items()
+            if "requests" in users_info[bug["triage_owner"]]
+            and not users_info[bug["triage_owner"]]["requests"]["needinfo"]["blocked"]
+        }
+        return filtered_bugs
+
+    def get_bugs(self, *args, **kwargs):
+        bugs = super().get_bugs(*args, **kwargs)
+        bugs = self.filter_bugs(bugs)
+        return bugs
 
 
 if __name__ == "__main__":
