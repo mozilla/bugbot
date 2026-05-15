@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Any, Iterator, Optional, cast
 
 from bugbot import gcp
-from bugbot.bzcleaner import BzCleaner
+from bugbot.bzcleaner import Bug, BzCleaner
 
 
 @dataclass
@@ -71,9 +71,7 @@ class WebcompatScore(BzCleaner):
 
         return None
 
-    def handle_bug(
-        self, bug: dict[str, Any], data: dict[str, Any]
-    ) -> Optional[dict[str, Any]]:
+    def handle_bug(self, bug: Bug, data: dict[str, Any]) -> Optional[Bug]:
         scored_bugs_key = bug["id"]
         bug_id = str(bug["id"])
 

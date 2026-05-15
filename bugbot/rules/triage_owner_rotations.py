@@ -16,7 +16,7 @@ from tenacity import (
 )
 
 from bugbot import logger
-from bugbot.bzcleaner import BzCleaner
+from bugbot.bzcleaner import BzCleaner, EmailData
 from bugbot.component_triagers import ComponentName, ComponentTriagers, TriageOwner
 from bugbot.utils import get_bug_bugdash_url
 
@@ -103,9 +103,10 @@ class TriageOwnerRotations(BzCleaner):
             for new_triager in new_triagers
         ]
 
-    def get_cc_emails(self, data: List[dict]) -> List[str]:
+    def get_cc_emails(self, data: EmailData) -> List[str]:
         cc_emails = set()
         for entry in data:
+            assert isinstance(entry, dict)
             cc_emails.add(entry.get("old_triage_owner", ""))
             cc_emails.add(entry.get("new_triage_owner", ""))
         return list(cc_emails)

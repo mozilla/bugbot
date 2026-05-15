@@ -2,12 +2,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import urllib
+# mypy: disallow-untyped-defs
+
 from dataclasses import dataclass
 from typing import Any, Iterable, Mapping, Optional
+from urllib import parse
 
 from bugbot import gcp
-from bugbot.bzcleaner import BzCleaner
+from bugbot.bzcleaner import Bug, BzCleaner
 
 
 @dataclass
@@ -22,7 +24,7 @@ def url_keys(urls: Iterable[str]) -> Mapping[tuple[str, str], str]:
     rv = {}
     for url in urls:
         try:
-            parsed = urllib.parse.urlparse(url)
+            parsed = parse.urlparse(url)
             if parsed.hostname is None:
                 continue
             rv[(parsed.hostname, parsed.path)] = url
@@ -48,9 +50,7 @@ class WebPlatformFeatures(BzCleaner):
     def columns(self) -> list[str]:
         return ["id", "summary", "added"]
 
-    def handle_bug(
-        self, bug: dict[str, Any], data: dict[str, Any]
-    ) -> Optional[dict[str, Any]]:
+    def handle_bug(self, bug: Bug, data: dict[str, Any]) -> Optional[Bug]:
         features_key = bug["id"]
         bug_id = str(bug["id"])
 
@@ -81,7 +81,7 @@ class WebPlatformFeatures(BzCleaner):
 
         return None
 
-    def get_bz_params(self, date) -> dict[str, str | int | list[str] | list[int]]:
+    def get_bz_params(self, date: str) -> dict[str, str | int | list[str] | list[int]]:
         fields = ["id", "url", "see_also"]
         self.feature_bugs = self.get_feature_bugs()
         return {"include_fields": fields, "id": list(self.feature_bugs.keys())}

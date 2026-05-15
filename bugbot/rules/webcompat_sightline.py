@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Any, Mapping, Optional
 
 from bugbot import gcp
-from bugbot.bzcleaner import BzCleaner
+from bugbot.bzcleaner import Bug, BzCleaner
 
 
 @dataclass(frozen=True)
@@ -36,9 +36,7 @@ class WebcompatSightline(BzCleaner):
     def has_default_products(self) -> bool:
         return False
 
-    def handle_bug(
-        self, bug: dict[str, Any], data: dict[str, Any]
-    ) -> Optional[dict[str, Any]]:
+    def handle_bug(self, bug: Bug, data: dict[str, Any]) -> Optional[Bug]:
         bug_id = str(bug["id"])
         whiteboard = bug["whiteboard"]
 
