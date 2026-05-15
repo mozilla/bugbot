@@ -8,13 +8,13 @@ from typing import Any, Optional
 from dateutil import parser
 
 from bugbot import gcp
-from bugbot.bzcleaner import BzCleaner
+from bugbot.bzcleaner import Bug, BzCleaner
 
 
 class WebcompatPlatformWithoutKeyword(BzCleaner):
     normal_changes_max = 200
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.last_bugzilla_import_time: Optional[datetime] = None
 
@@ -32,9 +32,7 @@ class WebcompatPlatformWithoutKeyword(BzCleaner):
             "keywords": {"add": ["webcompat:platform-bug"]},
         }
 
-    def handle_bug(
-        self, bug: dict[str, Any], data: dict[str, Any]
-    ) -> Optional[dict[str, Any]]:
+    def handle_bug(self, bug: Bug, data: dict[str, Any]) -> Optional[Bug]:
         bug_id = str(bug["id"])
 
         # If the bug was updated later than our latest bugzilla data there could be a race,
