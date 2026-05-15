@@ -25,7 +25,7 @@ from bugbot.cache import Cache
 from bugbot.nag_me import Nag
 
 BzParams = dict[str, str | int | list[str] | list[int]]
-EmailData = list[Any | tuple[Any, ...] | dict[Any, Any]]
+EmailData = list[Any] | list[tuple[Any, ...]] | list[dict[Any, Any]]
 Bug = Mapping[str, Any]
 
 
@@ -698,7 +698,7 @@ class BzCleaner(object):
         """Called when everything is done"""
         return
 
-    def organize(self, bugs: dict[str, Bug]) -> list[tuple[Any, ...]]:
+    def organize(self, bugs: dict[str, Bug]) -> list[Any] | list[tuple[Any, ...]]:
         return utils.organize(bugs, self.columns(), key=self.sort_columns())
 
     def add_to_cache(self, bugs: dict[str, Bug]) -> None:
