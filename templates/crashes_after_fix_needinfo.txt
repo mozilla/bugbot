@@ -1,0 +1,4 @@
+{% if nickname %}:{{ nickname }},{% endif %}
+this bug was marked RESOLVED FIXED on {{ extra['fix_date'] }}, but crashes are still being reported against this signature on Nightly. Since the day after the fix landed ({{ extra['since'] }}), {{ extra['crash_count'] }} crash{{ 'es' if extra['crash_count'] != 1 else '' }} {{ 'have' if extra['crash_count'] != 1 else 'has' }} been recorded on Nightly across the {{ extra['signatures']|length }} signature{{ 's' if extra['signatures']|length != 1 else '' }} on this bug.
+Could you take a look at the recent crash reports to determine whether the fix is incomplete, whether the signature is shared with a different underlying crash, or whether a follow-up is needed?
+{{ documentation }}

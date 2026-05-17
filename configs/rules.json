@@ -112,6 +112,11 @@
     "keyword_exception": ["testcase"],
     "sec": false
   },
+  "crashes_after_fix": {
+    "min_days_since_fix": 4,
+    "max_days_since_fix": 10,
+    "min_crash_count": 5
+  },
   "newbie_with_ni": {
     "number_of_days": 7,
     "number_of_comments": 2
