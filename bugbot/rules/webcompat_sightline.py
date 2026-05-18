@@ -94,13 +94,13 @@ class WebcompatSightline(BzCleaner):
         query_wc = f"""
         SELECT DISTINCT number, wc_urls.url IS NOT NULL AS is_wc_2026 FROM `{project}.{dataset}.site_reports` as bugs
         LEFT JOIN `{project}.{dataset}.world_cup_2026_urls` AS wc_urls ON `moz-fx-dev-dschubert-wckb.webcompat_knowledge_base.WEBCOMPAT_HOST`(bugs.url) = `moz-fx-dev-dschubert-wckb.webcompat_knowledge_base.WEBCOMPAT_HOST`(wc_urls.url)
-        WHERE bugs.resolution = "" AND (wc_urls.url IS NOT NULL) != CONTAINS_SUBSTR(bugs.whiteboard, "[webcompat:wc2026]")
+        WHERE bugs.resolution = "" AND (wc_urls.url IS NOT NULL) != CONTAINS_SUBSTR(bugs.whiteboard, "[worldcup]")
         """
 
         for row in client.query(query_wc).result():
             if row.number not in results:
                 results[row.number] = {}
-            results[row.number]["[webcompat:wc2026]"] = row["is_wc_2026"]
+            results[row.number]["[worldcup]"] = row["is_wc_2026"]
 
         return results
 
