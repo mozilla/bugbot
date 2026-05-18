@@ -113,7 +113,6 @@
     "sec": false
   },
   "crashes_after_fix": {
-    "min_days_since_fix": 4,
     "max_days_since_fix": 10,
     "min_crash_count": 5
   },

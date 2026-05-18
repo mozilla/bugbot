@@ -17,13 +17,12 @@ COMMENT_MARKER = "crashes are still being reported against this signature"
 
 
 class CrashesAfterFix(BzCleaner):
-    """Crash bugs whose signature is still crashing on Nightly some days
-    after the fix landed. Need-infos the assignee to ask whether the fix was
-    incomplete or whether a follow-up is needed."""
+    """Crash bugs whose signature is still crashing on Nightly after the fix
+    landed. Need-infos the assignee to ask whether the fix was incomplete or
+    whether a follow-up is needed."""
 
     def __init__(self):
         super().__init__()
-        self.min_days_since_fix = utils.get_config(self.name(), "min_days_since_fix", 4)
         self.max_days_since_fix = utils.get_config(
             self.name(), "max_days_since_fix", 10
         )
@@ -35,16 +34,15 @@ class CrashesAfterFix(BzCleaner):
 
     def description(self):
         return (
-            "Bugs whose crash signatures keep crashing on Nightly "
-            "{}-{} days after the fix landed"
-        ).format(self.min_days_since_fix, self.max_days_since_fix)
+            "Bugs whose crash signatures keep crashing on Nightly within "
+            "{} days after the fix landed"
+        ).format(self.max_days_since_fix)
 
     def has_assignee(self):
         return True
 
     def get_extra_for_template(self):
         return {
-            "min_days": self.min_days_since_fix,
             "max_days": self.max_days_since_fix,
             "min_crashes": self.min_crash_count,
         }
@@ -54,16 +52,15 @@ class CrashesAfterFix(BzCleaner):
 
     def get_bz_params(self, date):
         today = lmdutils.get_date_ymd(date)
-        # cf_last_resolved must fall in the window
-        #   [today - max_days, today - min_days]
-        # so the fix has been on Nightly for at least min_days but not more
-        # than max_days. Bugzilla compares cf_last_resolved against a date
-        # string with greaterthan/lessthan.
+        # Only consider fixes resolved within the past max_days. Older fixes
+        # have aged out of the monitoring window: by then beta/release
+        # exposure and signature evolution carry more meaning than another
+        # post-landing ping. Bugs already actioned by this rule are filtered
+        # out below via the marker-substring check on longdesc, so we keep
+        # polling each candidate daily until it either crosses the crash
+        # threshold or ages past max_days.
         oldest_fix = lmdutils.get_date_str(
             today - timedelta(days=self.max_days_since_fix)
-        )
-        newest_fix = lmdutils.get_date_str(
-            today - timedelta(days=self.min_days_since_fix)
         )
 
         fields = [
@@ -91,21 +88,16 @@ class CrashesAfterFix(BzCleaner):
             "f3": "cf_last_resolved",
             "o3": "greaterthan",
             "v3": oldest_fix,
-            # cf_last_resolved < today - min_days (old enough to be in nightly
-            # builds for the monitoring window).
-            "f4": "cf_last_resolved",
-            "o4": "lessthan",
-            "v4": newest_fix,
             # Skip bugs that already have an open needinfo so we don't pile on.
-            "f5": "flagtypes.name",
-            "o5": "notsubstring",
-            "v5": "needinfo?",
+            "f4": "flagtypes.name",
+            "o4": "notsubstring",
+            "v4": "needinfo?",
             # Skip bugs where we've already left a needinfo comment for this
             # rule (idempotency across daily runs).
-            "n6": 1,
-            "f6": "longdesc",
-            "o6": "casesubstring",
-            "v6": COMMENT_MARKER,
+            "n5": 1,
+            "f5": "longdesc",
+            "o5": "casesubstring",
+            "v5": COMMENT_MARKER,
         }
 
         return params
