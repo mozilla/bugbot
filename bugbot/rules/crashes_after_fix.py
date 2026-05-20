@@ -52,13 +52,6 @@ class CrashesAfterFix(BzCleaner):
 
     def get_bz_params(self, date):
         today = lmdutils.get_date_ymd(date)
-        # Only consider fixes resolved within the past max_days. Older fixes
-        # have aged out of the monitoring window: by then beta/release
-        # exposure and signature evolution carry more meaning than another
-        # post-landing ping. Bugs already actioned by this rule are filtered
-        # out below via the marker-substring check on longdesc, so we keep
-        # polling each candidate daily until it either crosses the crash
-        # threshold or ages past max_days.
         oldest_fix = lmdutils.get_date_str(
             today - timedelta(days=self.max_days_since_fix)
         )
@@ -77,23 +70,17 @@ class CrashesAfterFix(BzCleaner):
             "include_fields": fields,
             "resolution": "FIXED",
             "bug_status": ["RESOLVED", "VERIFIED"],
-            # Has a non-empty crash signature.
             "f1": "cf_crash_signature",
             "o1": "isnotempty",
-            # The fix is in Nightly.
             "f2": "cf_status_firefox_nightly",
             "o2": "equals",
             "v2": "fixed",
-            # cf_last_resolved > today - max_days (recent enough).
             "f3": "cf_last_resolved",
             "o3": "greaterthan",
             "v3": oldest_fix,
-            # Skip bugs that already have an open needinfo so we don't pile on.
             "f4": "flagtypes.name",
             "o4": "notsubstring",
             "v4": "needinfo?",
-            # Skip bugs where we've already left a needinfo comment for this
-            # rule (idempotency across daily runs).
             "n5": 1,
             "f5": "longdesc",
             "o5": "casesubstring",
@@ -132,10 +119,19 @@ class CrashesAfterFix(BzCleaner):
         }
 
     def _query_socorro(self, info):
-        """Faceted SuperSearch over Nightly crashes since the day after the fix
-        landed. Returns (total_count, per_signature_counts, since_date_str)."""
+        """Faceted SuperSearch over Nightly crashes on builds shipped after the
+        fix landed. Returns (total_count, per_signature_counts, since_str).
+
+        Filters by build_id rather than crash date so that crashes from Nightly
+        users still running pre-fix builds aren't counted -- those crashes
+        don't mean the fix failed."""
         fix_dt = lmdutils.get_date_ymd(info["fix_date"])
-        since = lmdutils.get_date_str(fix_dt + timedelta(days=1))
+        # Nightly build IDs are timestamps in YYYYMMDDHHMMSS format. The first
+        # build that can include the fix is the one created the day after the
+        # bug was resolved, so set the cutoff to midnight of that day.
+        since_day = fix_dt + timedelta(days=1)
+        build_id_min = since_day.strftime("%Y%m%d000000")
+        since = since_day.strftime("%Y-%m-%d")
 
         counts = {}
 
@@ -148,7 +144,7 @@ class CrashesAfterFix(BzCleaner):
         params = {
             "product": "Firefox",
             "release_channel": "nightly",
-            "date": ">=" + since,
+            "build_id": ">=" + build_id_min,
             "signature": ["=" + s for s in info["signatures"]],
             "_results_number": 0,
             "_facets": "signature",
