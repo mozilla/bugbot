@@ -179,6 +179,9 @@ python -m bugbot.rules.fuzz_blockers --production
 # Detect bugs with small crash volume
 python -m bugbot.rules.crash_small_volume --production
 
+# Notify assignees when a fix doesn't actually stop the crash on Nightly
+python -m bugbot.rules.crashes_after_fix --production
+
 # Send a list with security bugs that could be un-hidden
 python -m bugbot.rules.security_unhide_dups --production
 
