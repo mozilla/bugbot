@@ -126,13 +126,13 @@ def test_merge_changes():
     assert changes["3"].keys() == {"whiteboard"}
 
 
-def test_missed_merge_function():
+def test_missing_merge_function():
     with pytest.raises(MissingMergeFunctionError):
         multi_autofixers = MissingMergeFunctionMockup()
         multi_autofixers._merge_changes_from_rules()
 
 
-def test_unsported_rule_in_merge_function():
+def test_unsupported_rule_in_merge_function():
     with pytest.raises(UnexpectedRulesError):
         multi_autofixers = UnsupportedRuleInMergeFunctionMockup()
         multi_autofixers._merge_changes_from_rules()
