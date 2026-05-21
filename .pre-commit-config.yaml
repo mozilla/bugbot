@@ -61,6 +61,13 @@ repos:
   - repo: meta
     hooks:
       - id: check-useless-excludes
+  - repo: local
+    hooks:
+      - id: check-json-indentation
+        name: Check JSON Indentation Consistency
+        entry: pre-commit/check_json_indentation.py
+        language: python
+        files: \.json$
   - repo: https://github.com/astral-sh/uv-pre-commit
     # uv version.
     rev: 0.8.15
