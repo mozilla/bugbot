@@ -36,7 +36,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "coverage==7.13.5",
-  "mock==5.2.0",
+  "pytest==8.3.4",
   "responses==0.26.0"
 ]
 
@@ -59,7 +59,7 @@ deps = [".[dev]"]
 commands = [
   ["alembic", "upgrade", "head"],
   ["coverage", "erase"],
-  ["coverage", "run", "--branch", "--source", "{toxinidir}/bugbot", "-m", "unittest", "-v", { replace="posargs", extend = true }]
+  ["coverage", "run", "--branch", "--source", "{toxinidir}/bugbot", "-m", "pytest", "-v", { replace="posargs", extend = true }]
 ]
 
 [tool.djlint]

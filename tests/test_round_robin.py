@@ -5,9 +5,10 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import csv
-import unittest
 from typing import List
 from unittest.mock import patch
+
+import pytest
 
 from bugbot.people import People
 from bugbot.round_robin import RotationDefinitions, RoundRobin
@@ -22,8 +23,9 @@ class RotationDefinitionsMockup(RotationDefinitions):
         return csv.DictReader(self.csv_lines)
 
 
-class TestRoundRobin(unittest.TestCase):
-    config = RotationDefinitionsMockup(
+@pytest.fixture
+def round_robin_config():
+    return RotationDefinitionsMockup(
         [
             "Team Name,Calendar Scope,Fallback Triager,Calendar URL",
             "team,P1::C1,G H,tests/data/calendar_default.json",
@@ -32,7 +34,10 @@ class TestRoundRobin(unittest.TestCase):
         ]
     )
 
-    config_ics = RotationDefinitionsMockup(
+
+@pytest.fixture
+def round_robin_config_ics():
+    return RotationDefinitionsMockup(
         [
             "Team Name,Calendar Scope,Fallback Triager,Calendar URL",
             "team,P1::C1,G H,tests/data/calendar.ics",
@@ -40,7 +45,10 @@ class TestRoundRobin(unittest.TestCase):
         ]
     )
 
-    people = People(
+
+@pytest.fixture
+def round_robin_people():
+    return People(
         [
             {
                 "mail": "{}{}@mozilla.com".format(x, y),
@@ -60,7 +68,10 @@ class TestRoundRobin(unittest.TestCase):
         ]
     )
 
-    def mk_bug(self, pc):
+
+@pytest.fixture
+def mk_bug():
+    def _mk(pc):
         p, c = pc.split("::")
         return {
             "product": p,
@@ -69,168 +80,85 @@ class TestRoundRobin(unittest.TestCase):
             "triage_owner_detail": {"nick": "ij"},
         }
 
-    @staticmethod
-    def _get_nick(x, bzmail, pc, cal):
-        return bzmail.split("@")[0]
+    return _mk
 
-    def test_get(self):
-        with patch.object(RoundRobin, "get_nick", new=TestRoundRobin._get_nick):
-            rr = RoundRobin(
-                rotation_definitions=TestRoundRobin.config, people=TestRoundRobin.people
-            )
 
-            assert rr.get(self.mk_bug("P1::C1"), "2019-02-17") == (
-                "ab@mozilla.com",
-                "ab",
-            )
-            assert rr.get(self.mk_bug("P2::C2"), "2019-02-17") == (
-                "ab@mozilla.com",
-                "ab",
-            )
-            assert rr.get(self.mk_bug("P3::C3"), "2019-02-17") == (
-                "ef@mozilla.com",
-                "ef",
-            )
+def _get_nick(x, bzmail, pc, cal):
+    return bzmail.split("@")[0]
 
-            assert rr.get(self.mk_bug("P1::C1"), "2019-02-24") == (
-                "cd@mozilla.com",
-                "cd",
-            )
-            assert rr.get(self.mk_bug("P2::C2"), "2019-02-24") == (
-                "cd@mozilla.com",
-                "cd",
-            )
-            assert rr.get(self.mk_bug("P3::C3"), "2019-02-24") == (
-                "ab@mozilla.com",
-                "ab",
-            )
 
-            assert rr.get(self.mk_bug("P1::C1"), "2019-02-28") == (
-                "ef@mozilla.com",
-                "ef",
-            )
-            assert rr.get(self.mk_bug("P2::C2"), "2019-02-28") == (
-                "ef@mozilla.com",
-                "ef",
-            )
-            assert rr.get(self.mk_bug("P3::C3"), "2019-02-28") == (
-                "cd@mozilla.com",
-                "cd",
-            )
-
-            assert rr.get(self.mk_bug("P1::C1"), "2019-03-05") == (
-                "ef@mozilla.com",
-                "ef",
-            )
-            assert rr.get(self.mk_bug("P2::C2"), "2019-03-05") == (
-                "ef@mozilla.com",
-                "ef",
-            )
-            assert rr.get(self.mk_bug("P3::C3"), "2019-03-05") == (
-                "cd@mozilla.com",
-                "cd",
-            )
-
-            assert rr.get(self.mk_bug("P1::C1"), "2019-03-08") == (
-                "gh@mozilla.com",
-                "gh",
-            )
-            assert rr.get(self.mk_bug("P2::C2"), "2019-03-08") == (
-                "gh@mozilla.com",
-                "gh",
-            )
-            assert rr.get(self.mk_bug("P3::C3"), "2019-03-08") == (
-                "gh@mozilla.com",
-                "gh",
-            )
-
-            assert rr.get(self.mk_bug("Foo::Bar"), "2019-03-01") == (
-                "ij@mozilla.com",
-                "ij",
-            )
-
-    def test_get_ics(self):
-        with patch.object(RoundRobin, "get_nick", new=TestRoundRobin._get_nick):
-            rr = RoundRobin(
-                rotation_definitions=TestRoundRobin.config_ics,
-                people=TestRoundRobin.people,
-            )
-
-            assert rr.get(self.mk_bug("P1::C1"), "2019-02-17") == (
-                "ab@mozilla.com",
-                "ab",
-            )
-            assert rr.get(self.mk_bug("P2::C2"), "2019-02-17") == (
-                "ab@mozilla.com",
-                "ab",
-            )
-
-            assert rr.get(self.mk_bug("P1::C1"), "2019-02-24") == (
-                "cd@mozilla.com",
-                "cd",
-            )
-            assert rr.get(self.mk_bug("P2::C2"), "2019-02-24") == (
-                "cd@mozilla.com",
-                "cd",
-            )
-
-            assert rr.get(self.mk_bug("P1::C1"), "2019-02-28") == (
-                "ef@mozilla.com",
-                "ef",
-            )
-            assert rr.get(self.mk_bug("P2::C2"), "2019-02-28") == (
-                "ef@mozilla.com",
-                "ef",
-            )
-
-            assert rr.get(self.mk_bug("P1::C1"), "2019-03-05") == (
-                "ef@mozilla.com",
-                "ef",
-            )
-            assert rr.get(self.mk_bug("P2::C2"), "2019-03-05") == (
-                "ef@mozilla.com",
-                "ef",
-            )
-
-            assert rr.get(self.mk_bug("P1::C1"), "2019-03-08") == (
-                "ab@mozilla.com",
-                "ab",
-            )
-            assert rr.get(self.mk_bug("P2::C2"), "2019-03-08") == (
-                "ab@mozilla.com",
-                "ab",
-            )
-
-            assert rr.get(self.mk_bug("P1::C1"), "2019-03-15") == (
-                "gh@mozilla.com",
-                "gh",
-            )
-            assert rr.get(self.mk_bug("P2::C2"), "2019-03-15") == (
-                "gh@mozilla.com",
-                "gh",
-            )
-
-            assert rr.get(self.mk_bug("Foo::Bar"), "2019-03-01") == (
-                "ij@mozilla.com",
-                "ij",
-            )
-
-    def test_get_who_to_nag(self):
+def test_get(round_robin_config, round_robin_people, mk_bug):
+    with patch.object(RoundRobin, "get_nick", new=_get_nick):
         rr = RoundRobin(
-            rotation_definitions=TestRoundRobin.config, people=TestRoundRobin.people
+            rotation_definitions=round_robin_config, people=round_robin_people
         )
 
-        empty = {"team": {"nobody": True, "persons": []}}
+        assert rr.get(mk_bug("P1::C1"), "2019-02-17") == ("ab@mozilla.com", "ab")
+        assert rr.get(mk_bug("P2::C2"), "2019-02-17") == ("ab@mozilla.com", "ab")
+        assert rr.get(mk_bug("P3::C3"), "2019-02-17") == ("ef@mozilla.com", "ef")
 
-        assert rr.get_who_to_nag("2019-02-25") == {}
-        assert rr.get_who_to_nag("2019-03-01") == {"gh@mozilla.com": empty}
-        assert rr.get_who_to_nag("2019-03-05") == {"gh@mozilla.com": empty}
-        assert rr.get_who_to_nag("2019-03-07") == {"gh@mozilla.com": empty}
-        assert rr.get_who_to_nag("2019-03-10") == {"gh@mozilla.com": empty}
+        assert rr.get(mk_bug("P1::C1"), "2019-02-24") == ("cd@mozilla.com", "cd")
+        assert rr.get(mk_bug("P2::C2"), "2019-02-24") == ("cd@mozilla.com", "cd")
+        assert rr.get(mk_bug("P3::C3"), "2019-02-24") == ("ab@mozilla.com", "ab")
 
-        with patch.object(People, "get_moz_mail", return_value=None):
-            rr = RoundRobin(
-                rotation_definitions=TestRoundRobin.config, people=TestRoundRobin.people
-            )
+        assert rr.get(mk_bug("P1::C1"), "2019-02-28") == ("ef@mozilla.com", "ef")
+        assert rr.get(mk_bug("P2::C2"), "2019-02-28") == ("ef@mozilla.com", "ef")
+        assert rr.get(mk_bug("P3::C3"), "2019-02-28") == ("cd@mozilla.com", "cd")
 
-            self.assertRaises(BadFallback, rr.get_who_to_nag, "2019-03-01")
+        assert rr.get(mk_bug("P1::C1"), "2019-03-05") == ("ef@mozilla.com", "ef")
+        assert rr.get(mk_bug("P2::C2"), "2019-03-05") == ("ef@mozilla.com", "ef")
+        assert rr.get(mk_bug("P3::C3"), "2019-03-05") == ("cd@mozilla.com", "cd")
+
+        assert rr.get(mk_bug("P1::C1"), "2019-03-08") == ("gh@mozilla.com", "gh")
+        assert rr.get(mk_bug("P2::C2"), "2019-03-08") == ("gh@mozilla.com", "gh")
+        assert rr.get(mk_bug("P3::C3"), "2019-03-08") == ("gh@mozilla.com", "gh")
+
+        assert rr.get(mk_bug("Foo::Bar"), "2019-03-01") == ("ij@mozilla.com", "ij")
+
+
+def test_get_ics(round_robin_config_ics, round_robin_people, mk_bug):
+    with patch.object(RoundRobin, "get_nick", new=_get_nick):
+        rr = RoundRobin(
+            rotation_definitions=round_robin_config_ics,
+            people=round_robin_people,
+        )
+
+        assert rr.get(mk_bug("P1::C1"), "2019-02-17") == ("ab@mozilla.com", "ab")
+        assert rr.get(mk_bug("P2::C2"), "2019-02-17") == ("ab@mozilla.com", "ab")
+
+        assert rr.get(mk_bug("P1::C1"), "2019-02-24") == ("cd@mozilla.com", "cd")
+        assert rr.get(mk_bug("P2::C2"), "2019-02-24") == ("cd@mozilla.com", "cd")
+
+        assert rr.get(mk_bug("P1::C1"), "2019-02-28") == ("ef@mozilla.com", "ef")
+        assert rr.get(mk_bug("P2::C2"), "2019-02-28") == ("ef@mozilla.com", "ef")
+
+        assert rr.get(mk_bug("P1::C1"), "2019-03-05") == ("ef@mozilla.com", "ef")
+        assert rr.get(mk_bug("P2::C2"), "2019-03-05") == ("ef@mozilla.com", "ef")
+
+        assert rr.get(mk_bug("P1::C1"), "2019-03-08") == ("ab@mozilla.com", "ab")
+        assert rr.get(mk_bug("P2::C2"), "2019-03-08") == ("ab@mozilla.com", "ab")
+
+        assert rr.get(mk_bug("P1::C1"), "2019-03-15") == ("gh@mozilla.com", "gh")
+        assert rr.get(mk_bug("P2::C2"), "2019-03-15") == ("gh@mozilla.com", "gh")
+
+        assert rr.get(mk_bug("Foo::Bar"), "2019-03-01") == ("ij@mozilla.com", "ij")
+
+
+def test_get_who_to_nag(round_robin_config, round_robin_people):
+    rr = RoundRobin(rotation_definitions=round_robin_config, people=round_robin_people)
+
+    empty = {"team": {"nobody": True, "persons": []}}
+
+    assert rr.get_who_to_nag("2019-02-25") == {}
+    assert rr.get_who_to_nag("2019-03-01") == {"gh@mozilla.com": empty}
+    assert rr.get_who_to_nag("2019-03-05") == {"gh@mozilla.com": empty}
+    assert rr.get_who_to_nag("2019-03-07") == {"gh@mozilla.com": empty}
+    assert rr.get_who_to_nag("2019-03-10") == {"gh@mozilla.com": empty}
+
+    with patch.object(People, "get_moz_mail", return_value=None):
+        rr = RoundRobin(
+            rotation_definitions=round_robin_config, people=round_robin_people
+        )
+
+        with pytest.raises(BadFallback):
+            rr.get_who_to_nag("2019-03-01")

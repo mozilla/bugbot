@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import unittest
+import pytest
 
 from bugbot.bzcleaner import BzCleaner
 from bugbot.multi_autofixers import (
@@ -111,29 +111,28 @@ class UnsupportedRuleInMergeFunctionMockup(MultiAutoFixers):
         )
 
 
-class TestMultiAutoFixers(unittest.TestCase):
-    def test_merge_changes(self):
-        multi_autofixers = MultiAutoFixersMockup()
-        changes = multi_autofixers._merge_changes_from_rules()
+def test_merge_changes():
+    multi_autofixers = MultiAutoFixersMockup()
+    changes = multi_autofixers._merge_changes_from_rules()
 
-        self.assertEqual(changes.keys(), {"1", "2", "3"})
-        self.assertEqual(
-            changes["1"].keys(), {"comment", "keywords", "whiteboard", "type"}
-        )
-        self.assertEqual(
-            changes["1"]["comment"]["body"],
-            "comment body for bug 1\n\nsecond rule comment body for bug 1",
-        )
-        self.assertEqual(changes["1"]["whiteboard"], "TAG1")
-        self.assertEqual(changes["2"].keys(), {"comment", "whiteboard", "type"})
-        self.assertEqual(changes["3"].keys(), {"whiteboard"})
+    assert changes.keys() == {"1", "2", "3"}
+    assert changes["1"].keys() == {"comment", "keywords", "whiteboard", "type"}
+    assert (
+        changes["1"]["comment"]["body"]
+        == "comment body for bug 1\n\nsecond rule comment body for bug 1"
+    )
+    assert changes["1"]["whiteboard"] == "TAG1"
+    assert changes["2"].keys() == {"comment", "whiteboard", "type"}
+    assert changes["3"].keys() == {"whiteboard"}
 
-    def test_missed_merge_function(self):
-        with self.assertRaises(MissingMergeFunctionError):
-            multi_autofixers = MissingMergeFunctionMockup()
-            multi_autofixers._merge_changes_from_rules()
 
-    def test_unsported_rule_in_merge_function(self):
-        with self.assertRaises(UnexpectedRulesError):
-            multi_autofixers = UnsupportedRuleInMergeFunctionMockup()
-            multi_autofixers._merge_changes_from_rules()
+def test_missing_merge_function():
+    with pytest.raises(MissingMergeFunctionError):
+        multi_autofixers = MissingMergeFunctionMockup()
+        multi_autofixers._merge_changes_from_rules()
+
+
+def test_unsupported_rule_in_merge_function():
+    with pytest.raises(UnexpectedRulesError):
+        multi_autofixers = UnsupportedRuleInMergeFunctionMockup()
+        multi_autofixers._merge_changes_from_rules()

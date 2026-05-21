@@ -1,8 +1,8 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-import unittest
 
+import pytest
 from libmozdata import versions as lmdversions
 
 from bugbot import utils
@@ -10,7 +10,7 @@ from bugbot.bzcleaner import BzCleaner
 from bugbot.rules.regression_set_status_flags import RegressionSetStatusFlags
 
 
-def mock_get_checked_versions(base=True):
+def _mock_get_checked_versions(base=True):
     return {
         "release": 2,
         "beta": 3,
@@ -21,7 +21,7 @@ def mock_get_checked_versions(base=True):
     }
 
 
-def mock_get_bugs(self, *args, **kwargs):
+def _mock_get_bugs(self, *args, **kwargs):
     return {
         "1111": {
             "id": 1111,
@@ -53,7 +53,7 @@ def mock_get_bugs(self, *args, **kwargs):
     }
 
 
-def mock_get_flags_from_regressing_bugs(self, bugids):
+def _mock_get_flags_from_regressing_bugs(self, bugids):
     assert sorted(bugids) == [111, 222, 333]
     return {
         111: {
@@ -74,55 +74,36 @@ def mock_get_flags_from_regressing_bugs(self, bugids):
     }
 
 
-class TestSetStatusFlags(unittest.TestCase):
-    def setUp(self):
-        self.orig_get_checked_versions = utils.get_checked_versions
-        self.orig_get_versions = lmdversions.get
-        self.orig_get_bugs = BzCleaner.get_bugs
-        self.orig_get_flags_from_regressing_bugs = (
-            RegressionSetStatusFlags.get_flags_from_regressing_bugs
-        )
-        utils.get_checked_versions = mock_get_checked_versions
-        lmdversions.get = mock_get_checked_versions
-        BzCleaner.get_bugs = mock_get_bugs
-        RegressionSetStatusFlags.get_flags_from_regressing_bugs = (
-            mock_get_flags_from_regressing_bugs
-        )
+@pytest.fixture
+def regression_set_status_flags_patches(monkeypatch):
+    monkeypatch.setattr(utils, "get_checked_versions", _mock_get_checked_versions)
+    monkeypatch.setattr(lmdversions, "get", _mock_get_checked_versions)
+    monkeypatch.setattr(BzCleaner, "get_bugs", _mock_get_bugs)
+    monkeypatch.setattr(
+        RegressionSetStatusFlags,
+        "get_flags_from_regressing_bugs",
+        _mock_get_flags_from_regressing_bugs,
+    )
 
-    def tearDown(self):
-        utils.get_checked_versions = self.orig_get_checked_versions
-        lmdversions.get = self.orig_get_versions
-        BzCleaner.get_bugs = self.orig_get_bugs
-        RegressionSetStatusFlags.get_flags_from_regressing_bugs = (
-            self.orig_get_flags_from_regressing_bugs
-        )
 
-    def test_status_changes(self):
-        r = RegressionSetStatusFlags()
-        bugs = r.get_bugs()
-        self.assertEqual(sorted(bugs), ["1111", "2222", "3333"])
-        self.assertEqual(list(r.status_changes), ["1111", "2222", "3333"])
-        self.assertEqual(
-            sorted(r.status_changes["1111"]),
-            [
-                "cf_status_firefox2",
-                "cf_status_firefox_esr2",
-                "cf_status_firefox_esr3",
-                "comment",
-                "keywords",
-            ],
-        )
-        self.assertEqual(
-            sorted(r.status_changes["1111"]["comment"]),
-            [
-                "body",
-                "is_private",
-            ],
-        )
-        self.assertEqual(r.status_changes["1111"]["cf_status_firefox2"], "unaffected")
-        self.assertEqual(
-            r.status_changes["1111"]["cf_status_firefox_esr2"], "unaffected"
-        )
-        self.assertEqual(r.status_changes["1111"]["cf_status_firefox_esr3"], "affected")
-        self.assertFalse(r.status_changes["1111"]["comment"]["is_private"])
-        self.assertTrue(r.status_changes["3333"]["comment"]["is_private"])
+def test_status_changes(regression_set_status_flags_patches):
+    r = RegressionSetStatusFlags()
+    bugs = r.get_bugs()
+    assert sorted(bugs) == ["1111", "2222", "3333"]
+    assert list(r.status_changes) == ["1111", "2222", "3333"]
+    assert sorted(r.status_changes["1111"]) == [
+        "cf_status_firefox2",
+        "cf_status_firefox_esr2",
+        "cf_status_firefox_esr3",
+        "comment",
+        "keywords",
+    ]
+    assert sorted(r.status_changes["1111"]["comment"]) == [
+        "body",
+        "is_private",
+    ]
+    assert r.status_changes["1111"]["cf_status_firefox2"] == "unaffected"
+    assert r.status_changes["1111"]["cf_status_firefox_esr2"] == "unaffected"
+    assert r.status_changes["1111"]["cf_status_firefox_esr3"] == "affected"
+    assert not r.status_changes["1111"]["comment"]["is_private"]
+    assert r.status_changes["3333"]["comment"]["is_private"]

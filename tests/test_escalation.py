@@ -4,14 +4,15 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import unittest
+import pytest
 
 from bugbot.escalation import Escalation
 from bugbot.people import People
 
 
-class TestEscalation(unittest.TestCase):
-    config = {
+@pytest.fixture
+def escalation_config():
+    return {
         "high": {
             "[30;+∞[": {"supervisor": "foobar", "days": ["Thu"]},
             "[20;30[": {"supervisor": "n+1", "days": ["Thu"]},
@@ -28,30 +29,11 @@ class TestEscalation(unittest.TestCase):
         "default": {"[0;+∞[": {"supervisor": "n+1", "days": ["Mon"]}},
     }
 
-    def test_str(self):
-        e = Escalation({}, data=TestEscalation.config)
-        high = e.as_string("high").split("\n")
-        assert high == [
-            "[0;5[ => supervisor: vp, days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']",
-            "[5;15[ => supervisor: director, days: ['Mon', 'Thu']",
-            "[15;20[ => supervisor: n+2, days: ['Mon', 'Thu']",
-            "[20;30[ => supervisor: n+1, days: ['Thu']",
-            "[30;+∞[ => supervisor: foobar, days: ['Thu']",
-        ]
 
-        normal = e.as_string("normal").split("\n")
-        assert normal == [
-            "[0;3[ => supervisor: vp, days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']",
-            "[3;10[ => supervisor: director, days: ['Mon', 'Thu']",
-            "[10;15[ => supervisor: n+2, days: ['Mon', 'Thu']",
-            "[15;+∞[ => supervisor: n+1, days: ['Thu']",
-        ]
-
-        default = e.as_string("default").split("\n")
-        assert default == ["[0;+∞[ => supervisor: n+1, days: ['Mon']"]
-
-    def test_escalation(self):
-        people = [
+@pytest.fixture
+def escalation_people():
+    return People(
+        [
             {
                 "mail": "a.b@mozilla.com",
                 "cn": "A B",
@@ -94,77 +76,90 @@ class TestEscalation(unittest.TestCase):
                 "title": "vice president",
             },
         ]
+    )
 
-        p = People(people)
-        e = Escalation(p, data=TestEscalation.config)
-        assert (
-            e.get_supervisor("high", 35, "a.b@mozilla.com", foobar="foobar@mozilla.com")
-            == "foobar@mozilla.com"
-        )
-        assert e.get_supervisor("high", 25, "a.b@mozilla.com") == "c.d@mozilla.com"
-        assert e.get_supervisor("high", 20, "a.b@mozilla.com") == "c.d@mozilla.com"
-        assert e.get_supervisor("high", 18, "a.b@mozilla.com") == "e.f@mozilla.com"
-        assert e.get_supervisor("high", 7, "a.b@mozilla.com") == "i.j@mozilla.com"
-        assert e.get_supervisor("high", 1, "a.b@mozilla.com") == "k.l@mozilla.com"
 
-        assert e.filter("high", 25, 0) is False
-        assert e.filter("high", 25, 3) is True
-        assert e.filter("high", 18, 0) is True
-        assert e.filter("high", 18, 1) is False
-        assert e.filter("high", 18, 3) is True
-        assert e.filter("high", 18, 5) is False
-        assert e.filter("high", 7, 1) is False
-        assert e.filter("high", 7, 3) is True
-        assert e.filter("high", 7, 5) is False
-        assert e.filter("high", 1, 1) is True
-        assert e.filter("high", 1, 3) is True
-        assert e.filter("high", 1, 4) is True
-        assert e.filter("high", 7, 5) is False
+def test_str(escalation_config):
+    e = Escalation({}, data=escalation_config)
+    high = e.as_string("high").split("\n")
+    assert high == [
+        "[0;5[ => supervisor: vp, days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']",
+        "[5;15[ => supervisor: director, days: ['Mon', 'Thu']",
+        "[15;20[ => supervisor: n+2, days: ['Mon', 'Thu']",
+        "[20;30[ => supervisor: n+1, days: ['Thu']",
+        "[30;+∞[ => supervisor: foobar, days: ['Thu']",
+    ]
 
-        assert e.get_supervisor("normal", 17, "a.b@mozilla.com") == "c.d@mozilla.com"
-        assert e.get_supervisor("normal", 15, "a.b@mozilla.com") == "c.d@mozilla.com"
-        assert e.get_supervisor("normal", 12, "a.b@mozilla.com") == "e.f@mozilla.com"
-        assert e.get_supervisor("normal", 7, "a.b@mozilla.com") == "i.j@mozilla.com"
-        assert e.get_supervisor("normal", 1, "a.b@mozilla.com") == "k.l@mozilla.com"
+    normal = e.as_string("normal").split("\n")
+    assert normal == [
+        "[0;3[ => supervisor: vp, days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']",
+        "[3;10[ => supervisor: director, days: ['Mon', 'Thu']",
+        "[10;15[ => supervisor: n+2, days: ['Mon', 'Thu']",
+        "[15;+∞[ => supervisor: n+1, days: ['Thu']",
+    ]
 
-        assert e.get_supervisor("default", 17, "a.b@mozilla.com") == "c.d@mozilla.com"
-        assert e.get_supervisor("default", 7, "a.b@mozilla.com") == "c.d@mozilla.com"
-        assert e.get_supervisor("default", 1, "a.b@mozilla.com") == "c.d@mozilla.com"
-        assert e.get_supervisor("default", 0, "a.b@mozilla.com") == "c.d@mozilla.com"
+    default = e.as_string("default").split("\n")
+    assert default == ["[0;+∞[ => supervisor: n+1, days: ['Mon']"]
 
-        person = "a.b@mozilla.com"
-        superior_n1 = e.get_supervisor("high", 20, person)
-        superior_n2 = e.get_supervisor("high", 15, person)
-        superior_n3 = p.get_nth_manager_mail(person, 3)
-        superior_director = e.get_supervisor("high", 5, person)
-        superior_vp = e.get_supervisor("high", 0, person)
 
-        self.assertEqual(p.get_management_chain_mails(person, superior_n1), set())
-        self.assertEqual(
-            p.get_management_chain_mails(person, superior_n2),
-            {
-                superior_n1,
-            },
-        )
-        self.assertEqual(
-            p.get_management_chain_mails(person, superior_director),
-            {
-                superior_n1,
-                superior_n2,
-                superior_n3,
-            },
-        )
-        self.assertEqual(
-            p.get_management_chain_mails(person, superior_vp),
-            {
-                superior_n1,
-                superior_n2,
-                superior_n3,
-                superior_director,
-            },
-        )
+def test_escalation(escalation_config, escalation_people):
+    p = escalation_people
+    e = Escalation(p, data=escalation_config)
+    assert (
+        e.get_supervisor("high", 35, "a.b@mozilla.com", foobar="foobar@mozilla.com")
+        == "foobar@mozilla.com"
+    )
+    assert e.get_supervisor("high", 25, "a.b@mozilla.com") == "c.d@mozilla.com"
+    assert e.get_supervisor("high", 20, "a.b@mozilla.com") == "c.d@mozilla.com"
+    assert e.get_supervisor("high", 18, "a.b@mozilla.com") == "e.f@mozilla.com"
+    assert e.get_supervisor("high", 7, "a.b@mozilla.com") == "i.j@mozilla.com"
+    assert e.get_supervisor("high", 1, "a.b@mozilla.com") == "k.l@mozilla.com"
 
-        with self.assertRaisesRegex(
-            Exception, "Cannot identify .* as a superior of .*"
-        ):
-            p.get_management_chain_mails(superior_director, person)
+    assert e.filter("high", 25, 0) is False
+    assert e.filter("high", 25, 3) is True
+    assert e.filter("high", 18, 0) is True
+    assert e.filter("high", 18, 1) is False
+    assert e.filter("high", 18, 3) is True
+    assert e.filter("high", 18, 5) is False
+    assert e.filter("high", 7, 1) is False
+    assert e.filter("high", 7, 3) is True
+    assert e.filter("high", 7, 5) is False
+    assert e.filter("high", 1, 1) is True
+    assert e.filter("high", 1, 3) is True
+    assert e.filter("high", 1, 4) is True
+    assert e.filter("high", 7, 5) is False
+
+    assert e.get_supervisor("normal", 17, "a.b@mozilla.com") == "c.d@mozilla.com"
+    assert e.get_supervisor("normal", 15, "a.b@mozilla.com") == "c.d@mozilla.com"
+    assert e.get_supervisor("normal", 12, "a.b@mozilla.com") == "e.f@mozilla.com"
+    assert e.get_supervisor("normal", 7, "a.b@mozilla.com") == "i.j@mozilla.com"
+    assert e.get_supervisor("normal", 1, "a.b@mozilla.com") == "k.l@mozilla.com"
+
+    assert e.get_supervisor("default", 17, "a.b@mozilla.com") == "c.d@mozilla.com"
+    assert e.get_supervisor("default", 7, "a.b@mozilla.com") == "c.d@mozilla.com"
+    assert e.get_supervisor("default", 1, "a.b@mozilla.com") == "c.d@mozilla.com"
+    assert e.get_supervisor("default", 0, "a.b@mozilla.com") == "c.d@mozilla.com"
+
+    person = "a.b@mozilla.com"
+    superior_n1 = e.get_supervisor("high", 20, person)
+    superior_n2 = e.get_supervisor("high", 15, person)
+    superior_n3 = p.get_nth_manager_mail(person, 3)
+    superior_director = e.get_supervisor("high", 5, person)
+    superior_vp = e.get_supervisor("high", 0, person)
+
+    assert p.get_management_chain_mails(person, superior_n1) == set()
+    assert p.get_management_chain_mails(person, superior_n2) == {superior_n1}
+    assert p.get_management_chain_mails(person, superior_director) == {
+        superior_n1,
+        superior_n2,
+        superior_n3,
+    }
+    assert p.get_management_chain_mails(person, superior_vp) == {
+        superior_n1,
+        superior_n2,
+        superior_n3,
+        superior_director,
+    }
+
+    with pytest.raises(Exception, match="Cannot identify .* as a superior of .*"):
+        p.get_management_chain_mails(superior_director, person)
