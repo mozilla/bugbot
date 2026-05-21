@@ -38,7 +38,7 @@ tasks:
         workerType: ci
         payload:
           maxRunTime: 3600
-          image: python:3.10
+          image: astral/uv:python3.10-trixie
           env:
             TOX_ENV: py310
             COVERALLS_REPO_TOKEN: VWnjgqWLHfmgSQMJPFdIRYIG5ontiAGl6
@@ -48,10 +48,10 @@ tasks:
             - "git clone --quiet ${repository} bugbot &&
               cd bugbot &&
               git -c advice.detachedHead=false checkout ${head_rev} &&
-              pip install --quiet -e '.[test]' &&
-              pre-commit run --all-files --show-diff-on-failure &&
-              tox -e $TOX_ENV &&
-              coveralls"
+              uv sync --quiet --locked --extra test &&
+              uv run pre-commit run --all-files --show-diff-on-failure &&
+              uv run tox -e $TOX_ENV &&
+              uv run coveralls"
         metadata:
           name: bugbot tests
           description: bugbot tests
