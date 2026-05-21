@@ -17,6 +17,8 @@ ErrorHandler() {
 
 trap ErrorHandler ERR
 
+( git fetch --tags && git checkout $(curl -sSf https://api.github.com/repos/mozilla/bugbot/releases/latest | jq -r '.tag_name') )
+
 . .venv/bin/activate
 
 # force the update of dependencies
