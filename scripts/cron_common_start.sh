@@ -1,7 +1,5 @@
 #!/bin/bash
 
-git fetch --tags && git checkout $(curl -s https://api.github.com/repos/mozilla/bugbot/releases/latest | jq -r '.tag_name')
-
 if test ! -f configs/config.json; then
     echo "Cannot run without the config.json file in /configs/"
     exit -1
@@ -18,6 +16,8 @@ ErrorHandler() {
 }
 
 trap ErrorHandler ERR
+
+( git fetch --tags && git checkout $(curl -sSf https://api.github.com/repos/mozilla/bugbot/releases/latest | jq -r '.tag_name') )
 
 . .venv/bin/activate
 
