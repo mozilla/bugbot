@@ -1,32 +1,102 @@
 <p>
-    The following {{ plural('bug is', data, pword='bugs are') }} are marked as for specific web-features, but were missing relevant see-also links:
+    The following {{ plural('bug is', data, pword='bugs are') }} are marked as for specific web-features, and have been updated to match the feature status:
 </p>
 <table {{ table_attrs }}>
     <thead>
         <tr>
             <th>Bug</th>
-            <th>Links added</th>
             <th>Summary</th>
+            <th>Changes</th>
         </tr>
     </thead>
     <tbody>
-        {% for i, (bugid, summary, added) in enumerate(data) -%}
+        {% for i, (bugid, summary, changes, whiteboard, user_story) in enumerate(data) -%}
             <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
             {% endif -%}
             >
             <td>
                 <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
             </td>
+            <td>{{ summary | e }}</td>
             <td>
                 <ul>
-                    {% for link in added -%}
-                        <li>
-                            <a href="{{ link }}">{{ link | e }}</a>
+                    {% if changes.keywords is not none %}
+                        {% if changes.keywords.add %}
+                            <li>
+                                <p>
+                                    Added keywords
+                                    {% for item in changes.keywords.add %}
+                                        <code>{{ item | e }}</code>
+                                        {% if not loop.last %},{% endif %}
+                                    {% endfor %}
+                                </p>
+                            </li>
+                        {% endif -%}
+                        {% if changes.keywords.remove %}
+                            <li>
+                                <p>
+                                    Removed keywords
+                                    {% for item in changes.keywords.remove %}
+                                        <code>{{ item | e }}</code>
+                                        {% if not loop.last %},{% endif %}
+                                    {% endfor %}
+                                </p>
+                            </li>
+                        {% endif -%}
+                    {% endif -%}
+                    {% if changes.see_also is not none %}
+                        {% if changes.see_also.add %}
+                            <li>
+                                <p>
+                                    Added see_also
+                                    {% for item in changes.see_also.add %}
+                                        <code>{{ item | e }}</code>
+                                        {% if not loop.last %},{% endif %}
+                                    {% endfor %}
+                                </p>
+                            </li>
+                        {% endif -%}
+                        {% if changes.see_also.remove %}
+                            <li>
+                                <p>
+                                    Removed see_also
+                                    {% for item in changes.see_also.remove %}
+                                        <code>{{ item | e }}</code>
+                                        {% if not loop.last %},{% endif %}
+                                    {% endfor %}
+                                </p>
+                            </p>
                         </li>
-                    {% endfor -%}
-                </ul>
-                <td>{{ summary | e }}</td>
-            </tr>
-        {% endfor -%}
-    </tbody>
+                    {% endif -%}
+                {% endif -%}
+                {% if changes.whiteboard is not none %}
+                    <li>
+                        <p>
+                            Updated whiteboard from <code>{{ whiteboard | e }}</code> to <code>{{ changes.whiteboard | e }}</code>
+                        </p>
+                    </li>
+                {% endif -%}
+                {% if changes.user_story is not none %}
+                    <li>
+                        <p>Updated user story from:</p>
+                        <pre>{{ user_story | e }}</pre>
+                        <p>to:</p>
+                        <pre>{{ changes.user_story | e }}</pre>
+                    </li>
+                {% endif -%}
+                {% if changes.status is not none %}
+                    <li>
+                        <p>Set status to {{ changes.status | e }}</p>
+                    </li>
+                {% endif -%}
+                {% if changes.resolution is not none %}
+                    <li>
+                        <p>Set resolution to {{ changes.resolution | e }}</p>
+                    </li>
+                {% endif -%}
+            </ul>
+        </td>
+    </tr>
+{% endfor -%}
+</tbody>
 </table>
