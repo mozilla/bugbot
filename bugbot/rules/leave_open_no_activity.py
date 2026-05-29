@@ -50,7 +50,7 @@ class LeaveOpenNoActivity(BzCleaner):
             "v1": "leave-open",
             "f2": "keywords",
             "o2": "nowordssubstr",
-            "v2": "intermittent,stalled,meta",
+            "v2": "intermittent,stalled,meta,webcompat:sitepatch-applied",
             "f3": "status_whiteboard",
             "o3": "notregexp",
             "v3": r"\[(test|stockwell) disabled.*\]",
