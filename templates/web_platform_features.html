@@ -10,7 +10,7 @@
         </tr>
     </thead>
     <tbody>
-        {% for i, (bugid, summary, changes, whiteboard, user_story) in enumerate(data) -%}
+        {% for i, (bugid, summary, change_type, changes, whiteboard, user_story) in enumerate(data) -%}
             <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
             {% endif -%}
             >
@@ -19,84 +19,146 @@
             </td>
             <td>{{ summary | e }}</td>
             <td>
-                <ul>
-                    {% if changes.keywords is not none %}
-                        {% if changes.keywords.add %}
-                            <li>
-                                <p>
-                                    Added keywords
-                                    {% for item in changes.keywords.add %}
-                                        <code>{{ item | e }}</code>
-                                        {% if not loop.last %},{% endif %}
-                                    {% endfor %}
-                                </p>
-                            </li>
+                {% if change_type == "update" %}
+                    <p>Updated:</p>
+                    <ul>
+                        {% if changes.keywords is not none %}
+                            {% if changes.keywords.add %}
+                                <li>
+                                    <p>
+                                        Added keywords
+                                        {% for item in changes.keywords.add %}
+                                            <code>{{ item | e }}</code>
+                                            {% if not loop.last %},{% endif %}
+                                        {% endfor %}
+                                    </p>
+                                </li>
+                            {% endif -%}
+                            {% if changes.keywords.remove %}
+                                <li>
+                                    <p>
+                                        Removed keywords
+                                        {% for item in changes.keywords.remove %}
+                                            <code>{{ item | e }}</code>
+                                            {% if not loop.last %},{% endif %}
+                                        {% endfor %}
+                                    </p>
+                                </li>
+                            {% endif -%}
                         {% endif -%}
-                        {% if changes.keywords.remove %}
-                            <li>
-                                <p>
-                                    Removed keywords
-                                    {% for item in changes.keywords.remove %}
-                                        <code>{{ item | e }}</code>
-                                        {% if not loop.last %},{% endif %}
-                                    {% endfor %}
+                        {% if changes.see_also is not none %}
+                            {% if changes.see_also.add %}
+                                <li>
+                                    <p>
+                                        Added see_also
+                                        {% for item in changes.see_also.add %}
+                                            <code>{{ item | e }}</code>
+                                            {% if not loop.last %},{% endif %}
+                                        {% endfor %}
+                                    </p>
+                                </li>
+                            {% endif -%}
+                            {% if changes.see_also.remove %}
+                                <li>
+                                    <p>
+                                        Removed see_also
+                                        {% for item in changes.see_also.remove %}
+                                            <code>{{ item | e }}</code>
+                                            {% if not loop.last %},{% endif %}
+                                        {% endfor %}
+                                    </p>
                                 </p>
                             </li>
                         {% endif -%}
                     {% endif -%}
-                    {% if changes.see_also is not none %}
-                        {% if changes.see_also.add %}
-                            <li>
-                                <p>
-                                    Added see_also
-                                    {% for item in changes.see_also.add %}
-                                        <code>{{ item | e }}</code>
-                                        {% if not loop.last %},{% endif %}
-                                    {% endfor %}
-                                </p>
-                            </li>
-                        {% endif -%}
-                        {% if changes.see_also.remove %}
-                            <li>
-                                <p>
-                                    Removed see_also
-                                    {% for item in changes.see_also.remove %}
-                                        <code>{{ item | e }}</code>
-                                        {% if not loop.last %},{% endif %}
-                                    {% endfor %}
-                                </p>
+                    {% if changes.whiteboard is not none %}
+                        <li>
+                            <p>
+                                Updated whiteboard from <code>{{ whiteboard | e }}</code> to <code>{{ changes.whiteboard | e }}</code>
                             </p>
                         </li>
                     {% endif -%}
-                {% endif -%}
-                {% if changes.whiteboard is not none %}
-                    <li>
-                        <p>
-                            Updated whiteboard from <code>{{ whiteboard | e }}</code> to <code>{{ changes.whiteboard | e }}</code>
-                        </p>
-                    </li>
-                {% endif -%}
-                {% if changes.user_story is not none %}
-                    <li>
-                        <p>Updated user story from:</p>
-                        <pre>{{ user_story | e }}</pre>
-                        <p>to:</p>
-                        <pre>{{ changes.user_story | e }}</pre>
-                    </li>
-                {% endif -%}
-                {% if changes.status is not none %}
-                    <li>
-                        <p>Set status to {{ changes.status | e }}</p>
-                    </li>
-                {% endif -%}
-                {% if changes.resolution is not none %}
-                    <li>
-                        <p>Set resolution to {{ changes.resolution | e }}</p>
-                    </li>
-                {% endif -%}
-            </ul>
-        </td>
-    </tr>
-{% endfor -%}
-</tbody>
+                    {% if changes.user_story is not none %}
+                        <li>
+                            <p>Updated user story from:</p>
+                            <pre>{{ user_story | e }}</pre>
+                            <p>to:</p>
+                            <pre>{{ changes.user_story | e }}</pre>
+                        </li>
+                    {% endif -%}
+                    {% if changes.status is not none %}
+                        <li>
+                            <p>Set status to {{ changes.status | e }}</p>
+                        </li>
+                    {% endif -%}
+                    {% if changes.resolution is not none %}
+                        <li>
+                            <p>Set resolution to {{ changes.resolution | e }}</p>
+                        </li>
+                    {% endif -%}
+                </ul>
+            {% elif change_type == "create" %}
+                <p>
+                    Created bug:
+                    <ul>
+                        <li>
+                            <p>Product: {{ changes.product | e }}</p>
+                        </li>
+                        <li>
+                            <p>Component: {{ changes.component | e }}</p>
+                        </li>
+                        <li>
+                            <p>Description:</p>
+                            <blockquote>
+                                {{ changes.description | e }}
+                            </blockquote>
+                            {% if changes.url is not none %}
+                                <li>
+                                    <p>
+                                        url: <code>{{ changes.url | e }}</code>
+                                    </p>
+                                </li>
+                            {% endif %}
+                            {% if changes.see_also is not none %}
+                                <li>
+                                    <p>
+                                        see_also:
+                                        {% for item in changes.see_also %}
+                                            <code>{{ item | e }}</code>
+                                            {% if not loop.last %},{% endif %}
+                                        {% endfor %}
+                                    </p>
+                                </li>
+                            {% endif %}
+                            {% if changes.keywords is not none %}
+                                <li>
+                                    <p>
+                                        Keywords:
+                                        {% for item in changes.keywords %}
+                                            <code>{{ item | e }}</code>
+                                            {% if not loop.last %},{% endif %}
+                                        {% endfor %}
+                                    </p>
+                                </li>
+                            {% endif %}
+                            {% if changes.whiteboard is not none %}
+                                <li>
+                                    <p>
+                                        whiteboard: <code>{{ changes.whiteboard | e }}</code>
+                                    </p>
+                                </li>
+                            {% endif %}
+                            {% if changes.user_story is not none %}
+                                <li>
+                                    <p>
+                                        user_story: <pre>{{ changes.user_story | e }}</pre>
+                                    </p>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    {% endif -%}
+                </td>
+            </tr>
+        {% endfor -%}
+    </tbody>
 </table>
