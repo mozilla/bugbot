@@ -137,8 +137,8 @@ class AssigneeNoLogin(BzCleaner, Nag):
 
         for change in reversed(bug["history"]):
             if (
-                change["field_name"] == "priority"
-                and change["added"] == current_priority
+                change.get("field_name") == "priority"
+                and change.get("added") == current_priority
             ):
                 return datetime.strptime(change["when"], "%Y-%m-%dT%H:%M:%SZ")
         return None
