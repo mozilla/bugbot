@@ -11,7 +11,7 @@ exercise both the pre-fix failure mode (a KeyError when history entries are
 missing one of the expected keys) and the fixed behaviour.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 from bugbot.rules.assignee_no_login import AssigneeNoLogin
 
@@ -65,7 +65,11 @@ def test_get_priority_change_date_returns_none_when_no_match():
         "priority": "P1",
         "history": [
             {"field_name": "priority", "added": "P2", "when": "2024-01-01T00:00:00Z"},
-            {"field_name": "status", "added": "RESOLVED", "when": "2024-02-01T00:00:00Z"},
+            {
+                "field_name": "status",
+                "added": "RESOLVED",
+                "when": "2024-02-01T00:00:00Z",
+            },
         ],
     }
 
