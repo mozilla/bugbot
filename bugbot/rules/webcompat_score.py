@@ -144,7 +144,7 @@ class WebcompatScore(BzCleaner):
                CONCAT("P", CAST(buckets.webcompat_priority AS STRING)) AS webcompat_priority
         FROM `{project}.{dataset}.site_reports_bugzilla_buckets` as buckets
         JOIN `{project}.{dataset}.bugzilla_bugs` as bugs USING(number)
-        WHERE bugs.resolution = ""
+        WHERE bugs.resolution = "" AND JSON_VALUE(bugs.user_story, "$.impact") IS NOT NULL
         UNION ALL
         SELECT number,
                cast(score_all as string) as score,
