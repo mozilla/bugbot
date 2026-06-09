@@ -37,7 +37,7 @@ dependencies = [
 dev = [
   "coverage==7.13.5",
   "pytest==9.0.3",
-  "responses==0.26.0"
+  "responses==0.26.1"
 ]
 
 test = [
