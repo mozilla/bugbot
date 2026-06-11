@@ -47,6 +47,15 @@ class SeverityHighCompatPriority(BzCleaner):
             "f1": "longdesc",
             "o1": "casesubstring",
             "v1": "could you consider increasing the severity of this web compatibility bug?",
+            "n2": 1,
+            "f2": "OP",
+            "f3": "product",
+            "o3": "equals",
+            "v3": "Web Compatibility",
+            "f4": "keywords",
+            "o4": "substring",
+            "v4": "webcompat:site-report",
+            "f5": "CP",
         }
 
         return params
