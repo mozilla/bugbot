@@ -11,16 +11,13 @@ exercise both the pre-fix failure mode (a KeyError when history entries are
 missing one of the expected keys) and the fixed behaviour.
 """
 
-from datetime import datetime, timezone
+from datetime import datetime
 
 from bugbot.rules.assignee_no_login import AssigneeNoLogin
 
 
 def _make_rule():
-    return AssigneeNoLogin(
-        username="test@example.com",
-        user_contact={"cf_id": 0, "url": "https://example.com/"},
-    )
+    return AssigneeNoLogin()
 
 
 def test_get_priority_change_date_returns_date_when_history_entry_matches():
@@ -36,7 +33,7 @@ def test_get_priority_change_date_returns_date_when_history_entry_matches():
 
     result = rule.get_priority_change_date(bug)
 
-    assert result == datetime(2024, 1, 15, 12, 0, 0, tzinfo=timezone.utc)
+    assert result == datetime(2024, 1, 15, 12, 0, 0)
 
 
 def test_get_priority_change_date_handles_missing_field_name_without_keyerror():
@@ -56,7 +53,7 @@ def test_get_priority_change_date_handles_missing_field_name_without_keyerror():
 
     result = rule.get_priority_change_date(bug)
 
-    assert result == datetime(2024, 5, 20, 8, 30, 0, tzinfo=timezone.utc)
+    assert result == datetime(2024, 5, 20, 8, 30, 0)
 
 
 def test_get_priority_change_date_returns_none_when_no_match():
@@ -105,4 +102,4 @@ def test_get_priority_change_date_picks_most_recent_match():
 
     result = rule.get_priority_change_date(bug)
 
-    assert result == datetime(2024, 8, 15, 0, 0, 0, tzinfo=timezone.utc)
+    assert result == datetime(2024, 8, 15, 0, 0, 0)
