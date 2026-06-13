@@ -12,16 +12,46 @@ missing one of the expected keys) and the fixed behaviour.
 """
 
 from datetime import datetime
+from unittest.mock import patch
 
+import pytest
+
+from bugbot.people import People
 from bugbot.rules.assignee_no_login import AssigneeNoLogin
 
 
-def _make_rule():
-    return AssigneeNoLogin()
+def _mock_people():
+    """Build a minimal People object that satisfies the Person TypedDict."""
+    return People(
+        [
+            {
+                "mail": "test@example.com",
+                "cn": "Test User",
+                "ismanager": "FALSE",
+                "title": "Tester",
+                "bugzillaEmail": "test@example.com",
+                "bugzillaID": "1",
+                "dn": "mail=test@example.com,o=com,dc=test",
+                "found_on_bugzilla": True,
+                "im": [],
+                "isdirector": "FALSE",
+                "manager": {
+                    "cn": "",
+                    "dn": "mail=manager@example.com,o=com,dc=test",
+                },
+            }
+        ]
+    )
 
 
-def test_get_priority_change_date_returns_date_when_history_entry_matches():
-    rule = _make_rule()
+@pytest.fixture
+def rule():
+    """Return an AssigneeNoLogin rule with People stubbed out."""
+    with patch.object(People, "get_instance", return_value=_mock_people()):
+        yield AssigneeNoLogin()
+
+
+def test_get_priority_change_date_returns_date_when_history_entry_matches(rule):
     when = "2024-01-15T12:00:00Z"
     bug = {
         "priority": "P1",
@@ -36,9 +66,8 @@ def test_get_priority_change_date_returns_date_when_history_entry_matches():
     assert result == datetime(2024, 1, 15, 12, 0, 0)
 
 
-def test_get_priority_change_date_handles_missing_field_name_without_keyerror():
+def test_get_priority_change_date_handles_missing_field_name_without_keyerror(rule):
     """A history entry without ``field_name`` must not crash the lookup."""
-    rule = _make_rule()
     when = "2024-05-20T08:30:00Z"
     bug = {
         "priority": "P2",
@@ -56,8 +85,7 @@ def test_get_priority_change_date_handles_missing_field_name_without_keyerror():
     assert result == datetime(2024, 5, 20, 8, 30, 0)
 
 
-def test_get_priority_change_date_returns_none_when_no_match():
-    rule = _make_rule()
+def test_get_priority_change_date_returns_none_when_no_match(rule):
     bug = {
         "priority": "P1",
         "history": [
@@ -73,9 +101,8 @@ def test_get_priority_change_date_returns_none_when_no_match():
     assert rule.get_priority_change_date(bug) is None
 
 
-def test_get_priority_change_date_skips_entries_missing_field_name():
+def test_get_priority_change_date_skips_entries_missing_field_name(rule):
     """Entries that lack ``field_name`` must be skipped, not raise KeyError."""
-    rule = _make_rule()
     bug = {
         "priority": "P1",
         "history": [
@@ -89,8 +116,7 @@ def test_get_priority_change_date_skips_entries_missing_field_name():
     assert rule.get_priority_change_date(bug) is None
 
 
-def test_get_priority_change_date_picks_most_recent_match():
-    rule = _make_rule()
+def test_get_priority_change_date_picks_most_recent_match(rule):
     bug = {
         "priority": "P3",
         "history": [
