@@ -129,3 +129,35 @@ def test_get_priority_change_date_picks_most_recent_match(rule):
     result = rule.get_priority_change_date(bug)
 
     assert result == datetime(2024, 8, 15, 0, 0, 0)
+
+
+def test_get_priority_change_date_logs_warning_for_malformed_entry(rule, caplog):
+    """Malformed history entries must surface as a warning, not be silently
+    swallowed, so the upstream root cause is visible in production logs."""
+    import logging
+
+    when = "2024-09-01T10:00:00Z"
+    bug = {
+        "id": 12345,
+        "priority": "P2",
+        "history": [
+            # Valid match placed first so the malformed entry is what the
+            # reversed() iteration actually visits (and the iteration
+            # continues past the warning to find this earlier match).
+            {"field_name": "priority", "added": "P2", "when": when},
+            # Malformed: missing both expected keys.
+            {"when": "2024-07-01T00:00:00Z"},
+        ],
+    }
+
+    with caplog.at_level(logging.WARNING, logger="bugbot"):
+        result = rule.get_priority_change_date(bug)
+
+    # The lookup must still find the earlier, valid entry.
+    assert result == datetime(2024, 9, 1, 10, 0, 0)
+    # And the malformed entry must have been logged.
+    assert any(
+        "history entry missing" in record.getMessage()
+        and "12345" in record.getMessage()
+        for record in caplog.records
+    )
