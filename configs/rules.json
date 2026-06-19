@@ -260,7 +260,6 @@
       "Firefox::Untriaged",
       "Core::JavaScript Engine",
       "DevTools::Accessibility Tools",
-      "Core::Performance",
       "Core::Privacy: Anti-Tracking",
       "Firefox::Extension Compatibility",
       "Core::DOM: Bindings (WebIDL)",

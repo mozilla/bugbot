@@ -1,17 +1,27 @@
-This bug was moved into the Performance component.
+{% set component = extra[bugid]["component"] -%}
+This bug was moved into the {{ component }} component.
 
 :{{ nickname }}, could you make sure the following information is on this bug?
-
+{% if component == "Performance: General" %}
 - {% if extra[bugid]["has_profiler_link"] %}~~✅ {% endif -%}
-For slowness or high CPU usage, capture a profile with http://profiler.firefox.com/, upload it and share the link here.
+For slowness or high CPU usage, capture a profile with https://profiler.firefox.com/, upload it and share the link here.
 {%- if extra[bugid]["has_profiler_link"] %}~~{% endif %}
 - {% if extra[bugid]["has_memory_report"] %}~~✅ {% endif -%}
-For memory usage issues, capture a memory dump from `about:memory` and attach it to this bug.
+For memory usage issues, capture a memory dump from `about:memory` and attach it to this bug. Please consider moving this issue to the Performance: Memory component.
 {%- if extra[bugid]["has_memory_report"] %}~~{% endif %}
 - {% if extra[bugid]["has_troubleshooting_info"] %}~~✅ {% endif -%}
 Troubleshooting information: Go to `about:support`, click "Copy raw data to clipboard", paste it into a file, save it, and attach the file here.
 {% if extra[bugid]["has_troubleshooting_info"] %}~~{% endif %}
-
 If the requested information is already in the bug, please confirm it is recent.
+{% elif component == "Performance: Memory" %}
+Please go to `about:memory`, there you can see a button labeled "Measure and save", you can use this to save a memory report that you can attach to this bug. Note that a memory report can contain information about the websites you are visiting and may be anonymized by the checkbox next to the button.
+{% elif component == "Performance: Navigation" %}
+If the problem is reproducible for you, please capture a profile with the Firefox Profiler. The instructions can be found at https://profiler.firefox.com/. Start the profiler before executing the navigation and capture the profile after the full navigation has finished.
 
+Please use the upload button in the top right to upload the profile. If you are comfortable sharing additional diagnostic information, please check "Include additional data that may be identifiable" when presented with the upload options. This extra data can help us diagnose the problem.
+{% elif component == "Performance: Responsiveness" %}
+If the problem is reproducible for you, please capture a profile with the Firefox Profiler. The instructions can be found at https://profiler.firefox.com/. Start the profiler before executing the interaction suffering from responsiveness issues and capture the profile after the full interaction has finished. Please use the upload link at the top right and share the link on this bug to help with diagnosis.
+{% elif component == "Performance: Startup" %}
+Startup issues can be very difficult for our engineers to reproduce. If the problem is reproducible for you, please capture a profile with the Firefox Profiler. The instructions for profiling startup can be found at https://profiler.firefox.com/docs/#/./guide-startup-shutdown. After successfully capturing a profile, please upload it using the link at the top right and share the link on this bug to help with diagnosis.
+{% endif %}
 Thank you.
