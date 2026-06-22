@@ -11,9 +11,25 @@ from libmozdata import utils as lmdutils
 
 from bugbot.bzcleaner import BzCleaner
 
+# The performance components we monitor, mapped to the information we request
+# when a bug is moved into them. Each entry lists the keys (from the flags
+# computed in `handle_bug`) that we expect to find; if all of them are already
+# present, we don't need to add a comment.
+PERFORMANCE_COMPONENTS = {
+    "Performance: General": {
+        "has_profiler_link",
+        "has_memory_report",
+        "has_troubleshooting_info",
+    },
+    "Performance: Memory": {"has_memory_report"},
+    "Performance: Navigation": {"has_profiler_link"},
+    "Performance: Responsiveness": {"has_profiler_link"},
+    "Performance: Startup": {"has_profiler_link"},
+}
+
 
 class MovedToPerformance(BzCleaner):
-    """Add a comment to bugs that recently moved to the performance component"""
+    """Add a comment to bugs that recently moved to a performance component"""
 
     def __init__(self, recent_date_weeks: int = 26):
         """Constructor
@@ -29,13 +45,16 @@ class MovedToPerformance(BzCleaner):
         )
 
     def description(self):
-        return "Bugs that recently moved to the performance component"
+        return "Bugs that recently moved to a performance component"
 
     def get_extra_for_needinfo_template(self):
         return self.ni_extra
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
+
+        component = bug["component"]
+        required_info = PERFORMANCE_COMPONENTS[component]
 
         has_profiler_link = any(
             "https://share.firefox.dev/" in comment["text"]
@@ -62,15 +81,18 @@ class MovedToPerformance(BzCleaner):
             and not attachment["is_patch"]
         )
 
-        if has_profiler_link and has_memory_report and has_troubleshooting_info:
-            # Nothing missing, no need to add a comment
-            return None
-
-        self.ni_extra[bugid] = {
+        info = {
+            "component": component,
             "has_profiler_link": has_profiler_link,
             "has_memory_report": has_memory_report,
             "has_troubleshooting_info": has_troubleshooting_info,
         }
+
+        if all(info[key] for key in required_info):
+            # Nothing missing for this component, no need to add a comment
+            return None
+
+        self.ni_extra[bugid] = info
 
         return bug
 
@@ -124,6 +146,7 @@ class MovedToPerformance(BzCleaner):
     def get_bz_params(self, date):
         fields = [
             "creator",
+            "component",
             "attachments.is_obsolete",
             "attachments.is_patch",
             "attachments.content_type",
@@ -145,8 +168,8 @@ class MovedToPerformance(BzCleaner):
             "o1": "equals",
             "v1": "Core",
             "f2": "component",
-            "o2": "equals",
-            "v2": "Performance",
+            "o2": "anyexact",
+            "v2": list(PERFORMANCE_COMPONENTS),
             "f3": "component",
             "o3": "changedafter",
             "v3": "-7d",
