@@ -16,15 +16,15 @@ from bugbot.bzcleaner import BzCleaner
 # computed in `handle_bug`) that we expect to find; if all of them are already
 # present, we don't need to add a comment.
 PERFORMANCE_COMPONENTS = {
-    "Performance: General": (
+    "Performance: General": {
         "has_profiler_link",
         "has_memory_report",
         "has_troubleshooting_info",
-    ),
-    "Performance: Memory": ("has_memory_report",),
-    "Performance: Navigation": ("has_profiler_link",),
-    "Performance: Responsiveness": ("has_profiler_link",),
-    "Performance: Startup": ("has_profiler_link",),
+    },
+    "Performance: Memory": {"has_memory_report"},
+    "Performance: Navigation": {"has_profiler_link"},
+    "Performance: Responsiveness": {"has_profiler_link"},
+    "Performance: Startup": {"has_profiler_link"},
 }
 
 
@@ -54,10 +54,7 @@ class MovedToPerformance(BzCleaner):
         bugid = str(bug["id"])
 
         component = bug["component"]
-        required_info = PERFORMANCE_COMPONENTS.get(component)
-        if required_info is None:
-            # The bug is in a component we don't have a template for
-            return None
+        required_info = PERFORMANCE_COMPONENTS[component]
 
         has_profiler_link = any(
             "https://share.firefox.dev/" in comment["text"]
