@@ -353,6 +353,9 @@ class NotLanded(BzCleaner):
             "f7": "status_whiteboard",
             "o7": "notsubstring",
             "v7": "[reminder-test ",
+            "f8": "status_whiteboard",
+            "o8": "notsubstring",
+            "v8": "[reminder-landing ",
         }
 
         return params
