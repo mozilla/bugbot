@@ -38,6 +38,9 @@ python -m bugbot.rules.stalled --production
 # Pretty rare
 python -m bugbot.rules.missing_beta_status --production
 
+# Needinfo assignee when a patch could be uplifted to beta
+python -m bugbot.rules.uplift_beta --production
+
 # File bugs for new actionable crashes
 python -m bugbot.rules.file_crash_bug --production
 
