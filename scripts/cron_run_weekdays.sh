@@ -20,10 +20,6 @@ python -m bugbot.rules.reminder --production
 # Daily
 python -m bugbot.round_robin_fallback --production
 
-# Needinfo assignee when a patch could be uplifted to beta
-# Daily
-python -m bugbot.rules.uplift_beta --production
-
 # What is fixed in nightly but affecting beta or release
 # Daily
 python -m bugbot.rules.missed_uplifts --production
