@@ -21,6 +21,11 @@ class UpliftBeta(BzCleaner):
         )
         self.status_beta = utils.get_flag(self.beta, "status", "beta")
 
+        # The needinfo mentions ESR generically, so we only need the current
+        # ESR's status flag to tell whether ESR is affected.
+        self.esr = self.versions["esr"]
+        self.status_esr = utils.get_flag(self.esr, "status", "esr")
+
         # Bugs will be added to `extra_ni` later after being fetched
         self.extra_ni = {"status_beta": f"status-firefox{self.beta}"}
 
@@ -49,12 +54,17 @@ class UpliftBeta(BzCleaner):
         if self.is_needinfo_on_assignee(bug.get("flags", []), assignee):
             return None
 
+        # Flag ESR using the same criteria as beta (see get_bz_params): both
+        # "affected" and "fix-optional" should prompt about an uplift.
+        esr_affected = bug.get(self.status_esr) in ("affected", "fix-optional")
+
         data[bugid] = {
             "id": bugid,
             "mail": assignee,
             "nickname": nickname,
             "summary": self.get_summary(bug),
             "regressions": bug["regressions"],
+            "esr_affected": esr_affected,
         }
 
         return bug
@@ -98,6 +108,7 @@ class UpliftBeta(BzCleaner):
         self.date = lmdutils.get_date_ymd(date)
         fields = [
             self.status_beta,
+            self.status_esr,
             "regressions",
             "attachments.creation_time",
             "attachments.is_obsolete",
@@ -143,7 +154,10 @@ class UpliftBeta(BzCleaner):
 
         for bugid, data in bugs.items():
             if data["mail"] and data["nickname"]:
-                self.extra_ni[bugid] = {"regression": len(data["regressions"])}
+                self.extra_ni[bugid] = {
+                    "regression": len(data["regressions"]),
+                    "esr_affected": data["esr_affected"],
+                }
                 self.add_auto_ni(
                     bugid, {"mail": data["mail"], "nickname": data["nickname"]}
                 )
