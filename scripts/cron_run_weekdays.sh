@@ -139,6 +139,9 @@ python -m bugbot.rules.severity_inconsistency --production
 # Needinfo for bugs with high security keywords whose set to low severity
 python -m bugbot.rules.severity_high_security --production
 
+# Needinfo for security bugs with a patch but a missing release status flag
+python -m bugbot.rules.security_affected_versions --production
+
 # Nag for components that need triage owner to be assigned
 python -m bugbot.rules.vacant_triage_owner --production
 

@@ -1,0 +1,1 @@
+:{{ nickname }}, please update all release status flags to reflect the affected/unaffected/disabled state correctly. {{ extra["question"] }}

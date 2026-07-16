@@ -1,0 +1,23 @@
+<p>
+    The following security {{ plural('bug has', data, pword='bugs have') }} an attached patch but at least one missing release status flag. {{ plural('The assignee', data, pword='The assignees') }} got a needinfo request to set the flags:
+</p>
+<table {{ table_attrs }}>
+    <thead>
+        <tr>
+            <th>Bug</th>
+            <th>Summary</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for i, (bugid, summary) in enumerate(data) -%}
+            <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
+            {% endif -%}
+            >
+            <td>
+                <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+            </td>
+            <td>{{ summary | e }}</td>
+        </tr>
+    {% endfor -%}
+</tbody>
+</table>
