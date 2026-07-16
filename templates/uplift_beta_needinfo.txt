@@ -1,7 +1,7 @@
-The patch landed in nightly and beta is affected.
+The patch landed in nightly and beta is affected{% if extra[bugid]["esr_affected"] %}, along with ESR{% endif %}.
 :{{ nickname }}, is this bug important enough to require an uplift?
-- If yes, please nominate the patch for beta approval.{% if extra[bugid]["regression"] %} Also, don't forget to request an uplift for the patches in the {{ plural('regression', extra[bugid]["regression"]) }} caused by this fix.{% endif %}
+- If yes, please nominate the patch for {% if extra[bugid]["esr_affected"] %}beta and ESR approvals{% else %}beta approval{% endif %}.{% if extra[bugid]["regression"] %} Also, don't forget to request an uplift for the patches in the {{ plural('regression', extra[bugid]["regression"]) }} caused by this fix.{% endif %}
   - See https://wiki.mozilla.org/Release_Management/Requesting_an_Uplift for documentation on how to request an uplift.
-- If no, please set `{{ extra["status_beta"] }}` to `wontfix`.
+- If no, please set {% if extra[bugid]["esr_affected"] %}`{{ extra["status_beta"] }}` and the ESR status flag(s){% else %}`{{ extra["status_beta"] }}`{% endif %} to `wontfix`.
 
 {{ documentation }}
