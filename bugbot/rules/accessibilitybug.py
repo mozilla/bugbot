@@ -39,6 +39,13 @@ class AccessibilityBug(BzCleaner):
             "f3": "keywords",
             "o3": "notsubstring",
             "v3": "access",
+            # Exclude bugs already filed in accessibility components, since they
+            # already belong to the accessibility team and don't need the
+            # `access` keyword.
+            "n4": 1,
+            "f4": "component",
+            "o4": "anyexact",
+            "v4": ["Disability Access APIs", "Disability Access"],
         }
 
     def get_bugs(self, date="today", bug_ids=[]):
