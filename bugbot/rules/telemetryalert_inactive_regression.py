@@ -3,6 +3,8 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
+import numpy
+from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import BugzillaUser
 
 from bugbot.bzcleaner import BzCleaner
@@ -14,6 +16,11 @@ class TelemetryAlertInactiveRegression(BzCleaner):
         super().__init__()
         self.ndays = ndays
         self.extra_ni = {"ndays": self.ndays}
+
+        # Bugs last changed after this are not yet inactive long enough
+        self.activity_date = str(
+            numpy.busday_offset(lmdutils.get_date("today"), -self.ndays)
+        )
 
     def description(self):
         return f"Telemetry alerts with {self.ndays} day(s) of inactivity"
@@ -30,6 +37,7 @@ class TelemetryAlertInactiveRegression(BzCleaner):
         fields = [
             "id",
             "history",
+            "last_change_time",
         ]
 
         # Find all bugs that have a telemetry-alert keyword, have not changed in the
@@ -43,7 +51,7 @@ class TelemetryAlertInactiveRegression(BzCleaner):
             "o4": "nowords",
             "v4": "backlog-deferred",
             "f5": "days_elapsed",
-            "o5": "greaterthan",
+            "o5": "greaterthaneq",
             "v5": self.ndays,
             "status": ["UNCONFIRMED", "NEW", "REOPENED"],
             "resolution": ["---"],
@@ -78,6 +86,10 @@ class TelemetryAlertInactiveRegression(BzCleaner):
         return probe_owner
 
     def handle_bug(self, bug, data):
+        # `last_change_time` is a full timestamp, so compare only its date part.
+        if bug["last_change_time"][:10] > self.activity_date:
+            return
+
         probe_owner = self.get_probe_owner(bug["history"])
         if not probe_owner:
             # Could not find a probe owner for some reason
