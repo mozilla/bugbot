@@ -25,7 +25,7 @@ NEEDINFO_QUESTION = (
 
 # Products that don't ship on ESR, so their ESR status flags are never set and
 # must not be treated as a "missing" flag worth nagging about.
-NON_ESR_PRODUCTS = {"Firefox for Android"}
+NON_ESR_PRODUCTS = {"Firefox for Android", "Focus", "GeckoView"}
 
 
 class SecurityAffectedVersions(BzCleaner):
