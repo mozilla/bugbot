@@ -4,4 +4,6 @@ It has been over {{ extra["ndays"] }} days with no activity on this telemetry al
 
 If there are any questions about how to proceed for finding a culprit please check comment #0 for information on how to find help.
 
+If it’s unclear when the alert may be resolved, then it’s recommended to file a follow-up bug, and close the alert as INCOMPLETE.
+
 {{ documentation }}
