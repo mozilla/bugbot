@@ -12,14 +12,8 @@ python -m bugbot.rules.accessibilitybug --production
 # Try to detect potential performance-related bugs using bugbug
 python -m bugbot.rules.performancebug --production
 
-# Try to detect potential performance alerts that have been inactive for too long
-python -m bugbot.rules.perfalert_inactive_regression --production
-
 # Send an email about all performance alerts who were recently resolved
 python -m bugbot.rules.perfalert_resolved_regression --production
-
-# Try to detect potential telemetry alerts that have been inactive for too long
-python -m bugbot.rules.telemetryalert_inactive_regression --production
 
 # Update the webcompat score fields
 python -m bugbot.rules.webcompat_score --production

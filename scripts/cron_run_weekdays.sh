@@ -202,4 +202,10 @@ python -m bugbot.rules.severity_high_performance_impact --production
 # Request potential missing info when a bug is moved to Core::Performance
 python -m bugbot.rules.moved_to_performance --production
 
+# Try to detect potential performance alerts that have been inactive for too long
+python -m bugbot.rules.perfalert_inactive_regression --production
+
+# Try to detect potential telemetry alerts that have been inactive for too long
+python -m bugbot.rules.telemetryalert_inactive_regression --production
+
 source ./scripts/cron_common_end.sh

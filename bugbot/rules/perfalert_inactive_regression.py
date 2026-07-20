@@ -4,6 +4,8 @@
 
 import collections
 
+import numpy
+from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import Bugzilla
 
 from bugbot import logger, utils
@@ -18,6 +20,11 @@ class PerfAlertInactiveRegression(BzCleaner):
         self.extra_ni = {"ndays": self.ndays}
         self.private_regressor_ids: set[str] = set()
 
+        # Bugs last changed after this are not yet inactive long enough
+        self.activity_date = str(
+            numpy.busday_offset(lmdutils.get_date("today"), -self.ndays)
+        )
+
     def description(self):
         return f"PerfAlert regressions with {self.ndays} day(s) of inactivity"
 
@@ -25,6 +32,10 @@ class PerfAlertInactiveRegression(BzCleaner):
         if len(bug["regressed_by"]) != 1:
             # either we don't have access to the regressor,
             # or there's more than one, either way leave things alone
+            return
+
+        # `last_change_time` is a full timestamp, so compare only its date part
+        if bug["last_change_time"][:10] > self.activity_date:
             return
 
         data[str(bug["id"])] = {
@@ -39,6 +50,7 @@ class PerfAlertInactiveRegression(BzCleaner):
         fields = [
             "id",
             "regressed_by",
+            "last_change_time",
         ]
 
         # Find all bugs that have perf-alert, and regression in their keywords. Only
@@ -58,7 +70,7 @@ class PerfAlertInactiveRegression(BzCleaner):
             "o4": "nowords",
             "v4": "backlog-deferred",
             "f5": "days_elapsed",
-            "o5": "greaterthan",
+            "o5": "greaterthaneq",
             "v5": self.ndays,
             "status": ["UNCONFIRMED", "NEW", "REOPENED"],
             "resolution": ["---"],
