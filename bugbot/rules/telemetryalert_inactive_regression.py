@@ -10,13 +10,13 @@ from bugbot.user_activity import UserActivity, UserStatus
 
 
 class TelemetryAlertInactiveRegression(BzCleaner):
-    def __init__(self, nweeks=1):
+    def __init__(self, ndays=3):
         super().__init__()
-        self.nweeks = nweeks
-        self.extra_ni = {"nweeks": self.nweeks}
+        self.ndays = ndays
+        self.extra_ni = {"ndays": self.ndays}
 
     def description(self):
-        return f"Telemetry alerts with {self.nweeks} week(s) of inactivity"
+        return f"Telemetry alerts with {self.ndays} day(s) of inactivity"
 
     def get_extra_for_needinfo_template(self):
         return self.extra_ni
@@ -33,7 +33,7 @@ class TelemetryAlertInactiveRegression(BzCleaner):
         ]
 
         # Find all bugs that have a telemetry-alert keyword, have not changed in the
-        # last week, and do not have the backlog-deferred keyword set
+        # last few days, and do not have the backlog-deferred keyword set
         params = {
             "include_fields": fields,
             "f3": "keywords",
@@ -44,7 +44,7 @@ class TelemetryAlertInactiveRegression(BzCleaner):
             "v4": "backlog-deferred",
             "f5": "days_elapsed",
             "o5": "greaterthan",
-            "v5": self.nweeks * 7,
+            "v5": self.ndays,
             "status": ["UNCONFIRMED", "NEW", "REOPENED"],
             "resolution": ["---"],
         }

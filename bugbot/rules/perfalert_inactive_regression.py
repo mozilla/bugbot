@@ -12,14 +12,14 @@ from bugbot.user_activity import UserActivity, UserStatus
 
 
 class PerfAlertInactiveRegression(BzCleaner):
-    def __init__(self, nweeks=1):
+    def __init__(self, ndays=3):
         super().__init__()
-        self.nweeks = nweeks
-        self.extra_ni = {"nweeks": self.nweeks}
+        self.ndays = ndays
+        self.extra_ni = {"ndays": self.ndays}
         self.private_regressor_ids: set[str] = set()
 
     def description(self):
-        return f"PerfAlert regressions with {self.nweeks} week(s) of inactivity"
+        return f"PerfAlert regressions with {self.ndays} day(s) of inactivity"
 
     def handle_bug(self, bug, data):
         if len(bug["regressed_by"]) != 1:
@@ -59,7 +59,7 @@ class PerfAlertInactiveRegression(BzCleaner):
             "v4": "backlog-deferred",
             "f5": "days_elapsed",
             "o5": "greaterthan",
-            "v5": self.nweeks * 7,
+            "v5": self.ndays,
             "status": ["UNCONFIRMED", "NEW", "REOPENED"],
             "resolution": ["---"],
         }
