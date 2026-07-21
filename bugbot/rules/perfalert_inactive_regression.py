@@ -30,10 +30,13 @@ class PerfAlertInactiveRegression(BzCleaner):
             return
 
         # Skip bugs that haven't been inactive for enough business days
-        if numpy.busday_count(
-            lmdutils.get_date_ymd(bug["last_change_time"]).date(),
-            lmdutils.get_date("today"),
-        ) <= self.ndays:
+        if (
+            numpy.busday_count(
+                lmdutils.get_date_ymd(bug["last_change_time"]).date(),
+                lmdutils.get_date("today"),
+            )
+            <= self.ndays
+        ):
             return
 
         data[str(bug["id"])] = {

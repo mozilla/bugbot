@@ -82,10 +82,13 @@ class TelemetryAlertInactiveRegression(BzCleaner):
 
     def handle_bug(self, bug, data):
         # Skip bugs that haven't been inactive for enough business days
-        if numpy.busday_count(
-            lmdutils.get_date_ymd(bug["last_change_time"]).date(),
-            lmdutils.get_date("today"),
-        ) <= self.ndays:
+        if (
+            numpy.busday_count(
+                lmdutils.get_date_ymd(bug["last_change_time"]).date(),
+                lmdutils.get_date("today"),
+            )
+            <= self.ndays
+        ):
             return
 
         probe_owner = self.get_probe_owner(bug["history"])
