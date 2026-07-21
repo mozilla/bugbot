@@ -20,11 +20,6 @@ class PerfAlertInactiveRegression(BzCleaner):
         self.extra_ni = {"ndays": self.ndays}
         self.private_regressor_ids: set[str] = set()
 
-        # Bugs last changed after this are not yet inactive long enough
-        self.activity_date = str(
-            numpy.busday_offset(lmdutils.get_date("today"), -self.ndays)
-        )
-
     def description(self):
         return f"PerfAlert regressions with {self.ndays} day(s) of inactivity"
 
@@ -34,8 +29,11 @@ class PerfAlertInactiveRegression(BzCleaner):
             # or there's more than one, either way leave things alone
             return
 
-        # `last_change_time` is a full timestamp, so compare only its date part
-        if bug["last_change_time"][:10] > self.activity_date:
+        # Skip bugs that haven't been inactive for enough business days
+        if numpy.busday_count(
+            lmdutils.get_date_ymd(bug["last_change_time"]).date(),
+            lmdutils.get_date("today"),
+        ) <= self.ndays:
             return
 
         data[str(bug["id"])] = {
