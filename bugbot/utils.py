@@ -17,7 +17,6 @@ import pytz
 import requests
 from dateutil.relativedelta import relativedelta
 from libmozdata import utils as lmdutils
-from libmozdata import versions as lmdversions
 from libmozdata.bugzilla import Bugzilla, BugzillaShorten
 from libmozdata.fx_trains import FirefoxTrains
 from libmozdata.hgmozilla import Mercurial
@@ -501,15 +500,40 @@ def get_bugs_from_pushlog(startdate, enddate, channel="nightly"):
     return bugs
 
 
+def get_versions_from_trains():
+    """Get the current major version for each channel from whattrainisitnow.
+
+    We source versions from the trains API rather than product-details because
+    product-details' beta field (`LATEST_FIREFOX_RELEASED_DEVEL_VERSION`) only
+    updates once a beta build ships, so it lags for a day or two after merge
+    day and makes the channel numbers look non-consecutive. The trains API
+    reports the current-cycle version for every channel, so the numbers stay
+    internally consistent through the merge window.
+
+    A channel can be null (e.g. `esr_previous` outside an ESR overlap period);
+    we map that to None rather than failing.
+
+    Returns:
+        dict: major version (int, or None) keyed by channel: release, beta,
+        nightly, esr, esr_previous.
+    """
+    data = FirefoxTrains.get_instance().get_lando_uplift_train()
+
+    return {
+        channel: data[channel]["version"] if data[channel] else None
+        for channel in ("release", "beta", "nightly", "esr", "esr_previous")
+    }
+
+
 def get_checked_versions():
     # There are different reasons to not return versions:
     # i) we're merge day: the versions are changing
     # ii) not consecutive versions numbers
-    # iii) bugzilla updated nightly version but p-d is not updated
+    # iii) bugzilla updated nightly version but the trains API has not
     if is_merge_day():
         return {}
 
-    versions = lmdversions.get(base=True)
+    versions = get_versions_from_trains()
     versions["central"] = versions["nightly"]
 
     v = [versions[k] for k in ["release", "beta", "central"]]
@@ -520,13 +544,13 @@ def get_checked_versions():
         if v[2] != nightly_bugzilla:
             from . import logger
 
-            logger.info("Versions mismatch between Bugzilla and product-details")
+            logger.info("Versions mismatch between Bugzilla and the trains API")
             return {}
         return versions
 
     from . import logger
 
-    logger.info("Not consecutive versions in product/details")
+    logger.info("Not consecutive versions from the trains API")
     return {}
 
 
