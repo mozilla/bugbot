@@ -3,6 +3,8 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
+import numpy
+from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import BugzillaUser
 
 from bugbot.bzcleaner import BzCleaner
@@ -10,13 +12,13 @@ from bugbot.user_activity import UserActivity, UserStatus
 
 
 class TelemetryAlertInactiveRegression(BzCleaner):
-    def __init__(self, nweeks=1):
+    def __init__(self, ndays=3):
         super().__init__()
-        self.nweeks = nweeks
-        self.extra_ni = {"nweeks": self.nweeks}
+        self.ndays = ndays
+        self.extra_ni = {"ndays": self.ndays}
 
     def description(self):
-        return f"Telemetry alerts with {self.nweeks} week(s) of inactivity"
+        return f"Telemetry alerts with {self.ndays} day(s) of inactivity"
 
     def get_extra_for_needinfo_template(self):
         return self.extra_ni
@@ -30,10 +32,11 @@ class TelemetryAlertInactiveRegression(BzCleaner):
         fields = [
             "id",
             "history",
+            "last_change_time",
         ]
 
         # Find all bugs that have a telemetry-alert keyword, have not changed in the
-        # last week, and do not have the backlog-deferred keyword set
+        # last few days, and do not have the backlog-deferred keyword set
         params = {
             "include_fields": fields,
             "f3": "keywords",
@@ -43,8 +46,8 @@ class TelemetryAlertInactiveRegression(BzCleaner):
             "o4": "nowords",
             "v4": "backlog-deferred",
             "f5": "days_elapsed",
-            "o5": "greaterthan",
-            "v5": self.nweeks * 7,
+            "o5": "greaterthaneq",
+            "v5": self.ndays,
             "status": ["UNCONFIRMED", "NEW", "REOPENED"],
             "resolution": ["---"],
         }
@@ -78,6 +81,16 @@ class TelemetryAlertInactiveRegression(BzCleaner):
         return probe_owner
 
     def handle_bug(self, bug, data):
+        # Skip bugs that haven't been inactive for enough business days
+        if (
+            numpy.busday_count(
+                lmdutils.get_date_ymd(bug["last_change_time"]).date(),
+                lmdutils.get_date("today"),
+            )
+            <= self.ndays
+        ):
+            return
+
         probe_owner = self.get_probe_owner(bug["history"])
         if not probe_owner:
             # Could not find a probe owner for some reason
