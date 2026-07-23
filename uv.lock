@@ -85,7 +85,7 @@ requires-dist = [
     { name = "argparse", specifier = "==1.4.0" },
     { name = "coverage", marker = "extra == 'dev'", specifier = "==7.15.2" },
     { name = "coveralls", marker = "extra == 'test'", specifier = "==4.1.0" },
-    { name = "filelock", specifier = "==3.25.2" },
+    { name = "filelock", specifier = "==3.31.1" },
     { name = "google-cloud-bigquery", specifier = "==3.42.1" },
     { name = "gspread", specifier = "==6.2.1" },
     { name = "humanize", specifier = ">=4.16.0" },
@@ -392,11 +392,11 @@ wheels = [
 
 [[package]]
 name = "filelock"
-version = "3.25.2"
+version = "3.31.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/94/b8/00651a0f559862f3bb7d6f7477b192afe3f583cc5e26403b44e59a55ab34/filelock-3.25.2.tar.gz", hash = "sha256:b64ece2b38f4ca29dd3e810287aa8c48182bbecd1ae6e9ae126c9b35f1382694", size = 40480, upload-time = "2026-03-11T20:45:38.487Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/53/55/1e19b2b56a24a4b94624f7e819e1bb87fa6c5609dbaf621df3aa6568a761/filelock-3.31.1.tar.gz", hash = "sha256:9e0c4e88ebe90833c1beafd3a547ccbc0bf7f491cd3858c3ec7aed63efe02163", size = 196656, upload-time = "2026-07-20T03:14:32.414Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a4/a5/842ae8f0c08b61d6484b52f99a03510a3a72d23141942d216ebe81fefbce/filelock-3.25.2-py3-none-any.whl", hash = "sha256:ca8afb0da15f229774c9ad1b455ed96e85a81373065fb10446672f64444ddf70", size = 26759, upload-time = "2026-03-11T20:45:37.437Z" },
+    { url = "https://files.pythonhosted.org/packages/88/61/df1d9db18f188d0ae648956a1decadc0e3b77d0571474370fd01f28a82b1/filelock-3.31.1-py3-none-any.whl", hash = "sha256:9ea33146c780161bf67cb20c7cb26b651566820d65ad8dfdd79422602a2dcfc0", size = 97189, upload-time = "2026-07-20T03:14:31.307Z" },
 ]
 
 [[package]]
