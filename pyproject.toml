@@ -43,7 +43,7 @@ dev = [
 test = [
   "coveralls==4.1.0",
   "pre-commit==4.5.1",
-  "tox==4.56.1"
+  "tox==4.58.0"
 ]
 
 [tool.setuptools]
