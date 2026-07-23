@@ -1,5 +1,6 @@
 from bugbot.rules.web_platform_features import (
     AddRemoveChange,
+    BugzillaNewBug,
     BugzillaUpdate,
     FeatureBugUpdate,
     Resolution,
@@ -143,7 +144,7 @@ test-2:test-2_new"""
     ) == BugzillaUpdate(resolution="", status="REOPENED")
 
 
-def test_handlebug():
+def test_handlebug_update():
     cleaner = WebPlatformFeatures()
     cleaner.bug_updates = {1234: FeatureBugUpdate(keywords={"add-keyword": True})}
     data = {}
@@ -165,6 +166,43 @@ def test_handlebug():
         "changes": BugzillaUpdate(keywords=AddRemoveChange(add=["add-keyword"])),
         "whiteboard": "",
         "user_story": "web-feature: test",
+        "change_type": "update",
     }
     assert output_bug == input_bug
     assert cleaner.autofix_changes == {"1234": {"keywords": {"add": ["add-keyword"]}}}
+
+
+def test_get_bugs_create():
+    cleaner = WebPlatformFeatures()
+    bug = BugzillaNewBug(
+        summary="Test bug",
+        product="Test product",
+        component="Test component",
+        description="Test description",
+        type="enhancement",
+        keywords=["web-feature"],
+        whiteboard="[test]",
+        see_also=["https://example.org"],
+        user_story="A test user_story",
+        url="https://example.test",
+    )
+    cleaner.dryrun = True
+    cleaner.test_mode = True
+    cleaner.create_bugs = {"feature-id": bug}
+    bugs = cleaner.get_bugs()
+
+    assert bugs["0"] == {
+        "id": 0,
+        "summary": bug.summary,
+        "url": bug.url,
+        "see_also": bug.component,
+        "keywords": bug.keywords,
+        "whiteboard": bug.whiteboard,
+        "cf_user_story": bug.user_story,
+        "status": "NEW",
+        "resolution": "",
+        "change_type": "create",
+        "changes": bug,
+        "user_story": bug.user_story,
+    }
+    assert cleaner.bugs_created[0] == bug
