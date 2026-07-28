@@ -66,6 +66,9 @@ python -m bugbot.rules.closed_dupeme --production
 # Detect spam bugs using bugbug
 python -m bugbot.rules.spambug --production
 
+# Send newly filed frontend bugs from employees and QA to the frontend-triage agent
+python -m bugbot.rules.frontend_triage --production
+
 # Suggest components for untriaged bugs (hourly, list only bugs on which we acted)
 python -m bugbot.rules.component --frequency hourly --production
 

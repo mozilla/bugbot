@@ -419,6 +419,11 @@
     "confidence_threshold": 0.95,
     "cc": []
   },
+  "frontend_triage": {
+    "days_lookup": 1,
+    "max_days_in_cache": 30,
+    "max_triggers": 3
+  },
   "performancebug": {
     "max_days_in_cache": 7,
     "days_lookup": 7
