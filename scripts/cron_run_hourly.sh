@@ -30,6 +30,10 @@ python -m bugbot.rules.summary_meta_missing --production
 # Pretty common
 python -m bugbot.rules.nightly_reopened --production
 
+# Needinfo for security bugs with a patch but a missing release status flag
+# Pretty common
+python -m bugbot.rules.security_affected_versions --production
+
 # Bug closed with the stalled keyword
 # Pretty rare
 python -m bugbot.rules.stalled --production
