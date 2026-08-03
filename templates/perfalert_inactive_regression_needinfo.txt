@@ -1,4 +1,4 @@
-It has been over {{ extra["nweeks"] * 7 }} days with no activity on this performance regression.
+It has been over {{ extra["ndays"] }} days with no activity on this performance regression.
 
 :{{ nickname }}, since you are the author of the regressor, bug {{ extra[bugid]["regressor_id"] }}, which triggered this performance alert, could you please provide a progress update?
 
