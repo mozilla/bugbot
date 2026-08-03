@@ -89,9 +89,9 @@ requires-dist = [
     { name = "google-cloud-bigquery", specifier = "==3.42.2" },
     { name = "gspread", specifier = "==6.2.1" },
     { name = "humanize", specifier = ">=4.16.0" },
-    { name = "icalendar", specifier = "==6.3.2" },
+    { name = "icalendar", specifier = ">=6.3.2" },
     { name = "jinja2", specifier = "==3.1.6" },
-    { name = "libmozdata", specifier = "==0.2.12" },
+    { name = "libmozdata", specifier = ">=0.2.15" },
     { name = "numpy", specifier = "==2.2.6" },
     { name = "pep8", specifier = "==1.7.1" },
     { name = "pre-commit", marker = "extra == 'test'", specifier = "==4.6.1" },
@@ -611,15 +611,16 @@ wheels = [
 
 [[package]]
 name = "icalendar"
-version = "6.3.2"
+version = "7.2.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "python-dateutil" },
+    { name = "typing-extensions" },
     { name = "tzdata" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/5d/70/458092b3e7c15783423fe64d07e63ea3311a597e723be6a1060513e3db93/icalendar-6.3.2.tar.gz", hash = "sha256:e0c10ecbfcebe958d33af7d491f6e6b7580d11d475f2eeb29532d0424f9110a1", size = 178422, upload-time = "2025-11-05T12:49:32.286Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/9e/37/4c43e9534a4d43f8cde8f0fd7f869628b45f63f27c5b040230c8f1d90b3d/icalendar-7.2.2.tar.gz", hash = "sha256:6cf904a928881e20c89b682e75bca2eb97e8c5ca629782ed44a519abf4cac1cc", size = 491618, upload-time = "2026-07-20T12:04:05.173Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/06/ee/2ff96bb5bd88fe03ab90aedf5180f96dc0f3ae4648ca264b473055bcaaff/icalendar-6.3.2-py3-none-any.whl", hash = "sha256:d400e9c9bb8c025e5a3c77c236941bb690494be52528a0b43cc7e8b7c9505064", size = 242403, upload-time = "2025-11-05T12:49:30.691Z" },
+    { url = "https://files.pythonhosted.org/packages/f1/fd/8cbebc368afc020c979e5f9433348531215c65df93b0d6d6f1a1b13a39eb/icalendar-7.2.2-py3-none-any.whl", hash = "sha256:90dd280cb4f67d1ef07b5178c2c33db4fc0a05627e50a3758b6b2aa9b117bc07", size = 502831, upload-time = "2026-07-20T12:04:03.796Z" },
 ]
 
 [[package]]
@@ -712,7 +713,7 @@ wheels = [
 
 [[package]]
 name = "libmozdata"
-version = "0.2.12"
+version = "0.2.15"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "icalendar" },
@@ -725,9 +726,9 @@ dependencies = [
     { name = "six" },
     { name = "whatthepatch" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/48/5d/57f9b538ee944cb9863e82674566f27a2ae21043949257234a154c1f7acb/libmozdata-0.2.12.tar.gz", hash = "sha256:0278c5209cab6107353653a347a53e934e7c7aa4670af17d68dc2311a871e04b", size = 62809, upload-time = "2025-10-15T08:52:37.28Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/80/a8/f4514b5109b3056c7698b803d79ef06c2b529157a77447f475d80c0c3785/libmozdata-0.2.15.tar.gz", hash = "sha256:4e56cd1565a68d83fba3c79374dd8f268d403266d0481f39e51281ca63b07189", size = 62650, upload-time = "2026-07-23T14:13:57.506Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f1/0d/8c93c11c58338bd6f721fc6ffb48135331e80991dcdaa57ca1492662f53a/libmozdata-0.2.12-py3-none-any.whl", hash = "sha256:d0ccc540d64498e89b5c7dfe83ab224e4abd5c044875eefe4ca44a378ab9a080", size = 73367, upload-time = "2025-10-15T08:52:36.197Z" },
+    { url = "https://files.pythonhosted.org/packages/68/e8/30b850a642142e8d029c201b6f6133cb717e65452b6554996af4cb61ca39/libmozdata-0.2.15-py3-none-any.whl", hash = "sha256:6d0606fc3f1e10d5d0b99b37f4a951ab9e5da9d4a530dbdb24af46f4921a4fd3", size = 72668, upload-time = "2026-07-23T14:13:56.574Z" },
 ]
 
 [[package]]
@@ -1435,11 +1436,11 @@ wheels = [
 
 [[package]]
 name = "tzdata"
-version = "2025.2"
+version = "2026.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/95/32/1a225d6164441be760d75c2c42e2780dc0873fe382da3e98a2e1e48361e5/tzdata-2025.2.tar.gz", hash = "sha256:b60a638fcc0daffadf82fe0f57e53d06bdec2f36c4df66280ae79bce6bd6f2b9", size = 196380, upload-time = "2025-03-23T13:54:43.652Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/92/ff/5a28bdfd8c3ebec42564ac7d0e54ca3db65044a9314a97f9564fa7a1e926/tzdata-2026.3.tar.gz", hash = "sha256:4a1518b8993086a7982523e071643f3c0e5f213e75b21318e78bcabfff9d1415", size = 198674, upload-time = "2026-07-10T08:50:37.887Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5c/23/c7abc0ca0a1526a0774eca151daeb8de62ec457e77262b66b359c3c7679e/tzdata-2025.2-py2.py3-none-any.whl", hash = "sha256:1a403fada01ff9221ca8044d701868fa132215d84beb92242d9acd2147f667a8", size = 347839, upload-time = "2025-03-23T13:54:41.845Z" },
+    { url = "https://files.pythonhosted.org/packages/e5/6d/b53b99a9f2766d095985947a5782f1702cabb129a34f7a802d7197af832f/tzdata-2026.3-py2.py3-none-any.whl", hash = "sha256:dc096730c87af6cab1b171c9d532be840741ff5d459015e7f6947bd7d7e54931", size = 348168, upload-time = "2026-07-10T08:50:36.46Z" },
 ]
 
 [[package]]
