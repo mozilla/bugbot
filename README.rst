@@ -58,8 +58,11 @@ Before running:
       "phab_api_key": "xxxxxxxxxxxxxx",
       "iam_client_secret": "xxxxxxxxxxxxxx",
       "iam_client_id": "xxxxxxxxxxxxxx",
-      "socorro_token": "xxxxxxxxxxxxxx"
+      "socorro_token": "xxxxxxxxxxxxxx",
+      "hackbot_api_key": "xxxxxxxxxxxxxx"
     }
+
+The ``hackbot_api_key`` is only needed by rules that start a `hackbot <https://github.com/mozilla/bugbug/tree/master/services/hackbot-api>`_ agent run (currently ``frontend_triage``). Those rules talk to ``https://hackbot-api.moz.tools`` by default; set ``HACKBOT_API_URL`` to point at a different deployment.
 
 Do a dryrun::
 
