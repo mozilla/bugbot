@@ -28,13 +28,16 @@ class WebcompatSightline(BzCleaner):
         self.update_bugs = {}
 
     def description(self) -> str:
-        return "Bugs with the [webcompat:<metric name>] whiteboard tag updated"
+        return "Bugs with the [webcompat:<metric name>] or [webcompat-list:<name>] whiteboard tags updated"
 
     def filter_no_nag_keyword(self) -> bool:
         return False
 
     def has_default_products(self) -> bool:
         return False
+
+    def columns(self) -> list[str]:
+        return ["id", "summary", "whiteboard"]
 
     def handle_bug(self, bug: Bug, data: dict[str, Any]) -> Optional[Bug]:
         bug_id = str(bug["id"])
@@ -50,6 +53,7 @@ class WebcompatSightline(BzCleaner):
 
         if whiteboard != bug["whiteboard"]:
             self.autofix_changes[bug_id] = {"whiteboard": whiteboard}
+            data[bug_id] = {"whiteboard": whiteboard}
             return bug
 
         return None
@@ -57,8 +61,7 @@ class WebcompatSightline(BzCleaner):
     def get_bz_params(self, date) -> dict[str, Any]:
         fields = ["id", "summary", "whiteboard"]
         self.update_bugs = self.get_update_bugs()
-        # Get all bugs that either have, or should have, the [webcompat:sightline]
-        # whiteboard entry
+        # Get all bugs that either have, or should have, one of the specified whiteboard entries
         return {
             "include_fields": fields,
             "j_top": "OR",
@@ -75,13 +78,15 @@ class WebcompatSightline(BzCleaner):
         conditions = []
         results = {}
 
+        client = gcp.get_bigquery_client(project, ["cloud-platform", "drive"])
+
+        # Bugs that are part of a defined metric
         for metric in metrics:
             fields.append(metric.field)
             conditions.append(
                 f"""({metric.field} != CONTAINS_SUBSTR(bugs.whiteboard, "{metric.whiteboard_entry}"))"""
             )
 
-        client = gcp.get_bigquery_client(project, ["cloud-platform", "drive"])
         query_metrics = f"""
         SELECT number, {", ".join(fields)} FROM `{project}.{dataset}.scored_site_reports` as bugs
         WHERE bugs.resolution = "" AND ({" OR ".join(conditions)})
@@ -91,16 +96,31 @@ class WebcompatSightline(BzCleaner):
             result = {metric.whiteboard_entry: row[metric.field] for metric in metrics}
             results[row.number] = result
 
-        query_wc = f"""
-        SELECT DISTINCT number, wc_urls.url IS NOT NULL AS is_wc_2026 FROM `{project}.{dataset}.site_reports` as bugs
-        LEFT JOIN `{project}.{dataset}.world_cup_2026_urls` AS wc_urls ON `moz-fx-dev-dschubert-wckb.webcompat_knowledge_base.WEBCOMPAT_HOST`(bugs.url) = `moz-fx-dev-dschubert-wckb.webcompat_knowledge_base.WEBCOMPAT_HOST`(wc_urls.url)
-        WHERE bugs.resolution = "" AND (wc_urls.url IS NOT NULL) != CONTAINS_SUBSTR(bugs.whiteboard, "[worldcup]")
+        # Bugs that are part of some webcompat focus list
+        query_webcompat_list = f"""
+        WITH
+        webcompat_lists AS (
+          SELECT `{project}.{dataset}.WEBCOMPAT_HOST`(host) as host, CONCAT("[webcompat-list:", list_name, "]") AS whiteboard_entry
+          FROM `{project}.{dataset}.webcompat_lists`
+        ),
+
+        bugs AS (
+          SELECT number, webcompat_lists.whiteboard_entry, webcompat_lists.host, INSTR(bugs.whiteboard, whiteboard_entry) != 0 AS has_whiteboard_entry
+          FROM `{project}.{dataset}.site_reports` as bugs
+          LEFT JOIN webcompat_lists ON `{project}.{dataset}.WEBCOMPAT_HOST`(bugs.url) = webcompat_lists.host
+          WHERE bugs.resolution = ""
+        )
+
+        SELECT DISTINCT number, whiteboard_entry
+        FROM bugs
+        WHERE NOT has_whiteboard_entry AND host is NOT NULL
         """
 
-        for row in client.query(query_wc).result():
+        for row in client.query(query_webcompat_list).result():
             if row.number not in results:
                 results[row.number] = {}
-            results[row.number]["[worldcup]"] = row["is_wc_2026"]
+            # In this case never remove a label since there could be non-URL criteria
+            results[row.number][row.whiteboard_entry] = True
 
         return results
 
