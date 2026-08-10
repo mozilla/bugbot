@@ -8,6 +8,8 @@ from libmozdata.bugzilla import Bugzilla, BugzillaUser
 from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
 
+CLOUSEAU_METABUG = 1396527
+
 
 class RegressionWithoutRegressedBy(BzCleaner):
     def description(self):
@@ -191,6 +193,14 @@ class RegressionWithoutRegressedBy(BzCleaner):
             "f13": "longdesc",
             "o13": "casesubstring",
             "v13": "since this bug is a regression, could you fill (if possible) the regressed_by field",
+            # Bugs blocking the clouseau meta bug got their suspected regressor
+            # from an automated analysis: the regressed_by field is left empty
+            # on purpose, it's up to the needinfo'ed dev to confirm it.
+            # See https://github.com/mozilla/bugbot/issues/2973
+            "n14": 1,
+            "f14": "blocked",
+            "o14": "anyexact",
+            "v14": CLOUSEAU_METABUG,
         }
 
         return params
