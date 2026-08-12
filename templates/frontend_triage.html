@@ -1,0 +1,32 @@
+<p>
+    The following {{ plural('bug', data, pword='bugs') }} {{ plural('was', data, pword='were') }} sent to the frontend-triage agent. The agent posts its analysis to the bug itself when it is confident; otherwise the result waits for review in the hackbot UI.
+</p>
+<table {{ table_attrs }}>
+    <thead>
+        <tr>
+            <th>Bug</th>
+            <th>Summary</th>
+            <th>Reporter</th>
+            <th>Run</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for i, (bugid, summary, creator, run_id) in enumerate(data) -%}
+            <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
+            {% endif -%}
+            >
+            <td>
+                <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+            </td>
+            <td>{{ summary | e }}</td>
+            <td>{{ creator | e }}</td>
+            <td>{{ run_id }}</td>
+        </tr>
+    {% endfor -%}
+</tbody>
+</table>
+{% if extra.left_for_next_run %}
+    <p>
+        <b>{{ extra.left_for_next_run }}</b> more {{ plural('bug', extra.left_for_next_run, pword='bugs') }} matched but {{ plural('was', extra.left_for_next_run, pword='were') }} not sent this time — either over the cap on how many agent runs one invocation may start, or the run failed to start. {{ plural('It', extra.left_for_next_run, pword='They') }} will be picked up on the next run.
+    </p>
+{% endif %}
