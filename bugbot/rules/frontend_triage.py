@@ -2,20 +2,30 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from bugbot import logger
+from bugbot import logger, utils
 from bugbot.bzcleaner import BzCleaner
 from bugbot.hackbot_utils import api_url, trigger_agent_run
 from bugbot.people import People
 
 AGENT = "frontend-triage"
 
+# The components the agent triages, as `(product, component)` pairs. Kept here rather
+# than in configs/rules.json on purpose: the agent's analysis lands on the bug
+# unattended, so widening its reach should take a code review.
+TRIAGED_COMPONENTS = (
+    ("Firefox", "New Tab Page"),
+    ("Firefox for Android", "History"),
+    ("Toolkit", "Application Update"),
+    ("Firefox", "Installer"),
+)
+
 
 class FrontendTriage(BzCleaner):
     """Ask hackbot's frontend-triage agent to triage newly filed frontend bugs.
 
-    Scoped to bugs filed by Mozilla staff (which includes QA) in
-    `Firefox :: New Tab Page`, because the agent's analysis is posted to the bug
-    unattended when it is confident. This rule only starts runs: the agent
+    Scoped to bugs filed by Mozilla staff (which includes QA) in the components
+    listed in `TRIAGED_COMPONENTS`, because the agent's analysis is posted to the
+    bug unattended when it is confident. This rule only starts runs: the agent
     investigates the source, comments on the bug, and reports to Slack itself, so
     nothing is written to Bugzilla from here.
     """
@@ -31,24 +41,26 @@ class FrontendTriage(BzCleaner):
         return "[Using AI] Bugs sent for automatic frontend triage"
 
     def columns(self):
-        return ["id", "summary", "creator", "run_id"]
+        return ["id", "summary", "product", "component", "creator", "run_id"]
 
     def has_default_products(self):
-        # The query names its own product; the 19-product default list would put
+        # The query names its own products; the 19-product default list would put
         # the whole tree in scope.
         return False
+
+    def has_product_component(self):
+        # `TRIAGED_COMPONENTS` spans three products, so "which component is this
+        # row about" is no longer obvious from the summary alone. Returning True
+        # gets both fields into `include_fields` and into every row for free
+        # (bzcleaner's `amend_bzparams` and `bughandler`), so unlike `creator`
+        # they need no stashing here.
+        return True
 
     def get_bz_params(self, date):
         start_date, _ = self.get_dates(date)
 
-        return {
+        params = {
             "include_fields": ["id", "summary", "creator"],
-            # Named literally, one product and one component: Bugzilla matches
-            # the two fields independently, so lists here would not express a
-            # product-to-component mapping. Widening to a second component means
-            # query groups, not another entry in a list.
-            "product": "Firefox",
-            "component": "New Tab Page",
             # Defects only: the agent triages broken behaviour, not feature work.
             "bug_type": "defect",
             "resolution": "---",
@@ -56,6 +68,30 @@ class FrontendTriage(BzCleaner):
             "o1": "greaterthan",
             "v1": start_date,
         }
+
+        # One AND group per pair, inside a top-level OR. Top-level `product` and
+        # `component` params are matched independently, so passing a list of each
+        # would also put every cross pairing in scope -- `Toolkit :: Installer`
+        # the day somebody creates it. No cross pairing exists today, but this
+        # rule spends money and posts to bugs unattended, so its reach should not
+        # be able to widen on its own.
+        n = utils.get_last_field_num(params)
+        params[f"j{n}"] = "OR"
+        params[f"f{n}"] = "OP"
+        for product, component in TRIAGED_COMPONENTS:
+            n = utils.get_last_field_num(params)
+            params[f"j{n}"] = "AND"
+            params[f"f{n}"] = "OP"
+            n = utils.get_last_field_num(params)
+            params.update({f"f{n}": "product", f"o{n}": "equals", f"v{n}": product})
+            n = utils.get_last_field_num(params)
+            params.update({f"f{n}": "component", f"o{n}": "equals", f"v{n}": component})
+            n = utils.get_last_field_num(params)
+            params[f"f{n}"] = "CP"
+        n = utils.get_last_field_num(params)
+        params[f"f{n}"] = "CP"
+
+        return params
 
     def handle_bug(self, bug, data):
         # The IAM roster covers QA too, now that they file from @mozilla.com

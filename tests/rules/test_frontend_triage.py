@@ -7,7 +7,7 @@ from jinja2 import Environment, FileSystemLoader
 
 from bugbot import hackbot_utils, utils
 from bugbot.people import People
-from bugbot.rules.frontend_triage import FrontendTriage
+from bugbot.rules.frontend_triage import TRIAGED_COMPONENTS, FrontendTriage
 
 STAFF_MAIL = "staffer@mozilla.com"
 QA_MAIL = "tester@mozilla.com"
@@ -54,6 +54,10 @@ def _bug(creator, bug_id=1):
         "id": bug_id,
         "summary": "New Tab weather widget vanishes",
         "creator": creator,
+        # `bughandler` copies these into the row because the rule sets
+        # `has_product_component()`, so they have to be here or it raises KeyError.
+        "product": "Firefox",
+        "component": "New Tab Page",
         # `amend_bzparams` adds `groups` to include_fields for every rule, and
         # `get_summary` reads it to redact security bugs.
         "groups": [],
@@ -120,13 +124,57 @@ def test_does_not_use_the_default_product_list():
     assert _rule().has_default_products() is False
 
 
-def test_queries_the_one_product_and_component():
-    # Not lists: Bugzilla matches product and component independently, so a pair
-    # of lists would claim a product-to-component mapping it doesn't enforce — a
-    # second product would pick up every component of that name across both.
+def _queried_pairs(params):
+    """Reconstruct the `(product, component)` pairs from the boolean chart.
+
+    Walks the numbered fields instead of asserting on `f7`/`v7` by name, so the
+    test still means something if the numbering shifts.
+    """
+    pairs = []
+    pending: dict = {}
+    for i in range(1, 100):
+        field = params.get(f"f{i}")
+        if field is None:
+            continue
+        if field == "OP":
+            pending = {}
+        elif field == "CP":
+            if {"product", "component"} <= pending.keys():
+                pairs.append((pending["product"], pending["component"]))
+            pending = {}
+        elif field in ("product", "component"):
+            assert params[f"o{i}"] == "equals"
+            pending[field] = params[f"v{i}"]
+    return pairs
+
+
+def test_queries_every_triaged_component():
     params = _rule().get_bz_params("2026-07-28")
-    assert params["product"] == "Firefox"
-    assert params["component"] == "New Tab Page"
+    assert _queried_pairs(params) == list(TRIAGED_COMPONENTS)
+
+
+def test_pairs_a_component_with_its_own_product():
+    # The regression this guards: `{"product": [...], "component": [...]}` would
+    # return the same bugs today, because Bugzilla matches the two fields
+    # independently and no cross pairing happens to exist -- and would silently
+    # widen the day somebody creates `Toolkit :: Installer`.
+    params = _rule().get_bz_params("2026-07-28")
+    assert "product" not in params
+    assert "component" not in params
+
+
+def test_ors_the_component_groups_and_ands_within_each():
+    params = _rule().get_bz_params("2026-07-28")
+    opens = [i for i in range(1, 100) if params.get(f"f{i}") == "OP"]
+    assert params[f"j{opens[0]}"] == "OR"
+    assert [params[f"j{i}"] for i in opens[1:]] == ["AND"] * len(TRIAGED_COMPONENTS)
+
+
+def test_spans_more_than_one_product():
+    # Not a tautology on the tuple: it is why the query needs groups at all, so if
+    # the scope ever narrows back to one product this test should be revisited
+    # rather than the groups being left in place unexplained.
+    assert len({product for product, _ in TRIAGED_COMPONENTS}) > 1
 
 
 def test_queries_only_open_defects():
@@ -139,10 +187,11 @@ def test_queries_only_recently_filed_bugs():
     rule = _rule()
     params = rule.get_bz_params("2026-07-28")
     start_date, _ = rule.get_dates("2026-07-28")
+    # `OP`/`CP` carry no operator or value, so the numbering is no longer dense.
     triplet = {
         (params[f"f{i}"], params[f"o{i}"], params[f"v{i}"])
-        for i in range(1, 10)
-        if f"f{i}" in params
+        for i in range(1, 100)
+        if f"o{i}" in params
     }
     assert ("creation_ts", "greaterthan", start_date) in triplet
 
@@ -294,6 +343,10 @@ def test_template_renders_a_row_per_triaged_bug(triggered):
     assert "show_bug.cgi?id=2" in html
     assert STAFF_MAIL in html
     assert "run-1" in html
+    # With three products in scope, the summary alone no longer says what a row is
+    # about. This also catches the template's positional unpacking going stale
+    # against `columns()`.
+    assert "Firefox :: New Tab Page" in html
 
 
 def test_template_reports_the_bugs_left_for_next_run(triggered):

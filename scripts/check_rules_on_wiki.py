@@ -56,7 +56,7 @@ class CheckWikiPage:
         # Experimental rules:
         "accessibilitybug.py",
         "performancebug.py",
-        "frontend_triage.py",  # piloting on one component before documenting it
+        "frontend_triage.py",  # piloting on a few components before documenting it
     }
 
     def __init__(self) -> None:
