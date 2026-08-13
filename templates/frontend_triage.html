@@ -6,12 +6,13 @@
         <tr>
             <th>Bug</th>
             <th>Summary</th>
+            <th>Component</th>
             <th>Reporter</th>
             <th>Run</th>
         </tr>
     </thead>
     <tbody>
-        {% for i, (bugid, summary, creator, run_id) in enumerate(data) -%}
+        {% for i, (bugid, summary, product, component, creator, run_id) in enumerate(data) -%}
             <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
             {% endif -%}
             >
@@ -19,6 +20,7 @@
                 <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
             </td>
             <td>{{ summary | e }}</td>
+            <td>{{ product | e }} :: {{ component | e }}</td>
             <td>{{ creator | e }}</td>
             <td>{{ run_id }}</td>
         </tr>
