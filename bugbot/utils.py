@@ -500,7 +500,7 @@ def get_bugs_from_pushlog(startdate, enddate, channel="nightly"):
     return bugs
 
 
-def get_versions_from_trains() -> dict[str, int | None]:
+def get_versions_from_trains() -> dict[str, int]:
     """Get the current major version for each channel from whattrainisitnow.
 
     We source versions from the trains API rather than product-details because
@@ -520,12 +520,13 @@ def get_versions_from_trains() -> dict[str, int | None]:
     data = FirefoxTrains.get_instance().get_lando_uplift_train()
 
     return {
-        channel: data[channel]["version"] if data[channel] else None
+        channel: data[channel]["version"]
         for channel in ("release", "beta", "nightly", "esr", "esr_previous")
+        if data[channel]
     }
 
 
-def get_checked_versions() -> dict[str, str]:
+def get_checked_versions() -> dict[str, int]:
     # There are different reasons to not return versions:
     # i) we're merge day: the versions are changing
     # ii) not consecutive versions numbers
@@ -545,7 +546,7 @@ def get_checked_versions() -> dict[str, str]:
 
             logger.info("Versions mismatch between Bugzilla and the trains API")
             return {}
-        return {k: str(v) for k, v in versions.items()}
+        return versions
 
     from . import logger
 
