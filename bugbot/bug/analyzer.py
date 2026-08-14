@@ -6,7 +6,6 @@
 from functools import cached_property
 from typing import Any, Iterable, NamedTuple
 
-from libmozdata import versions as lmdversions
 from libmozdata.bugzilla import Bugzilla
 
 from bugbot import utils
@@ -241,7 +240,7 @@ class BugsStore:
         active_versions = []
 
         channel_version_map = (
-            self.versions_map if self.versions_map else lmdversions.get(base=True)
+            self.versions_map if self.versions_map else utils.get_versions_from_trains()
         )
         for channel in ("release", "beta", "nightly"):
             version = int(channel_version_map[channel])

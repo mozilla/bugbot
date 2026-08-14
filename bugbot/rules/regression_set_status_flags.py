@@ -219,7 +219,9 @@ class RegressionSetStatusFlags(BzCleaner):
             }
             for bug in bugs.values()
         )
-        bugs_store = BugsStore(chain(adjusted_bugs, data.values()))
+        bugs_store = BugsStore(
+            chain(adjusted_bugs, data.values()), versions_map=self.versions
+        )
         for bug_id in bugs:
             old_code_updates = self.status_changes.get(bug_id, {})
             bug = bugs_store.get_bug_by_id(int(bug_id))
