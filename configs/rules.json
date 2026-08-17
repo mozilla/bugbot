@@ -422,7 +422,7 @@
   "frontend_triage": {
     "days_lookup": 1,
     "max_days_in_cache": 30,
-    "max_triggers": 3
+    "max_triggers": 5
   },
   "performancebug": {
     "max_days_in_cache": 7,
