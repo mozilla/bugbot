@@ -17,6 +17,7 @@ TRIAGED_COMPONENTS = (
     ("Firefox for Android", "History"),
     ("Toolkit", "Application Update"),
     ("Firefox", "Installer"),
+    ("Firefox", "Site Permissions"),
 )
 
 
