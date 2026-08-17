@@ -15,15 +15,14 @@ class MissedUplifts(BzCleaner):
         self.beta = self.versions["beta"]
         self.release = self.versions["release"]
         self.esr = self.versions["esr"]
-        self.esr_str = "esr" + str(self.esr)
 
         self.pending_release = utils.get_report_bugs("release", op="?")
         self.pending_beta = utils.get_report_bugs("beta", op="?")
-        self.pending_esr = utils.get_report_bugs(self.esr_str, op="?")
+        self.pending_esr = utils.get_report_bugs("esr", self.esr, op="?")
 
         self.accepted_release = utils.get_report_bugs("release", op="+")
         self.accepted_beta = utils.get_report_bugs("beta", op="+")
-        self.accepted_esr = utils.get_report_bugs(self.esr_str, op="+")
+        self.accepted_esr = utils.get_report_bugs("esr", self.esr, op="+")
 
         self.status_central = utils.get_flag(
             self.versions["central"], "status", "central"
@@ -43,7 +42,7 @@ class MissedUplifts(BzCleaner):
         return ["id", "priority", "severity", "affected", "approvals", "summary"]
 
     def sort_columns(self):
-        return lambda p: (tuple(int(x) for x in reversed(p[3])), -int(p[0]))
+        return lambda p: (tuple(reversed(p[3])), -int(p[0]))
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
@@ -70,9 +69,9 @@ class MissedUplifts(BzCleaner):
             approvals.append("release+")
 
         if bugid in self.pending_esr:
-            approvals.append(self.esr_str + "?")
+            approvals.append(f"esr{self.esr}?")
         if bugid in self.accepted_esr:
-            approvals.append(self.esr_str + "+")
+            approvals.append(f"esr{self.esr}+")
 
         data[bugid] = {
             "affected": affected,

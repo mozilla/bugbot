@@ -157,7 +157,7 @@ class RegressionSetStatusFlags(BzCleaner):
 
             self.status_changes[bugid] = {}
             for channel in ("release", "beta", "central"):
-                v = int(self.versions[channel])
+                v = self.versions[channel]
                 flag = utils.get_flag(v, "status", channel)
                 info[channel] = info[flag]
                 if info[flag] != "---":
@@ -187,7 +187,7 @@ class RegressionSetStatusFlags(BzCleaner):
                 if info[flag] != "---":
                     # XXX maybe check for consistency?
                     continue
-                if fixed_version is not None and int(v) >= fixed_version:
+                if fixed_version is not None and v >= fixed_version:
                     # Bug was fixed in an earlier version, don't set the flag
                     continue
                 if data[regressor].get(flag) in ("fixed", "verified"):
@@ -196,7 +196,7 @@ class RegressionSetStatusFlags(BzCleaner):
                         continue
                     self.status_changes[bugid][flag] = "affected"
                     info["esr"][f"esr{v}"] = "affected"
-                elif int(v) >= regressed_version:
+                elif v >= regressed_version:
                     # regression from before this branch, also affected
                     if is_latest_wontfix:
                         continue

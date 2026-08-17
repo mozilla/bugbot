@@ -243,7 +243,7 @@ class BugsStore:
             self.versions_map if self.versions_map else utils.get_versions_from_trains()
         )
         for channel in ("release", "beta", "nightly"):
-            version = int(channel_version_map[channel])
+            version = channel_version_map[channel]
             flag = utils.get_flag(version, "status", channel)
             active_versions.append((flag, channel, version))
 
