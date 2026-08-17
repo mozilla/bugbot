@@ -12,12 +12,22 @@ AGENT = "frontend-triage"
 # The components the agent triages, as `(product, component)` pairs. Kept here rather
 # than in configs/rules.json on purpose: the agent's analysis lands on the bug
 # unattended, so widening its reach should take a code review.
+#
+# Every pair here needs a channel in the agent's own `TRIAGE_SCOPE` (bugbug's
+# agents/frontend-triage/hackbot_agents/frontend_triage/config.py), and the agent has to
+# be deployed with it first. `channel_for` fails closed, which silences the Slack
+# notification but not the run: the comment and the severity change still apply, so a
+# pair added here ahead of the agent gets unattended triage with nobody told. Nothing
+# checks this -- the two lists are in separate repos and cannot see each other.
 TRIAGED_COMPONENTS = (
     ("Firefox", "New Tab Page"),
     ("Firefox for Android", "History"),
     ("Toolkit", "Application Update"),
     ("Firefox", "Installer"),
     ("Firefox", "Site Permissions"),
+    ("Firefox", "IP Protection"),
+    ("Firefox for Android", "Toolbar"),
+    ("Firefox for Android", "Homepage"),
 )
 
 
