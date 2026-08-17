@@ -25,6 +25,7 @@ TRIAGED_COMPONENTS = (
     ("Toolkit", "Application Update"),
     ("Firefox", "Installer"),
     ("Firefox", "Site Permissions"),
+    ("Firefox", "Sharing"),
     ("Firefox", "IP Protection"),
     ("Firefox for Android", "Toolbar"),
     ("Firefox for Android", "Homepage"),
