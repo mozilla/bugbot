@@ -147,6 +147,9 @@ class SecurityAffectedVersions(BzCleaner):
             # Only open bugs: we want to prompt while setting the flags is still
             # actionable (i.e. the patch is in review, not yet landed).
             "resolution": "---",
+            # Only defects: the "which branches are affected by this flaw"
+            # question doesn't apply to tasks or enhancements.
+            "bug_type": "defect",
             # Coarse recency filter: the bug changed within the window. Since
             # attaching a patch bumps `delta_ts`, this is a superset of "a patch
             # was attached within the window"; the precise per-attachment date
