@@ -65,10 +65,7 @@ class Unlanded(BzCleaner, Nag):
             return False
 
         self.version = self.versions[self.channel]
-        if self.channel == "esr":
-            self.bug_ids = utils.get_report_bugs(self.channel + self.version)
-        else:
-            self.bug_ids = utils.get_report_bugs(self.channel)
+        self.bug_ids = utils.get_report_bugs(self.channel, self.version)
 
         return bool(self.bug_ids)
 

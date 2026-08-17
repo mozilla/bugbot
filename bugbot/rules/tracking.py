@@ -86,7 +86,7 @@ class Tracking(BzCleaner, Nag):
         status = utils.get_flag(self.version, "status", self.channel)
         self.tracking = utils.get_flag(self.version, "tracking", self.channel)
         tracking_value = (
-            "+,blocking" if self.channel != "esr" else self.versions["beta"] + "+"
+            "+,blocking" if self.channel != "esr" else f"{self.versions['beta']}+"
         )
         fields = [self.tracking]
         params = {

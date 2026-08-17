@@ -250,11 +250,17 @@ def is_merge_day(date: datetime.datetime | None = None) -> bool:
     return date in (next_merge, last_merge)
 
 
-def get_report_bugs(channel, op="+"):
+def get_report_bugs(
+    channel: str, version: int | None = None, op: str = "+"
+) -> list[str]:
+    """Get the bugs with the given approval flag from the release tracking report.
+
+    The version is only needed for the esr channel, where the approval flag name
+    embeds the version number.
+    """
     url = "https://bugzilla.mozilla.org/page.cgi?id=release_tracking_report.html"
-    params = {
-        "q": "approval-mozilla-{}:{}:{}:0:and:".format(channel, op, get_cycle_span())
-    }
+    flag = get_flag(version, "approval", channel)
+    params = {"q": "{}:{}:{}:0:and:".format(flag, op, get_cycle_span())}
 
     # allow_redirects=False avoids to load the data
     # and we'll just get the redirected url to get all the bug ids we need
@@ -266,7 +272,12 @@ def get_report_bugs(channel, op="+"):
     return url.split("=")[1].split(",")
 
 
-def get_flag(version, name, channel):
+def get_flag(version: int | None, name: str, channel: str) -> str:
+    """Build the name of the Bugzilla flag for the given version and channel.
+
+    This is the single place where version numbers get formatted into flag
+    names, so callers never need to stringify or concatenate them.
+    """
     if name in ["status", "tracking"]:
         if channel == "esr":
             return "cf_{}_firefox_esr{}".format(name, version)
@@ -275,6 +286,7 @@ def get_flag(version, name, channel):
         if channel == "esr":
             return "approval-mozilla-esr{}".format(version)
         return "approval-mozilla-{}".format(channel)
+    raise ValueError(f"Unknown flag name: {name}")
 
 
 def get_needinfo(bug, days=-1):
@@ -539,7 +551,7 @@ def get_checked_versions() -> dict[str, int]:
 
     v = [versions[k] for k in ["release", "beta", "central"]]
 
-    if v[0] + 2 == v[1] + 1 == v[2]:  # type: ignore[operator]
+    if v[0] + 2 == v[1] + 1 == v[2]:
         nightly_bugzilla = get_nightly_version_from_bz()
         if v[2] != nightly_bugzilla:
             from . import logger
