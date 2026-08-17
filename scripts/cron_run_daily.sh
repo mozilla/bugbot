@@ -31,4 +31,7 @@ python -m bugbot.rules.web_platform_features --production
 # MUST ALWAYS BE THE LAST COMMAND
 python -m bugbot.log --send
 
+# Set nightly status to affected on newly filed regressions
+python -m bugbot.rules.regression_new_set_nightly_affected --production
+
 source ./scripts/cron_common_end.sh

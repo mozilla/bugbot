@@ -190,9 +190,6 @@ python -m bugbot.rules.triage_rotations_outdated --production
 # Follow up on expiring variants
 python -m bugbot.rules.variant_expiration --production
 
-# Set nightly status to affected on newly filed regressions
-python -m bugbot.rules.regression_new_set_nightly_affected --production
-
 # Suggest increasing the severity of performance-impacting bugs
 python -m bugbot.rules.severity_high_performance_impact --production
 
