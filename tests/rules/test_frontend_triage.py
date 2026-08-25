@@ -6,44 +6,16 @@ import pytest
 from jinja2 import Environment, FileSystemLoader
 
 from bugbot import hackbot_utils, utils
-from bugbot.people import People
 from bugbot.rules.frontend_triage import TRIAGED_COMPONENTS, FrontendTriage
 
-STAFF_MAIL = "staffer@mozilla.com"
-QA_MAIL = "tester@mozilla.com"
-# An employee who files from a personal Bugzilla account, which is why the filter
-# reads the roster rather than the address.
-STAFF_PERSONAL_MAIL = "staffer@example.net"
-
-
-def _person(mail, bzmail=None, cn="A Staffer"):
-    return {
-        "mail": mail,
-        "bugzillaEmail": bzmail or mail,
-        "cn": cn,
-        "dn": f"mail={mail},o=com,dc=mozilla",
-        "ismanager": "FALSE",
-        "isdirector": "FALSE",
-        "title": "Engineer",
-        "manager": {"cn": "A Manager", "dn": "mail=boss,o=com,dc=mozilla"},
-    }
-
-
-def _people():
-    # `People` is normally loaded from configs/people.json, which is gitignored
-    # and absent in CI, so the roster is injected here. QA are on the roster too,
-    # now that they file from @mozilla.com addresses.
-    return People(
-        [
-            _person(STAFF_MAIL),
-            _person(QA_MAIL, cn="A Tester"),
-            _person("staffer@mozilla.com.example", bzmail=STAFF_PERSONAL_MAIL),
-        ]
-    )
+# Who filed a bug no longer decides anything in Python -- Bugzilla does the
+# `editbugs` filtering server-side -- so the reporter is now just a value the
+# report has to carry.
+REPORTER_MAIL = "reporter@example.org"
 
 
 def _rule(**over):
-    rule = FrontendTriage(people=_people())
+    rule = FrontendTriage()
     for key, value in over.items():
         setattr(rule, key, value)
     return rule
@@ -67,38 +39,20 @@ def _bug(creator, bug_id=1):
 # --- who gets triaged --------------------------------------------------- #
 
 
-def test_keeps_employee_filed_bug():
+def test_keeps_a_human_filed_bug():
+    assert _rule().handle_bug(_bug(REPORTER_MAIL), {}) is not None
+
+
+def test_drops_a_bot_filed_bug():
+    # Bots hold `editbugs`, so the query lets them through and this is the only
+    # thing stopping them. Both addresses are real: over the 30 days to
+    # 2026-08-25 these two filed 9 of the 106 bugs the query matched in the
+    # triaged components, all machine-generated alerts the agent would have
+    # commented on unattended. The IAM roster used to drop them by not listing
+    # them. One covers `utils.is_bot_email`'s `.tld` arm, the other its `.bugs`.
     rule = _rule()
-    assert rule.handle_bug(_bug(STAFF_MAIL), {}) is not None
-
-
-def test_keeps_qa_filed_bug():
-    # QA are on the staff roster now that they file from @mozilla.com, so they
-    # need no separate rule of their own.
-    rule = _rule()
-    assert rule.handle_bug(_bug(QA_MAIL), {}) is not None
-
-
-def test_keeps_bug_from_an_employees_personal_bugzilla_account():
-    # The roster maps a staffer's Bugzilla address to them, so an employee who
-    # doesn't file under @mozilla.com is still in scope. This is what a check on
-    # the address alone would miss.
-    rule = _rule()
-    assert rule.handle_bug(_bug(STAFF_PERSONAL_MAIL), {}) is not None
-
-
-def test_drops_community_filed_bug():
-    # The pilot is scoped to reporters we expect to file well; everyone else is
-    # left to the humans.
-    rule = _rule()
-    assert rule.handle_bug(_bug("someone@example.org"), {}) is None
-
-
-def test_drops_a_mozilla_com_address_that_is_not_on_the_roster():
-    # The roster is the source of truth, not the domain: a @mozilla.com address
-    # IAM doesn't know about (a bot, a departed account) is not triaged.
-    rule = _rule()
-    assert rule.handle_bug(_bug("automation@mozilla.com"), {}) is None
+    assert rule.handle_bug(_bug("performance-sheriff-bot@mozilla.tld"), {}) is None
+    assert rule.handle_bug(_bug("intermittent-bug-filer@mozilla.bugs"), {}) is None
 
 
 def test_reporter_reaches_the_report():
@@ -109,8 +63,8 @@ def test_reporter_reaches_the_report():
     rule = _rule(dryrun=True)
     rule.cache.set_dry_run(True)
     data: dict = {}
-    rule.bughandler(_bug(STAFF_MAIL), data)
-    assert data["1"]["creator"] == STAFF_MAIL
+    rule.bughandler(_bug(REPORTER_MAIL), data)
+    assert data["1"]["creator"] == REPORTER_MAIL
     # And every column the template reads is present, so organize() won't raise.
     assert set(rule.columns()) <= set(data["1"]) | {"run_id"}
 
@@ -183,20 +137,50 @@ def test_queries_only_open_defects():
     assert params["resolution"] == "---"
 
 
-def test_queries_only_recently_filed_bugs():
-    rule = _rule()
-    params = rule.get_bz_params("2026-07-28")
-    start_date, _ = rule.get_dates("2026-07-28")
-    # `OP`/`CP` carry no operator or value, so the numbering is no longer dense.
-    triplet = {
+def _clauses(params):
+    """The `(field, operator, value)` triples in the chart, whatever they're numbered.
+
+    `OP`/`CP` carry no operator or value, so the numbering is not dense and the
+    real clauses have to be picked out by which indexes have an `o`.
+    """
+    return {
         (params[f"f{i}"], params[f"o{i}"], params[f"v{i}"])
         for i in range(1, 100)
         if f"o{i}" in params
     }
-    assert ("creation_ts", "greaterthan", start_date) in triplet
 
 
-def test_requests_the_fields_the_filter_needs():
+def test_queries_only_recently_filed_bugs():
+    rule = _rule()
+    params = rule.get_bz_params("2026-07-28")
+    start_date, _ = rule.get_dates("2026-07-28")
+    assert ("creation_ts", "greaterthan", start_date) in _clauses(params)
+
+
+def test_queries_only_reporters_with_editbugs():
+    # The agent's analysis lands on the bug unattended, so the rule is limited to
+    # reporters Bugzilla already trusts with bug metadata. `spambug.py:52` and
+    # `stepstoreproduce.py:32` use the same pronoun in its negative form to find
+    # the reporters this one leaves out.
+    params = _rule().get_bz_params("2026-07-28")
+    assert ("reporter", "substring", "%group.editbugs%") in _clauses(params)
+
+
+def test_ands_the_reporter_check_with_the_component_groups():
+    # The regression this guards: inside the OR group, the reporter check would
+    # gate only the one component branch it landed in and leave the other eight
+    # open to any reporter at all. Checks the property rather than the index, so
+    # putting the clause after the group instead of before it still passes.
+    params = _rule().get_bz_params("2026-07-28")
+    reporter = [i for i in range(1, 100) if params.get(f"f{i}") == "reporter"]
+    assert len(reporter) == 1
+    group = [i for i in range(1, 100) if params.get(f"f{i}") in ("OP", "CP")]
+    assert reporter[0] < min(group) or reporter[0] > max(group)
+
+
+def test_requests_the_fields_the_report_needs():
+    # `creator` is no longer read by any filter -- Bugzilla does the `editbugs`
+    # check server-side -- but the report still has a Reporter column.
     params = _rule().get_bz_params("2026-07-28")
     assert {"id", "summary", "creator"} <= set(params["include_fields"])
 
@@ -219,7 +203,7 @@ def triggered(monkeypatch):
 
 
 def _bugs(*ids):
-    return {str(i): _bug(STAFF_MAIL, bug_id=i) for i in ids}
+    return {str(i): _bug(REPORTER_MAIL, bug_id=i) for i in ids}
 
 
 def test_dry_run_triggers_nothing(triggered):
@@ -341,7 +325,7 @@ def test_template_renders_a_row_per_triaged_bug(triggered):
     html = _render(rule, rule.trigger_runs(_bugs(1, 2)))
     assert "show_bug.cgi?id=1" in html
     assert "show_bug.cgi?id=2" in html
-    assert STAFF_MAIL in html
+    assert REPORTER_MAIL in html
     assert "run-1" in html
     # With three products in scope, the summary alone no longer says what a row is
     # about. This also catches the template's positional unpacking going stale
