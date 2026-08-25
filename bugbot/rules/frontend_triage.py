@@ -5,7 +5,6 @@
 from bugbot import logger, utils
 from bugbot.bzcleaner import BzCleaner
 from bugbot.hackbot_utils import api_url, trigger_agent_run
-from bugbot.people import People
 
 AGENT = "frontend-triage"
 
@@ -35,17 +34,18 @@ TRIAGED_COMPONENTS = (
 class FrontendTriage(BzCleaner):
     """Ask hackbot's frontend-triage agent to triage newly filed frontend bugs.
 
-    Scoped to bugs filed by Mozilla staff (which includes QA) in the components
-    listed in `TRIAGED_COMPONENTS`, because the agent's analysis is posted to the
-    bug unattended when it is confident. This rule only starts runs: the agent
-    investigates the source, comments on the bug, and reports to Slack itself, so
-    nothing is written to Bugzilla from here.
+    Scoped to bugs filed by a reporter holding `editbugs`, in the components listed
+    in `TRIAGED_COMPONENTS`, because the agent's analysis is posted to the bug
+    unattended when it is confident. `editbugs` is Bugzilla's own signal that a
+    reporter is trusted with bug metadata, so it is a closer match for "files a
+    report the agent can work from" than the IAM staff roster this used to read,
+    which missed vendor QA and long-standing community contributors alike. This
+    rule only starts runs: the agent investigates the source, comments on the bug,
+    and reports to Slack itself, so nothing is written to Bugzilla from here.
     """
 
-    def __init__(self, people: People | None = None) -> None:
+    def __init__(self) -> None:
         super().__init__()
-        # Injectable because configs/people.json is gitignored and absent in CI.
-        self.people = people or People.get_instance()
         self.max_triggers = self.get_config("max_triggers", 10)
         self.left_for_next_run = 0
 
@@ -79,6 +79,9 @@ class FrontendTriage(BzCleaner):
             "f1": "creation_ts",
             "o1": "greaterthan",
             "v1": start_date,
+            "f2": "reporter",
+            "o2": "substring",
+            "v2": "%group.editbugs%",
         }
 
         # One AND group per pair, inside a top-level OR. Top-level `product` and
@@ -106,15 +109,11 @@ class FrontendTriage(BzCleaner):
         return params
 
     def handle_bug(self, bug, data):
-        # The IAM roster covers QA too, now that they file from @mozilla.com
-        # addresses, so staff membership is the whole filter. It beats a check on
-        # the address itself, which would miss the employees who file from a
-        # personal Bugzilla account.
-        if not self.people.is_mozilla(bug["creator"]):
+        if utils.is_bot_email(bug["creator"]):
             return None
 
         # `bughandler` rebuilds each row from id + summary alone, so the reporter
-        # has to be stashed here to reach the report.
+        # has to be carried over by hand to reach the report.
         data[str(bug["id"])] = {"creator": bug["creator"]}
 
         return bug
