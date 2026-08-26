@@ -1,0 +1,85 @@
+Metadata-Version: 2.4
+Name: recurring-ical-events
+Version: 3.8.2
+Summary: Calculate recurrence times of events, todos, alarms and journals based on icalendar RFC5545.
+Project-URL: Homepage, https://recurring-ical-events.readthedocs.io/
+Project-URL: Repository, https://github.com/niccokunzmann/python-recurring-ical-events
+Project-URL: Source Archive, https://github.com/niccokunzmann/python-recurring-ical-events/archive/10792b9039e5ec1ba01ff3098af3beb705c1e649.zip
+Project-URL: Issues, https://github.com/niccokunzmann/python-recurring-ical-events/issues
+Project-URL: Documentation, https://github.com/niccokunzmann/python-recurring-ical-events
+Project-URL: Changelog, https://github.com/niccokunzmann/python-recurring-ical-events?tab=readme-ov-file#changelog
+Project-URL: Fund with GitHub Sponsors, https://github.com/sponsors/niccokunzmann
+Project-URL: Fund with Polar, https://polar.sh/niccokunzmann/python-recurring-ical-events
+Project-URL: Fund with Open Collective, https://opencollective.com/open-web-calendar
+Project-URL: Fund with Tidelift, https://tidelift.com/funding/github/pypi/recurring-ical-events
+Author-email: Nicco Kunzmann <niccokunzmann@rambler.ru>
+Maintainer-email: Nicco Kunzmann <niccokunzmann@rambler.ru>
+License-Expression: LGPL-3.0-or-later
+License-File: LICENSE
+Keywords: alarm,calendar,events,icalendar,ics,journal,rfc5545,scheduling,todo
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: Natural Language :: English
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Programming Language :: Python :: 3.14
+Classifier: Topic :: Office/Business :: Scheduling
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: Utilities
+Requires-Python: >=3.8
+Requires-Dist: backports-zoneinfo; python_version == '3.7' or python_version == '3.8'
+Requires-Dist: icalendar<8.0.0,>=6.1.0
+Requires-Dist: python-dateutil<3.0.0,>=2.8.1
+Requires-Dist: typing-extensions; python_version <= '3.9'
+Requires-Dist: tzdata
+Requires-Dist: x-wr-timezone<3.0.0,>=1.0.0; python_version >= '3.9'
+Requires-Dist: x-wr-timezone==0.*; python_version <= '3.8'
+Provides-Extra: test
+Requires-Dist: pygments; extra == 'test'
+Requires-Dist: pytest; extra == 'test'
+Requires-Dist: pytest-cov; extra == 'test'
+Requires-Dist: pytz>=2023.3; extra == 'test'
+Requires-Dist: restructuredtext-lint; extra == 'test'
+Description-Content-Type: text/x-rst
+
+Recurring ICal events for Python
+================================
+
+.. image:: https://github.com/niccokunzmann/python-recurring-ical-events/actions/workflows/tests.yml/badge.svg
+   :target: https://github.com/niccokunzmann/python-recurring-ical-events/actions/workflows/tests.yml
+   :alt: GitHub CI build and test status
+.. image:: https://badge.fury.io/py/recurring-ical-events.svg
+   :target: https://pypi.python.org/pypi/recurring-ical-events
+   :alt: Python Package Version on Pypi
+.. image:: https://img.shields.io/pypi/dm/recurring-ical-events.svg
+   :target: https://pypi.org/project/recurring-ical-events/#files
+   :alt: Downloads from Pypi
+.. image:: https://img.shields.io/opencollective/all/open-web-calendar?label=support%20on%20open%20collective
+   :target: https://opencollective.com/open-web-calendar/
+   :alt: Support on Open Collective
+.. image:: https://img.shields.io/github/issues/niccokunzmann/python-recurring-ical-events?logo=github&label=issues%20seek%20funding&color=%230062ff
+   :target: https://polar.sh/niccokunzmann/python-recurring-ical-events
+   :alt: issues seek funding
+
+ICal has some complexity to it:
+Events, TODOs, Journal entries and Alarms can be repeated, removed from the feed and edited later on.
+This tool takes care of these complexities.
+
+Please have a look here:
+
+- `Documentation`_
+- `Changelog`_
+- `PyPI package`_
+- `GitHub repository`_
+
+.. _Documentation: https://recurring-ical-events.readthedocs.io/
+.. _Changelog: https://recurring-ical-events.readthedocs.io/en/latest/changelog.html
+.. _PyPI package: https://pypi.org/project/recurring-ical-events/
+.. _GitHub repository: https://github.com/niccokunzmann/python-recurring-ical-events
