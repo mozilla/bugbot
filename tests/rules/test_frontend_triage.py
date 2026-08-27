@@ -168,8 +168,8 @@ def test_queries_only_reporters_with_editbugs():
 
 def test_ands_the_reporter_check_with_the_component_groups():
     # The regression this guards: inside the OR group, the reporter check would
-    # gate only the one component branch it landed in and leave the other eight
-    # open to any reporter at all. Checks the property rather than the index, so
+    # gate only the one component branch it landed in and leave every other
+    # component branch open to any reporter at all. Checks the property rather than the index, so
     # putting the clause after the group instead of before it still passes.
     params = _rule().get_bz_params("2026-07-28")
     reporter = [i for i in range(1, 100) if params.get(f"f{i}") == "reporter"]
