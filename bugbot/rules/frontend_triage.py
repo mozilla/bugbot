@@ -29,6 +29,7 @@ TRIAGED_COMPONENTS = (
     ("Firefox for Android", "Toolbar"),
     ("Firefox for Android", "Homepage"),
     ("Firefox", "Messaging System"),
+    ("Toolkit", "Data Sanitization"),
 )
 
 
