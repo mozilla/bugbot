@@ -136,10 +136,19 @@ class AssigneeNoLogin(BzCleaner, Nag):
         current_priority = bug["priority"]
 
         for change in reversed(bug["history"]):
-            if (
-                change["field_name"] == "priority"
-                and change["added"] == current_priority
-            ):
+            field_name = change.get("field_name")
+            added = change.get("added")
+            if field_name is None or added is None:
+                # Log so the upstream root cause (history entries missing
+                # expected keys) is visible in production, but continue
+                # iterating so a later valid entry can still match.
+                logger.warning(
+                    "Bug %s: history entry missing 'field_name' or 'added' keys: %r",
+                    bug.get("id"),
+                    change,
+                )
+                continue
+            if field_name == "priority" and added == current_priority:
                 return datetime.strptime(change["when"], "%Y-%m-%dT%H:%M:%SZ")
         return None
 
