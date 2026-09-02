@@ -91,7 +91,7 @@ requires-dist = [
     { name = "humanize", specifier = ">=4.16.0" },
     { name = "icalendar", specifier = "==7.2.2" },
     { name = "jinja2", specifier = "==3.1.6" },
-    { name = "libmozdata", specifier = "==0.2.15" },
+    { name = "libmozdata", specifier = "==0.2.18" },
     { name = "numpy", specifier = "==2.2.6" },
     { name = "pep8", specifier = "==1.7.1" },
     { name = "pre-commit", marker = "extra == 'test'", specifier = "==4.6.1" },
@@ -711,7 +711,7 @@ wheels = [
 
 [[package]]
 name = "libmozdata"
-version = "0.2.15"
+version = "0.2.18"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "icalendar" },
@@ -721,12 +721,12 @@ dependencies = [
     { name = "requests" },
     { name = "requests-futures" },
     { name = "setuptools" },
-    { name = "six" },
+    { name = "urllib3" },
     { name = "whatthepatch" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/80/a8/f4514b5109b3056c7698b803d79ef06c2b529157a77447f475d80c0c3785/libmozdata-0.2.15.tar.gz", hash = "sha256:4e56cd1565a68d83fba3c79374dd8f268d403266d0481f39e51281ca63b07189", size = 62650, upload-time = "2026-07-23T14:13:57.506Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6e/da/7b302ffe11ab4ac0865832c963e0a80a358e591f796ee6fcf107f64621ca/libmozdata-0.2.18.tar.gz", hash = "sha256:33608c8947af4b996245f18d55f2c8cd3e972e06a6d7f0856766c10c36e3dae6", size = 62949, upload-time = "2026-08-05T16:23:19.81Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/68/e8/30b850a642142e8d029c201b6f6133cb717e65452b6554996af4cb61ca39/libmozdata-0.2.15-py3-none-any.whl", hash = "sha256:6d0606fc3f1e10d5d0b99b37f4a951ab9e5da9d4a530dbdb24af46f4921a4fd3", size = 72668, upload-time = "2026-07-23T14:13:56.574Z" },
+    { url = "https://files.pythonhosted.org/packages/b1/3d/013e696e723c171201a26c478eb50bb512af70444d120dbb512f5ff327eb/libmozdata-0.2.18-py3-none-any.whl", hash = "sha256:3176b011e6525bef276cd2182607f1aa8eedd0e804ea983475401d7056452a41", size = 72951, upload-time = "2026-08-05T16:23:18.741Z" },
 ]
 
 [[package]]
