@@ -38,6 +38,7 @@ class NoCrashes(BzCleaner):
         fields = ["cf_crash_signature"]
         params = {
             "include_fields": fields,
+            "bug_type": "defect",
             "resolution": "---",
             "status": ["UNCONFIRMED", "NEW", "ASSIGNED"],
             "f1": "cf_crash_signature",
