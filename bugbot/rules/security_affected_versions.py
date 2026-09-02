@@ -173,12 +173,17 @@ class SecurityAffectedVersions(BzCleaner):
             "f4": "longdesc",
             "o4": "casesubstring",
             "v4": NEEDINFO_QUESTION,
+            # No regressor: skip when `regressed_by` is set, to avoid racing
+            # with the `regression_set_status_flags` rule, which sets
+            # those flags automatically from the regressor.
+            "f5": "regressed_by",
+            "o5": "isempty",
             # At least one relevant release status flag is still empty (unset).
-            "f5": "OP",
-            "j5": "OR",
+            "f6": "OP",
+            "j6": "OR",
         }
 
-        i = 6
+        i = 7
         for flag in self.status_flags:
             params[f"f{i}"] = flag
             params[f"o{i}"] = "equals"
