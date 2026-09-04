@@ -65,7 +65,7 @@ Before running:
 
 The ``hackbot_api_key`` is only needed by rules that start a `hackbot <https://github.com/mozilla/bugbug/tree/master/services/hackbot-api>`_ agent run (currently ``frontend_triage``). Those rules talk to ``https://hackbot-api.moz.tools`` by default; set ``HACKBOT_API_URL`` to point at a different deployment.
 
-The ``slack_bot_token`` is only needed by rules that post a message to Slack. It is a Slack app's Bot User OAuth Token and needs the ``chat:write``, ``chat:write.customize`` and ``chat:write.public`` scopes.
+The ``slack_bot_token`` is only needed by rules that post a message to Slack (currently ``reo_regression_slack`` and ``reo_regression_slack_daily``). It is a Slack app's Bot User OAuth Token and needs the ``chat:write``, ``chat:write.customize`` and ``chat:write.public`` scopes.
 
 Do a dryrun::
 
