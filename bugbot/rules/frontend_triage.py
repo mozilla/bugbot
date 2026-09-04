@@ -32,6 +32,9 @@ TRIAGED_COMPONENTS = (
     ("Toolkit", "Data Sanitization"),
     ("Firefox", "Sidebar"),
     ("Firefox", "Settings UI"),
+    ("Core", "Machine Learning: Frontend"),
+    ("Core", "Machine Learning: Models"),
+    ("Core", "Machine Learning: General"),
 )
 
 
