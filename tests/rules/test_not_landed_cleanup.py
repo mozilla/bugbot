@@ -91,9 +91,7 @@ def test_revision_tracking_distinguishes_legacy_and_empty_results():
         _change(3, NEEDINFO_TRACKING_PREFIX),
     ]
 
-    assert NotLandedCleanup.get_revision_tracking(
-        changes, {"1", "2", "3"}
-    ) == {
+    assert NotLandedCleanup.get_revision_tracking(changes, {"1", "2", "3"}) == {
         "1": None,
         "2": {20, 21, 22},
         "3": set(),
@@ -139,9 +137,7 @@ def test_resolved_bug_clears_only_owned_flags(monkeypatch):
     unrelated = _flag(2, creation_date="2026-08-15T12:10:35Z")
     bugs = {"123": _bug("123", status="RESOLVED", flags=[owned, unrelated])}
     _set_bugs(monkeypatch, bugs)
-    monkeypatch.setattr(
-        rule, "get_tracked_revision_ids", lambda bugids: {"123": {123}}
-    )
+    monkeypatch.setattr(rule, "get_tracked_revision_ids", lambda bugids: {"123": {123}})
     monkeypatch.setattr(rule, "get_landed_bug_ids", lambda revisions: set())
 
     assert rule.get_bugs() == bugs
@@ -154,18 +150,14 @@ def test_open_bug_with_landed_patch_is_cleared(monkeypatch):
     rule = _rule(monkeypatch)
     bugs = {"123": _bug("123")}
     _set_bugs(monkeypatch, bugs)
-    monkeypatch.setattr(
-        rule, "get_tracked_revision_ids", lambda bugids: {"123": {123}}
-    )
+    monkeypatch.setattr(rule, "get_tracked_revision_ids", lambda bugids: {"123": {123}})
     rule.phab = SimpleNamespace(
         load_revision=lambda rev_id: {"fields": {"status": {"value": "published"}}}
     )
 
     rule.get_bugs()
 
-    assert rule.autofix_changes == {
-        "123": {"flags": [{"id": 123, "status": "X"}]}
-    }
+    assert rule.autofix_changes == {"123": {"flags": [{"id": 123, "status": "X"}]}}
 
 
 def test_all_relevant_patches_must_land(monkeypatch):
@@ -183,10 +175,7 @@ def test_all_relevant_patches_must_land(monkeypatch):
 
 def test_cleanup_is_capped_to_framework_limit(monkeypatch):
     rule = _rule(monkeypatch)
-    bugs = {
-        str(bugid): _bug(str(bugid), status="RESOLVED")
-        for bugid in range(1, 52)
-    }
+    bugs = {str(bugid): _bug(str(bugid), status="RESOLVED") for bugid in range(1, 52)}
     _set_bugs(monkeypatch, bugs)
     monkeypatch.setattr(
         rule,

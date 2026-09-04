@@ -97,24 +97,20 @@ class NotLandedCleanup(BzCleaner):
                 revision_ids = tracked[bugid] = set()
             revision_ids.update(
                 int(revision_id)
-                for revision_id in extra.removeprefix(
-                    NEEDINFO_TRACKING_PREFIX
-                ).split(",")
+                for revision_id in extra.removeprefix(NEEDINFO_TRACKING_PREFIX).split(
+                    ","
+                )
                 if revision_id
             )
         return tracked
 
-    def get_tracked_revision_ids(
-        self, bugids: set[str]
-    ) -> dict[str, set[int] | None]:
+    def get_tracked_revision_ids(self, bugids: set[str]) -> dict[str, set[int] | None]:
         changes = list(db.BugChange.get(name=NOT_LANDED_RULE))
         changes += list(db.BugChange.get(name=self.name()))
         changes.sort(key=lambda change: change.id)
         return self.get_revision_tracking(changes, bugids)
 
-    def get_landed_bug_ids(
-        self, revision_ids_by_bug: dict[str, set[int]]
-    ) -> set[str]:
+    def get_landed_bug_ids(self, revision_ids_by_bug: dict[str, set[int]]) -> set[str]:
         landed = set()
         for bugid, revision_ids in revision_ids_by_bug.items():
             if not revision_ids:
