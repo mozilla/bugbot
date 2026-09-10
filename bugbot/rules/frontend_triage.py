@@ -35,6 +35,9 @@ TRIAGED_COMPONENTS = (
     ("Core", "Machine Learning: Frontend"),
     ("Core", "Machine Learning: Models"),
     ("Core", "Machine Learning: General"),
+    ("Firefox", "General"),
+    ("Toolkit", "General"),
+    ("Firefox", "Untriaged"),
 )
 
 
