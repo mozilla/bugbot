@@ -40,13 +40,29 @@ TRIAGED_COMPONENTS = (
     ("Firefox", "Untriaged"),
 )
 
+# Every hackbot agent comments as this account, so a bug `bug-fix` has worked is
+# skipped too. Safe direction: the cost is a bug we skip, not a second unattended
+# comment on one that already has one.
+HACKBOT_EMAIL = "hackbot@mozilla.tld"
+
+# Pairs queried on "somebody moved the component here" rather than "the bug was filed
+# here". `Firefox :: Untriaged` needs it because `component.py` moves a freshly filed
+# bug out in the same `cron_run_hourly.sh` pass that starts the run, while a bug moved
+# *back* is one it will never touch again. `changedto` separates the two: Bugzilla
+# writes no activity row for the component a bug was filed with.
+MOVED_BACK_COMPONENTS = frozenset({("Firefox", "Untriaged")})
+
+# A pair here and not in `TRIAGED_COMPONENTS` would be queried by nothing.
+assert MOVED_BACK_COMPONENTS <= set(TRIAGED_COMPONENTS)
+
 
 class FrontendTriage(BzCleaner):
     """Ask hackbot's frontend-triage agent to triage newly filed frontend bugs.
 
     Scoped to the components in `TRIAGED_COMPONENTS`, on the day the bug was filed
-    into one of them, and to nothing else about the reporter. `handle_bug` drops
-    bots.
+    into one of them, and to nothing else about the reporter; the exception is
+    `MOVED_BACK_COMPONENTS`, queried on when the component last changed instead.
+    `handle_bug` drops bots.
 
     This rule only starts runs: the agent investigates the source, comments on the
     bug, and reports to Slack itself, so nothing is written to Bugzilla from here.
@@ -84,9 +100,6 @@ class FrontendTriage(BzCleaner):
             # Defects only: the agent triages broken behaviour, not feature work.
             "bug_type": "defect",
             "resolution": "---",
-            "f1": "creation_ts",
-            "o1": "greaterthan",
-            "v1": start_date,
         }
 
         # One AND group per pair, inside a top-level OR. Top-level `product` and
@@ -95,6 +108,10 @@ class FrontendTriage(BzCleaner):
         # the day somebody creates it. No cross pairing exists today, but this
         # rule spends money and posts to bugs unattended, so its reach should not
         # be able to widen on its own.
+        #
+        # The date sits inside each group rather than once at the top level: the same
+        # query for the pairs that want `creation_ts`, since a top-level AND
+        # distributes over the OR, and what lets `MOVED_BACK_COMPONENTS` differ.
         n = utils.get_last_field_num(params)
         params[f"j{n}"] = "OR"
         params[f"f{n}"] = "OP"
@@ -106,6 +123,43 @@ class FrontendTriage(BzCleaner):
             params.update({f"f{n}": "product", f"o{n}": "equals", f"v{n}": product})
             n = utils.get_last_field_num(params)
             params.update({f"f{n}": "component", f"o{n}": "equals", f"v{n}": component})
+
+            if (product, component) in MOVED_BACK_COMPONENTS:
+                # Both clauses: `changedto` alone matches a move made years ago,
+                # `changedafter` alone matches a move to anywhere.
+                n = utils.get_last_field_num(params)
+                params.update(
+                    {f"f{n}": "component", f"o{n}": "changedto", f"v{n}": component}
+                )
+                n = utils.get_last_field_num(params)
+                params.update(
+                    {
+                        f"f{n}": "component",
+                        f"o{n}": "changedafter",
+                        f"v{n}": start_date,
+                    }
+                )
+                # A moved-back bug can be any age, so the cache is no longer what
+                # stands between it and a second run.
+                n = utils.get_last_field_num(params)
+                params.update(
+                    {
+                        f"n{n}": 1,
+                        f"f{n}": "commenter",
+                        f"o{n}": "equals",
+                        f"v{n}": HACKBOT_EMAIL,
+                    }
+                )
+            else:
+                n = utils.get_last_field_num(params)
+                params.update(
+                    {
+                        f"f{n}": "creation_ts",
+                        f"o{n}": "greaterthan",
+                        f"v{n}": start_date,
+                    }
+                )
+
             n = utils.get_last_field_num(params)
             params[f"f{n}"] = "CP"
         n = utils.get_last_field_num(params)
