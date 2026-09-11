@@ -44,14 +44,12 @@ TRIAGED_COMPONENTS = (
 class FrontendTriage(BzCleaner):
     """Ask hackbot's frontend-triage agent to triage newly filed frontend bugs.
 
-    Scoped to bugs filed by a reporter holding `editbugs`, in the components listed
-    in `TRIAGED_COMPONENTS`, because the agent's analysis is posted to the bug
-    unattended when it is confident. `editbugs` is Bugzilla's own signal that a
-    reporter is trusted with bug metadata, so it is a closer match for "files a
-    report the agent can work from" than the IAM staff roster this used to read,
-    which missed vendor QA and long-standing community contributors alike. This
-    rule only starts runs: the agent investigates the source, comments on the bug,
-    and reports to Slack itself, so nothing is written to Bugzilla from here.
+    Scoped to the components in `TRIAGED_COMPONENTS`, on the day the bug was filed
+    into one of them, and to nothing else about the reporter. `handle_bug` drops
+    bots.
+
+    This rule only starts runs: the agent investigates the source, comments on the
+    bug, and reports to Slack itself, so nothing is written to Bugzilla from here.
     """
 
     def __init__(self) -> None:
@@ -89,9 +87,6 @@ class FrontendTriage(BzCleaner):
             "f1": "creation_ts",
             "o1": "greaterthan",
             "v1": start_date,
-            "f2": "reporter",
-            "o2": "substring",
-            "v2": "%group.editbugs%",
         }
 
         # One AND group per pair, inside a top-level OR. Top-level `product` and
