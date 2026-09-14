@@ -1,0 +1,1 @@
+:{{ nickname }}, there is a patch pending security approval, however, the affected/unaffected status is not set for all current releases. Please update the status flags to correctly reflect the correct status.
