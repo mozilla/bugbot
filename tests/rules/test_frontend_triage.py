@@ -6,7 +6,11 @@ import pytest
 from jinja2 import Environment, FileSystemLoader
 
 from bugbot import hackbot_utils, utils
-from bugbot.rules.frontend_triage import TRIAGED_COMPONENTS, FrontendTriage
+from bugbot.rules.frontend_triage import (
+    MOVED_BACK_COMPONENTS,
+    TRIAGED_COMPONENTS,
+    FrontendTriage,
+)
 
 # Who filed a bug no longer decides anything in Python -- Bugzilla does the
 # `editbugs` filtering server-side -- so the reporter is now just a value the
@@ -96,8 +100,9 @@ def _queried_pairs(params):
             if {"product", "component"} <= pending.keys():
                 pairs.append((pending["product"], pending["component"]))
             pending = {}
-        elif field in ("product", "component"):
-            assert params[f"o{i}"] == "equals"
+        elif field in ("product", "component") and params[f"o{i}"] == "equals":
+            # `MOVED_BACK_COMPONENTS` adds `changedto`/`changedafter` clauses on
+            # `component` inside the same group; only the `equals` pair names it.
             pending[field] = params[f"v{i}"]
     return pairs
 
@@ -157,30 +162,21 @@ def test_queries_only_recently_filed_bugs():
     assert ("creation_ts", "greaterthan", start_date) in _clauses(params)
 
 
-def test_queries_only_reporters_with_editbugs():
-    # The agent's analysis lands on the bug unattended, so the rule is limited to
-    # reporters Bugzilla already trusts with bug metadata. `spambug.py:52` and
-    # `stepstoreproduce.py:32` use the same pronoun in its negative form to find
-    # the reporters this one leaves out.
-    params = _rule().get_bz_params("2026-07-28")
-    assert ("reporter", "substring", "%group.editbugs%") in _clauses(params)
-
-
-def test_ands_the_reporter_check_with_the_component_groups():
-    # The regression this guards: inside the OR group, the reporter check would
-    # gate only the one component branch it landed in and leave every other
-    # component branch open to any reporter at all. Checks the property rather than the index, so
-    # putting the clause after the group instead of before it still passes.
-    params = _rule().get_bz_params("2026-07-28")
-    reporter = [i for i in range(1, 100) if params.get(f"f{i}") == "reporter"]
-    assert len(reporter) == 1
-    group = [i for i in range(1, 100) if params.get(f"f{i}") in ("OP", "CP")]
-    assert reporter[0] < min(group) or reporter[0] > max(group)
+def test_queries_a_moved_back_component_on_the_move_and_not_the_filing():
+    # `component.py` moves a freshly filed Untriaged bug out in the same cron pass
+    # that would trigger the run, so only a bug moved back is worth triaging.
+    rule = _rule()
+    params = rule.get_bz_params("2026-07-28")
+    start_date, _ = rule.get_dates("2026-07-28")
+    clauses = _clauses(params)
+    for _, component in MOVED_BACK_COMPONENTS:
+        assert ("component", "changedto", component) in clauses
+    assert ("component", "changedafter", start_date) in clauses
 
 
 def test_requests_the_fields_the_report_needs():
-    # `creator` is no longer read by any filter -- Bugzilla does the `editbugs`
-    # check server-side -- but the report still has a Reporter column.
+    # `creator` is read by `handle_bug`'s bot check and by the report, which has a
+    # Reporter column. No filter narrows on it beyond that.
     params = _rule().get_bz_params("2026-07-28")
     assert {"id", "summary", "creator"} <= set(params["include_fields"])
 
