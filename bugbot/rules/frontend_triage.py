@@ -139,8 +139,6 @@ class FrontendTriage(BzCleaner):
                         f"v{n}": start_date,
                     }
                 )
-                # A moved-back bug can be any age, so the cache is no longer what
-                # stands between it and a second run.
                 n = utils.get_last_field_num(params)
                 params.update(
                     {
