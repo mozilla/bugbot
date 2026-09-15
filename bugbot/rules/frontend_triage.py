@@ -100,6 +100,7 @@ class FrontendTriage(BzCleaner):
             # Defects only: the agent triages broken behaviour, not feature work.
             "bug_type": "defect",
             "resolution": "---",
+            "bug_severity": "--",
         }
 
         # One AND group per pair, inside a top-level OR. Top-level `product` and
@@ -162,6 +163,20 @@ class FrontendTriage(BzCleaner):
             params[f"f{n}"] = "CP"
         n = utils.get_last_field_num(params)
         params[f"f{n}"] = "CP"
+
+        # Skip triaging bugs that already have a patch
+        n = utils.get_last_field_num(params)
+        params.update(
+            {
+                f"n{n}": 1,
+                f"f{n}": "attachments.mimetype",
+                f"o{n}": "equals",
+                f"v{n}": "text/x-phabricator-request",
+            }
+        )
+
+        # Skip bugs that are already assigned
+        utils.get_empty_assignees(params)
 
         return params
 

@@ -90,7 +90,7 @@ def _queried_pairs(params):
     """
     pairs = []
     pending: dict = {}
-    for i in range(1, 100):
+    for i in range(1, int(utils.get_last_field_num(params))):
         field = params.get(f"f{i}")
         if field is None:
             continue
@@ -124,9 +124,18 @@ def test_pairs_a_component_with_its_own_product():
 
 def test_ors_the_component_groups_and_ands_within_each():
     params = _rule().get_bz_params("2026-07-28")
-    opens = [i for i in range(1, 100) if params.get(f"f{i}") == "OP"]
-    assert params[f"j{opens[0]}"] == "OR"
-    assert [params[f"j{i}"] for i in opens[1:]] == ["AND"] * len(TRIAGED_COMPONENTS)
+    opens = [
+        i
+        for i in range(1, int(utils.get_last_field_num(params)))
+        if params.get(f"f{i}") == "OP"
+    ]
+    # Only the first `len(TRIAGED_COMPONENTS) + 1` groups are the component chart;
+    # `utils.get_empty_assignees` opens one more after it closes.
+    component_opens = opens[: len(TRIAGED_COMPONENTS) + 1]
+    assert params[f"j{component_opens[0]}"] == "OR"
+    assert [params[f"j{i}"] for i in component_opens[1:]] == ["AND"] * len(
+        TRIAGED_COMPONENTS
+    )
 
 
 def test_spans_more_than_one_product():
@@ -142,17 +151,50 @@ def test_queries_only_open_defects():
     assert params["resolution"] == "---"
 
 
+def test_queries_only_bugs_with_no_severity_yet():
+    assert _rule().get_bz_params("2026-07-28")["bug_severity"] == "--"
+
+
 def _clauses(params):
     """The `(field, operator, value)` triples in the chart, whatever they're numbered.
 
     `OP`/`CP` carry no operator or value, so the numbering is not dense and the
-    real clauses have to be picked out by which indexes have an `o`.
+    real clauses have to be picked out by which indexes have one. Both an `o` and a
+    `v` are required: `utils.get_empty_assignees` ends with an `assigned_to
+    isempty`, which is an operator with nothing to compare against.
     """
     return {
         (params[f"f{i}"], params[f"o{i}"], params[f"v{i}"])
-        for i in range(1, 100)
-        if f"o{i}" in params
+        for i in range(1, int(utils.get_last_field_num(params)))
+        if f"o{i}" in params and f"v{i}" in params
     }
+
+
+def _negated_clauses(params):
+    """The triples the chart requires the *absence* of.
+
+    `_clauses` cannot tell `n5` apart from a positive clause, so a query that
+    required a patch instead of excluding one would satisfy it.
+    """
+    return {
+        (params[f"f{i}"], params[f"o{i}"], params[f"v{i}"])
+        for i in range(1, int(utils.get_last_field_num(params)))
+        if f"o{i}" in params and f"v{i}" in params and params.get(f"n{i}") == 1
+    }
+
+
+def test_skips_a_bug_that_already_has_a_patch():
+    params = _rule().get_bz_params("2026-07-28")
+    assert (
+        "attachments.mimetype",
+        "equals",
+        "text/x-phabricator-request",
+    ) in _negated_clauses(params)
+
+
+def test_skips_a_bug_that_already_has_an_owner():
+    clauses = _clauses(_rule().get_bz_params("2026-07-28"))
+    assert ("assigned_to", "equals", "nobody@mozilla.org") in clauses
 
 
 def test_queries_only_recently_filed_bugs():
