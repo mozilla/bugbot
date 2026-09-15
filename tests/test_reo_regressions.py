@@ -2,12 +2,17 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import datetime
-
 import pytest
 
 from bugbot import constants, utils
 from bugbot import reo_regressions as reo
+from bugbot.bzcleaner import BzCleaner
+from bugbot.rules.reo_regression_slack import ReoRegressionSlack
+from bugbot.rules.reo_regression_slack_daily import ReoRegressionSlackDaily
+
+# Both messages, for the behaviour they share as `BzCleaner` rules. What one of
+# them does on its own is in its own test file.
+RULES = (ReoRegressionSlack, ReoRegressionSlackDaily)
 
 
 def test_regressions_query_without_a_split_asks_for_the_whole_set():
@@ -213,16 +218,63 @@ def test_block_text_reads_every_block_shape():
     ]
 
 
-def test_a_rule_runs_every_day_unless_it_says_otherwise():
-    # The daily message is left ungated by taking this as it comes; the summary
-    # overrides it.
-    class Anything(reo.ReoRegressionsRule):
-        pass
+@pytest.mark.parametrize("rule_class", RULES)
+def test_both_messages_are_bzcleaner_rules(rule_class):
+    # The searches, the arguments, the must_run gate and the error handling are
+    # the framework's; what these two add is where the report goes.
+    assert isinstance(rule_class(), BzCleaner)
 
-    assert all(
-        Anything().must_run(datetime.date(2026, 8, 31) + datetime.timedelta(days=day))
-        for day in range(7)
+
+@pytest.mark.parametrize("rule_class", RULES)
+def test_a_query_goes_out_as_the_rule_built_it(rule_class):
+    rule = rule_class()
+    params = {**reo.regressions_query(150), "include_fields": reo.BUG_FIELDS}
+    rule.amend_bzparams(params, [])
+
+    # No `summary`: a restricted bug is counted and linked, never named.
+    assert params["include_fields"] == reo.BUG_FIELDS
+    # No default product list, no [no-nag] exclusion and no group filter. The
+    # query is bugdash's, and what it matches is what gets counted.
+    assert "product" not in params
+    assert "[no-nag]" not in params.values()
+    assert "bug_group" not in params.values()
+
+
+@pytest.mark.parametrize("rule_class", RULES)
+def test_neither_message_caches_the_bugs_it_reports(rule_class):
+    # A bug belongs in these messages until somebody acts on it, so the cache
+    # that keeps other rules from repeating themselves has to stay off. It is by
+    # default -- `max_days_in_cache` is -1 -- and this is what would catch a
+    # configs/rules.json entry turning it on.
+    rule = rule_class()
+    rule.cache.set_dry_run(False)  # as a --production run does
+
+    assert rule.max_days_in_cache() < 1
+    assert 1234 not in rule.cache
+
+
+@pytest.mark.parametrize("rule_class", RULES)
+def test_the_report_is_a_slack_message_rather_than_an_email(rule_class, monkeypatch):
+    posted = []
+    rule = rule_class()
+    rule.dryrun = False
+    rule.test_mode = False
+    monkeypatch.setattr(reo, "versions_to_report", lambda: {})
+    monkeypatch.setattr(rule, "blocks", lambda versions: ["a block"])
+    monkeypatch.setattr(
+        reo.slack,
+        "post_to_slack",
+        lambda channel, text, blocks=None: posted.append((channel, text, blocks))
+        or "1.0",
     )
+
+    # The empty list is what stops `send_email` sending anything.
+    assert rule.get_email_data("today") == []
+
+    (channel, text, blocks), *rest = posted
+    assert not rest
+    assert (channel, blocks) == (reo.CHANNEL, ["a block"])
+    assert text, "the message needs its notification fallback text"
 
 
 def test_high_severity_is_the_shared_constant():

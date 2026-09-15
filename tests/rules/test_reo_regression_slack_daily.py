@@ -17,10 +17,11 @@ def test_the_rule_is_named_after_its_module():
 def test_the_daily_message_is_ungated():
     # Every weekday the cron script invokes it: these are things somebody has to
     # do, so a day skipped is a day nobody was asked. The summary is the one with
-    # a `must_run`.
+    # a `must_run` in configs/rules.json.
     rule = ReoRegressionSlackDaily()
-    monday = datetime.date(2026, 8, 31)
+    monday = datetime.datetime(2026, 8, 31)
 
+    assert utils.get_config("reo_regression_slack_daily", "must_run") is None
     assert all(rule.must_run(monday + datetime.timedelta(days=day)) for day in range(7))
 
 

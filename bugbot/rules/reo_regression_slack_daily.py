@@ -21,12 +21,15 @@ bugs are counted and linked like any other but never named; see
 posting.
 """
 
+import argparse
 import datetime
+from typing import Any
 
 from libmozdata import utils as lmdutils
 
 from bugbot import logger, utils
 from bugbot import reo_regressions as reo
+from bugbot.bzcleaner import Bug, BzCleaner, BzParams, EmailData
 
 # Products where an unassigned high severity bug is not something to nag about,
 # so they are left out of the "S2+ unassigned" bucket alone. Empty today, as the
@@ -267,24 +270,6 @@ STUCK_BUCKETS = (
 )
 
 
-def open_regressions(versions: dict[str, int]) -> list[dict]:
-    """Every open release regression across the channels, each bug listed once.
-
-    A regression affecting Nightly usually affects Beta and Release too, so the
-    three queries overlap heavily: 62 hits covering 50 bugs when this was
-    written. Keying on the bug id merges them, which is the point of this
-    message — one list of what needs doing, not the same bug asked about three
-    times. Where two channels disagree the last query wins, but the fields the
-    buckets look at are all channel independent.
-    """
-    bugs: dict[int, dict] = {}
-    for version in sorted(set(versions.values())):
-        for bug in reo.fetch_bugs(reo.regressions_query(version), FIELDS):
-            bugs[bug["id"]] = bug
-
-    return list(bugs.values())
-
-
 def stuck_group(bugs: list[dict], label: str, anchor: str) -> str:
     """Build the bullet and team sub-bullet for one bucket.
 
@@ -310,41 +295,133 @@ def stuck_group(bugs: list[dict], label: str, anchor: str) -> str:
     )
 
 
-def burndown_group(channel: str, version: int, cutoff: datetime.datetime) -> str:
-    """Build the burndown bullet for one channel, aged from when each bug was fixed.
-
-    Unlike the other buckets this is per version rather than merged across the
-    channels: a fix reaches Beta and Release by separate uplifts, so the same bug
-    can be outstanding on one and done on the other, and each has to be asked for
-    against its own version.
-
-    Nothing is subtracted for a bug fixed in the version's own cycle, as the
-    query only keeps bugs the version is still marked as affected by. Once a fix
-    is uplifted the status goes to fixed and the bug leaves the list.
-    """
-    query = burndown_query(version, utils.get_flag(None, "approval", channel))
-    bugs = [
-        bug
-        for bug in reo.fetch_bugs(query, BURNDOWN_FIELDS)
-        if lmdutils.get_date_ymd(bug["cf_last_resolved"]) < cutoff
-    ]
-    label = f"{{}} Fx{version} {channel.title()} fixed with no uplift request"
-
-    return stuck_group(bugs, label, "resolved")
-
-
-class ReoRegressionSlackDaily(reo.ReoRegressionsRule):
+class ReoRegressionSlackDaily(BzCleaner):
     """Post the release regressions that are waiting on somebody to Slack.
 
-    No `must_run`: this one runs every day the cron script invokes it, which is
-    every weekday.
+    A `BzCleaner` that reports to Slack instead of by email: the searches, the
+    arguments and the error handling are all the framework's, and
+    `get_email_data` posts the message and returns nothing to mail.
+
+    No `must_run` entry in `configs/rules.json`: this one runs every day the
+    cron script invokes it, which is every weekday. The twice weekly summary,
+    `reo_regression_slack`, is the one with a cadence of its own.
     """
+
+    # Where the message goes. A `--channel` run overrides it, so this is the
+    # channel the cron posts to; see `parse_custom_arguments`.
+    channel = reo.CHANNEL
 
     def description(self) -> str:
         return "REO release regressions needing action posted to Slack"
 
-    def heading(self) -> str:
-        return HEADING
+    def all_include_fields(self) -> bool:
+        # The fields a search asks for are FIELDS and BURNDOWN_FIELDS and
+        # nothing else. `BzCleaner` would otherwise add `summary` to every
+        # query, which is the one field no message here prints.
+        return True
+
+    def has_default_products(self) -> bool:
+        # Both queries are scoped by classification, as bugdash's are; the
+        # default product list would report a different bug set.
+        return False
+
+    def filter_no_nag_keyword(self) -> bool:
+        # [no-nag] is a request not to mail a bug's assignee about it. This
+        # message names teams rather than people and is read by the release
+        # managers chasing the work, so dropping those bugs would hide work
+        # that still has to be done.
+        return False
+
+    def add_custom_arguments(self, parser: argparse.ArgumentParser) -> None:
+        reo.add_channel_argument(parser)
+
+    def parse_custom_arguments(self, args: argparse.Namespace) -> None:
+        self.channel = args.channel or reo.CHANNEL
+
+    def get_bz_params(self, date: str) -> BzParams:
+        """The query the running `get_bugs()` call is for. See `fetch_bugs`."""
+        return self.params
+
+    def bughandler(self, bug: Bug, data: dict[str, Any]) -> None:
+        """Keep every field of the bug, keyed by its id.
+
+        `BzCleaner`'s own handler reduces a bug to the columns of an email
+        table, its summary included. This message ages every bug and counts it,
+        so it needs the fields it asked for and none of the rest.
+        """
+        data[str(bug["id"])] = bug
+
+    def fetch_bugs(self, query: dict, fields: str = FIELDS) -> list[dict]:
+        """Run one of this rule's queries through `BzCleaner`'s search path.
+
+        Several queries per run -- one per version, plus one per burndown line
+        -- each one set here and read back by `get_bz_params`, the way
+        `warn_regressed_by` steps through its two. Going through `get_bugs` is
+        what attaches bugbot's API key, which is the whole reason this sees
+        restricted bugs, along with the query timeout and the paging. libmozdata
+        pages a search itself -- counting first, then walking the results in
+        chunks -- but only for a query carrying none of count_only, limit, order
+        or offset, so no query here may add one.
+        """
+        self.params = {**query, "include_fields": fields}
+
+        return list(self.get_bugs().values())
+
+    def open_regressions(self, versions: dict[str, int]) -> list[dict]:
+        """Every open release regression across the channels, each bug listed once.
+
+        A regression affecting Nightly usually affects Beta and Release too, so
+        the three queries overlap heavily: 62 hits covering 50 bugs when this
+        was written. Keying on the bug id merges them, which is the point of
+        this message — one list of what needs doing, not the same bug asked
+        about three times. Where two channels disagree the last query wins, but
+        the fields the buckets look at are all channel independent.
+        """
+        bugs: dict[int, dict] = {}
+        for version in sorted(set(versions.values())):
+            for bug in self.fetch_bugs(reo.regressions_query(version)):
+                bugs[bug["id"]] = bug
+
+        return list(bugs.values())
+
+    def burndown_group(
+        self, channel: str, version: int, cutoff: datetime.datetime
+    ) -> str:
+        """Build the burndown bullet for one channel, aged from when each bug was fixed.
+
+        Unlike the other buckets this is per version rather than merged across the
+        channels: a fix reaches Beta and Release by separate uplifts, so the same bug
+        can be outstanding on one and done on the other, and each has to be asked for
+        against its own version.
+
+        Nothing is subtracted for a bug fixed in the version's own cycle, as the
+        query only keeps bugs the version is still marked as affected by. Once a fix
+        is uplifted the status goes to fixed and the bug leaves the list.
+        """
+        query = burndown_query(version, utils.get_flag(None, "approval", channel))
+        bugs = [
+            bug
+            for bug in self.fetch_bugs(query, BURNDOWN_FIELDS)
+            if lmdutils.get_date_ymd(bug["cf_last_resolved"]) < cutoff
+        ]
+        label = f"{{}} Fx{version} {channel.title()} fixed with no uplift request"
+
+        return stuck_group(bugs, label, "resolved")
+
+    def get_email_data(self, date: str) -> EmailData:
+        """Post the message, and give `send_email` nothing to send.
+
+        The report is the Slack message rather than an email, and an empty list
+        is what stops one being sent -- the same way `security_affected_versions`
+        runs the pipeline for the needinfos it posts and mails no summary. The
+        "No data" line `send_email` then logs is about that email, not about the
+        message, which has been posted by the time it is written.
+        """
+        reo.post_message(
+            self, self.channel, HEADING, self.blocks(reo.versions_to_report())
+        )
+
+        return []
 
     def blocks(self, versions: dict[str, int]) -> list[dict]:
         """Build the action required message, one section per bucket.
@@ -363,7 +440,7 @@ class ReoRegressionSlackDaily(reo.ReoRegressionsRule):
         sections = [INTRO]
 
         cutoff = stuck_since()
-        bugs = open_regressions(versions)
+        bugs = self.open_regressions(versions)
 
         groups = [
             group
@@ -389,7 +466,7 @@ class ReoRegressionSlackDaily(reo.ReoRegressionsRule):
                 logger.warning("No version for %s; skipping its burndown line", channel)
                 continue
 
-            if group := burndown_group(channel, version, cutoff):
+            if group := self.burndown_group(channel, version, cutoff):
                 groups.append(group)
 
         sections.extend(groups or [NOTHING_STUCK])

@@ -197,7 +197,7 @@ python -m bugbot.rules.severity_high_performance_impact --production
 python -m bugbot.rules.moved_to_performance --production
 
 # Post the REO release regression cycle summary to Slack
-# Self-gated to Mon and Thu by the rule's own must_run
+# Gated to Mon and Thu by its must_run in configs/rules.json
 python -m bugbot.rules.reo_regression_slack --production
 
 # Post the REO release regressions needing action to Slack

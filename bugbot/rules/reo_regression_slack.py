@@ -24,9 +24,11 @@ The regressions that need chasing rather than counting are the other rule,
 `reo_regression_slack_daily`.
 """
 
+import argparse
 import datetime
 import functools
 import re
+from typing import Any
 
 import requests
 from libmozdata import utils as lmdutils
@@ -34,17 +36,7 @@ from libmozdata.fx_trains import FirefoxTrains
 
 from bugbot import reo_regressions as reo
 from bugbot import utils
-
-# The days this message is posted on. In the rule rather than in
-# `configs/rules.json` because the cadence is part of what the message is: it
-# reports how a cycle is going rather than what has just changed, and it says so
-# in its own wording, so a day added to it in configuration would not make the
-# message it produces any more true. `missed_uplifts` and `workflow.p2_merge_day`
-# decide their days in the rule for the same reason.
-#
-# Twice a week rather than daily: the counts move slowly, and a summary that
-# arrives every morning stops being read.
-MUST_RUN_DAYS = ("Mon", "Thu")
+from bugbot.bzcleaner import Bug, BzCleaner, BzParams, EmailData
 
 RELEASE_PAGE_URL = "https://whattrainisitnow.com/release/?version={}"
 
@@ -172,60 +164,134 @@ def cycle_countdown(version: int, channel: str) -> str:
     return f'{label} {end:%Y-%m-%d} in {days} {utils.plural("working day", days)}'
 
 
-def regression_group(
-    version: int, carry_over: bool, label: str, by_team: bool = False
-) -> str:
-    """Build the bullet and severity sub-bullets for one bug list.
+class ReoRegressionSlack(BzCleaner):
+    """Post the state of this cycle's open release regressions to Slack.
 
-    The list is fetched once and split by severity and team here, rather than
-    asking Bugzilla for each subset, so the sub-bullets are guaranteed to be
-    part of the count above them.
-
-    Bug lists that are empty are left out entirely rather than reported as a
-    zero, so a quiet channel is short instead of a wall of "0". Returns an
-    empty string when there are no bugs at all.
+    A `BzCleaner` that reports to Slack instead of by email: the searches, the
+    arguments, the `must_run` gate and the error handling are all the
+    framework's, and `get_email_data` posts the message and returns nothing to
+    mail. The days it runs on are `must_run` in `configs/rules.json`.
     """
-    query = reo.regressions_query(version, carry_over)
-    bugs = reo.fetch_bugs(query)
-    if not bugs:
-        return ""
 
-    link = reo.bug_link(bugs, f"{{}} {label} Regressions", query)
-    lines = [f"• {link}{reo.restricted_note(bugs)}"]
-
-    if by_team:
-        lines.append(reo.SUB_BULLET + reo.team_breakdown(bugs))
-
-    severity_counts = []
-    for severities, template in (
-        (reo.HIGH_SEVERITY, "{} S2+"),
-        (reo.MISSING_SEVERITIES, "{} missing severity"),
-    ):
-        subset = [bug for bug in bugs if bug["severity"] in severities]
-        if subset:
-            severity_counts.append(
-                reo.bug_link(subset, template, reo.with_severities(query, severities))
-            )
-
-    if severity_counts:
-        lines.append(reo.SUB_BULLET + ", ".join(severity_counts))
-
-    return "\n".join(lines)
-
-
-class ReoRegressionSlack(reo.ReoRegressionsRule):
-    """Post the state of this cycle's open release regressions to Slack."""
+    # Where the message goes. A `--channel` run overrides it, so this is the
+    # channel the cron posts to; see `parse_custom_arguments`.
+    channel = reo.CHANNEL
 
     def description(self) -> str:
         return "REO release regression cycle summary posted to Slack"
 
-    def heading(self) -> str:
-        return HEADING
+    def all_include_fields(self) -> bool:
+        # The fields a search asks for are `reo.BUG_FIELDS` and nothing else.
+        # `BzCleaner` would otherwise add `summary` to every query, which is the
+        # one field no message here prints -- see `reo.restricted_note`.
+        return True
 
-    def must_run(self, date: datetime.date) -> bool:
-        weekdays = utils.get_weekdays()
+    def has_default_products(self) -> bool:
+        # The query is scoped by classification, as bugdash's REO queries are;
+        # the default product list would report a different bug set.
+        return False
 
-        return any(weekdays[day] == date.weekday() for day in MUST_RUN_DAYS)
+    def filter_no_nag_keyword(self) -> bool:
+        # This message counts bugs rather than nagging about them, and a
+        # [no-nag] bug is still one the cycle is carrying. Dropping those would
+        # put the counts out of step with the REO tab.
+        return False
+
+    def add_custom_arguments(self, parser: argparse.ArgumentParser) -> None:
+        reo.add_channel_argument(parser)
+
+    def parse_custom_arguments(self, args: argparse.Namespace) -> None:
+        self.channel = args.channel or reo.CHANNEL
+
+    def get_bz_params(self, date: str) -> BzParams:
+        """The query the running `get_bugs()` call is for. See `fetch_bugs`."""
+        return self.params
+
+    def bughandler(self, bug: Bug, data: dict[str, Any]) -> None:
+        """Keep every field of the bug, keyed by its id.
+
+        `BzCleaner`'s own handler reduces a bug to the columns of an email
+        table, its summary included. This message reports counts and
+        breakdowns, so it needs the fields it asked for and none of the rest.
+        """
+        data[str(bug["id"])] = bug
+
+    def fetch_bugs(self, query: dict, fields: str = reo.BUG_FIELDS) -> list[dict]:
+        """Run one of this rule's queries through `BzCleaner`'s search path.
+
+        Several queries per run -- two per channel -- each one set here and read
+        back by `get_bz_params`, the way `warn_regressed_by` steps through its
+        two. Going through `get_bugs` is what attaches bugbot's API key, which
+        is the whole reason this sees restricted bugs, along with the query
+        timeout and the paging. libmozdata pages a search itself -- counting
+        first, then walking the results in chunks -- but only for a query
+        carrying none of count_only, limit, order or offset, so no query here
+        may add one.
+
+        Fetching the bugs rather than asking for count_only is what lets the
+        severity and team breakdowns be derived from one request, and lets each
+        count link to the exact bugs behind it.
+        """
+        self.params = {**query, "include_fields": fields}
+
+        return list(self.get_bugs().values())
+
+    def regression_group(
+        self, version: int, carry_over: bool, label: str, by_team: bool = False
+    ) -> str:
+        """Build the bullet and severity sub-bullets for one bug list.
+
+        The list is fetched once and split by severity and team here, rather than
+        asking Bugzilla for each subset, so the sub-bullets are guaranteed to be
+        part of the count above them.
+
+        Bug lists that are empty are left out entirely rather than reported as a
+        zero, so a quiet channel is short instead of a wall of "0". Returns an
+        empty string when there are no bugs at all.
+        """
+        query = reo.regressions_query(version, carry_over)
+        bugs = self.fetch_bugs(query)
+        if not bugs:
+            return ""
+
+        link = reo.bug_link(bugs, f"{{}} {label} Regressions", query)
+        lines = [f"• {link}{reo.restricted_note(bugs)}"]
+
+        if by_team:
+            lines.append(reo.SUB_BULLET + reo.team_breakdown(bugs))
+
+        severity_counts = []
+        for severities, template in (
+            (reo.HIGH_SEVERITY, "{} S2+"),
+            (reo.MISSING_SEVERITIES, "{} missing severity"),
+        ):
+            subset = [bug for bug in bugs if bug["severity"] in severities]
+            if subset:
+                severity_counts.append(
+                    reo.bug_link(
+                        subset, template, reo.with_severities(query, severities)
+                    )
+                )
+
+        if severity_counts:
+            lines.append(reo.SUB_BULLET + ", ".join(severity_counts))
+
+        return "\n".join(lines)
+
+    def get_email_data(self, date: str) -> EmailData:
+        """Post the message, and give `send_email` nothing to send.
+
+        The report is the Slack message rather than an email, and an empty list
+        is what stops one being sent -- the same way `security_affected_versions`
+        runs the pipeline for the needinfos it posts and mails no summary. The
+        "No data" line `send_email` then logs is about that email, not about the
+        message, which has been posted by the time it is written.
+        """
+        reo.post_message(
+            self, self.channel, HEADING, self.blocks(reo.versions_to_report())
+        )
+
+        return []
 
     def blocks(self, versions: dict[str, int]) -> list[dict]:
         """Build the cycle summary as Block Kit sections, one per bug list."""
@@ -244,8 +310,8 @@ class ReoRegressionSlack(reo.ReoRegressionsRule):
             groups = [
                 group
                 for group in (
-                    regression_group(version, False, "New", by_team=True),
-                    regression_group(version, True, "Carry Over"),
+                    self.regression_group(version, False, "New", by_team=True),
+                    self.regression_group(version, True, "Carry Over"),
                 )
                 if group
             ]

@@ -11,11 +11,13 @@ https://bugdash.moz.tools/:
 - `bugbot.rules.reo_regression_slack_daily`, the action required message, every
   weekday
 
-What lives here is mostly what both of them need: the open regressions query,
-the Bugzilla search and link building, the team breakdown, the Block Kit
-wrapping and the `ReoRegressionsRule` base class that runs one of them. What is
-one message's own -- its heading, its cadence, its buckets -- lives in that
-rule.
+Both are `BzCleaner` rules, so the searches go out through `get_bz_params` and
+`get_bugs`, and the run itself -- the rule's name, its arguments, its `must_run`
+gate, its logging and its error handling -- is the framework's. What lives here
+is what the two of them share on top of that: the open regressions query, the
+Bugzilla link building, the team breakdown, the Block Kit wrapping and the
+posting. What is one message's own -- its heading, its cadence, its buckets --
+lives in that rule.
 
 A few things here have one caller today, and each says so where it is defined.
 They are kept here because of what they are rather than who uses them: a
@@ -25,7 +27,7 @@ looking in two files for one vocabulary, and moving it back is what adding the
 second caller would mean.
 
 Shaped after `bugbot.multinaggers` and `bugbot.topcrash`: a module here holding
-what rules under `bugbot/rules` share, base class included.
+what rules under `bugbot/rules` share.
 
 Restricted bugs are counted in the totals and included in the links like any
 other, but never named: no message prints a bug summary, which is the same line
@@ -38,13 +40,10 @@ gap. See `restricted_note`.
 import argparse
 import datetime
 import functools
-import os
-import sys
 from collections.abc import Collection
 
-from libmozdata.bugzilla import Bugzilla
-
-from bugbot import logger, logger_extra, slack, utils
+from bugbot import logger, slack, utils
+from bugbot.bzcleaner import BzCleaner
 from bugbot.components import ComponentName, fetch_component_teams
 
 # Shared with the rest of bugbot rather than redeclared as ("S1", "S2") the way the
@@ -306,33 +305,6 @@ def team_of(bug: dict) -> str:
     return component_teams().get(ComponentName.from_bug(bug)) or UNKNOWN_TEAM
 
 
-def fetch_bugs(query: dict, fields: str = BUG_FIELDS) -> list[dict]:
-    """Return the requested fields of every bug matching a query.
-
-    Fetching the bugs rather than asking for count_only is what lets the severity
-    and team breakdowns be derived from one request, and lets each count link to
-    the exact bugs behind it.
-
-    `fields` defaults to the shared list, which is everything the cycle summary
-    asks of a bug; the daily rule passes its own, longer one.
-
-    libmozdata pages the search itself — counting first, then walking the results in
-    chunks — but only for a query carrying none of count_only, limit, order or
-    offset, so none of those may be added here. It also attaches bugbot's API key,
-    which is the whole reason these rules see restricted bugs at all.
-    """
-    bugs: list[dict] = []
-
-    Bugzilla(
-        {**query, "include_fields": fields},
-        bughandler=lambda bug, data: data.append(bug),
-        bugdata=bugs,
-        timeout=utils.get_config("common", "bz_query_timeout"),
-    ).get_data().wait()
-
-    return bugs
-
-
 def query_url(query: dict) -> str:
     """A Bugzilla URL that re-runs a query, so its results change over time."""
     return utils.get_bz_search_url(query)
@@ -492,121 +464,59 @@ def block_text(block: dict) -> str:
     return block["text"]["text"]
 
 
-class ReoRegressionsRule:
-    """Base for the rules that post a REO release regression message to Slack.
+def add_channel_argument(parser: argparse.ArgumentParser) -> None:
+    """Add the flag that sends a run's message somewhere other than CHANNEL.
 
-    A subclass says what its message is called, when it runs and what is in it;
-    building and posting it is the same either way and happens here.
-
-    Not a `BzCleaner`: these rules run several queries rather than one, report
-    counts rather than a table of bugs, write nothing to Bugzilla, and have to
-    post on a quiet day to say so -- where `BzCleaner` sends nothing when there
-    are no bugs, and its cache would suppress a bug that must reappear until it
-    is fixed. The conventions that do apply are borrowed rather than reinvented:
-    `description`, `must_run(date)` and a `name` taken from the module file all
-    mean what they mean there, `--production` is the flag that makes a run real,
-    `logger_extra["bugbot_rule"]` tags the log, and a failure is logged and
-    swallowed so one message can't fail the whole cron job.
+    Added through `BzCleaner.add_custom_arguments`, so a rule keeps every
+    standard flag -- `--production`, `--date` -- and gains this one.
     """
+    parser.add_argument(
+        "--channel",
+        action="store",
+        default="",
+        help=(
+            f"Slack channel ID to post to, overriding {CHANNEL}. Useful to shake "
+            "the message out somewhere else without editing the code."
+        ),
+    )
 
-    def __init__(self) -> None:
-        self.__rule_name__ = self._rule_name()
 
-    def _rule_name(self) -> str:
-        """The rule name, taken from the module file as `BzCleaner` takes it."""
-        module = sys.modules[self.__class__.__module__]
-        module_file = module.__file__
-        assert module_file is not None
+def versions_to_report() -> dict[str, int]:
+    """The current version of each channel, with what was read written to the log.
 
-        return os.path.splitext(os.path.basename(module_file))[0]
+    From the trains API rather than through `BzCleaner.init_versions`:
+    `utils.get_checked_versions` returns nothing on merge day, and
+    `has_enough_data` would then skip the run on exactly the day both messages
+    have their own wording for.
+    """
+    versions = utils.get_versions_from_trains()
+    logger.info(
+        "Reporting Firefox %s release / %s beta / %s nightly",
+        versions["release"],
+        versions["beta"],
+        versions["nightly"],
+    )
 
-    def name(self) -> str:
-        """Get the rule name"""
-        return self.__rule_name__
+    return versions
 
-    def description(self) -> str:
-        """Get the description for the help"""
-        return ""
 
-    def heading(self) -> str:
-        """The message's title, which is also its notification fallback text."""
-        raise NotImplementedError
+def post_message(
+    rule: BzCleaner, channel: str, heading: str, blocks: list[dict]
+) -> None:
+    """Post a rule's message to Slack, or print it when the run isn't for real.
 
-    def must_run(self, date: datetime.date) -> bool:
-        """Check if the rule must run for this date"""
-        return True
+    `heading` is the message's notification fallback text, which is what a
+    client that cannot render blocks shows instead of them.
 
-    def blocks(self, versions: dict[str, int]) -> list[dict]:
-        """Build the message as Block Kit blocks."""
-        raise NotImplementedError
+    A dry run prints what it would have posted, so `--production` means here what
+    it means for every other rule. `test_mode` is honoured alongside it for the
+    reason `triage_owner_rotations` honours it: a test run must reach nobody.
+    """
+    if rule.dryrun or rule.test_mode:
+        print("DRY RUN: message not posted.\n")
+        for block in blocks:
+            print(block_text(block))
+        return
 
-    def get_args_parser(self) -> argparse.ArgumentParser:
-        """Get the arguments from the command line"""
-        parser = argparse.ArgumentParser(description=self.description())
-        parser.add_argument(
-            "--production",
-            dest="dryrun",
-            action="store_false",
-            help=(
-                "If the flag is not passed, just build the message and print it to "
-                "the console without posting it to Slack"
-            ),
-        )
-        parser.add_argument(
-            "--channel",
-            action="store",
-            default="",
-            help=(
-                f"Slack channel ID to post to, overriding {CHANNEL}. Useful to shake "
-                "the message out somewhere else without editing the code."
-            ),
-        )
-        parser.add_argument(
-            "--force",
-            action="store_true",
-            help=(
-                "Post even on a day the rule's own must_run would skip. No effect "
-                "on a rule that posts whenever it is invoked"
-            ),
-        )
-
-        return parser
-
-    def run(self) -> None:
-        """Run the rule"""
-        logger_extra["bugbot_rule"] = self.name()
-        logger.info("Run rule %s", self.name())
-
-        args = self.get_args_parser().parse_args()
-
-        try:
-            if not args.force and not self.must_run(utc_today()):
-                logger.info(
-                    "%s: not a day this message runs on; --force overrides",
-                    self.name(),
-                )
-                return
-
-            versions = utils.get_versions_from_trains()
-            blocks = self.blocks(versions)
-
-            if args.dryrun:
-                print("DRY RUN: message not posted.\n")
-                for block in blocks:
-                    print(block_text(block))
-                return
-
-            slack.post_to_slack(args.channel or CHANNEL, self.heading(), blocks=blocks)
-            logger.info(
-                "Rule %s posted for Firefox %s / %s / %s",
-                self.name(),
-                versions["release"],
-                versions["beta"],
-                versions["nightly"],
-            )
-        except Exception:
-            # Logged and swallowed, as `BzCleaner.run` does: `bugbot.log --send`
-            # mails the digest at the end of the cron run, so the failure is seen
-            # without a non-zero exit tripping the ERR trap and failing the whole
-            # job over one message.
-            logger.exception("Rule %s", self.name())
+    slack.post_to_slack(channel, heading, blocks=blocks)
+    logger.info("Rule %s posted to %s", rule.name(), channel)

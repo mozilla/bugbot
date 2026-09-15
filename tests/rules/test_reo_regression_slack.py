@@ -6,7 +6,7 @@ import datetime
 
 from bugbot import reo_regressions as reo
 from bugbot import utils
-from bugbot.rules.reo_regression_slack import ReoRegressionSlack, regression_group
+from bugbot.rules.reo_regression_slack import ReoRegressionSlack
 
 
 def test_the_rule_is_named_after_its_module():
@@ -17,21 +17,30 @@ def test_the_rule_is_named_after_its_module():
 
 def test_the_summary_runs_on_monday_and_thursday_only():
     rule = ReoRegressionSlack()
-    monday = datetime.date(2026, 8, 31)
+    monday = datetime.datetime(2026, 8, 31)
     week = [monday + datetime.timedelta(days=day) for day in range(7)]
 
     assert [day for day in week if rule.must_run(day)] == [
         monday,
-        datetime.date(2026, 9, 3),  # Thursday
+        datetime.datetime(2026, 9, 3),  # Thursday
     ]
 
 
-def test_the_cadence_is_the_rules_own():
-    # In the rule rather than in configs/rules.json, the way `missed_uplifts` and
-    # `workflow.p2_merge_day` decide their days, so a config entry can neither add
-    # a day nor take one away.
-    assert utils.get_config("reo_regression_slack", "must_run", None) is None
-    assert not ReoRegressionSlack().must_run(datetime.date(2026, 9, 1))  # Tuesday
+def test_the_cadence_comes_from_the_rule_config():
+    # `BzCleaner.must_run` reads it, so the days are configuration rather than an
+    # override here. Twice a week rather than daily: the counts move slowly, and a
+    # summary that arrives every morning stops being read.
+    assert utils.get_config("reo_regression_slack", "must_run") == ["Mon", "Thu"]
+
+
+def test_a_run_can_be_pointed_at_another_day():
+    # `BzCleaner`'s own --date, which is how the Mon/Thu gate is exercised without
+    # waiting for a Monday.
+    rule = ReoRegressionSlack()
+    args = rule.get_args_parser().parse_args(["-D", "2026-09-01"])
+
+    assert not rule.must_run(datetime.datetime(2026, 9, 1))  # Tuesday
+    assert args.date == "2026-09-01"
 
 
 def test_regression_group_notes_restricted_bugs_on_the_top_line_only(monkeypatch):
@@ -39,12 +48,13 @@ def test_regression_group_notes_restricted_bugs_on_the_top_line_only(monkeypatch
         {"id": 1, "severity": "S2", "groups": ["core-security-release"]},
         {"id": 2, "severity": "--", "groups": []},
     ]
-    monkeypatch.setattr(reo, "fetch_bugs", lambda query, fields=None: bugs)
+    rule = ReoRegressionSlack()
+    monkeypatch.setattr(rule, "fetch_bugs", lambda query, fields=None: bugs)
     monkeypatch.setattr(reo, "team_of", lambda bug: "Team A")
 
-    bullet, teams, severities = regression_group(150, False, "New", by_team=True).split(
-        "\n"
-    )
+    bullet, teams, severities = rule.regression_group(
+        150, False, "New", by_team=True
+    ).split("\n")
 
     assert bullet.endswith("|2 New Regressions> (1 restricted)")
     assert "restricted" not in teams
@@ -53,17 +63,14 @@ def test_regression_group_notes_restricted_bugs_on_the_top_line_only(monkeypatch
     assert "1 missing severity" in severities
 
 
-def test_force_bypasses_the_must_run_gate():
-    parser = ReoRegressionSlack().get_args_parser()
-
-    assert not parser.parse_args([]).force
-    assert parser.parse_args(["--force"]).force
-
-
 def test_the_channel_is_a_constant_the_flag_can_override():
-    parser = ReoRegressionSlack().get_args_parser()
+    rule = ReoRegressionSlack()
+    parser = rule.get_args_parser()
 
-    # No flag means the module constant, which is what the cron runs with.
-    assert parser.parse_args([]).channel == ""
-    assert parser.parse_args(["--channel", "C_TEST"]).channel == "C_TEST"
+    # No flag means the module constant, which is what the cron posts to.
+    rule.parse_custom_arguments(parser.parse_args([]))
+    assert rule.channel == reo.CHANNEL
     assert reo.CHANNEL.startswith("C")
+
+    rule.parse_custom_arguments(parser.parse_args(["--channel", "C_TEST"]))
+    assert rule.channel == "C_TEST"
