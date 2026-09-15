@@ -18,8 +18,16 @@ PATCH_CONTENT_TYPES = ("text/x-phabricator-request", "text/x-review-board-reques
 # into the template via `get_extra_for_needinfo_template`) AND used as the
 # re-nag guard in `get_bz_params` (a bug whose comments already contain it is
 # skipped). Both uses reference this single constant so they can never drift
-# out of sync; changing the wording keeps the guard correct automatically.
-NEEDINFO_QUESTION = (
+# out of sync.
+COMMENT_MARKER = (
+    "please review the release status flags for beta, release, and ESR and "
+    "update each one as appropriate."
+)
+
+# The marker used by the previous wording. Bugzilla comments are immutable, so
+# bugs nagged before the rewording carry only this one: keep filtering on it
+# too, otherwise they would all be nagged a second time.
+LEGACY_COMMENT_MARKER = (
     "Which branches (beta, release, and/or ESR) are affected by this flaw?"
 )
 
@@ -83,7 +91,7 @@ class SecurityAffectedVersions(BzCleaner):
         return None
 
     def get_extra_for_needinfo_template(self):
-        return {"question": NEEDINFO_QUESTION}
+        return {"marker": COMMENT_MARKER}
 
     def columns(self):
         return ["id", "summary"]
@@ -147,8 +155,8 @@ class SecurityAffectedVersions(BzCleaner):
             # Only open bugs: we want to prompt while setting the flags is still
             # actionable (i.e. the patch is in review, not yet landed).
             "resolution": "---",
-            # Only defects: the "which branches are affected by this flaw"
-            # question doesn't apply to tasks or enhancements.
+            # Only defects: release status flags don't apply to tasks or
+            # enhancements.
             "bug_type": "defect",
             # Coarse recency filter: the bug changed within the window. Since
             # attaching a patch bumps `delta_ts`, this is a superset of "a patch
@@ -160,7 +168,7 @@ class SecurityAffectedVersions(BzCleaner):
             # The bug is hidden in a core-security group (e.g. core-security,
             # firefox-core-security, core-security-release). This intentionally
             # excludes non-core security groups (e.g. cloud-services-security),
-            # matching the scope of the "which branches are affected" question.
+            # matching the scope of the flags we ask about.
             "f2": "bug_group",
             "o2": "substring",
             "v2": "core-security",
@@ -172,7 +180,7 @@ class SecurityAffectedVersions(BzCleaner):
             "n4": 1,
             "f4": "longdesc",
             "o4": "casesubstring",
-            "v4": NEEDINFO_QUESTION,
+            "v4": COMMENT_MARKER,
             # No regressor: skip when `regressed_by` is set, to avoid racing
             # with the `regression_set_status_flags` rule, which sets
             # those flags automatically from the regressor.
@@ -191,6 +199,15 @@ class SecurityAffectedVersions(BzCleaner):
             i += 1
 
         params[f"f{i}"] = "CP"
+        i += 1
+
+        # Same as `n4`, for bugs nagged with the previous wording. It sits after
+        # the `CP` above so that it is ANDed at the top level rather than
+        # joining the OR group of status flags.
+        params[f"n{i}"] = 1
+        params[f"f{i}"] = "longdesc"
+        params[f"o{i}"] = "casesubstring"
+        params[f"v{i}"] = LEGACY_COMMENT_MARKER
 
         return params
 

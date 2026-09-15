@@ -1,1 +1,3 @@
-:{{ nickname }}, please update all release status flags to reflect the affected/unaffected/disabled state correctly. {{ extra["question"] }}
+:{{ nickname }}, {{ extra["marker"] }}
+
+For each version, indicate whether it is `affected`, `unaffected`, `disabled`, or `wontfix` if it is affected but does not need to be fixed on that branch.
