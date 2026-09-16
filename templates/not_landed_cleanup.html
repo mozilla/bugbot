@@ -1,0 +1,15 @@
+<p>Needinfos created by the not_landed rule that are no longer actionable.</p>
+<table {{ table_attrs }}>
+    <tr>
+        <th>Bug</th>
+        <th>Summary</th>
+    </tr>
+    {% for bugid, summary in data %}
+        <tr>
+            <td>
+                <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+            </td>
+            <td>{{ summary | e }}</td>
+        </tr>
+    {% endfor %}
+</table>
