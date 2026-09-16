@@ -4,8 +4,8 @@
 
 import datetime
 
-from bugbot import reo_regressions as reo
 from bugbot import utils
+from bugbot.rules import reo_regression_slack as summary
 from bugbot.rules.reo_regression_slack import ReoRegressionSlack
 
 
@@ -50,7 +50,7 @@ def test_regression_group_notes_restricted_bugs_on_the_top_line_only(monkeypatch
     ]
     rule = ReoRegressionSlack()
     monkeypatch.setattr(rule, "fetch_bugs", lambda query, fields=None: bugs)
-    monkeypatch.setattr(reo, "team_of", lambda bug: "Team A")
+    monkeypatch.setattr(summary, "team_of", lambda bug: "Team A")
 
     bullet, teams, severities = rule.regression_group(
         150, False, "New", by_team=True
@@ -69,8 +69,8 @@ def test_the_channel_is_a_constant_the_flag_can_override():
 
     # No flag means the module constant, which is what the cron posts to.
     rule.parse_custom_arguments(parser.parse_args([]))
-    assert rule.channel == reo.CHANNEL
-    assert reo.CHANNEL.startswith("C")
+    assert rule.channel == summary.CHANNEL
+    assert summary.CHANNEL.startswith("C")
 
     rule.parse_custom_arguments(parser.parse_args(["--channel", "C_TEST"]))
     assert rule.channel == "C_TEST"

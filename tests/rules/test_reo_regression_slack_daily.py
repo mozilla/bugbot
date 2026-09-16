@@ -4,7 +4,6 @@
 
 import datetime
 
-from bugbot import reo_regressions as reo
 from bugbot import utils
 from bugbot.rules import reo_regression_slack_daily as daily
 from bugbot.rules.reo_regression_slack_daily import ReoRegressionSlackDaily
@@ -30,13 +29,13 @@ def test_the_burndown_query_drops_the_excluded_products():
     excluded = {
         query[f"v{n}"]
         for n in range(
-            reo.EXCLUDED_PRODUCTS_SLOT,
-            reo.EXCLUDED_PRODUCTS_SLOT + len(reo.EXCLUDED_PRODUCTS),
+            daily.EXCLUDED_PRODUCTS_SLOT,
+            daily.EXCLUDED_PRODUCTS_SLOT + len(daily.EXCLUDED_PRODUCTS),
         )
         if query.get(f"f{n}") == "product"
     }
 
-    assert excluded == set(reo.EXCLUDED_PRODUCTS)
+    assert excluded == set(daily.EXCLUDED_PRODUCTS)
 
 
 def test_uplift_flags_come_from_get_flag():
@@ -69,7 +68,7 @@ def test_every_search_asks_for_the_groups_field():
 
 
 def test_no_search_asks_for_a_bug_summary():
-    # Extending `reo.BUG_FIELDS` must not be what quietly starts naming restricted
+    # Extending `daily.BUG_FIELDS` must not be what quietly starts naming restricted
     # bugs.
     for fields in (daily.FIELDS, daily.BURNDOWN_FIELDS):
         assert "summary" not in fields.split(",")
@@ -85,7 +84,7 @@ def test_the_ageing_fields_are_asked_for():
 
 
 def test_stuck_group_puts_the_note_outside_the_link_and_before_the_age(monkeypatch):
-    monkeypatch.setattr(reo, "team_of", lambda bug: "Team A")
+    monkeypatch.setattr(daily, "team_of", lambda bug: "Team A")
     bugs = [
         {"id": 1, "groups": ["core-security-release"]},
         {"id": 2, "groups": []},

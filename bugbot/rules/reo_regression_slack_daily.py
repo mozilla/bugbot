@@ -16,20 +16,103 @@ Posted every weekday the cron script invokes it, unlike the summary: these are
 things somebody has to do, so a day skipped is a day nobody was asked.
 
 Every count links to a Bugzilla list of exactly the bugs counted. Restricted
-bugs are counted and linked like any other but never named; see
-`bugbot.reo_regressions`, which also holds the open regressions query and the
-posting.
+bugs are counted in the totals and included in the links like any other, but
+never named: no message prints a bug summary, which is the same line
+`BzCleaner.get_summary` draws. The top-level bullet says how many of its count
+are restricted, because a reader without access opens the link and finds a
+shorter list than the number they clicked on. See `restricted_note`.
 """
 
 import argparse
 import datetime
+import functools
 from typing import Any
 
 from libmozdata import utils as lmdutils
 
-from bugbot import logger, utils
-from bugbot import reo_regressions as reo
+from bugbot import logger, slack, utils
 from bugbot.bzcleaner import Bug, BzCleaner, BzParams, EmailData
+from bugbot.components import ComponentName, fetch_component_teams
+
+# Shared with the rest of bugbot rather than redeclared as ("S1", "S2") the way the
+# REO queries have it. It also carries the pre-S1 names — critical maps to S1, major
+# and blocker to S2 (see `constants.OLD_SEVERITY_MAP`) — so an old bug that never had
+# its severity restated still lands in the S2+ counts instead of quietly missing from
+# them. That is a wider net than bugdash casts, so these numbers can run slightly
+# ahead of the REO tab's.
+from bugbot.constants import HIGH_SEVERITY
+
+# The channel this rule posts to. Here rather than in `configs/rules.json`
+# because it is not a secret, and because changing where an unattended recurring
+# message lands should take a code review -- the same reasoning `frontend_triage`
+# gives for keeping its component list in code. The bot token is the part that is
+# a secret, and that stays in `configs/config.json`.
+#
+# TEMPORARY: this is currently #tmp-dm-test, a scratch channel for shaking the
+# port out. It has to be pointed at the real REO channel before this message is
+# meant for anyone to read.
+CHANNEL = "C0BLP0WUBED"
+
+BZ_BUGLIST_URL = "https://bugzilla.mozilla.org/buglist.cgi"
+
+# Every Bugzilla classification except Graveyard, which holds the ~100 retired
+# products. Same list bugdash's REO queries use.
+#
+# "Developer Infrastructure" appearing here and in EXCLUDED_PRODUCTS is not a
+# contradiction: the classification also holds Firefox Build System, Conduit and
+# Tree Management, which stay in scope, and only the product of the same name is
+# dropped.
+CLASSIFICATIONS = [
+    "Client Software",
+    "Components",
+    "Developer Infrastructure",
+    "Other",
+    "Server Software",
+]
+
+# The severity that means no triage decision has been made yet. Bugs are filtered
+# on this locally, so the value has to be exactly what Bugzilla reports in a bug's
+# severity field, which is case sensitive and not always what the same value looks
+# like in a search: "N/A" comes back from the API where a query matches it as
+# "n/a". Only "--" counts as missing here; N/A is a decision, not the absence of
+# one.
+MISSING_SEVERITIES = ("--",)
+
+# Products dropped from every query, so their bugs reach no bucket in this
+# message and none of the burndown lines.
+#
+# Not the `exclude_products` key some rules carry in `configs/rules.json`: that one
+# subtracts from `BzCleaner`'s default product list, which these classification
+# scoped queries never use, so the name would mean something different here.
+EXCLUDED_PRODUCTS = ("Testing", "Developer Infrastructure")
+
+# Where the product exclusions are numbered from in a boolean chart. Above every
+# slot either query uses -- `regressions_query` and `burndown_query`.
+EXCLUDED_PRODUCTS_SLOT = 12
+
+# For a component with no team_name, or one missing from the mapping entirely.
+# Every component had a team when this was written, so this is only a guard
+# against silently dropping bugs out of the per-team line.
+UNKNOWN_TEAM = "Unknown team"
+
+# A Slack section block holds at most 3000 characters.
+SECTION_LIMIT = 3000
+
+# Above this length a snapshot URL is shortened, and failing that dropped
+# entirely -- see `bug_link`. Keeps one very long bug list from pushing a section
+# over SECTION_LIMIT.
+MAX_SNAPSHOT_URL = 2000
+
+# Slack renders this back as >. Sending the character itself would work where it
+# is used now, but it ends a link's label at the first > and opens a blockquote at
+# the start of a line, so a label or bullet reworded around it would break in ways
+# that are easy to miss. The entity is never wrong.
+GREATER_THAN = "&gt;"
+
+# Slack has no nested lists in message text, so indent sub-bullets by hand.
+# Four plain spaces; if Slack ever collapses them, non-breaking spaces (U+00A0)
+# are the fix.
+SUB_BULLET = "    ◦ "
 
 # Products where an unassigned high severity bug is not something to nag about,
 # so they are left out of the "S2+ unassigned" bucket alone. Empty today, as the
@@ -113,12 +196,81 @@ INTRO = (
 # news rather than as the script having failed.
 NOTHING_STUCK = "•  Nothing needs attention"
 
-# What this message needs back from a bug search on top of `reo.BUG_FIELDS`: it
-# ages every bug, and the three timestamps it can age one from all live on the
-# bug itself, so asking for them keeps it to the same one request per version.
-# Still no `summary` field -- see `reo.BUG_FIELDS`.
-FIELDS = f"{reo.BUG_FIELDS},assigned_to,creation_time,last_change_time,flags"
-BURNDOWN_FIELDS = f"{reo.BUG_FIELDS},cf_last_resolved"
+# What a bug search has to come back with for this message: it ages every bug,
+# and the three timestamps it can age one from all live on the bug itself, so
+# asking for them keeps it to the same one request per version.
+#
+# `groups` is how a bug is known to be restricted, and the message counts those.
+# See `restricted_note`.
+#
+# No `summary` field, in either of these. That is the line this message does not
+# cross, and the same one `BzCleaner.get_summary` draws.
+BUG_FIELDS = "id,severity,product,component,groups"
+FIELDS = f"{BUG_FIELDS},assigned_to,creation_time,last_change_time,flags"
+BURNDOWN_FIELDS = f"{BUG_FIELDS},cf_last_resolved"
+
+
+def without_excluded_products(slot: int = EXCLUDED_PRODUCTS_SLOT) -> dict:
+    """Chart conditions dropping EXCLUDED_PRODUCTS, a numbered slot per product.
+
+    One ANDed notequals per product rather than a single nowords: Bugzilla splits
+    a nowords value on whitespace, so "Developer Infrastructure" would be matched
+    as the two words separately and drop products nobody asked to exclude.
+    """
+    conditions: dict = {}
+    for offset, product in enumerate(EXCLUDED_PRODUCTS):
+        number = slot + offset
+        conditions |= {
+            f"f{number}": "product",
+            f"o{number}": "notequals",
+            f"v{number}": product,
+        }
+
+    return conditions
+
+
+def regressions_query(version: int) -> dict:
+    """Build the open regressions query for a version.
+
+    Bugs with all of the following:
+    - regression keyword
+    - open (unresolved)
+    - status-firefox{version} is affected
+    Bugs with any of the following are ignored:
+    - tracking-firefox{version} is -
+    - stalled or intermittent-failure keywords
+    - within one of EXCLUDED_PRODUCTS
+
+    The cycle summary splits this set into the bugs that regressed during the
+    cycle and the ones that were already there; this message wants the whole set,
+    so it has no equivalent of that condition.
+
+    Nothing here filters on `bug_group`: an authenticated search returns every bug
+    the key can see, so restricted regressions arrive on their own.
+
+    Field numbering is Bugzilla's boolean charts: f/o/v are the field, operator
+    and value for a numbered condition, OP and CP open and close a group, j sets
+    how a group joins (OR here, AND otherwise) and n negates. The gaps at f2-f7
+    and f9 are harmless, as Bugzilla ignores unused numbers: f7 comes from
+    bugdash, f2-f6 are where the cycle summary puts its split, and f9 is free now
+    the product exclusions live at EXCLUDED_PRODUCTS_SLOT.
+    """
+    return {
+        "classification": CLASSIFICATIONS,
+        "keywords": "regression",
+        "keywords_type": "allwords",
+        "resolution": "---",
+        "f1": utils.get_flag(version, "status", "release"),
+        "o1": "equals",
+        "v1": "affected",
+        "f8": utils.get_flag(version, "tracking", "release"),
+        "o8": "notequals",
+        "v8": "-",
+        "f10": "keywords",
+        "o10": "nowordssubstr",
+        "v10": "stalled,intermittent-failure",
+        **without_excluded_products(),
+    }
 
 
 def burndown_query(version: int, uplift_flag: str) -> dict:
@@ -132,13 +284,13 @@ def burndown_query(version: int, uplift_flag: str) -> dict:
       - in a security group
       - tracking-firefox{version} is +, ? or blocking
     Bugs with any of the following are ignored:
-    - within one of reo.EXCLUDED_PRODUCTS
+    - within one of EXCLUDED_PRODUCTS
     - an uplift request against the channel, in any state
 
     All but the last of those is bugdash's Burndown list, kept in step with
     app/buglists/burndown.mjs there. Its numbering gaps at f5, f8 and f10 are
     copied along with the rest, as Bugzilla ignores unused numbers, and f9 is
-    free now the product exclusions live at reo.EXCLUDED_PRODUCTS_SLOT.
+    free now the product exclusions live at EXCLUDED_PRODUCTS_SLOT.
 
     The f3-f7 group is what narrows "every fix still marked affected" down to the
     fixes worth chasing an uplift for, and being a security bug is one of the three
@@ -157,9 +309,9 @@ def burndown_query(version: int, uplift_flag: str) -> dict:
     it. n11 negates that, leaving the fixes nobody has asked to uplift.
     """
     return {
-        "classification": reo.CLASSIFICATIONS,
+        "classification": CLASSIFICATIONS,
         "resolution": "FIXED",
-        "f1": reo.status_flag(version),
+        "f1": utils.get_flag(version, "status", "release"),
         "o1": "anywords",
         "v1": "affected optional",
         "j2": "OR",
@@ -170,7 +322,7 @@ def burndown_query(version: int, uplift_flag: str) -> dict:
         "f4": "bug_group",
         "o4": "substring",
         "v4": "sec",
-        "f6": reo.tracking_flag(version),
+        "f6": utils.get_flag(version, "tracking", "release"),
         "o6": "anywordssubstr",
         "v6": "+ ? blocking",
         "f7": "CP",
@@ -178,8 +330,191 @@ def burndown_query(version: int, uplift_flag: str) -> dict:
         "o11": "substring",
         "v11": uplift_flag,
         "n11": "1",
-        **reo.without_excluded_products(),
+        **without_excluded_products(),
     }
+
+
+def snapshot_url(bugs: list[dict]) -> str:
+    """A Bugzilla URL listing exactly these bugs, as bugdash's bug lists do.
+
+    Linking the bug ids rather than the query means the list still matches the
+    count in the message when it is read days later. order=bug_list keeps
+    Bugzilla showing them in the order given rather than re-sorting.
+
+    Built by hand rather than through `utils.get_bz_search_url` so the separators
+    stay as commas: percent-encoded they would triple in length, and the length is
+    what `MAX_SNAPSHOT_URL` is measuring.
+
+    Restricted bugs are in here with everything else. A reader without access gets
+    a shorter list than the count that linked them here, which is what the
+    "(n restricted)" note on the bullet is for.
+    """
+    ids = ",".join(str(bug["id"]) for bug in bugs)
+
+    return f"{BZ_BUGLIST_URL}?bug_id={ids}&order=bug_list"
+
+
+def shortened_url(url: str) -> str | None:
+    """A short Bugzilla URL for a long one, or None if it couldn't be shortened.
+
+    `utils.shorten_long_bz_url` answers a shortener error by returning the URL
+    split across several lines (bugbot#1402). Harmless in an email, useless in a
+    Slack link, which would end at the first newline — so a multi-line answer is
+    treated as a failure here rather than posted.
+
+    Any other failure is swallowed for the same reason: the count is the message
+    and the link is a convenience, so a shortener that is down should cost the link
+    and nothing more.
+    """
+    try:
+        short = utils.shorten_long_bz_url(url)
+    except Exception:
+        logger.exception("Could not shorten a Bugzilla URL")
+        return None
+
+    if "\n" in short or len(short) > MAX_SNAPSHOT_URL:
+        return None
+
+    return short
+
+
+def bug_link(bugs: list[dict], label_template: str) -> str:
+    """Format a non-empty bug list as a Slack link labelled with its count.
+
+    label_template is formatted with the count, e.g. "{} S2+ unassigned".
+
+    A snapshot URL that comes out too long is shortened, which keeps the link
+    pointing at exactly the bugs counted, and failing that the count is left
+    unlinked. No line here has a live query to fall back on: the ageing is done
+    in this rule rather than by Bugzilla, and reproducing a team as a query means
+    listing all its components.
+
+    Callers are expected to skip empty lists: an empty bug_id would link to a
+    broken list, and a count of zero is left out of the message anyway.
+    """
+    label = label_template.format(len(bugs))
+    snapshot = snapshot_url(bugs)
+
+    if len(snapshot) <= MAX_SNAPSHOT_URL:
+        return f"<{snapshot}|{label}>"
+
+    url = shortened_url(snapshot)
+    if url is None:
+        return label
+
+    return f"<{url}|{label}>"
+
+
+@functools.cache
+def component_teams() -> dict[ComponentName, str]:
+    """Map every (product, component) to the team that owns it.
+
+    team_name is a Bugzilla field on components, the same one bugdash's Teams
+    filter uses. One request covers every product, around 120KB for 2000-odd
+    components, which is why it's cached for the life of the run.
+    """
+    return fetch_component_teams()
+
+
+def team_of(bug: dict) -> str:
+    """The team owning a bug's component."""
+    return component_teams().get(ComponentName.from_bug(bug)) or UNKNOWN_TEAM
+
+
+def team_breakdown(bugs: list[dict]) -> str:
+    """Count the bugs owned by each team, busiest team first.
+
+    Every team is listed rather than just the top few, so that the line works
+    as a nudge to each team that owns something.
+    """
+    by_team: dict[str, list[dict]] = {}
+    for bug in bugs:
+        by_team.setdefault(team_of(bug), []).append(bug)
+
+    ranked = sorted(by_team.items(), key=lambda item: (-len(item[1]), item[0]))
+
+    return ", ".join(bug_link(team_bugs, f"{{}} {team}") for team, team_bugs in ranked)
+
+
+def restricted_note(bugs: list[dict]) -> str:
+    """Say how many of a bug list are restricted, or nothing when none are.
+
+    A bug is restricted when it is in any group at all, not only a security one:
+    the note exists to explain why the linked list looks shorter than the count to
+    a reader without access, and that gap opens for an employee-confidential or
+    partner group just as it does for `core-security`. That is a wider test than
+    the `bug_group ~ "sec"` branch in `burndown_query`, which is asking a
+    different question — whether a fix is worth chasing, not whether it is
+    readable.
+
+    Deliberately plain text rather than part of the link label, so the blue runs as
+    far as the thing being counted and no further, and deliberately only used on the
+    top-level bullets: repeated on every team sub-bullet it would say little and
+    crowd out the counts that are the point of those lines.
+    """
+    count = sum(1 for bug in bugs if bug.get("groups"))
+    if not count:
+        return ""
+
+    return f" ({count} restricted)"
+
+
+def to_blocks(sections: list[str]) -> list[dict]:
+    """Wrap the sections of a message as Block Kit sections.
+
+    Slack silently splits a message whose text runs past about 4000 characters
+    into several messages, which is what happened when every count linked to a
+    full query URL. Snapshot URLs brought the total well under that, but each
+    section block gets its own 3000 character allowance, so keeping the sections
+    means a busier day can't start splitting the message again.
+
+    A section that does overflow raises rather than posting something malformed.
+    The team breakdown is the part that could get there, at roughly 90 characters
+    per team; capping or splitting it is the fix if that ever fires.
+    """
+    for section in sections:
+        if len(section) > SECTION_LIMIT:
+            raise RuntimeError(
+                f"Slack section block is {len(section)} characters, over the "
+                f"{SECTION_LIMIT} limit:\n{section[:200]}..."
+            )
+
+    return [
+        {"type": "section", "text": {"type": "mrkdwn", "text": section}}
+        for section in sections
+    ]
+
+
+def block_text(block: dict) -> str:
+    """The text of any block, for printing a message instead of posting it.
+
+    Section and header blocks keep their text in one place and context blocks in
+    a list of elements, so a dry run has to handle both rather than assume the
+    shape of the blocks it was handed.
+    """
+    if "elements" in block:
+        return " ".join(element["text"] for element in block["elements"])
+
+    return block["text"]["text"]
+
+
+def versions_to_report() -> dict[str, int]:
+    """The current version of each channel, with what was read written to the log.
+
+    From the trains API rather than through `BzCleaner.init_versions`:
+    `utils.get_checked_versions` returns nothing on merge day, and
+    `has_enough_data` would then skip the run on exactly the day this message
+    has its own wording for.
+    """
+    versions = utils.get_versions_from_trains()
+    logger.info(
+        "Reporting Firefox %s release / %s beta / %s nightly",
+        versions["release"],
+        versions["beta"],
+        versions["nightly"],
+    )
+
+    return versions
 
 
 def stuck_since() -> datetime.datetime:
@@ -215,7 +550,7 @@ def needs_assignee(bug: dict, cutoff: datetime.datetime) -> bool:
     overlooked. See unassigned_exempt().
     """
     return (
-        bug["severity"] in reo.HIGH_SEVERITY
+        bug["severity"] in HIGH_SEVERITY
         and not unassigned_exempt(bug)
         and utils.is_no_assignee(bug["assigned_to"])
         and lmdutils.get_date_ymd(bug["creation_time"]) < cutoff
@@ -231,7 +566,7 @@ def needs_severity(bug: dict, cutoff: datetime.datetime) -> bool:
     team asking questions or adjusting metadata.
     """
     return (
-        bug["severity"] in reo.MISSING_SEVERITIES
+        bug["severity"] in MISSING_SEVERITIES
         and lmdutils.get_date_ymd(bug["last_change_time"]) < cutoff
     )
 
@@ -280,18 +615,15 @@ def stuck_group(bugs: list[dict], label: str, anchor: str) -> str:
 
     Empty buckets return an empty string and are left out of the message, so it
     stays a list of things to do rather than a scoreboard of zeros.
-
-    Neither link gets a fallback query: the ageing is done here rather than by
-    Bugzilla, so there is no query URL that reproduces either count.
     """
     if not bugs:
         return ""
 
-    age = f", {reo.GREATER_THAN} {STUCK_HOURS} hours since {anchor}"
+    age = f", {GREATER_THAN} {STUCK_HOURS} hours since {anchor}"
 
     return (
-        f"• {reo.bug_link(bugs, label)}{reo.restricted_note(bugs)}{age}\n"
-        f"{reo.SUB_BULLET}{reo.team_breakdown(bugs)}"
+        f"• {bug_link(bugs, label)}{restricted_note(bugs)}{age}\n"
+        f"{SUB_BULLET}{team_breakdown(bugs)}"
     )
 
 
@@ -309,7 +641,7 @@ class ReoRegressionSlackDaily(BzCleaner):
 
     # Where the message goes. A `--channel` run overrides it, so this is the
     # channel the cron posts to; see `parse_custom_arguments`.
-    channel = reo.CHANNEL
+    channel = CHANNEL
 
     def description(self) -> str:
         return "REO release regressions needing action posted to Slack"
@@ -317,7 +649,7 @@ class ReoRegressionSlackDaily(BzCleaner):
     def all_include_fields(self) -> bool:
         # The fields a search asks for are FIELDS and BURNDOWN_FIELDS and
         # nothing else. `BzCleaner` would otherwise add `summary` to every
-        # query, which is the one field no message here prints.
+        # query, which is the one field this message does not print.
         return True
 
     def has_default_products(self) -> bool:
@@ -333,10 +665,18 @@ class ReoRegressionSlackDaily(BzCleaner):
         return False
 
     def add_custom_arguments(self, parser: argparse.ArgumentParser) -> None:
-        reo.add_channel_argument(parser)
+        parser.add_argument(
+            "--channel",
+            action="store",
+            default="",
+            help=(
+                f"Slack channel ID to post to, overriding {CHANNEL}. Useful to "
+                "shake the message out somewhere else without editing the code."
+            ),
+        )
 
     def parse_custom_arguments(self, args: argparse.Namespace) -> None:
-        self.channel = args.channel or reo.CHANNEL
+        self.channel = args.channel or CHANNEL
 
     def get_bz_params(self, date: str) -> BzParams:
         """The query the running `get_bugs()` call is for. See `fetch_bugs`."""
@@ -379,7 +719,7 @@ class ReoRegressionSlackDaily(BzCleaner):
         """
         bugs: dict[int, dict] = {}
         for version in sorted(set(versions.values())):
-            for bug in self.fetch_bugs(reo.regressions_query(version)):
+            for bug in self.fetch_bugs(regressions_query(version)):
                 bugs[bug["id"]] = bug
 
         return list(bugs.values())
@@ -408,6 +748,25 @@ class ReoRegressionSlackDaily(BzCleaner):
 
         return stuck_group(bugs, label, "resolved")
 
+    def post_message(self, blocks: list[dict]) -> None:
+        """Post the message to Slack, or print it when the run isn't for real.
+
+        A dry run prints what it would have posted, so `--production` means here
+        what it means for every other rule. `test_mode` is honoured alongside it
+        for the reason `triage_owner_rotations` honours it: a test run must reach
+        nobody.
+        """
+        if self.dryrun or self.test_mode:
+            print("DRY RUN: message not posted.\n")
+            for block in blocks:
+                print(block_text(block))
+            return
+
+        # HEADING is the message's notification fallback text, which is what a
+        # client that cannot render blocks shows instead of them.
+        slack.post_to_slack(self.channel, HEADING, blocks=blocks)
+        logger.info("Rule %s posted to %s", self.name(), self.channel)
+
     def get_email_data(self, date: str) -> EmailData:
         """Post the message, and give `send_email` nothing to send.
 
@@ -417,9 +776,7 @@ class ReoRegressionSlackDaily(BzCleaner):
         "No data" line `send_email` then logs is about that email, not about the
         message, which has been posted by the time it is written.
         """
-        reo.post_message(
-            self, self.channel, HEADING, self.blocks(reo.versions_to_report())
-        )
+        self.post_message(self.blocks(versions_to_report()))
 
         return []
 
@@ -471,7 +828,7 @@ class ReoRegressionSlackDaily(BzCleaner):
 
         sections.extend(groups or [NOTHING_STUCK])
 
-        return titles + reo.to_blocks(sections)
+        return titles + to_blocks(sections)
 
 
 if __name__ == "__main__":
