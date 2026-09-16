@@ -196,4 +196,11 @@ python -m bugbot.rules.severity_high_performance_impact --production
 # Request potential missing info when a bug is moved to Core::Performance
 python -m bugbot.rules.moved_to_performance --production
 
+# Post the REO release regression cycle summary to Slack
+# Gated to Mon and Thu by its must_run in configs/rules.json
+python -m bugbot.rules.reo_regression_slack --production
+
+# Post the REO release regressions needing action to Slack
+python -m bugbot.rules.reo_regression_slack_daily --production
+
 source ./scripts/cron_common_end.sh
