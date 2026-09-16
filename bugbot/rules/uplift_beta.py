@@ -8,6 +8,17 @@ from libmozdata.bugzilla import Bugzilla
 from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
 
+# This phrase is posted in every needinfo comment (injected into the template
+# via `get_extra_for_needinfo_template`) AND used as the re-nag guard in
+# `get_bz_params`. Both uses reference this single constant so they can never
+# drift out of sync.
+COMMENT_MARKER = "please make an uplift decision for"
+
+# The marker used by the previous wording. Bugzilla comments are immutable, so
+# bugs nagged before the rewording carry only this one: keep filtering on it
+# too, otherwise they would all be nagged a second time.
+LEGACY_COMMENT_MARKER = ", is this bug important enough to require an uplift?"
+
 
 class UpliftBeta(BzCleaner):
     def __init__(self):
@@ -27,7 +38,10 @@ class UpliftBeta(BzCleaner):
         self.status_esr = utils.get_flag(self.esr, "status", "esr")
 
         # Bugs will be added to `extra_ni` later after being fetched
-        self.extra_ni = {"status_beta": f"status-firefox{self.beta}"}
+        self.extra_ni = {
+            "status_beta": f"status-firefox{self.beta}",
+            "question": COMMENT_MARKER,
+        }
 
     def description(self):
         return "Bugs fixed in nightly but still affecting beta"
@@ -134,8 +148,12 @@ class UpliftBeta(BzCleaner):
             "n5": 1,
             "f5": "longdesc",
             "o5": "casesubstring",
-            # this a part of the comment we've in templates/uplift_beta_needinfo.txt
-            "v5": ", is this bug important enough to require an uplift?",
+            "v5": COMMENT_MARKER,
+            # Same, for bugs nagged with the previous wording
+            "n8": 1,
+            "f8": "longdesc",
+            "o8": "casesubstring",
+            "v8": LEGACY_COMMENT_MARKER,
             # Check if have at least one attachment which is a Phabricator request
             "f6": "attachments.mimetype",
             "o6": "anyexact",

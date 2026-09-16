@@ -1,7 +1,16 @@
 The patch landed in nightly and beta is affected{% if extra[bugid]["esr_affected"] %}, along with ESR{% endif %}.
-:{{ nickname }}, is this bug important enough to require an uplift?
-- If yes, please nominate the patch for {% if extra[bugid]["esr_affected"] %}beta and ESR approvals{% else %}beta approval{% endif %}.{% if extra[bugid]["regression"] %} Also, don't forget to request an uplift for the patches in the {{ plural('regression', extra[bugid]["regression"]) }} caused by this fix.{% endif %}
-  - See https://wiki.mozilla.org/Release_Management/Requesting_an_Uplift for documentation on how to request an uplift.
-- If no, please set {% if extra[bugid]["esr_affected"] %}`{{ extra["status_beta"] }}` and the ESR status flag(s){% else %}`{{ extra["status_beta"] }}`{% endif %} to `wontfix`.
+
+:{{ nickname }}, {{ extra["question"] }} {% if extra[bugid]["esr_affected"] %}each affected release{% else %}beta{% endif %}:
+{% if extra[bugid]["esr_affected"] -%}
+- For **beta**, nominate the patch for beta uplift approval if the fix should be included in this release, or set `{{ extra["status_beta"] }}` to `wontfix` if the fix can wait for the next release.
+- For **ESR**, nominate the patch for the appropriate ESR uplift approval if the fix should be included in ESR, or set the ESR status flag(s) to `wontfix` if an uplift isn't needed. Each affected ESR release needs a decision.
+{%- else -%}
+- Nominate the patch for beta uplift approval if the fix should be included in this release, or
+- Set `{{ extra["status_beta"] }}` to `wontfix` if the fix can wait for the next release.
+{%- endif %}
+{% if extra[bugid]["regression"] %}
+Don't forget to request an uplift for the patches in the {{ extra[bugid]["regression"] }} {{ plural('regression', extra[bugid]["regression"]) }} caused by this fix.
+{% endif %}
+See [Requesting an Uplift](https://wiki.mozilla.org/Release_Management/Requesting_an_Uplift) for documentation on how to request an uplift.
 
 {{ documentation }}
