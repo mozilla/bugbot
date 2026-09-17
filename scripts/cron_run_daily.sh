@@ -15,6 +15,10 @@ python -m bugbot.rules.performancebug --production
 # Try to detect potential performance alerts that have been inactive for too long
 python -m bugbot.rules.perfalert_inactive_regression --production
 
+# Warn the authors of performance regressions that they have one business day
+# left to acknowledge the regression before a backout is requested
+python -m bugbot.rules.perfalert_backout_warning --production
+
 # Send an email about all performance alerts who were recently resolved
 python -m bugbot.rules.perfalert_resolved_regression --production
 
