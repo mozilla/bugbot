@@ -19,6 +19,10 @@ COMMENT_MARKER = "please make an uplift decision for"
 # too, otherwise they would all be nagged a second time.
 LEGACY_COMMENT_MARKER = ", is this bug important enough to require an uplift?"
 
+# `fix-optional` means release management would take a fix but won't chase it,
+# so it deserves the same question as `affected`.
+AFFECTED_STATUSES = ["affected", "fix-optional"]
+
 
 class UpliftBeta(BzCleaner):
     def __init__(self):
@@ -31,11 +35,13 @@ class UpliftBeta(BzCleaner):
             self.versions["central"], "status", "central"
         )
         self.status_beta = utils.get_flag(self.beta, "status", "beta")
+        self.approval_beta = utils.get_flag(self.beta, "approval", "beta")
 
-        # The needinfo mentions ESR generically, so we only need the current
-        # ESR's status flag to tell whether ESR is affected.
+        # The needinfo mentions ESR generically, so the current ESR's flags are
+        # enough to tell whether an ESR uplift is still to be decided.
         self.esr = self.versions["esr"]
         self.status_esr = utils.get_flag(self.esr, "status", "esr")
+        self.approval_esr = utils.get_flag(self.esr, "approval", "esr")
 
         # Bugs will be added to `extra_ni` later after being fetched
         self.extra_ni = {
@@ -44,7 +50,7 @@ class UpliftBeta(BzCleaner):
         }
 
     def description(self):
-        return "Bugs fixed in nightly but still affecting beta"
+        return "Bugs fixed in nightly but still affecting beta or ESR"
 
     def has_assignee(self):
         return True
@@ -53,7 +59,35 @@ class UpliftBeta(BzCleaner):
         return self.extra_ni
 
     def columns(self):
-        return ["id", "summary", "assignee"]
+        return ["id", "channels", "summary", "assignee"]
+
+    def get_channels_to_uplift(self, bug):
+        """Get the channels the patch still needs an uplift decision for.
+
+        A channel qualifies when it is affected and nobody has asked for
+        approval on it yet. The query only guarantees that one of them is
+        affected, so this is also where the ESR-only case (beta wontfix, ESR
+        still affected) gets picked up.
+        """
+        requested_approvals = {
+            flag["name"]
+            for attachment in bug["attachments"]
+            for flag in attachment["flags"]
+        }
+
+        channels = []
+        if (
+            bug.get(self.status_beta) in AFFECTED_STATUSES
+            and self.approval_beta not in requested_approvals
+        ):
+            channels.append("beta")
+        if (
+            bug.get(self.status_esr) in AFFECTED_STATUSES
+            and self.approval_esr not in requested_approvals
+        ):
+            channels.append("ESR")
+
+        return channels
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
@@ -68,9 +102,9 @@ class UpliftBeta(BzCleaner):
         if self.is_needinfo_on_assignee(bug.get("flags", []), assignee):
             return None
 
-        # Flag ESR using the same criteria as beta (see get_bz_params): both
-        # "affected" and "fix-optional" should prompt about an uplift.
-        esr_affected = bug.get(self.status_esr) in ("affected", "fix-optional")
+        channels = self.get_channels_to_uplift(bug)
+        if not channels:
+            return None
 
         data[bugid] = {
             "id": bugid,
@@ -78,7 +112,7 @@ class UpliftBeta(BzCleaner):
             "nickname": nickname,
             "summary": self.get_summary(bug),
             "regressions": bug["regressions"],
-            "esr_affected": esr_affected,
+            "channels": channels,
         }
 
         return bug
@@ -121,15 +155,16 @@ class UpliftBeta(BzCleaner):
     def get_bz_params(self, date):
         self.date = lmdutils.get_date_ymd(date)
         fields = [
-            self.status_beta,
-            self.status_esr,
             "regressions",
             "attachments.creation_time",
             "attachments.is_obsolete",
             "attachments.content_type",
+            "attachments.flags",
             "cf_last_resolved",
             "assigned_to",
             "flags",
+            self.status_beta,
+            self.status_esr,
         ]
         params = {
             "include_fields": fields,
@@ -138,30 +173,36 @@ class UpliftBeta(BzCleaner):
             "f1": self.status_central,
             "o1": "anyexact",
             "v1": ",".join(["fixed", "verified"]),
-            "f2": self.status_beta,
-            "o2": "anyexact",
-            "v2": ["affected", "fix-optional"],
-            "f3": "flagtypes.name",
-            "o3": "notsubstring",
-            "v3": "approval-mozilla-beta",
             # Don't nag several times
-            "n5": 1,
-            "f5": "longdesc",
-            "o5": "casesubstring",
-            "v5": COMMENT_MARKER,
+            "n2": 1,
+            "f2": "longdesc",
+            "o2": "casesubstring",
+            "v2": COMMENT_MARKER,
             # Same, for bugs nagged with the previous wording
-            "n8": 1,
-            "f8": "longdesc",
-            "o8": "casesubstring",
-            "v8": LEGACY_COMMENT_MARKER,
+            "n3": 1,
+            "f3": "longdesc",
+            "o3": "casesubstring",
+            "v3": LEGACY_COMMENT_MARKER,
             # Check if have at least one attachment which is a Phabricator request
-            "f6": "attachments.mimetype",
-            "o6": "anyexact",
-            "v6": ["text/x-phabricator-request", "text/x-github-pull-request"],
+            "f4": "attachments.mimetype",
+            "o4": "anyexact",
+            "v4": ["text/x-phabricator-request", "text/x-github-pull-request"],
             # skip if whiteboard contains checkin-needed-beta (e.g. test-only uplift)
-            "f7": "status_whiteboard",
-            "o7": "notsubstring",
-            "v7": "[checkin-needed-beta]",
+            "f5": "status_whiteboard",
+            "o5": "notsubstring",
+            "v5": "[checkin-needed-beta]",
+            # Beta or ESR must be affected. Which of them still needs a
+            # decision is worked out in get_channels_to_uplift(), where we can
+            # look at the approval requests channel by channel.
+            "j6": "OR",
+            "f6": "OP",
+            "f7": self.status_beta,
+            "o7": "anyexact",
+            "v7": AFFECTED_STATUSES,
+            "f8": self.status_esr,
+            "o8": "anyexact",
+            "v8": AFFECTED_STATUSES,
+            "f9": "CP",
         }
 
         return params
@@ -174,7 +215,7 @@ class UpliftBeta(BzCleaner):
             if data["mail"] and data["nickname"]:
                 self.extra_ni[bugid] = {
                     "regression": len(data["regressions"]),
-                    "esr_affected": data["esr_affected"],
+                    "channels": data["channels"],
                 }
                 self.add_auto_ni(
                     bugid, {"mail": data["mail"], "nickname": data["nickname"]}
