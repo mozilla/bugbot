@@ -485,6 +485,9 @@
     "additional_receivers": "rm",
     "days_lookup": 2
   },
+  "perfalert_backout_warning": {
+    "additional_receivers": ["perfalert-activity@mozilla.com", "sparky@mozilla.com"]
+  },
   "perfalert_inactive_regression": {
     "additional_receivers": ["perfalert-activity@mozilla.com", "sparky@mozilla.com"]
   },

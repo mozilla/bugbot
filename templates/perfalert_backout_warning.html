@@ -1,0 +1,23 @@
+<p>
+    The following {{ plural('bug is a performance alert whose regressor author has', data, pword='bugs are performance alerts whose regressor authors have') }} not acknowledged the regression, and the {{ extra['deadline'] }} business day deadline to do so expires at the end of the next business day:
+</p>
+<table {{ table_attrs }}>
+    <thead>
+        <tr>
+            <th>Bug</th>
+            <th>Summary</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for i, (bugid, summary) in enumerate(data) -%}
+            <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
+            {% endif -%}
+            >
+            <td>
+                <a href="https://bugzilla.mozilla.org/show_bug.cgi?id={{ bugid }}">{{ bugid }}</a>
+            </td>
+            <td>{{ summary | e }}</td>
+        </tr>
+    {% endfor -%}
+</tbody>
+</table>
