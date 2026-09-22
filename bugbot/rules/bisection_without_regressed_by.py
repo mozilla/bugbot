@@ -172,7 +172,7 @@ class BisectionWithoutRegressedBy(BzCleaner):
             "j6": "OR",
             "f7": "commenter",
             "o7": "equals",
-            "v7": "bugmon@mozilla.com",
+            "v7": "bugmon@mozilla.tld",
             "f8": "longdesc",
             "o8": "substring",
             "v8": "mozregression",
