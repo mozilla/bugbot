@@ -83,7 +83,7 @@ class WebcompatScore(BzCleaner):
                 ("cf_webcompat_priority", bug_score.webcompat_priority),
                 ("cf_webcompat_score", bug_score.bucket),
             ]:
-                if new_value is not None and bug[key] != new_value:
+                if new_value is not None and bug[key] != new_value and bug[key] != "?":
                     changes[key] = new_value
 
             updated_user_story = self.updated_user_story(
