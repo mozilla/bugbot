@@ -58,7 +58,7 @@
     "receiver_list": {
       "rm": ["calixte@mozilla.com", "release-mgmt@mozilla.com"]
     },
-    "needinfo_skiplist": []
+    "needinfo_skiplist": ["bugmon@mozilla.com"]
   },
   "inactive_ni_pending": {
     "max_actions": 3,
