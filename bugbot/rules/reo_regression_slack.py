@@ -413,6 +413,11 @@ class ReoRegressionSlack(BzCleaner):
     # Overridden by a `--channel` run, so this is the channel the cron posts to.
     channel = CHANNEL
 
+    # The group `get_bz_params` builds a query for, set before each fetch the
+    # way `warn_regressed_by` sets its step.
+    version = 0
+    carry_over = False
+
     def description(self) -> str:
         return "REO release regression cycle summary posted to Slack"
 
@@ -444,22 +449,25 @@ class ReoRegressionSlack(BzCleaner):
         self.channel = args.channel or CHANNEL
 
     def get_bz_params(self, date: str) -> BzParams:
-        """The query the running `get_bugs()` call is for. See `fetch_bugs`."""
-        return self.params
+        """The open regressions query for the group being fetched."""
+        return {
+            **regressions_query(self.version, self.carry_over),
+            "include_fields": BUG_FIELDS,
+        }
 
     def bughandler(self, bug: Bug, data: dict[str, Any]) -> None:
         """Keep every field, where `BzCleaner` would keep the email columns."""
         data[str(bug["id"])] = bug
 
-    def fetch_bugs(self, query: dict, fields: str = BUG_FIELDS) -> list[dict]:
-        """Run one of this rule's queries through `BzCleaner`'s search path.
+    def fetch_bugs(self, version: int, carry_over: bool) -> list[dict]:
+        """Run the query for one group through `BzCleaner`'s search path.
 
-        Two queries per channel, each set here and read back by `get_bz_params`,
-        the way `warn_regressed_by` steps through its two. libmozdata only pages a
-        query carrying none of count_only, limit, order or offset, so no query
-        here may add one.
+        Two queries per channel, run one after the other. libmozdata only pages a
+        query carrying none of count_only, limit, order or offset, so
+        `regressions_query` may add none of them.
         """
-        self.params = {**query, "include_fields": fields}
+        self.version = version
+        self.carry_over = carry_over
 
         return list(self.get_bugs().values())
 
@@ -472,11 +480,11 @@ class ReoRegressionSlack(BzCleaner):
         guaranteed to be part of the count above them. Empty lists are left out of
         the message entirely.
         """
-        query = regressions_query(version, carry_over)
-        bugs = self.fetch_bugs(query)
+        bugs = self.fetch_bugs(version, carry_over)
         if not bugs:
             return ""
 
+        query = regressions_query(version, carry_over)
         link = bug_link(bugs, f"{{}} {label} Regressions", query)
         lines = [f"• {link}{restricted_note(bugs)}"]
 

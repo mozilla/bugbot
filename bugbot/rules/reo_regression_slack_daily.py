@@ -421,6 +421,11 @@ class ReoRegressionSlackDaily(BzCleaner):
     # Overridden by a `--channel` run, so this is the channel the cron posts to.
     channel = CHANNEL
 
+    # Which query `get_bz_params` builds, set before each fetch the way
+    # `warn_regressed_by` sets its step. An uplift flag asks for the burndown.
+    version = 0
+    uplift_flag = ""
+
     def description(self) -> str:
         return "REO release regressions needing action posted to Slack"
 
@@ -453,22 +458,28 @@ class ReoRegressionSlackDaily(BzCleaner):
         self.channel = args.channel or CHANNEL
 
     def get_bz_params(self, date: str) -> BzParams:
-        """The query the running `get_bugs()` call is for. See `fetch_bugs`."""
-        return self.params
+        """The query for the fetch in flight, burndown or open regressions."""
+        if self.uplift_flag:
+            return {
+                **burndown_query(self.version, self.uplift_flag),
+                "include_fields": BURNDOWN_FIELDS,
+            }
+
+        return {**regressions_query(self.version), "include_fields": FIELDS}
 
     def bughandler(self, bug: Bug, data: dict[str, Any]) -> None:
         """Keep every field, where `BzCleaner` would keep the email columns."""
         data[str(bug["id"])] = bug
 
-    def fetch_bugs(self, query: dict, fields: str = FIELDS) -> list[dict]:
+    def fetch_bugs(self, version: int, uplift_flag: str = "") -> list[dict]:
         """Run one of this rule's queries through `BzCleaner`'s search path.
 
-        One query per version plus one per burndown line, each set here and read
-        back by `get_bz_params`, the way `warn_regressed_by` steps through its
-        two. libmozdata only pages a query carrying none of count_only, limit,
-        order or offset, so no query here may add one.
+        One query per version plus one per burndown line, run one after the
+        other. libmozdata only pages a query carrying none of count_only, limit,
+        order or offset, so neither query builder may add one.
         """
-        self.params = {**query, "include_fields": fields}
+        self.version = version
+        self.uplift_flag = uplift_flag
 
         return list(self.get_bugs().values())
 
@@ -480,7 +491,7 @@ class ReoRegressionSlackDaily(BzCleaner):
         """
         bugs: dict[int, dict] = {}
         for version in sorted(set(versions.values())):
-            for bug in self.fetch_bugs(regressions_query(version)):
+            for bug in self.fetch_bugs(version):
                 bugs[bug["id"]] = bug
 
         return list(bugs.values())
@@ -494,10 +505,10 @@ class ReoRegressionSlackDaily(BzCleaner):
         Release by separate uplifts, so the same bug can be outstanding on one and
         done on the other.
         """
-        query = burndown_query(version, utils.get_flag(None, "approval", channel))
+        uplift_flag = utils.get_flag(None, "approval", channel)
         bugs = [
             bug
-            for bug in self.fetch_bugs(query, BURNDOWN_FIELDS)
+            for bug in self.fetch_bugs(version, uplift_flag)
             if lmdutils.get_date_ymd(bug["cf_last_resolved"]) < cutoff
         ]
         label = f"{{}} Fx{version} {channel.title()} fixed with no uplift request"
