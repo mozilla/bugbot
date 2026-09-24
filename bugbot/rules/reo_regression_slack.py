@@ -324,23 +324,6 @@ def block_text(block: dict) -> str:
     return block["text"]["text"]
 
 
-def versions_to_report() -> dict[str, int]:
-    """The current version of each channel, logging what was read.
-
-    Not through `BzCleaner.init_versions`: `utils.get_checked_versions` returns
-    nothing on merge day, which is a day this message has wording for.
-    """
-    versions = utils.get_versions_from_trains()
-    logger.info(
-        "Reporting Firefox %s release / %s beta / %s nightly",
-        versions["release"],
-        versions["beta"],
-        versions["nightly"],
-    )
-
-    return versions
-
-
 @functools.cache
 def wellness_days() -> frozenset[datetime.date]:
     """Fetch the days off that don't count as working days.
@@ -531,7 +514,9 @@ class ReoRegressionSlack(BzCleaner):
 
     def get_email_data(self, date: str) -> EmailData:
         """Post the message, and return no data so `send_email` sends nothing."""
-        self.post_message(self.blocks(versions_to_report()))
+        # Not `init_versions`: `utils.get_checked_versions` returns nothing on
+        # merge day, which this message has wording for.
+        self.post_message(self.blocks(utils.get_versions_from_trains()))
 
         return []
 
