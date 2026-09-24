@@ -1,0 +1,4 @@
+<p>The following message was posted to Slack channel {{ extra["channel"] }}:</p>
+<pre>{% for line in data %}
+{{ line | e }}
+{% endfor %}</pre>
