@@ -373,14 +373,12 @@ class UpdateRule(ABC, Generic[_DataType]):
         self.client = client
 
     @abstractmethod
-    def get_data(self) -> _DataType:
-        ...
+    def get_data(self) -> _DataType: ...
 
     @abstractmethod
     def update(
         self, updates: MutableMapping[int, FeatureBugUpdate], data: _DataType
-    ) -> None:
-        ...
+    ) -> None: ...
 
     def run(self, updates: MutableMapping[int, FeatureBugUpdate]) -> None:
         data: _DataType = self.get_data()
@@ -595,6 +593,112 @@ Feature bugs are usually automatically closed once the corresponding web-feature
                 )
 
 
+@dataclass
+class InteropBug:
+    user_story: dict[str, str | list[str]]
+    interop_issue: int
+    interop_year: int
+
+
+class UpdateInterop(UpdateRule):
+    """Update bugs which have a corresponding Interop project proposal."""
+
+    def get_data(self) -> Mapping[int, list[InteropBug]]:
+        rv: dict[int, list[InteropBug]] = {}
+
+        query = """
+WITH
+
+proposal_bugs AS (
+  SELECT number, issue, year
+  FROM `moz-fx-dev-dschubert-wckb.interop.interop_bugs` AS interop_bugs
+  JOIN UNNEST(bugs) as number
+  JOIN `moz-fx-dev-dschubert-wckb.interop.interop_proposals` USING(issue)
+  WHERE interop_bugs.state = "open"
+)
+
+SELECT
+    number,
+    user_story,
+    issue as interop_issue,
+    year as interop_year,
+FROM proposal_bugs
+JOIN `webcompat_knowledge_base.bugzilla_bugs` AS bugs USING(number)
+WHERE bugs.resolution != "DUPLICATE"
+"""
+        for row in self.client.query(query):
+            if row.number not in rv:
+                rv[row.number] = []
+            rv[row.number].append(
+                InteropBug(
+                    user_story=row.user_story,
+                    interop_issue=row.interop_issue,
+                    interop_year=row.interop_year,
+                )
+            )
+
+        return rv
+
+    def update(
+        self,
+        updates: MutableMapping[int, FeatureBugUpdate],
+        data: Mapping[int, list[InteropBug]],
+    ) -> None:
+        for bug_id, interop_bugs in data.items():
+            years = set()
+            for interop_bug in interop_bugs:
+                interop_link = f"https://github.com/web-platform-tests/interop/issues/{interop_bug.interop_issue}"
+                updates[bug_id].see_also[interop_link] = True
+
+                years.add(str(interop_bug.interop_year))
+            user_story_change = self.user_story_change(
+                interop_bugs[0].user_story, years
+            )
+            if user_story_change is not None:
+                updates[bug_id].user_story.append(user_story_change)
+
+    def user_story_change(
+        self, user_story: Mapping[str, str | list[str]], years: set[str]
+    ) -> Optional[UserStoryChange]:
+        current_value = user_story.get("interop-proposal")
+        if current_value is not None:
+            if not isinstance(current_value, list):
+                current_value = [current_value]
+
+            all_current = set()
+            target = None
+            for raw_value in current_value:
+                value = [item.strip() for item in raw_value.split(",")]
+                all_valid = True
+                for maybe_year in value:
+                    is_year = re.match(r"\d{4}$", maybe_year)
+                    if is_year:
+                        all_current.add(maybe_year)
+                    else:
+                        all_valid = False
+                if all_valid and target is None:
+                    target = (raw_value, value)
+
+            if target is not None:
+                missing = years - all_current
+                if not missing:
+                    return None
+
+                return UserStoryChange(
+                    "interop-proposal",
+                    UserStoryChangeType.REPLACE,
+                    target[0].strip(),
+                    ",".join(target[1] + sorted(missing)),
+                )
+
+        return UserStoryChange(
+            "interop-proposal",
+            UserStoryChangeType.APPEND,
+            None,
+            ",".join(sorted(years)),
+        )
+
+
 class WebPlatformFeatures(BzCleaner):
     def __init__(self) -> None:
         super().__init__()
@@ -652,6 +756,7 @@ class WebPlatformFeatures(BzCleaner):
             FeatureRenames(client),
             InvalidFeatures(client),
             UpdateMetadata(client),
+            UpdateInterop(client),
         ]:
             update_rule.run(self.bug_updates)
 
