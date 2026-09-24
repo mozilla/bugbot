@@ -434,6 +434,9 @@ class ReoRegressionSlack(BzCleaner):
         # would put the counts out of step with the REO tab.
         return False
 
+    def get_extra_for_template(self) -> dict[str, str]:
+        return {"channel": self.channel}
+
     def add_custom_arguments(self, parser: argparse.ArgumentParser) -> None:
         parser.add_argument(
             "--channel",
@@ -521,12 +524,13 @@ class ReoRegressionSlack(BzCleaner):
         logger.info("Rule %s posted to %s", self.name(), self.channel)
 
     def get_email_data(self, date: str) -> EmailData:
-        """Post the message, and return no data so `send_email` sends nothing."""
+        """Post the message, and report it in the email bugbot sends its maintainers."""
         # Not `init_versions`: `utils.get_checked_versions` returns nothing on
         # merge day, which this message has wording for.
-        self.post_message(self.blocks(utils.get_versions_from_trains()))
+        blocks = self.blocks(utils.get_versions_from_trains())
+        self.post_message(blocks)
 
-        return []
+        return [block_text(block) for block in blocks]
 
     def blocks(self, versions: dict[str, int]) -> list[dict]:
         """Build the cycle summary as Block Kit sections, one per bug list."""

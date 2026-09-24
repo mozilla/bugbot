@@ -443,6 +443,9 @@ class ReoRegressionSlackDaily(BzCleaner):
         # the work, so dropping those bugs would hide work still to be done.
         return False
 
+    def get_extra_for_template(self) -> dict[str, str]:
+        return {"channel": self.channel}
+
     def add_custom_arguments(self, parser: argparse.ArgumentParser) -> None:
         parser.add_argument(
             "--channel",
@@ -529,12 +532,15 @@ class ReoRegressionSlackDaily(BzCleaner):
         logger.info("Rule %s posted to %s", self.name(), self.channel)
 
     def get_email_data(self, date: str) -> EmailData:
-        """Post the message, and return no data so `send_email` sends nothing."""
+        """Post the message, and report it in the email bugbot sends its maintainers."""
         # Not `init_versions`: `utils.get_checked_versions` returns nothing on
         # merge day, which this message has wording for.
-        self.post_message(self.blocks(utils.get_versions_from_trains()))
+        blocks = self.blocks(utils.get_versions_from_trains())
+        self.post_message(blocks)
 
-        return []
+        # GREATER_THAN is escaped for Slack, which the email template would
+        # escape a second time, leaving a visible `&gt;`.
+        return [block_text(block).replace(GREATER_THAN, ">") for block in blocks]
 
     def blocks(self, versions: dict[str, int]) -> list[dict]:
         """Build the action required message, one section per bucket.
