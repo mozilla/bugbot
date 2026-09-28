@@ -932,7 +932,7 @@ class SignaturesDataFetcher:
         )
 
         data: dict = {}
-        socorro.SuperSearchUnredacted(
+        socorro.SuperSearch(
             params=params,
             handler=handler,
             handlerdata=data,
