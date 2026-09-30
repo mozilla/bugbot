@@ -38,6 +38,19 @@ TRIAGED_COMPONENTS = (
     ("Firefox", "General"),
     ("Toolkit", "General"),
     ("Firefox", "Untriaged"),
+    ("Firefox", "PDF Viewer"),
+    ("Toolkit", "Password Manager"),
+    ("Firefox", "about:logins"),
+    ("Firefox for Android", "Downloads"),
+    ("Firefox for Android", "Experimentation and Telemetry"),
+    ("Firefox for Android", "Logins"),
+    ("Firefox for Android", "Onboarding"),
+    ("Firefox for Android", "Privacy"),
+    ("Firefox for Android", "QR"),
+    ("Firefox for Android", "Settings"),
+    ("Firefox for Android", "Tabs"),
+    ("Firefox for Android", "Translations"),
+    ("Firefox Build System", "Android Studio and Gradle Integration"),
 )
 
 # Every hackbot agent comments as this account, so a bug `bug-fix` has worked is

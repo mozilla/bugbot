@@ -82,6 +82,11 @@ def test_does_not_use_the_default_product_list():
     assert _rule().has_default_products() is False
 
 
+def _chart_indexes(params):
+    # The boolean chart's field numbers, in order.
+    return sorted(int(k[1:]) for k in params if k[0] == "f" and k[1:].isdigit())
+
+
 def _queried_pairs(params):
     """Reconstruct the `(product, component)` pairs from the boolean chart.
 
@@ -90,10 +95,8 @@ def _queried_pairs(params):
     """
     pairs = []
     pending: dict = {}
-    for i in range(1, 100):
-        field = params.get(f"f{i}")
-        if field is None:
-            continue
+    for i in _chart_indexes(params):
+        field = params[f"f{i}"]
         if field == "OP":
             pending = {}
         elif field == "CP":
@@ -124,7 +127,7 @@ def test_pairs_a_component_with_its_own_product():
 
 def test_ors_the_component_groups_and_ands_within_each():
     params = _rule().get_bz_params("2026-07-28")
-    opens = [i for i in range(1, 100) if params.get(f"f{i}") == "OP"]
+    opens = [i for i in _chart_indexes(params) if params[f"f{i}"] == "OP"]
     assert params[f"j{opens[0]}"] == "OR"
     assert [params[f"j{i}"] for i in opens[1:]] == ["AND"] * len(TRIAGED_COMPONENTS)
 
@@ -150,7 +153,7 @@ def _clauses(params):
     """
     return {
         (params[f"f{i}"], params[f"o{i}"], params[f"v{i}"])
-        for i in range(1, 100)
+        for i in _chart_indexes(params)
         if f"o{i}" in params
     }
 
