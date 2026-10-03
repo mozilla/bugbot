@@ -18,6 +18,7 @@ from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
 
 PHAB_URL_PAT = re.compile(r"https://phabricator\.services\.mozilla\.com/D([0-9]+)")
+NOT_LANDED_COMMENT_MARKER = "which didn't land and no activity in this bug for"
 
 
 class NotLanded(BzCleaner):
@@ -349,7 +350,7 @@ class NotLanded(BzCleaner):
             "n6": 1,
             "f6": "longdesc",
             "o6": "casesubstring",
-            "v6": "which didn't land and no activity in this bug for",
+            "v6": NOT_LANDED_COMMENT_MARKER,
             "f7": "status_whiteboard",
             "o7": "notsubstring",
             "v7": "[reminder-test ",
