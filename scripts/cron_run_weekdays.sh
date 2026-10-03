@@ -58,7 +58,7 @@ python -m bugbot.rules.multi_nag --production
 # Pretty common
 python -m bugbot.rules.not_landed --production
 
-# Clear not_landed needinfos after the tracked patches land or the bug closes
+# Clear not_landed needinfos on bugs resolved as fixed
 python -m bugbot.rules.not_landed_cleanup --production
 
 # New workflow

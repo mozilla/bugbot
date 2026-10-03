@@ -18,7 +18,6 @@ from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
 
 PHAB_URL_PAT = re.compile(r"https://phabricator\.services\.mozilla\.com/D([0-9]+)")
-NEEDINFO_TRACKING_PREFIX = "needinfo-revisions:"
 NOT_LANDED_COMMENT_MARKER = "which didn't land and no activity in this bug for"
 
 
@@ -29,7 +28,6 @@ class NotLanded(BzCleaner):
         self.nyears = utils.get_config(self.name(), "number_of_years", 2)
         self.phab = PhabricatorAPI(utils.get_login_info()["phab_api_key"])
         self.extra_ni = {}
-        self.needinfo_revision_ids: dict[str, set[int]] = {}
 
     def description(self):
         return "Open bugs with no activity for {} week(s) and a r+ patch which hasn't landed".format(
@@ -45,17 +43,6 @@ class NotLanded(BzCleaner):
     def get_extra_for_needinfo_template(self):
         self.extra_ni.update(self.get_extra_for_template())
         return self.extra_ni
-
-    def get_db_extra(self):
-        extra = dict(super().get_db_extra())
-        extra.update(
-            {
-                bugid: NEEDINFO_TRACKING_PREFIX
-                + ",".join(str(revision_id) for revision_id in sorted(revision_ids))
-                for bugid, revision_ids in self.needinfo_revision_ids.items()
-            }
-        )
-        return extra
 
     def columns(self):
         return ["id", "summary", "assignee"]
@@ -165,11 +152,6 @@ class NotLanded(BzCleaner):
                     res["phab"] = c
 
         if c is not None:
-            if c:
-                phab_url = base64.b64decode(attachment["data"]).decode("utf-8")
-                match = PHAB_URL_PAT.search(phab_url)
-                if match:
-                    res.setdefault("revision_ids", set()).add(int(match.group(1)))
             attacher = attachment["creator"]
             if "author" in res:
                 if attacher in res["author"]:
@@ -241,7 +223,6 @@ class NotLanded(BzCleaner):
                 "author": None,
                 "count": 0,
                 "has_blocking_dependencies": False,
-                "revision_ids": set(),
             }
             for bugid in bugids
         }
@@ -285,7 +266,6 @@ class NotLanded(BzCleaner):
                     data[bugid]["reviewers_phid"] = res["reviewers_phid"]
                     data[bugid]["author"] = res["author"]
                     data[bugid]["count"] = res["count"]
-                    data[bugid]["revision_ids"] = res["revision_ids"]
 
         data = {bugid: v for bugid, v in data.items() if v["author"]}
 
@@ -412,18 +392,14 @@ class NotLanded(BzCleaner):
             if not assignee:
                 continue
 
-            added_needinfo = self.add_auto_ni(
-                bugid, {"mail": assignee, "nickname": nickname}
-            )
+            self.add_auto_ni(bugid, {"mail": assignee, "nickname": nickname})
 
             common = all_reviewers & data["reviewers_phid"]
             if common:
                 reviewer = random.choice(list(common))
-                added_needinfo |= self.add_auto_ni(
+                self.add_auto_ni(
                     bugid, {"mail": bz_reviewers[reviewer], "nickname": None}
                 )
-            if added_needinfo:
-                self.needinfo_revision_ids[bugid] = data["revision_ids"]
 
         return res
 
