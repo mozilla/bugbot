@@ -58,6 +58,9 @@ python -m bugbot.rules.multi_nag --production
 # Pretty common
 python -m bugbot.rules.not_landed --production
 
+# Clear not_landed needinfos on bugs resolved as fixed
+python -m bugbot.rules.not_landed_cleanup --production
+
 # New workflow
 # https://docs.google.com/document/d/1EHuWa-uR-7Sq63X1ZiDN1mvJ9gQtWiqYrCifkySJyW0/edit#
 # https://docs.google.com/drawings/d/1oZA-AUvkOxGMNhZNofL8Wlfk6ol3o5ATQCV5DJJKbwM/edit
