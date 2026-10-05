@@ -12,12 +12,14 @@ AGENT = "frontend-triage"
 # than in configs/rules.json on purpose: the agent's analysis lands on the bug
 # unattended, so widening its reach should take a code review.
 #
-# Every pair here needs a channel in the agent's own `TRIAGE_SCOPE` (bugbug's
+# Every pair here needs an entry in the agent's own `TRIAGE_SCOPE` (bugbug's
 # agents/frontend-triage/hackbot_agents/frontend_triage/config.py), and the agent has to
 # be deployed with it first. `channel_for` fails closed, which silences the Slack
-# notification but not the run: the comment and the severity change still apply, so a
-# pair added here ahead of the agent gets unattended triage with nobody told. Nothing
-# checks this -- the two lists are in separate repos and cannot see each other.
+# notification but not the run: the comment still applies, so a pair added here ahead
+# of the agent gets unattended triage with nobody told, and its comment is public even
+# if the entry would have made it private. An entry may set its channel to `None` on
+# purpose, as the Places components do. Nothing checks this -- the two lists are in
+# separate repos and cannot see each other.
 TRIAGED_COMPONENTS = (
     ("Firefox", "New Tab Page"),
     ("Firefox for Android", "History"),
@@ -51,6 +53,8 @@ TRIAGED_COMPONENTS = (
     ("Firefox for Android", "Tabs"),
     ("Firefox for Android", "Translations"),
     ("Firefox Build System", "Android Studio and Gradle Integration"),
+    ("Firefox", "Bookmarks & History"),
+    ("Firefox", "Downloads Panel"),
 )
 
 # Every hackbot agent comments as this account, so a bug `bug-fix` has worked is
