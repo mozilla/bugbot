@@ -490,5 +490,8 @@
   },
   "topcrash_notify": {
     "additional_receivers": ["rm"]
+  },
+  "reo_regression_slack": {
+    "must_run": ["Mon", "Thu"]
   }
 }
