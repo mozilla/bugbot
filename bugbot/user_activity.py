@@ -326,6 +326,10 @@ class UserActivity:
             filterPHIDs=[user_phid],
             limit=1,
         )
+        # Conduit's feed.query returns an object keyed by story PHID, but an
+        # empty result is serialized as an empty list, which has no values().
+        if not isinstance(feed, dict):
+            return False
         for story in feed.values():
             if story["epoch"] >= self.activity_limit_ts:
                 return True
