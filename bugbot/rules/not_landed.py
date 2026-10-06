@@ -16,6 +16,7 @@ from libmozdata.phabricator import (
 
 from bugbot import utils
 from bugbot.bzcleaner import BzCleaner
+from bugbot.people import People
 
 PHAB_URL_PAT = re.compile(r"https://phabricator\.services\.mozilla\.com/D([0-9]+)")
 
@@ -27,6 +28,7 @@ class NotLanded(BzCleaner):
         self.nyears = utils.get_config(self.name(), "number_of_years", 2)
         self.phab = PhabricatorAPI(utils.get_login_info()["phab_api_key"])
         self.extra_ni = {}
+        self.people = People.get_instance()
 
     def description(self):
         return "Open bugs with no activity for {} week(s) and a r+ patch which hasn't landed".format(
@@ -392,6 +394,11 @@ class NotLanded(BzCleaner):
                 continue
 
             self.add_auto_ni(bugid, {"mail": assignee, "nickname": nickname})
+
+            # If the patch author is a Mozilla employee, they can land the patch
+            # themselves, so there is no need to needinfo the reviewer.
+            if self.people.is_mozilla(assignee):
+                continue
 
             common = all_reviewers & data["reviewers_phid"]
             if common:
