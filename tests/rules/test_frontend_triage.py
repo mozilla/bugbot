@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from urllib.parse import urlencode
+
 import pytest
 from jinja2 import Environment, FileSystemLoader
 
@@ -101,18 +103,21 @@ def _queried_pairs(params):
             pending = {}
         elif field == "CP":
             if {"product", "component"} <= pending.keys():
-                pairs.append((pending["product"], pending["component"]))
+                pairs += [(pending["product"], c) for c in pending["component"]]
             pending = {}
-        elif field in ("product", "component") and params[f"o{i}"] == "equals":
-            # `MOVED_BACK_COMPONENTS` adds `changedto`/`changedafter` clauses on
-            # `component` inside the same group; only the `equals` pair names it.
+        elif field == "product" and params[f"o{i}"] == "equals":
             pending[field] = params[f"v{i}"]
+        elif field == "component" and params[f"o{i}"] == "anyexact":
+            # `MOVED_BACK_COMPONENTS` adds `changedto`/`changedafter` clauses on
+            # `component` inside the same group; only the `anyexact` one names it.
+            pending[field] = params[f"v{i}"].split(",")
     return pairs
 
 
 def test_queries_every_triaged_component():
+    # Sorted, because the groups follow products rather than the tuple's order.
     params = _rule().get_bz_params("2026-07-28")
-    assert _queried_pairs(params) == list(TRIAGED_COMPONENTS)
+    assert sorted(_queried_pairs(params)) == sorted(TRIAGED_COMPONENTS)
 
 
 def test_pairs_a_component_with_its_own_product():
@@ -129,7 +134,17 @@ def test_ors_the_component_groups_and_ands_within_each():
     params = _rule().get_bz_params("2026-07-28")
     opens = [i for i in _chart_indexes(params) if params[f"f{i}"] == "OP"]
     assert params[f"j{opens[0]}"] == "OR"
-    assert [params[f"j{i}"] for i in opens[1:]] == ["AND"] * len(TRIAGED_COMPONENTS)
+    products = {product for product, _ in TRIAGED_COMPONENTS}
+    groups = len(products) + len(MOVED_BACK_COMPONENTS)
+    assert [params[f"j{i}"] for i in opens[1:]] == ["AND"] * groups
+
+
+def test_the_query_fits_in_a_url():
+    # The query is a GET, and BMO answered 414 URI Too Long to the one-group-per-pair
+    # chart at 55 pairs, 8,913 characters of query string. Its limit is somewhere
+    # under that; 6,000 leaves room for the scheme, host, path and API key.
+    params = _rule().get_bz_params("2026-07-28")
+    assert len(urlencode(params, doseq=True)) < 6000
 
 
 def test_spans_more_than_one_product():
