@@ -51,6 +51,29 @@ TRIAGED_COMPONENTS = (
     ("Firefox for Android", "Tabs"),
     ("Firefox for Android", "Translations"),
     ("Firefox Build System", "Android Studio and Gradle Integration"),
+    ("DevTools", "about:debugging"),
+    ("DevTools", "Application Panel"),
+    ("DevTools", "Console"),
+    ("DevTools", "Debugger"),
+    ("DevTools", "Documentation"),
+    ("DevTools", "DOM"),
+    ("DevTools", "Framework"),
+    ("DevTools", "General"),
+    ("DevTools", "Inspector"),
+    ("DevTools", "Inspector: Animations"),
+    ("DevTools", "Inspector: Changes"),
+    ("DevTools", "Inspector: Compatibility"),
+    ("DevTools", "Inspector: Layout"),
+    ("DevTools", "Inspector: Rules"),
+    ("DevTools", "JSON Viewer"),
+    ("DevTools", "Memory"),
+    ("DevTools", "Netmonitor"),
+    ("DevTools", "Object Inspector"),
+    ("DevTools", "Responsive Design Mode"),
+    ("DevTools", "Shared Components"),
+    ("DevTools", "Source Editor"),
+    ("DevTools", "Storage Inspector"),
+    ("DevTools", "Style Editor"),
 )
 
 # Every hackbot agent comments as this account, so a bug `bug-fix` has worked is
@@ -64,6 +87,10 @@ HACKBOT_EMAIL = "hackbot@mozilla.tld"
 # *back* is one it will never touch again. `changedto` separates the two: Bugzilla
 # writes no activity row for the component a bug was filed with.
 MOVED_BACK_COMPONENTS = frozenset({("Firefox", "Untriaged")})
+
+# `get_bz_params` joins each product's components into one comma-separated
+# `anyexact` value, so a comma in a name would split it into two.
+assert not any("," in component for _, component in TRIAGED_COMPONENTS)
 
 # A pair here and not in `TRIAGED_COMPONENTS` would be queried by nothing.
 assert MOVED_BACK_COMPONENTS <= set(TRIAGED_COMPONENTS)
@@ -115,34 +142,51 @@ class FrontendTriage(BzCleaner):
             "resolution": "---",
         }
 
-        # One AND group per pair, inside a top-level OR. Top-level `product` and
-        # `component` params are matched independently, so passing a list of each
-        # would also put every cross pairing in scope -- `Toolkit :: Installer`
-        # the day somebody creates it. No cross pairing exists today, but this
-        # rule spends money and posts to bugs unattended, so its reach should not
-        # be able to widen on its own.
+        # One AND group per product, inside a top-level OR, each naming only that
+        # product's components. Top-level `product` and `component` params are
+        # matched independently, so passing a list of each would also put every
+        # cross pairing in scope -- `Toolkit :: Installer` the day somebody creates
+        # it. This rule spends money and posts to bugs unattended, so its reach
+        # should not be able to widen on its own.
+        #
+        # Per product rather than per pair because the query is a GET: one group per
+        # pair reached 8,913 characters at 55 pairs, and BMO answered 414 URI Too
+        # Long.
         #
         # The date sits inside each group rather than once at the top level: the same
-        # query for the pairs that want `creation_ts`, since a top-level AND
+        # query for the groups that want `creation_ts`, since a top-level AND
         # distributes over the OR, and what lets `MOVED_BACK_COMPONENTS` differ.
+        groups: dict[tuple[str, str | None], list[str]] = {}
+        for product, component in TRIAGED_COMPONENTS:
+            # A moved-back pair gets a group of its own, since its date clauses differ.
+            moved_back = (product, component) in MOVED_BACK_COMPONENTS
+            key = (product, component if moved_back else None)
+            groups.setdefault(key, []).append(component)
+
         n = utils.get_last_field_num(params)
         params[f"j{n}"] = "OR"
         params[f"f{n}"] = "OP"
-        for product, component in TRIAGED_COMPONENTS:
+        for (product, moved_back), components in groups.items():
             n = utils.get_last_field_num(params)
             params[f"j{n}"] = "AND"
             params[f"f{n}"] = "OP"
             n = utils.get_last_field_num(params)
             params.update({f"f{n}": "product", f"o{n}": "equals", f"v{n}": product})
             n = utils.get_last_field_num(params)
-            params.update({f"f{n}": "component", f"o{n}": "equals", f"v{n}": component})
+            params.update(
+                {
+                    f"f{n}": "component",
+                    f"o{n}": "anyexact",
+                    f"v{n}": ",".join(components),
+                }
+            )
 
-            if (product, component) in MOVED_BACK_COMPONENTS:
+            if moved_back:
                 # Both clauses: `changedto` alone matches a move made years ago,
                 # `changedafter` alone matches a move to anywhere.
                 n = utils.get_last_field_num(params)
                 params.update(
-                    {f"f{n}": "component", f"o{n}": "changedto", f"v{n}": component}
+                    {f"f{n}": "component", f"o{n}": "changedto", f"v{n}": moved_back}
                 )
                 n = utils.get_last_field_num(params)
                 params.update(
