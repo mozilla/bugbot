@@ -143,7 +143,7 @@ class VariantExpiration(BzCleaner, Nag):
         for variant in variants.values():
             expiration = variant["expiration"]
 
-            if expiration == "never" or expiration == "None":
+            if expiration == "never":
                 expiration = datetime.max
 
             variant["expiration"] = lmdutils.get_date_ymd(expiration)
