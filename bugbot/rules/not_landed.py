@@ -152,7 +152,6 @@ class NotLanded(BzCleaner):
                 c = self.check_phab(attachment, res["reviewers_phid"])
                 if c is not None:
                     res["phab"] = c
-                if c:
                     res["landable"].append(attachment)
 
         if c is not None:
@@ -175,13 +174,15 @@ class NotLanded(BzCleaner):
         patterns = Bugzilla.get_landing_patterns(channels=["nightly", "autoland"])
 
         def comment_handler(bug, bugid, data):
-            # if a comment contains a backout: don't nag
+            # if the last landing in the bug is a backout: don't nag, the
+            # backed out revisions are still accepted in Phabricator but the
+            # dev is likely working on a fix
             for comment in bug["comments"]:
                 comment = comment["text"].lower()
-                if any(pat[0].match(comment) for pat in patterns) and (
-                    "backed out" in comment or "backout" in comment
-                ):
-                    data[bugid]["backout"] = True
+                if any(pat[0].search(comment) for pat in patterns):
+                    data[bugid]["backout"] = (
+                        "backed out" in comment or "backout" in comment
+                    )
 
         def attachment_id_handler(attachments, bugid, data):
             for a in attachments:
