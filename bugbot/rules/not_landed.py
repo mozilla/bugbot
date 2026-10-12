@@ -152,6 +152,8 @@ class NotLanded(BzCleaner):
                 c = self.check_phab(attachment, res["reviewers_phid"])
                 if c is not None:
                     res["phab"] = c
+                if c:
+                    res["landable"].append(attachment)
 
         if c is not None:
             attacher = attachment["creator"]
@@ -256,15 +258,15 @@ class NotLanded(BzCleaner):
         ).get_data().wait()
 
         for bugid, attachments in attachments_by_bug.items():
-            res = {"reviewers_phid": set()}
+            res = {"reviewers_phid": set(), "landable": []}
             for attachment in attachments:
                 self.handle_attachment(attachment, res)
 
             if "phab" in res:
                 if res["phab"]:
-                    data[bugid][
-                        "has_blocking_dependencies"
-                    ] = has_blocking_dependencies(attachment)
+                    data[bugid]["has_blocking_dependencies"] = any(
+                        has_blocking_dependencies(a) for a in res["landable"]
+                    )
                     data[bugid]["reviewers_phid"] = res["reviewers_phid"]
                     data[bugid]["author"] = res["author"]
                     data[bugid]["count"] = res["count"]
