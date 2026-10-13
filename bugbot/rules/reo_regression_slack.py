@@ -12,6 +12,13 @@ team, and Beta and Nightly get a working day countdown to the end of the cycle.
 
 The regressions that need chasing rather than counting are the other rule,
 `reo_regression_slack_daily`.
+
+Note: this rule does not follow the usual structure of bugbot rules and should
+not be used as a template for new ones. It runs several queries by setting state
+on `self` and calling `get_bugs` repeatedly, posts to Slack from
+`get_email_data`, and duplicates its module-level helpers with
+`reo_regression_slack_daily`. Base new rules on a conventional one such as
+`uplift_beta` instead.
 """
 
 import argparse
