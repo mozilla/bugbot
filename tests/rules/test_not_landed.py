@@ -5,6 +5,8 @@
 import base64
 from datetime import datetime, timezone
 
+from libmozdata.bugzilla import Bugzilla
+
 from bugbot.rules import not_landed
 from bugbot.rules.not_landed import NotLanded
 
@@ -60,11 +62,9 @@ def _rule(revisions):
     return rule
 
 
-def _fake_bugzilla(attachments):
+def _fake_bugzilla(attachments, comments):
     class FakeBugzilla:
-        @staticmethod
-        def get_landing_patterns(channels):
-            return []
+        get_landing_patterns = staticmethod(Bugzilla.get_landing_patterns)
 
         def __init__(self, bugids=None, attachmentids=None, **kwargs):
             self.bugids = bugids
@@ -82,7 +82,9 @@ def _fake_bugzilla(attachments):
             elif "commenthandler" in self.kwargs:
                 for bugid in self.bugids:
                     self.kwargs["commenthandler"](
-                        {"comments": []}, bugid, self.kwargs["commentdata"]
+                        {"comments": [{"text": text} for text in comments]},
+                        bugid,
+                        self.kwargs["commentdata"],
                     )
             return self
 
@@ -92,8 +94,8 @@ def _fake_bugzilla(attachments):
     return FakeBugzilla
 
 
-def _patch_data(monkeypatch, attachments, revisions):
-    monkeypatch.setattr(not_landed, "Bugzilla", _fake_bugzilla(attachments))
+def _patch_data(monkeypatch, attachments, revisions, comments=()):
+    monkeypatch.setattr(not_landed, "Bugzilla", _fake_bugzilla(attachments, comments))
     return _rule(revisions).get_patch_data({"123": {}})
 
 
@@ -111,3 +113,34 @@ def test_blocked_stack_is_checked_on_every_landable_revision(monkeypatch):
         [_revision(1, parents=[3]), _revision(2), _revision(3, status="needs-review")],
     )
     assert data == {}
+
+
+PUSHED = (
+    "Pushed by dev@mozilla.com:\n"
+    "https://hg.mozilla.org/integration/autoland/rev/b1faa1af2967\n"
+    "Do something. r=reviewer"
+)
+BACKOUT = (
+    "Backout by sheriff@mozilla.com:\n"
+    "https://hg.mozilla.org/integration/autoland/rev/92748f5caf89\n"
+    "Backed out changeset b1faa1af2967 for causing failures"
+)
+
+
+def test_backed_out_revision_is_not_nagged(monkeypatch):
+    data = _patch_data(
+        monkeypatch, [_attachment(10, 1)], [_revision(1)], [PUSHED, BACKOUT]
+    )
+    assert data == {}
+
+
+def test_revision_is_nagged_when_relanded_after_backout(monkeypatch):
+    # Something landed again after the backout, so the remaining accepted
+    # revision is a new one which didn't land.
+    data = _patch_data(
+        monkeypatch,
+        [_attachment(10, 1)],
+        [_revision(1)],
+        [PUSHED, BACKOUT, PUSHED.replace("b1faa1af2967", "a5a3d9d8a54e")],
+    )
+    assert list(data) == ["123"]
