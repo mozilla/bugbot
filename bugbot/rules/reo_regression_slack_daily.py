@@ -500,7 +500,11 @@ class ReoRegressionSlackDaily(BzCleaner):
         but the fields the buckets look at are all channel independent.
         """
         bugs: dict[int, dict] = {}
-        for version in sorted(set(versions.values())):
+        # Not `versions.values()`: that also holds the ESR versions, and
+        # `esr_previous` is None outside an ESR overlap period.
+        channels = ("release", "beta", "nightly")
+        for channel in channels:
+            version = versions[channel]
             for bug in self.fetch_bugs(version):
                 bugs[bug["id"]] = bug
 
