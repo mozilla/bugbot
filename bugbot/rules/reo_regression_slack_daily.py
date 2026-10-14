@@ -503,7 +503,8 @@ class ReoRegressionSlackDaily(BzCleaner):
         # Not `versions.values()`: that also holds the ESR versions, and
         # `esr_previous` is None outside an ESR overlap period.
         channels = ("release", "beta", "nightly")
-        for version in sorted({versions[channel] for channel in channels}):
+        for channel in channels:
+            version = versions[channel]
             for bug in self.fetch_bugs(version):
                 bugs[bug["id"]] = bug
 
