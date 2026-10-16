@@ -30,6 +30,9 @@ python -m bugbot.rules.web_platform_features --production
 # Clear needinfos on bugs that have been closed or moved to a graveyard product
 python -m bugbot.rules.closed_bug_ni_cleanup --production
 
+# Clear uplift needinfos on closed bugs no longer affecting any Firefox version
+python -m bugbot.rules.uplift_ni_cleanup --production
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m bugbot.log --send
