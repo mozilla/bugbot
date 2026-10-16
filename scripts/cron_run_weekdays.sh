@@ -8,6 +8,9 @@ python -m bugbot.rules.triage_owner_rotations --production
 # Close inactive intermittent bugs
 python -m bugbot.rules.close_intermittents --production
 
+# Clear needinfos on resolved intermittent/perma failure bugs
+python -m bugbot.rules.intermittent_ni_cleanup --production
+
 # Send a todo list to set priority
 # Daily
 python -m bugbot.rules.to_triage --production
