@@ -33,6 +33,9 @@ python -m bugbot.rules.closed_bug_ni_cleanup --production
 # Clear uplift needinfos on closed bugs no longer affecting any Firefox version
 python -m bugbot.rules.uplift_ni_cleanup --production
 
+# Clear needinfos requested from accounts that cannot answer
+python -m bugbot.rules.unanswerable_ni_cleanup --production
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m bugbot.log --send
