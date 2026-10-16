@@ -460,6 +460,9 @@
     "must_run": ["Mon", "Wed", "Fri"],
     "sec": false
   },
+  "intermittent_ni_cleanup": {
+    "days_since_resolved": 7
+  },
   "uplift_beta": {
     "additional_receivers": ["jcristau@mozilla.com"]
   },
