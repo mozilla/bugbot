@@ -27,6 +27,9 @@ python -m bugbot.rules.webcompat_score --production
 # Update the links in bugs associated with web features
 python -m bugbot.rules.web_platform_features --production
 
+# Clear needinfos on bugs that have been closed or moved to a graveyard product
+python -m bugbot.rules.closed_bug_ni_cleanup --production
+
 # Send a mail if the logs are not empty
 # MUST ALWAYS BE THE LAST COMMAND
 python -m bugbot.log --send

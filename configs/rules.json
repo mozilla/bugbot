@@ -463,6 +463,9 @@
   "intermittent_ni_cleanup": {
     "days_since_resolved": 7
   },
+  "closed_bug_ni_cleanup": {
+    "days_closed": 14
+  },
   "uplift_beta": {
     "additional_receivers": ["jcristau@mozilla.com"]
   },
