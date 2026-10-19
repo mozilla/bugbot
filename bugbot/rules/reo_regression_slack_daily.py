@@ -178,7 +178,7 @@ def burndown_query(version: int, uplift_flag: str) -> dict:
 
     Bugs with all of the following:
     - resolved as fixed
-    - status-firefox{version} is affected or fix-optional
+    - status-firefox{version} is affected
     - any of:
       - crash, regression, leak, topcrash, assertion or dataloss keywords
       - in a security group
@@ -188,7 +188,8 @@ def burndown_query(version: int, uplift_flag: str) -> dict:
     - an uplift request against the channel, in any state
 
     All but the last of those is bugdash's Burndown list, kept in step with
-    app/buglists/burndown.mjs there, its gaps in the chart numbering included.
+    app/buglists/burndown.mjs there, its gaps in the chart numbering included,
+    except that fix-optional not include to avoid extra noise.
 
     The uplift request is a flag on an attachment, so it is left to Bugzilla
     rather than filtered here: flagtypes.name matches attachment flags too, and
@@ -198,8 +199,8 @@ def burndown_query(version: int, uplift_flag: str) -> dict:
         "classification": CLASSIFICATIONS,
         "resolution": "FIXED",
         "f1": utils.get_flag(version, "status", "release"),
-        "o1": "anywords",
-        "v1": "affected optional",
+        "o1": "equals",
+        "v1": "affected",
         "j2": "OR",
         "f2": "OP",
         "f3": "keywords",
