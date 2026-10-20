@@ -17,7 +17,7 @@ import os
 
 import requests
 
-from bugbot import utils
+from bugbot import logger, utils
 
 TIMEOUT_SECONDS = 15
 
@@ -28,6 +28,11 @@ TOKEN_VAR = "SLACK_ACCESS_TOKEN"
 # Read with `.get` rather than validated at load time the way `bz_api_key` is: a
 # deployment that posts to no channel needs no token.
 TOKEN_KEY = "slack_bot_token"
+
+# A channel ID that, when set, every message goes to instead of the one asked
+# for. It lives in configs/config.json, which is never committed, so a local run
+# can post for real without reaching the channels people read.
+OVERRIDE_CHANNEL_KEY = "slack_channel_override"
 
 # The name every message is posted under, instead of whatever the Slack app
 # happens to be called. Needs `chat:write.customize` on the token, and Slack
@@ -61,6 +66,14 @@ def get_token() -> str:
     return token
 
 
+def get_override_channel() -> str:
+    """The channel set to receive every message instead, or empty if none is."""
+    try:
+        return utils.get_login_info().get(OVERRIDE_CHANNEL_KEY, "").strip()
+    except OSError:
+        return ""
+
+
 def post_to_slack(
     channel: str,
     text: str,
@@ -76,6 +89,13 @@ def post_to_slack(
     Not retried, unlike reads: a POST that times out may well have arrived, so
     retrying risks posting the message twice.
     """
+    override = get_override_channel()
+    if override:
+        logger.info(
+            "Posting to %s instead of %s (%s)", override, channel, OVERRIDE_CHANNEL_KEY
+        )
+        channel = override
+
     payload: dict = {
         "channel": channel,
         "text": text,
