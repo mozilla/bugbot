@@ -40,9 +40,8 @@ from bugbot.components import ComponentName, fetch_component_teams
 # of the REO tab's.
 from bugbot.constants import HIGH_SEVERITY
 
-# TEMPORARY: #tmp-dm-test, a scratch channel for shaking the port out. It has to
-# be pointed at the real REO channel before this message is meant to be read.
-CHANNEL = "C0BLP0WUBED"
+# reo slack channel
+CHANNEL = "C04C6CQQR9T"
 
 BZ_BUGLIST_URL = "https://bugzilla.mozilla.org/buglist.cgi"
 
