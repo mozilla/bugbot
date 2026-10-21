@@ -21,3 +21,26 @@ def test_add_signatures():
 
     sgns = utils.add_signatures("", new)
     assert sgns == "[@ abc]\n[@ def]\n[@ ghi]\n[@ jkl]"
+
+
+def test_get_phab_revision_ids():
+    def attachment(file_name, content_type="text/x-phabricator-request", **kwargs):
+        return {
+            "file_name": file_name,
+            "content_type": content_type,
+            "is_obsolete": 0,
+            **kwargs,
+        }
+
+    bug = {
+        "attachments": [
+            attachment("phabricator-D123-url.txt"),
+            attachment("phabricator-D456-url.txt", is_obsolete=1),
+            attachment("phabricator-D789-url.txt"),
+            attachment("phabricator-D42-url.txt", content_type="text/plain"),
+            attachment("pr-1-url.txt", content_type="text/x-github-pull-request"),
+            attachment("unexpected-name.txt"),
+        ]
+    }
+    assert utils.get_phab_revision_ids(bug) == [123, 789]
+    assert utils.get_phab_revision_ids({"attachments": []}) == []

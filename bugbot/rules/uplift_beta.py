@@ -2,8 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import re
-
 from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import Bugzilla
 
@@ -24,10 +22,6 @@ LEGACY_COMMENT_MARKER = ", is this bug important enough to require an uplift?"
 # `fix-optional` means release management would take a fix but won't chase it,
 # so it deserves the same question as `affected`.
 AFFECTED_STATUSES = ["affected", "fix-optional"]
-
-# Phabricator attachments are named after the revision they point to, which
-# saves us from downloading and decoding the attachment data.
-PHAB_FILE_NAME_PAT = re.compile(r"^phabricator-D([0-9]+)-url\.txt$")
 
 # Uplifts are requested from the Lando page of the revision.
 LANDO_REVISION_URL = "https://lando.moz.tools/D{}/"
@@ -100,23 +94,10 @@ class UpliftBeta(BzCleaner):
 
     def get_revisions(self, bug):
         """Get the Phabricator revisions of the non-obsolete patches."""
-        revisions = []
-        for attachment in bug["attachments"]:
-            if (
-                attachment["is_obsolete"]
-                or attachment["content_type"] != "text/x-phabricator-request"
-            ):
-                continue
-            match = PHAB_FILE_NAME_PAT.match(attachment["file_name"])
-            if match:
-                revisions.append(
-                    {
-                        "id": f"D{match.group(1)}",
-                        "url": LANDO_REVISION_URL.format(match.group(1)),
-                    }
-                )
-
-        return revisions
+        return [
+            {"id": f"D{rev_id}", "url": LANDO_REVISION_URL.format(rev_id)}
+            for rev_id in utils.get_phab_revision_ids(bug)
+        ]
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
