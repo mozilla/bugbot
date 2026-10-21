@@ -1,4 +1,6 @@
-The patch landed in nightly and {{ extra[bugid]["channels"][0] }} is affected{% if extra[bugid]["channels"] | length > 1 %}, along with ESR{% endif %}.
+The patch landed in nightly and {{ extra[bugid]["channels"][0] }} is affected{% if extra[bugid]["channels"] | length > 1 %}, along with ESR{% endif %}.{% if extra[bugid]["beta_change"] %}
+
+Beta is {{ extra[bugid]["beta_change"]["status"] }}. {{ extra[bugid]["beta_change"]["reason"] }}{% endif %}
 
 :{{ nickname }}, {{ extra["question"] }} {{ extra[bugid]["channels"] | join(" and ") }}:
 {% if "beta" in extra[bugid]["channels"] -%}
