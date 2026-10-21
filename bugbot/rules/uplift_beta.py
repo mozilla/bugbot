@@ -26,6 +26,10 @@ AFFECTED_STATUSES = ["affected", "fix-optional"]
 # Uplifts are requested from the Lando page of the revision.
 LANDO_REVISION_URL = "https://lando.moz.tools/D{}/"
 
+# Bugs with this severity aren't worth a beta uplift question: their beta
+# status flag is set to `fix-optional` instead of needinfoing the assignee.
+LOW_SEVERITY = "S4"
+
 
 class UpliftBeta(BzCleaner):
     def __init__(self):
@@ -99,8 +103,52 @@ class UpliftBeta(BzCleaner):
             for rev_id in utils.get_phab_revision_ids(bug)
         ]
 
+    def is_security_bug(self, bug):
+        return any("sec" in group for group in bug["groups"]) or any(
+            keyword.startswith("sec-") for keyword in bug.get("keywords", [])
+        )
+
+    def get_low_severity_status(self, bug):
+        """Get the beta status to set for a low severity bug.
+
+        None means that the bug should get the beta uplift question instead.
+        Security bugs always get the question: setting their status needs more
+        context than their severity.
+        """
+        if self.is_security_bug(bug):
+            return None
+
+        return "fix-optional" if bug.get("severity") == LOW_SEVERITY else None
+
+    def get_low_severity_reason(self, bug, new_status):
+        """Get the explanation for setting the beta status of a low severity bug."""
+        return (
+            f"Since this is an {LOW_SEVERITY} bug, setting `{self.status_beta}` "
+            f"to `{new_status}`: an uplift will be considered if requested, but "
+            "it isn't required."
+        )
+
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
+
+        channels = self.get_channels_to_uplift(bug)
+
+        # Low severity bugs get a beta status change instead of the beta
+        # question. The ESR question is still asked. As beta is only in the
+        # channels when nobody asked for a beta uplift, a pending request is
+        # never overridden. The change is only applied in get_bugs(), once the
+        # bugs with open regressions have been filtered out.
+        beta_change = None
+        new_status = self.get_low_severity_status(bug)
+        if new_status and "beta" in channels:
+            channels.remove("beta")
+            status = bug[self.status_beta]
+            if status != new_status:
+                beta_change = {
+                    "status": status,
+                    "new_status": new_status,
+                    "reason": self.get_low_severity_reason(bug, new_status),
+                }
 
         assignee = bug.get("assigned_to", "")
         if utils.is_no_assignee(assignee):
@@ -110,10 +158,9 @@ class UpliftBeta(BzCleaner):
             nickname = bug["assigned_to_detail"]["nick"]
 
         if self.is_needinfo_on_assignee(bug.get("flags", []), assignee):
-            return None
+            channels = []
 
-        channels = self.get_channels_to_uplift(bug)
-        if not channels:
+        if not channels and not beta_change:
             return None
 
         data[bugid] = {
@@ -124,6 +171,7 @@ class UpliftBeta(BzCleaner):
             "regressions": bug["regressions"],
             "channels": channels,
             "revisions": self.get_revisions(bug),
+            "beta_change": beta_change,
         }
 
         return bug
@@ -175,6 +223,8 @@ class UpliftBeta(BzCleaner):
             "cf_last_resolved",
             "assigned_to",
             "flags",
+            "severity",
+            "keywords",
             self.status_beta,
             self.status_esr,
         ]
@@ -223,16 +273,39 @@ class UpliftBeta(BzCleaner):
         bugs = super(UpliftBeta, self).get_bugs(date=date, bug_ids=bug_ids)
         bugs = self.filter_by_regr(bugs)
 
-        for bugid, data in bugs.items():
+        for bugid, data in list(bugs.items()):
+            beta_change = data["beta_change"]
+            if beta_change:
+                self.autofix_changes[bugid] = {
+                    self.status_beta: beta_change["new_status"],
+                    "comment": {
+                        "body": (
+                            "The patch landed in nightly and beta is "
+                            f"{beta_change['status']}. {beta_change['reason']}"
+                            f"\n\n{self.get_documentation()}"
+                        )
+                    },
+                }
+
+            # Bugs only getting a beta status change have no question to ask.
+            if not data["channels"]:
+                del bugs[bugid]
+                continue
+
             if data["mail"] and data["nickname"]:
                 self.extra_ni[bugid] = {
                     "regression": len(data["regressions"]),
                     "channels": data["channels"],
                     "revisions": data["revisions"],
+                    "beta_change": data["beta_change"],
                 }
-                self.add_auto_ni(
+                added = self.add_auto_ni(
                     bugid, {"mail": data["mail"], "nickname": data["nickname"]}
                 )
+                # The needinfo comment explains the beta status change, and a
+                # bug can only get one comment.
+                if added and data["beta_change"]:
+                    del self.autofix_changes[bugid]["comment"]
 
         return bugs
 
