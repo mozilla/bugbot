@@ -26,11 +26,17 @@ AFFECTED_STATUSES = ["affected", "fix-optional"]
 # Uplifts are requested from the Lando page of the revision.
 LANDO_REVISION_URL = "https://lando.moz.tools/D{}/"
 
-# Bugs with this severity aren't worth a beta uplift question: their beta
-# status flag is set to `fix-optional` instead of needinfoing the assignee, and
-# then to `wontfix` once the release is too close for an uplift to happen, if
-# `days_to_release_wontfix` is configured.
-LOW_SEVERITY = "S4"
+# For low severity bugs, the uplift question isn't worth asking when the
+# release is close: their beta status flag is set to `fix-optional` instead of
+# needinfoing the assignee, and possibly to `wontfix` once the release is too
+# close for an uplift to happen. The values are the number of days to the
+# release from which each status is set, `None` meaning at any time; a status
+# without an entry is never set. Severities without an entry, like S3 for now,
+# always get the question, e.g. `"S3": {"fix-optional": 7, "wontfix": 3}` would
+# enable it.
+DEFAULT_LOW_SEVERITY_DAYS_TO_RELEASE = {
+    "S4": {"fix-optional": 2},
+}
 
 
 class UpliftBeta(BzCleaner):
@@ -51,6 +57,10 @@ class UpliftBeta(BzCleaner):
         self.esr = self.versions["esr"]
         self.status_esr = utils.get_flag(self.esr, "status", "esr")
         self.approval_esr = utils.get_flag(self.esr, "approval", "esr")
+
+        self.low_severity_days_to_release = self.get_config(
+            "low_severity_days_to_release", DEFAULT_LOW_SEVERITY_DAYS_TO_RELEASE
+        )
 
         # Bugs will be added to `extra_ni` later after being fetched
         self.extra_ni = {
@@ -120,25 +130,34 @@ class UpliftBeta(BzCleaner):
         if self.is_security_bug(bug):
             return None
 
-        if bug.get("severity") != LOW_SEVERITY:
+        days = self.low_severity_days_to_release.get(bug.get("severity"))
+        if days is None:
             return None
 
-        return "wontfix" if self.close_to_release else "fix-optional"
+        for status in ("wontfix", "fix-optional"):
+            if status in days and (
+                days[status] is None or self.days_to_release <= days[status]
+            ):
+                return status
+
+        return None
 
     def get_low_severity_reason(self, bug, new_status):
         """Get the explanation for setting the beta status of a low severity bug."""
+        severity = bug["severity"]
+        days = self.low_severity_days_to_release[severity]
+        reason = f"Since this is an {severity} bug"
+        if days[new_status] is not None:
+            reason += f" and the release is {self.days_to_release} days away"
+        reason += f", setting `{self.status_beta}` to `{new_status}`: "
         if new_status == "wontfix":
-            return (
-                f"Since this is an {LOW_SEVERITY} bug and the release is "
-                f"{self.days_to_release} days away, setting `{self.status_beta}` "
-                "to `wontfix`: the fix will ship with the next release."
+            reason += "the fix will ship with the next release."
+        else:
+            reason += (
+                "an uplift will be considered if requested, but it isn't required."
             )
 
-        return (
-            f"Since this is an {LOW_SEVERITY} bug, setting `{self.status_beta}` "
-            f"to `{new_status}`: an uplift will be considered if requested, but "
-            "it isn't required."
-        )
+        return reason
 
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
@@ -226,10 +245,6 @@ class UpliftBeta(BzCleaner):
     def get_bz_params(self, date):
         self.date = lmdutils.get_date_ymd(date)
         self.days_to_release = (utils.get_next_release_date() - self.date).days
-        wontfix_days = self.get_config("days_to_release_wontfix")
-        self.close_to_release = (
-            wontfix_days is not None and self.days_to_release <= wontfix_days
-        )
         fields = [
             "regressions",
             "attachments.creation_time",
