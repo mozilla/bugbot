@@ -23,6 +23,10 @@ LEGACY_COMMENT_MARKER = ", is this bug important enough to require an uplift?"
 # so it deserves the same question as `affected`.
 AFFECTED_STATUSES = ["affected", "fix-optional"]
 
+# Bugs with this severity aren't worth a beta uplift question: their beta
+# status flag is set to `fix-optional` instead of needinfoing the assignee.
+LOW_SEVERITY = "S4"
+
 
 class UpliftBeta(BzCleaner):
     def __init__(self):
@@ -89,8 +93,52 @@ class UpliftBeta(BzCleaner):
 
         return channels
 
+    def get_low_severity_status(self, severity):
+        """Get the beta status to set for a bug with the given severity.
+
+        None means that the bug should get the beta uplift question instead.
+        """
+        return "fix-optional" if severity == LOW_SEVERITY else None
+
+    def get_low_severity_reason(self, bug, new_status):
+        """Get the explanation for setting the beta status of a low severity bug."""
+        return (
+            f"Since this is an {LOW_SEVERITY} bug, setting `{self.status_beta}` "
+            f"to `{new_status}`: an uplift will be considered if requested, but "
+            "it isn't required."
+        )
+
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
+
+        channels = self.get_channels_to_uplift(bug)
+
+        # Low severity bugs get a beta status change instead of the beta
+        # question. The ESR question is still asked. As beta is only in the
+        # channels when nobody asked for a beta uplift, a pending request is
+        # never overridden.
+        beta_change = None
+        new_status = self.get_low_severity_status(bug.get("severity"))
+        if new_status and "beta" in channels:
+            channels.remove("beta")
+            status = bug[self.status_beta]
+            if status != new_status:
+                beta_change = {
+                    "status": status,
+                    "reason": self.get_low_severity_reason(bug, new_status),
+                }
+                self.autofix_changes[bugid] = {
+                    self.status_beta: new_status,
+                    "comment": {
+                        "body": (
+                            f"The patch landed in nightly and beta is {status}. "
+                            f"{beta_change['reason']}\n\n{self.get_documentation()}"
+                        )
+                    },
+                }
+
+        if not channels:
+            return None
 
         assignee = bug.get("assigned_to", "")
         if utils.is_no_assignee(assignee):
@@ -102,10 +150,6 @@ class UpliftBeta(BzCleaner):
         if self.is_needinfo_on_assignee(bug.get("flags", []), assignee):
             return None
 
-        channels = self.get_channels_to_uplift(bug)
-        if not channels:
-            return None
-
         data[bugid] = {
             "id": bugid,
             "mail": assignee,
@@ -113,6 +157,7 @@ class UpliftBeta(BzCleaner):
             "summary": self.get_summary(bug),
             "regressions": bug["regressions"],
             "channels": channels,
+            "beta_change": beta_change,
         }
 
         return bug
@@ -163,6 +208,7 @@ class UpliftBeta(BzCleaner):
             "cf_last_resolved",
             "assigned_to",
             "flags",
+            "severity",
             self.status_beta,
             self.status_esr,
         ]
@@ -216,10 +262,15 @@ class UpliftBeta(BzCleaner):
                 self.extra_ni[bugid] = {
                     "regression": len(data["regressions"]),
                     "channels": data["channels"],
+                    "beta_change": data["beta_change"],
                 }
-                self.add_auto_ni(
+                added = self.add_auto_ni(
                     bugid, {"mail": data["mail"], "nickname": data["nickname"]}
                 )
+                # The needinfo comment explains the beta status change, and a
+                # bug can only get one comment.
+                if added and data["beta_change"]:
+                    del self.autofix_changes[bugid]["comment"]
 
         return bugs
 
