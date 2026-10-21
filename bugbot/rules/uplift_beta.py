@@ -24,7 +24,8 @@ LEGACY_COMMENT_MARKER = ", is this bug important enough to require an uplift?"
 AFFECTED_STATUSES = ["affected", "fix-optional"]
 
 # Bugs with this severity aren't worth a beta uplift question: their beta
-# status flag is set to `fix-optional` instead of needinfoing the assignee.
+# status flag is set to `fix-optional` instead of needinfoing the assignee, and
+# then to `wontfix` once the release is too close for an uplift to happen.
 LOW_SEVERITY = "S4"
 
 
@@ -98,10 +99,20 @@ class UpliftBeta(BzCleaner):
 
         None means that the bug should get the beta uplift question instead.
         """
-        return "fix-optional" if severity == LOW_SEVERITY else None
+        if severity != LOW_SEVERITY:
+            return None
+
+        return "wontfix" if self.close_to_release else "fix-optional"
 
     def get_low_severity_reason(self, bug, new_status):
         """Get the explanation for setting the beta status of a low severity bug."""
+        if new_status == "wontfix":
+            return (
+                f"Since this is an {LOW_SEVERITY} bug and the release is "
+                f"{self.days_to_release} days away, setting `{self.status_beta}` "
+                "to `wontfix`: the fix will ship with the next release."
+            )
+
         return (
             f"Since this is an {LOW_SEVERITY} bug, setting `{self.status_beta}` "
             f"to `{new_status}`: an uplift will be considered if requested, but "
@@ -199,6 +210,10 @@ class UpliftBeta(BzCleaner):
 
     def get_bz_params(self, date):
         self.date = lmdutils.get_date_ymd(date)
+        self.days_to_release = (utils.get_next_release_date() - self.date).days
+        self.close_to_release = self.days_to_release <= self.get_config(
+            "days_to_release_wontfix", 2
+        )
         fields = [
             "regressions",
             "attachments.creation_time",
