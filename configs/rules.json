@@ -468,7 +468,11 @@
   },
   "uplift_beta": {
     "additional_receivers": ["jcristau@mozilla.com"],
-    "days_to_release_wontfix": 2
+    "low_severity_days_to_release": {
+      "S4": {
+        "wontfix": 2
+      }
+    }
   },
   "regression_set_status_flags": {
     "days_lookup": 21,
