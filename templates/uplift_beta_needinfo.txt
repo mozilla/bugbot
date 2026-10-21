@@ -7,6 +7,9 @@ The patch landed in nightly and {{ extra[bugid]["channels"][0] }} is affected{% 
 {% if "ESR" in extra[bugid]["channels"] -%}
 - For **ESR**, nominate the patch for the appropriate ESR uplift approval if the fix should be included in ESR, or set the ESR status flag(s) to `wontfix` if an uplift isn't needed. Each affected ESR release needs a decision.
 {% endif -%}
+{% if extra[bugid]["revisions"] %}
+Uplift requests can be submitted from Lando: {% for revision in extra[bugid]["revisions"] %}[{{ revision["id"] }}]({{ revision["url"] }}){% if not loop.last %}, {% endif %}{% endfor %}.
+{% endif -%}
 {% if extra[bugid]["regression"] %}
 Don't forget to request an uplift for the patches in the {{ extra[bugid]["regression"] }} {{ plural('regression', extra[bugid]["regression"]) }} caused by this fix.
 {% endif %}
