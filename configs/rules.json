@@ -467,7 +467,12 @@
     "days_closed": 14
   },
   "uplift_beta": {
-    "additional_receivers": ["jcristau@mozilla.com"]
+    "additional_receivers": ["jcristau@mozilla.com"],
+    "low_severity_days_to_release": {
+      "S4": {
+        "wontfix": 2
+      }
+    }
   },
   "regression_set_status_flags": {
     "days_lookup": 21,

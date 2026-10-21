@@ -23,6 +23,17 @@ LEGACY_COMMENT_MARKER = ", is this bug important enough to require an uplift?"
 # so it deserves the same question as `affected`.
 AFFECTED_STATUSES = ["affected", "fix-optional"]
 
+# For low severity bugs, the uplift question isn't worth asking when the
+# release is close: their beta status flag is set to `fix-optional` instead of
+# needinfoing the assignee, and then to `wontfix` once the release is too close
+# for an uplift to happen. The values are the number of days to the release
+# from which each status is set; without a `fix-optional` entry, it is set at
+# any time. Severities without an entry, like S3 for now, always get the
+# question, e.g. `"S3": {"fix-optional": 7, "wontfix": 3}` would enable it.
+DEFAULT_LOW_SEVERITY_DAYS_TO_RELEASE = {
+    "S4": {"wontfix": 2},
+}
+
 
 class UpliftBeta(BzCleaner):
     def __init__(self):
@@ -42,6 +53,10 @@ class UpliftBeta(BzCleaner):
         self.esr = self.versions["esr"]
         self.status_esr = utils.get_flag(self.esr, "status", "esr")
         self.approval_esr = utils.get_flag(self.esr, "approval", "esr")
+
+        self.low_severity_days_to_release = self.get_config(
+            "low_severity_days_to_release", DEFAULT_LOW_SEVERITY_DAYS_TO_RELEASE
+        )
 
         # Bugs will be added to `extra_ni` later after being fetched
         self.extra_ni = {
@@ -89,8 +104,70 @@ class UpliftBeta(BzCleaner):
 
         return channels
 
+    def get_low_severity_status(self, severity):
+        """Get the beta status to set for a bug with the given severity.
+
+        None means that the bug should get the beta uplift question instead.
+        """
+        days = self.low_severity_days_to_release.get(severity)
+        if days is None:
+            return None
+
+        if self.days_to_release <= days["wontfix"]:
+            return "wontfix"
+        if self.days_to_release <= days.get("fix-optional", float("inf")):
+            return "fix-optional"
+
+        return None
+
+    def get_low_severity_reason(self, bug, new_status):
+        """Get the explanation for setting the beta status of a low severity bug."""
+        severity = bug["severity"]
+        days = self.low_severity_days_to_release[severity]
+        reason = f"Since this is an {severity} bug"
+        if new_status in days:
+            reason += f" and the release is {self.days_to_release} days away"
+        reason += f", setting `{self.status_beta}` to `{new_status}`: "
+        if new_status == "wontfix":
+            reason += "the fix will ship with the next release."
+        else:
+            reason += (
+                "an uplift will be considered if requested, but it isn't required."
+            )
+
+        return reason
+
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
+
+        channels = self.get_channels_to_uplift(bug)
+
+        # Low severity bugs get a beta status change instead of the beta
+        # question. The ESR question is still asked. As beta is only in the
+        # channels when nobody asked for a beta uplift, a pending request is
+        # never overridden.
+        beta_change = None
+        new_status = self.get_low_severity_status(bug.get("severity"))
+        if new_status and "beta" in channels:
+            channels.remove("beta")
+            status = bug[self.status_beta]
+            if status != new_status:
+                beta_change = {
+                    "status": status,
+                    "reason": self.get_low_severity_reason(bug, new_status),
+                }
+                self.autofix_changes[bugid] = {
+                    self.status_beta: new_status,
+                    "comment": {
+                        "body": (
+                            f"The patch landed in nightly and beta is {status}. "
+                            f"{beta_change['reason']}\n\n{self.get_documentation()}"
+                        )
+                    },
+                }
+
+        if not channels:
+            return None
 
         assignee = bug.get("assigned_to", "")
         if utils.is_no_assignee(assignee):
@@ -102,10 +179,6 @@ class UpliftBeta(BzCleaner):
         if self.is_needinfo_on_assignee(bug.get("flags", []), assignee):
             return None
 
-        channels = self.get_channels_to_uplift(bug)
-        if not channels:
-            return None
-
         data[bugid] = {
             "id": bugid,
             "mail": assignee,
@@ -113,6 +186,7 @@ class UpliftBeta(BzCleaner):
             "summary": self.get_summary(bug),
             "regressions": bug["regressions"],
             "channels": channels,
+            "beta_change": beta_change,
         }
 
         return bug
@@ -154,6 +228,7 @@ class UpliftBeta(BzCleaner):
 
     def get_bz_params(self, date):
         self.date = lmdutils.get_date_ymd(date)
+        self.days_to_release = (utils.get_next_release_date() - self.date).days
         fields = [
             "regressions",
             "attachments.creation_time",
@@ -163,6 +238,7 @@ class UpliftBeta(BzCleaner):
             "cf_last_resolved",
             "assigned_to",
             "flags",
+            "severity",
             self.status_beta,
             self.status_esr,
         ]
@@ -216,10 +292,15 @@ class UpliftBeta(BzCleaner):
                 self.extra_ni[bugid] = {
                     "regression": len(data["regressions"]),
                     "channels": data["channels"],
+                    "beta_change": data["beta_change"],
                 }
-                self.add_auto_ni(
+                added = self.add_auto_ni(
                     bugid, {"mail": data["mail"], "nickname": data["nickname"]}
                 )
+                # The needinfo comment explains the beta status change, and a
+                # bug can only get one comment.
+                if added and data["beta_change"]:
+                    del self.autofix_changes[bugid]["comment"]
 
         return bugs
 
