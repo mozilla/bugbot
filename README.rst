@@ -67,6 +67,8 @@ The ``hackbot_api_key`` is only needed by rules that start a `hackbot <https://g
 
 The ``slack_bot_token`` is only needed by rules that post a message to Slack (currently ``reo_regression_slack`` and ``reo_regression_slack_daily``). It is a Slack app's Bot User OAuth Token and needs the ``chat:write``, ``chat:write.customize`` and ``chat:write.public`` scopes.
 
+To try out a Slack message without posting to the real channels, add ``"slack_channel_override": "<channel ID>"`` to ``configs/config.json``. Every message then goes to that channel instead. The ID is the last section of a channel's 'copy link' URL. Remove the key, or leave it empty, to post to the rules' own channels again.
+
 Do a dryrun::
 
    uv run -m bugbot.rules.stalled
