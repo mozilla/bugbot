@@ -47,6 +47,7 @@ COL_PAT = re.compile(":[^:]*")
 BACKOUT_PAT = re.compile("^back(s|(ed))?[ \t]*out", re.I)
 BUG_PAT = re.compile(r"^bug[s]?[ \t]*([0-9]+)", re.I)
 WHITEBOARD_ACCESS_PAT = re.compile(r"\[access\-s\d\]")
+PHAB_FILE_NAME_PAT = re.compile(r"^phabricator-D([0-9]+)-url\.txt$")
 
 MAX_URL_LENGTH = 512
 
@@ -297,6 +298,29 @@ def get_needinfo(bug, days=-1):
             date = dateutil.parser.parse(date)
             if (now - date).days >= days:
                 yield flag
+
+
+def get_phab_revision_ids(bug) -> list[int]:
+    """Get the ids of the Phabricator revisions of the non-obsolete patches.
+
+    The bug must include the `content_type`, `file_name` and `is_obsolete`
+    fields of its attachments.
+    """
+    revision_ids = []
+    for attachment in bug["attachments"]:
+        if (
+            attachment["is_obsolete"]
+            or attachment["content_type"] != "text/x-phabricator-request"
+        ):
+            continue
+        # To avoid loading the attachment content (which can be very large),
+        # we extract the revision id from the file name, which is in the
+        # format of "phabricator-D{revision_id}-url.txt".
+        match = PHAB_FILE_NAME_PAT.match(attachment["file_name"])
+        if match:
+            revision_ids.append(int(match.group(1)))
+
+    return revision_ids
 
 
 def get_last_field_num(params):

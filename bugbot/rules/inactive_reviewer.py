@@ -17,7 +17,6 @@ from bugbot.bzcleaner import BzCleaner
 from bugbot.history import History
 from bugbot.user_activity import PHAB_CHUNK_SIZE, UserActivity, UserStatus
 
-PHAB_FILE_NAME_PAT = re.compile(r"phabricator-D([0-9]+)-url\.txt")
 PHAB_TABLE_PAT = re.compile(r"^\|\ \[D([0-9]+)\]\(h", flags=re.M)
 
 
@@ -242,18 +241,7 @@ class InactiveReviewer(BzCleaner):
         )["data"]
 
     def handle_bug(self, bug, data):
-        rev_ids = [
-            # To avoid loading the attachment content (which can be very large),
-            # we extract the revision id from the file name, which is in the
-            # format of "phabricator-D{revision_id}-url.txt".
-            # len("phabricator-D") == 13
-            # len("-url.txt") == 8
-            int(attachment["file_name"][13:-8])
-            for attachment in bug["attachments"]
-            if attachment["content_type"] == "text/x-phabricator-request"
-            and PHAB_FILE_NAME_PAT.match(attachment["file_name"])
-            and not attachment["is_obsolete"]
-        ]
+        rev_ids = utils.get_phab_revision_ids(bug)
 
         if not rev_ids:
             return

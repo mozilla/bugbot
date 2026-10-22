@@ -23,6 +23,9 @@ LEGACY_COMMENT_MARKER = ", is this bug important enough to require an uplift?"
 # so it deserves the same question as `affected`.
 AFFECTED_STATUSES = ["affected", "fix-optional"]
 
+# Uplifts are requested from the Lando page of the revision.
+LANDO_REVISION_URL = "https://lando.moz.tools/D{}/"
+
 
 class UpliftBeta(BzCleaner):
     def __init__(self):
@@ -89,6 +92,13 @@ class UpliftBeta(BzCleaner):
 
         return channels
 
+    def get_revisions(self, bug):
+        """Get the Phabricator revisions of the non-obsolete patches."""
+        return [
+            {"id": f"D{rev_id}", "url": LANDO_REVISION_URL.format(rev_id)}
+            for rev_id in utils.get_phab_revision_ids(bug)
+        ]
+
     def handle_bug(self, bug, data):
         bugid = str(bug["id"])
 
@@ -113,6 +123,7 @@ class UpliftBeta(BzCleaner):
             "summary": self.get_summary(bug),
             "regressions": bug["regressions"],
             "channels": channels,
+            "revisions": self.get_revisions(bug),
         }
 
         return bug
@@ -159,6 +170,7 @@ class UpliftBeta(BzCleaner):
             "attachments.creation_time",
             "attachments.is_obsolete",
             "attachments.content_type",
+            "attachments.file_name",
             "attachments.flags",
             "cf_last_resolved",
             "assigned_to",
@@ -216,6 +228,7 @@ class UpliftBeta(BzCleaner):
                 self.extra_ni[bugid] = {
                     "regression": len(data["regressions"]),
                     "channels": data["channels"],
+                    "revisions": data["revisions"],
                 }
                 self.add_auto_ni(
                     bugid, {"mail": data["mail"], "nickname": data["nickname"]}
