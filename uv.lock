@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.10, <3.13"
 resolution-markers = [
     "python_full_version >= '3.11'",
@@ -91,7 +91,7 @@ requires-dist = [
     { name = "humanize", specifier = ">=4.16.0" },
     { name = "icalendar", specifier = "==7.3.0" },
     { name = "jinja2", specifier = "==3.1.6" },
-    { name = "libmozdata", specifier = "==0.2.19" },
+    { name = "libmozdata", specifier = "==0.2.20" },
     { name = "numpy", specifier = "==2.2.6" },
     { name = "pep8", specifier = "==1.7.1" },
     { name = "pre-commit", marker = "extra == 'test'", specifier = "==4.6.2" },
@@ -711,7 +711,7 @@ wheels = [
 
 [[package]]
 name = "libmozdata"
-version = "0.2.19"
+version = "0.2.20"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "icalendar" },
@@ -724,9 +724,9 @@ dependencies = [
     { name = "urllib3" },
     { name = "whatthepatch" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e8/f2/382696aab39558a2ee28f6717f32578996041eb3f429747899c02340b48d/libmozdata-0.2.19.tar.gz", hash = "sha256:ff206553bffa5f20d05783357e4d6098d66279428fa086c8c4ca0a3193d8f56b", size = 63222, upload-time = "2026-09-11T11:04:39.311Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/69/98/23f6ee701b2a3cdc4fc88219fb61d1abc23a4183e46e8d87616b392c63bb/libmozdata-0.2.20.tar.gz", hash = "sha256:4361ef0922571b22ed08cd0617fc8f8eb38981c4e66aa724049e75d33bfc8eef", size = 63267, upload-time = "2026-10-22T15:36:47.476Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/13/af/94e2d8f3c96fd64e98a7d6268f9f5e9628c1e1a33d66c458fed6452ec2ec/libmozdata-0.2.19-py3-none-any.whl", hash = "sha256:ed037a5c73c3c8775dfb66ddb4f350e111565389914b8291b56d917e6d278746", size = 73242, upload-time = "2026-09-11T11:04:38.367Z" },
+    { url = "https://files.pythonhosted.org/packages/c6/0a/8ba978dea9c1c8890a8380ade8a2d78b10ef2fdafb6d57c36d1324bcb0ad/libmozdata-0.2.20-py3-none-any.whl", hash = "sha256:e01ba407d13a0d60b9f77c7b9eee6681b4752f8b2beaec8daab18ccf0f8380a1", size = 73303, upload-time = "2026-10-22T15:36:46.2Z" },
 ]
 
 [[package]]
