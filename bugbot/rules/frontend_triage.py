@@ -2,79 +2,49 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import requests
+
 from bugbot import logger, utils
 from bugbot.bzcleaner import BzCleaner
 from bugbot.hackbot_utils import api_url, trigger_agent_run
 
 AGENT = "frontend-triage"
 
-# The components the agent triages, as `(product, component)` pairs. Kept here rather
-# than in configs/rules.json on purpose: the agent's analysis lands on the bug
-# unattended, so widening its reach should take a code review.
+# The components the agent triages, read from bugbug, which owns the list: each entry
+# there also carries the Slack channel the run reports to. When this list was a tuple
+# here, the two copies drifted, and a pair here but not in bugbug got unattended triage
+# with nobody told. Widening the agent's reach still takes a code review, of the bugbug
+# PR, but no longer a bugbot change or release.
 #
-# Every pair here needs a channel in the agent's own `TRIAGE_SCOPE` (bugbug's
-# agents/frontend-triage/hackbot_agents/frontend_triage/config.py), and the agent has to
-# be deployed with it first. `channel_for` fails closed, which silences the Slack
-# notification but not the run: the comment and the severity change still apply, so a
-# pair added here ahead of the agent gets unattended triage with nobody told. Nothing
-# checks this -- the two lists are in separate repos and cannot see each other.
-TRIAGED_COMPONENTS = (
-    ("Firefox", "New Tab Page"),
-    ("Firefox for Android", "History"),
-    ("Toolkit", "Application Update"),
-    ("Firefox", "Installer"),
-    ("Firefox", "Site Permissions"),
-    ("Firefox", "Sharing"),
-    ("Firefox", "IP Protection"),
-    ("Firefox for Android", "Toolbar"),
-    ("Firefox for Android", "Homepage"),
-    ("Firefox", "Messaging System"),
-    ("Toolkit", "Data Sanitization"),
-    ("Firefox", "Sidebar"),
-    ("Firefox", "Settings UI"),
-    ("Core", "Machine Learning: Frontend"),
-    ("Core", "Machine Learning: Models"),
-    ("Core", "Machine Learning: General"),
-    ("Firefox", "General"),
-    ("Toolkit", "General"),
-    ("Firefox", "Untriaged"),
-    ("Firefox", "PDF Viewer"),
-    ("Toolkit", "Password Manager"),
-    ("Firefox", "about:logins"),
-    ("Firefox for Android", "Downloads"),
-    ("Firefox for Android", "Experimentation and Telemetry"),
-    ("Firefox for Android", "Logins"),
-    ("Firefox for Android", "Onboarding"),
-    ("Firefox for Android", "Privacy"),
-    ("Firefox for Android", "QR"),
-    ("Firefox for Android", "Settings"),
-    ("Firefox for Android", "Tabs"),
-    ("Firefox for Android", "Translations"),
-    ("Firefox Build System", "Android Studio and Gradle Integration"),
-    ("DevTools", "about:debugging"),
-    ("DevTools", "Application Panel"),
-    ("DevTools", "Console"),
-    ("DevTools", "Debugger"),
-    ("DevTools", "Documentation"),
-    ("DevTools", "DOM"),
-    ("DevTools", "Framework"),
-    ("DevTools", "General"),
-    ("DevTools", "Inspector"),
-    ("DevTools", "Inspector: Animations"),
-    ("DevTools", "Inspector: Changes"),
-    ("DevTools", "Inspector: Compatibility"),
-    ("DevTools", "Inspector: Layout"),
-    ("DevTools", "Inspector: Rules"),
-    ("DevTools", "JSON Viewer"),
-    ("DevTools", "Memory"),
-    ("DevTools", "Netmonitor"),
-    ("DevTools", "Object Inspector"),
-    ("DevTools", "Responsive Design Mode"),
-    ("DevTools", "Shared Components"),
-    ("DevTools", "Source Editor"),
-    ("DevTools", "Storage Inspector"),
-    ("DevTools", "Style Editor"),
+# Read from `master`, so a new entry is live here as soon as it merges, while the agent
+# only learns its channel on the next hackbot deploy. Runs in that window apply but post
+# nothing to Slack.
+SCOPE_URL = (
+    "https://raw.githubusercontent.com/mozilla/bugbug/refs/heads/master/"
+    "agents/frontend-triage/scope.json"
 )
+
+
+def triaged_components() -> list[tuple[str, str]]:
+    """The `(product, component)` pairs bugbug's `scope.json` lists.
+
+    Raises rather than falling back to an empty or cached list, so a fetch that fails
+    aborts the rule and lands in the cron error digest instead of quietly triaging
+    nothing.
+    """
+    resp = requests.get(SCOPE_URL, timeout=20)
+    resp.raise_for_status()
+    pairs = [
+        (entry["product"], entry["component"]) for entry in resp.json()["components"]
+    ]
+    if not pairs:
+        raise ValueError(f"{SCOPE_URL} lists no components")
+    # `get_bz_params` joins each product's components into one comma-separated
+    # `anyexact` value, so a comma in a name would split it into two.
+    if any("," in component for _, component in pairs):
+        raise ValueError(f"{SCOPE_URL} has a component name with a comma")
+    return pairs
+
 
 # Every hackbot agent comments as this account, so a bug `bug-fix` has worked is
 # skipped too. Safe direction: the cost is a bug we skip, not a second unattended
@@ -86,20 +56,14 @@ HACKBOT_EMAIL = "hackbot@mozilla.tld"
 # bug out in the same `cron_run_hourly.sh` pass that starts the run, while a bug moved
 # *back* is one it will never touch again. `changedto` separates the two: Bugzilla
 # writes no activity row for the component a bug was filed with.
+# A pair here that leaves bugbug's scope is simply not queried.
 MOVED_BACK_COMPONENTS = frozenset({("Firefox", "Untriaged")})
-
-# `get_bz_params` joins each product's components into one comma-separated
-# `anyexact` value, so a comma in a name would split it into two.
-assert not any("," in component for _, component in TRIAGED_COMPONENTS)
-
-# A pair here and not in `TRIAGED_COMPONENTS` would be queried by nothing.
-assert MOVED_BACK_COMPONENTS <= set(TRIAGED_COMPONENTS)
 
 
 class FrontendTriage(BzCleaner):
     """Ask hackbot's frontend-triage agent to triage newly filed frontend bugs.
 
-    Scoped to the components in `TRIAGED_COMPONENTS`, on the day the bug was filed
+    Scoped to the components in bugbug's `scope.json`, on the day the bug was filed
     into one of them, and to nothing else about the reporter; the exception is
     `MOVED_BACK_COMPONENTS`, queried on when the component last changed instead.
     `handle_bug` drops bots.
@@ -125,7 +89,7 @@ class FrontendTriage(BzCleaner):
         return False
 
     def has_product_component(self):
-        # `TRIAGED_COMPONENTS` spans three products, so "which component is this
+        # The scope spans several products, so "which component is this
         # row about" is no longer obvious from the summary alone. Returning True
         # gets both fields into `include_fields` and into every row for free
         # (bzcleaner's `amend_bzparams` and `bughandler`), so unlike `creator`
@@ -153,7 +117,7 @@ class FrontendTriage(BzCleaner):
         # query for the pairs that want `creation_ts`, since a top-level AND
         # distributes over the OR, and what lets `MOVED_BACK_COMPONENTS` differ.
         groups: dict[tuple[str, str | None], list[str]] = {}
-        for product, component in TRIAGED_COMPONENTS:
+        for product, component in triaged_components():
             # A moved-back pair gets a group of its own, since its date clauses differ.
             if (product, component) in MOVED_BACK_COMPONENTS:
                 key = (product, component)
