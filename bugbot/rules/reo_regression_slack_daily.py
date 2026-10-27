@@ -102,6 +102,9 @@ STUCK_HOURS = 24
 # lines appear. Nightly is where fixes land, so it needs no line.
 UPLIFT_CHANNELS = ("beta", "release")
 
+# An ESR bugbot has no version for, still taking sec-high uplifts.
+LEGACY_ESR = 115
+
 # Also the message's fallback text, which is what notification previews show.
 HEADING = "Action needed: REO release regressions"
 
@@ -216,6 +219,37 @@ def burndown_query(version: int, uplift_flag: str) -> dict:
         "o11": "substring",
         "v11": uplift_flag,
         "n11": "1",
+        **without_excluded_products(),
+    }
+
+
+def sec_high_query(nightly: int, status_flag: str, uplift_flag: str) -> dict:
+    """Build the query for the sec-high fixes still to be uplifted to one branch.
+
+    Bugs with all of the following:
+    - sec-critical or sec-high keywords
+    - status-firefox{nightly} is fixed or verified
+    - the branch's status flag is affected
+    Bugs with any of the following are ignored:
+    - within one of EXCLUDED_PRODUCTS
+    - an uplift request against the branch, in any state, matched as in
+      `burndown_query`
+    """
+    return {
+        "classification": CLASSIFICATIONS,
+        "f1": "keywords",
+        "o1": "anywordssubstr",
+        "v1": "sec-critical sec-high",
+        "f2": utils.get_flag(nightly, "status", "nightly"),
+        "o2": "anywordssubstr",
+        "v2": "fixed,verified",
+        "f3": status_flag,
+        "o3": "equals",
+        "v3": "affected",
+        "f4": "flagtypes.name",
+        "o4": "substring",
+        "v4": uplift_flag,
+        "n4": "1",
         **without_excluded_products(),
     }
 
@@ -401,7 +435,9 @@ STUCK_BUCKETS = (
 )
 
 
-def stuck_group(bugs: list[dict], label: str, anchor: str) -> str:
+def stuck_group(
+    bugs: list[dict], label: str, anchor: str, note: str | None = None
+) -> str:
     """Build the bullet and team sub-bullet for one bucket.
 
     Only the count and what it counts are linked; the restricted note and the age
@@ -411,11 +447,14 @@ def stuck_group(bugs: list[dict], label: str, anchor: str) -> str:
     if not bugs:
         return ""
 
-    age = f", {GREATER_THAN} {STUCK_HOURS} hours since {anchor}"
+    if note is None:
+        note = restricted_note(bugs)
+
+    # No anchor for a bucket that is not aged.
+    age = f", {GREATER_THAN} {STUCK_HOURS} hours since {anchor}" if anchor else ""
 
     return (
-        f"• {bug_link(bugs, label)}{restricted_note(bugs)}{age}\n"
-        f"{SUB_BULLET}{team_breakdown(bugs)}"
+        f"• {bug_link(bugs, label)}{note}{age}\n" f"{SUB_BULLET}{team_breakdown(bugs)}"
     )
 
 
@@ -432,6 +471,8 @@ class ReoRegressionSlackDaily(BzCleaner):
     # `warn_regressed_by` sets its step. An uplift flag asks for the burndown.
     version = 0
     uplift_flag = ""
+    # A status flag asks for the sec-high query, with `version` as Nightly.
+    sec_high = ""
 
     def description(self) -> str:
         return "REO release regressions needing action posted to Slack"
@@ -469,6 +510,12 @@ class ReoRegressionSlackDaily(BzCleaner):
 
     def get_bz_params(self, date: str) -> BzParams:
         """The query for the fetch in flight, burndown or open regressions."""
+        if self.sec_high:
+            return {
+                **sec_high_query(self.version, self.sec_high, self.uplift_flag),
+                "include_fields": BUG_FIELDS,
+            }
+
         if self.uplift_flag:
             return {
                 **burndown_query(self.version, self.uplift_flag),
@@ -481,7 +528,9 @@ class ReoRegressionSlackDaily(BzCleaner):
         """Keep every field, where `BzCleaner` would keep the email columns."""
         data[str(bug["id"])] = bug
 
-    def fetch_bugs(self, version: int, uplift_flag: str = "") -> list[dict]:
+    def fetch_bugs(
+        self, version: int, uplift_flag: str = "", sec_high: str = ""
+    ) -> list[dict]:
         """Run one of this rule's queries through `BzCleaner`'s search path.
 
         One query per version plus one per burndown line, run one after the
@@ -490,6 +539,7 @@ class ReoRegressionSlackDaily(BzCleaner):
         """
         self.version = version
         self.uplift_flag = uplift_flag
+        self.sec_high = sec_high
 
         return list(self.get_bugs().values())
 
@@ -528,6 +578,34 @@ class ReoRegressionSlackDaily(BzCleaner):
         label = f"{{}} Fx{version} {channel.title()} fixed with no uplift request"
 
         return stuck_group(bugs, label, "resolved")
+
+    def sec_high_group(self, versions: dict[str, int]) -> str:
+        """Build the sec-high bullet, with how many bugs each branch is waiting on.
+
+        No restricted note: sec-high bugs are all restricted.
+        """
+        branches = {
+            "Beta": ("beta", versions["beta"]),
+            f"ESR{versions['esr']}": ("esr", versions["esr"]),
+            f"ESR{LEGACY_ESR}": ("esr", LEGACY_ESR),
+        }
+        bugs: dict[int, dict] = {}
+        counts = []
+        for name, (channel, version) in branches.items():
+            branch_bugs = self.fetch_bugs(
+                versions["nightly"],
+                utils.get_flag(version, "approval", channel),
+                utils.get_flag(version, "status", channel),
+            )
+            bugs |= {bug["id"]: bug for bug in branch_bugs}
+            if branch_bugs:
+                counts.append(bug_link(branch_bugs, f"{{}} {name}"))
+
+        note = f" ({', '.join(counts)})" if counts else ""
+
+        return stuck_group(
+            list(bugs.values()), "{} Sec-high pending uplift request", "", note
+        )
 
     def post_message(self, blocks: list[dict]) -> None:
         """Post the message to Slack, or print it on a dry or test run."""
@@ -587,6 +665,9 @@ class ReoRegressionSlackDaily(BzCleaner):
 
             if group := self.burndown_group(channel, version, cutoff):
                 groups.append(group)
+
+        if group := self.sec_high_group(versions):
+            groups.append(group)
 
         sections.extend(groups or [NOTHING_STUCK])
 
