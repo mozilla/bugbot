@@ -138,6 +138,14 @@ def test_queries_only_open_bugs_in_named_products():
     assert "product" not in params and "component" not in params
 
 
+def test_backlog_drops_the_window_and_rated_bugs():
+    rule = _rule(backlog=True)
+    impact, moved = _branches(rule.get_bz_params(DATE))
+    assert not any(isinstance(i, dict) for i in impact["items"] + moved["items"])
+    assert (False, "cf_performance_impact", "anyexact", "---,?") in moved["items"]
+    assert (False, "cf_performance_impact", "equals", "?") in impact["items"]
+
+
 # --- triggering the agent ----------------------------------------------- #
 
 

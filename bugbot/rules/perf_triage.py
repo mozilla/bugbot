@@ -34,6 +34,21 @@ class PerfTriage(BzCleaner):
         super().__init__()
         self.max_triggers = self.get_config("max_triggers", 10)
         self.left_for_next_run = 0
+        self.backlog = False
+
+    def add_custom_arguments(self, parser):
+        parser.add_argument(
+            "--backlog",
+            action="store_true",
+            help=(
+                "Ignore the lookup window: every open bug at `?`, and every unrated "
+                f"one in {' :: '.join(TRIAGED_COMPONENT)}. For clearing the backlog "
+                "when the rule is first enabled; still capped per invocation."
+            ),
+        )
+
+    def parse_custom_arguments(self, args):
+        self.backlog = args.backlog
 
     def description(self):
         return "[Using AI] Bugs sent for automatic performance triage"
@@ -65,6 +80,8 @@ class PerfTriage(BzCleaner):
             params.update({f"{k}{n}": v for k, v in clause.items()})
 
         def recently(field, value):
+            if self.backlog:
+                return
             # Bugzilla writes no activity row for the value a bug was filed with,
             # so "set recently" is either a recent change to it or a recent filing.
             # Both change clauses: `changedto` alone matches a change made years
@@ -89,6 +106,10 @@ class PerfTriage(BzCleaner):
         add(j="AND", f="OP")
         add(f="product", o="equals", v=product)
         add(f="component", o="equals", v=component)
+        if self.backlog:
+            # Already-rated bugs here get a comment-only run when they arrive, but
+            # sweeping all of them would re-triage the component's whole history.
+            add(f="cf_performance_impact", o="anyexact", v="---,?")
         recently("component", component)
         add(f="CP")
 
