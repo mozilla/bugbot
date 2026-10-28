@@ -5,19 +5,92 @@
 from urllib.parse import urlencode
 
 import pytest
+import responses
 from jinja2 import Environment, FileSystemLoader
 
 from bugbot import hackbot_utils, utils
 from bugbot.rules.frontend_triage import (
     MOVED_BACK_COMPONENTS,
-    TRIAGED_COMPONENTS,
+    SCOPE_URL,
     FrontendTriage,
+    triaged_components,
 )
 
 # Who filed a bug no longer decides anything in Python -- Bugzilla does the
 # `editbugs` filtering server-side -- so the reporter is now just a value the
 # report has to carry.
 REPORTER_MAIL = "reporter@example.org"
+
+# bugbug's scope.json as of 2026-10-27, so the query tests run on a realistic size
+# without the network.
+TRIAGED_COMPONENTS = [
+    ("Firefox", "New Tab Page"),
+    ("Firefox", "Sidebar"),
+    ("Firefox", "Site Permissions"),
+    ("Toolkit", "Data Sanitization"),
+    ("Firefox", "Settings UI"),
+    ("Firefox", "Sharing"),
+    ("Firefox", "IP Protection"),
+    ("Firefox", "Messaging System"),
+    ("Firefox for Android", "History"),
+    ("Firefox for Android", "Toolbar"),
+    ("Firefox for Android", "Homepage"),
+    ("Firefox for Android", "Downloads"),
+    ("Firefox for Android", "Tabs"),
+    ("Firefox for Android", "Translations"),
+    ("Firefox for Android", "QR"),
+    ("Firefox for Android", "Experimentation and Telemetry"),
+    ("Firefox for Android", "Logins"),
+    ("Firefox for Android", "Onboarding"),
+    ("Firefox for Android", "Privacy"),
+    ("Firefox for Android", "Settings"),
+    ("Firefox Build System", "Android Studio and Gradle Integration"),
+    ("Core", "Machine Learning: Frontend"),
+    ("Core", "Machine Learning: Models"),
+    ("Core", "Machine Learning: General"),
+    ("Toolkit", "Application Update"),
+    ("Firefox", "Installer"),
+    ("Firefox", "PDF Viewer"),
+    ("Toolkit", "Password Manager"),
+    ("Firefox", "about:logins"),
+    ("DevTools", "Inspector"),
+    ("DevTools", "Inspector: Animations"),
+    ("DevTools", "Inspector: Changes"),
+    ("DevTools", "Inspector: Compatibility"),
+    ("DevTools", "Inspector: Layout"),
+    ("DevTools", "Inspector: Rules"),
+    ("DevTools", "Console"),
+    ("DevTools", "Debugger"),
+    ("DevTools", "Object Inspector"),
+    ("DevTools", "Source Editor"),
+    ("DevTools", "Shared Components"),
+    ("DevTools", "Netmonitor"),
+    ("DevTools", "Storage Inspector"),
+    ("DevTools", "Application Panel"),
+    ("DevTools", "JSON Viewer"),
+    ("DevTools", "Memory"),
+    ("DevTools", "DOM"),
+    ("DevTools", "Responsive Design Mode"),
+    ("DevTools", "Framework"),
+    ("DevTools", "General"),
+    ("DevTools", "about:debugging"),
+    ("DevTools", "Documentation"),
+    ("DevTools", "Style Editor"),
+    ("Firefox", "Tabbed Browser"),
+    ("Firefox", "Tabbed Browser: Tab Groups"),
+    ("Firefox", "Tabbed Browser: Split View"),
+    ("Firefox", "General"),
+    ("Toolkit", "General"),
+    ("Firefox", "Untriaged"),
+]
+
+
+@pytest.fixture(autouse=True)
+def scope(monkeypatch):
+    monkeypatch.setattr(
+        "bugbot.rules.frontend_triage.triaged_components",
+        lambda: list(TRIAGED_COMPONENTS),
+    )
 
 
 def _rule(**over):
@@ -118,6 +191,43 @@ def test_queries_every_triaged_component():
     # Sorted, because the groups follow products rather than the tuple's order.
     params = _rule().get_bz_params("2026-07-28")
     assert sorted(_queried_pairs(params)) == sorted(TRIAGED_COMPONENTS)
+
+
+@responses.activate
+def test_reads_the_pairs_from_bugbugs_scope(monkeypatch):
+    monkeypatch.undo()
+    responses.get(
+        SCOPE_URL,
+        json={
+            "components": [
+                {"product": "Firefox", "component": "Sidebar", "channel": "#p10y-bots"}
+            ]
+        },
+    )
+    assert triaged_components() == [("Firefox", "Sidebar")]
+
+
+@responses.activate
+@pytest.mark.parametrize(
+    "response",
+    [
+        {"status": 404},
+        {"json": {"components": []}},
+        {
+            "json": {
+                "components": [
+                    {"product": "Firefox", "component": "A, B", "channel": "#x"}
+                ]
+            }
+        },
+    ],
+)
+def test_an_unusable_scope_fails_the_rule(monkeypatch, response):
+    # Falling back to an empty list would look like a quiet day, not a breakage.
+    monkeypatch.undo()
+    responses.get(SCOPE_URL, **response)
+    with pytest.raises(Exception):
+        triaged_components()
 
 
 def test_pairs_a_component_with_its_own_product():
