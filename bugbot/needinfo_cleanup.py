@@ -30,6 +30,11 @@ class NeedinfoCleanup(BzCleaner):
         super().__init__()
         self.date = lmdutils.get_date_ymd("today")
         self.silent_bugids: set[str] = set()
+        # Bots that act on needinfo requests, so their needinfos are never
+        # stale or unanswerable.
+        self.ni_answering_bots: set[str] = set(
+            utils.get_config("common", "ni_answering_bot_bz_mail", [])
+        )
 
     def filter_no_nag_keyword(self) -> bool:
         return False
@@ -83,6 +88,19 @@ class NeedinfoCleanup(BzCleaner):
         """Return the needinfo flags to clear and the reason to put in the comment."""
         raise NotImplementedError
 
+    def get_clearable_needinfos(
+        self, bug: Bug
+    ) -> tuple[list[dict[str, Any]], str | None]:
+        """Same as `get_needinfos_to_clear`, but never includes needinfos
+        pending on bots that answer them (e.g., hackbot), whatever the rule.
+        """
+        needinfos, reason = self.get_needinfos_to_clear(bug)
+        return [
+            flag
+            for flag in needinfos
+            if flag.get("requestee") not in self.ni_answering_bots
+        ], reason
+
     def get_bugs(
         self,
         date: str = "today",
@@ -98,7 +116,7 @@ class NeedinfoCleanup(BzCleaner):
         doc = self.get_documentation()
         for bugid in sorted(bugs, key=int):
             bug = bugs[bugid]
-            needinfos, reason = self.get_needinfos_to_clear(bug)
+            needinfos, reason = self.get_clearable_needinfos(bug)
             if not needinfos:
                 continue
             self.autofix_changes[bugid] = {
