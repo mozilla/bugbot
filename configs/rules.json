@@ -24,6 +24,7 @@
     ],
     "bugzilla_max_retries": 3,
     "bot_bz_mail": ["release-mgmt-account-bot@mozilla.tld"],
+    "ni_answering_bot_bz_mail": ["hackbot@mozilla.tld"],
     "table_attrs": "style=\"border:1px solid black;border-collapse:collapse;\" border=\"1\"",
     "days_lookup": 7,
     "bz_query_timeout": 240,
