@@ -8,8 +8,9 @@ The same bug set as the cycle summary, `reo_regression_slack`, with the three
 channels merged into one deduplicated list and only the bugs stuck long enough
 to need a nudge: high severity with nobody on them, no severity decision, or an
 unanswered needinfo. It ends with bugdash's Burndown list per version, Beta and
-Release only, cut down to the fixes nobody has asked to uplift. Each line is
-broken down by owning team.
+Release only, cut down to the fixes nobody has asked to uplift. After a line of
+totals the message has a section per director, found above each bug's triage
+owner, listing their share of every list by team.
 
 Posted every weekday, unlike the summary: these are things somebody has to do,
 so a day skipped is a day nobody was asked.
@@ -36,6 +37,7 @@ from bugbot.components import ComponentName, fetch_component_teams
 # Also matches the pre-S1 severity names, so these counts can run slightly ahead
 # of the REO tab's.
 from bugbot.constants import HIGH_SEVERITY
+from bugbot.people import People
 
 # reo slack channel
 CHANNEL = "C04C6CQQR9T"
@@ -64,22 +66,21 @@ EXCLUDED_PRODUCTS_SLOT = 12
 
 UNKNOWN_TEAM = "Unknown team"
 
+UNKNOWN_DIRECTOR = "Unknown director"
+
 # A Slack section block holds at most 3000 characters.
 SECTION_LIMIT = 3000
 
 # Above this length a snapshot URL is shortened; see `bug_link`.
 MAX_SNAPSHOT_URL = 2000
 
-# Slack renders this back as >. The bare character ends a link's label and opens
-# a blockquote at the start of a line.
-GREATER_THAN = "&gt;"
-
 # Slack has no nested lists in message text, so indent sub-bullets by hand.
 SUB_BULLET = "    ◦ "
 
 # `groups` is how a bug is known to be restricted. No `summary`: the message
 # names no bug, so restricted ones are counted and linked but never named.
-BUG_FIELDS = "id,severity,product,component,groups"
+# `triage_owner` is who a bug's director is found from.
+BUG_FIELDS = "id,severity,product,component,groups,triage_owner"
 
 # What each query adds on top: whatever its buckets age a bug from.
 FIELDS = f"{BUG_FIELDS},assigned_to,creation_time,last_change_time,flags"
@@ -99,7 +100,7 @@ UNASSIGNED_EXEMPT_COMPONENTS = ("Site Reports",)
 STUCK_HOURS = 24
 
 # The channels a fix only reaches by being uplifted, in the order the burndown
-# lines appear. Nightly is where fixes land, so it needs no line.
+# lists appear. Nightly is where fixes land, so it needs no list.
 UPLIFT_CHANNELS = ("beta", "release")
 
 # An ESR bugbot has no version for, still taking sec-high uplifts.
@@ -327,6 +328,48 @@ def team_breakdown(bugs: list[dict]) -> str:
     return ", ".join(bug_link(team_bugs, f"{{}} {team}") for team, team_bugs in ranked)
 
 
+def director_of(bug: dict) -> str:
+    """The first director above a bug's triage owner, or the owner if a director.
+
+    Walked up the org chart in the people data, so a bug's director moves with
+    the triage rotations. `seen` stops the walk should the chart loop.
+    """
+    people = People.get_instance()
+    mail = bug.get("triage_owner")
+    seen = set()
+    while mail and mail not in seen:
+        seen.add(mail)
+        person = people.get_info(mail)
+        if person is None:
+            break
+        if person["isdirector"] == "TRUE":
+            return person["cn"]
+        mail = people.get_manager_mail(mail)
+
+    return UNKNOWN_DIRECTOR
+
+
+def director_breakdown(bugs: list[dict]) -> str:
+    """A sub-bullet per director, busiest first and unknown last, then by team.
+
+    For the cycle summary, which imports it. This message has a section per
+    director instead; see `director_sections`.
+    """
+    by_director: dict[str, list[dict]] = {}
+    for bug in bugs:
+        by_director.setdefault(director_of(bug), []).append(bug)
+
+    ranked = sorted(
+        by_director.items(),
+        key=lambda item: (item[0] == UNKNOWN_DIRECTOR, -len(item[1]), item[0]),
+    )
+
+    return "\n".join(
+        f"{SUB_BULLET}{director}: {team_breakdown(director_bugs)}"
+        for director, director_bugs in ranked
+    )
+
+
 def restricted_note(bugs: list[dict]) -> str:
     """Say how many of a bug list are restricted, or nothing when none are.
 
@@ -425,37 +468,47 @@ def needs_answer(bug: dict, cutoff: datetime.datetime) -> bool:
     )
 
 
-# What makes a bug belong in a bucket, the label its count goes in, and what its
-# age is counted from. A bug can be in more than one. Each names its own anchor
-# because each is aged from a different timestamp.
+# What makes a bug belong in a bucket, and the label its count goes in. A bug
+# can be in more than one.
 STUCK_BUCKETS = (
-    (needs_assignee, "{} S2+ unassigned", "filed"),
-    (needs_severity, "{} missing severity", "last change"),
-    (needs_answer, "{} needinfo pending", "requested"),
+    (needs_assignee, "{} S2+ unassigned"),
+    (needs_severity, "{} missing severity"),
+    (needs_answer, "{} needinfo pending"),
 )
 
+# A bucket's label, its bugs, and the note its total carries.
+Bucket = tuple[str, list[dict], str]
 
-def stuck_group(
-    bugs: list[dict], label: str, anchor: str, note: str | None = None
-) -> str:
-    """Build the bullet and team sub-bullet for one bucket.
 
-    Only the count and what it counts are linked; the restricted note and the age
-    that follow are plain text. Empty buckets return an empty string and are left
-    out of the message.
+def director_sections(buckets: list[Bucket]) -> list[str]:
+    """A section per director, busiest first and unknown last.
+
+    Each lists the director's share of every bucket they have bugs in, by team.
+    A section of its own per director keeps each well within SECTION_LIMIT.
     """
-    if not bugs:
-        return ""
+    by_director: dict[str, dict[str, list[dict]]] = {}
+    for label, bugs, _ in buckets:
+        for bug in bugs:
+            lists = by_director.setdefault(director_of(bug), {})
+            lists.setdefault(label, []).append(bug)
 
-    if note is None:
-        note = restricted_note(bugs)
-
-    # No anchor for a bucket that is not aged.
-    age = f", {GREATER_THAN} {STUCK_HOURS} hours since {anchor}" if anchor else ""
-
-    return (
-        f"• {bug_link(bugs, label)}{note}{age}\n" f"{SUB_BULLET}{team_breakdown(bugs)}"
+    ranked = sorted(
+        by_director.items(),
+        key=lambda item: (
+            item[0] == UNKNOWN_DIRECTOR,
+            -sum(map(len, item[1].values())),
+            item[0],
+        ),
     )
+
+    return [
+        f"*{director}*\n"
+        + "\n".join(
+            f"{SUB_BULLET}{bug_link(bugs, label)}: {team_breakdown(bugs)}"
+            for label, bugs in lists.items()
+        )
+        for director, lists in ranked
+    ]
 
 
 class ReoRegressionSlackDaily(BzCleaner):
@@ -487,8 +540,9 @@ class ReoRegressionSlackDaily(BzCleaner):
 
     def filter_no_nag_keyword(self) -> bool:
         # [no-nag] is a request not to mail a bug's assignee. This message names
-        # teams rather than people and is read by the release managers chasing
-        # the work, so dropping those bugs would hide work still to be done.
+        # directors and teams rather than assignees and is read by the release
+        # managers chasing the work, so dropping those bugs would hide work still
+        # to be done.
         return False
 
     def get_extra_for_template(self) -> dict[str, str]:
@@ -533,7 +587,7 @@ class ReoRegressionSlackDaily(BzCleaner):
     ) -> list[dict]:
         """Run one of this rule's queries through `BzCleaner`'s search path.
 
-        One query per version plus one per burndown line, run one after the
+        One query per version plus one per burndown list, run one after the
         other. libmozdata only pages a query carrying none of count_only, limit,
         order or offset, so neither query builder may add one.
         """
@@ -560,10 +614,10 @@ class ReoRegressionSlackDaily(BzCleaner):
 
         return list(bugs.values())
 
-    def burndown_group(
+    def burndown_bucket(
         self, channel: str, version: int, cutoff: datetime.datetime
-    ) -> str:
-        """Build the burndown bullet for one channel, aged from when each bug was fixed.
+    ) -> Bucket:
+        """Build the burndown bucket for one channel, aged from when each bug was fixed.
 
         Per version rather than merged across the channels: a fix reaches Beta and
         Release by separate uplifts, so the same bug can be outstanding on one and
@@ -577,10 +631,10 @@ class ReoRegressionSlackDaily(BzCleaner):
         ]
         label = f"{{}} Fx{version} {channel.title()} fixed with no uplift request"
 
-        return stuck_group(bugs, label, "resolved")
+        return label, bugs, restricted_note(bugs)
 
-    def sec_high_group(self, versions: dict[str, int]) -> str:
-        """Build the sec-high bullet, with how many bugs each branch is waiting on.
+    def sec_high_bucket(self, versions: dict[str, int]) -> Bucket:
+        """Build the sec-high bucket, noting how many bugs each branch is waiting on.
 
         No restricted note: sec-high bugs are all restricted.
         """
@@ -603,9 +657,7 @@ class ReoRegressionSlackDaily(BzCleaner):
 
         note = f" ({', '.join(counts)})" if counts else ""
 
-        return stuck_group(
-            list(bugs.values()), "{} Sec-high pending uplift request", "", note
-        )
+        return "{} Sec-high pending uplift request", list(bugs.values()), note
 
     def post_message(self, blocks: list[dict]) -> None:
         """Post the message to Slack, or print it on a dry or test run."""
@@ -627,12 +679,10 @@ class ReoRegressionSlackDaily(BzCleaner):
         blocks = self.blocks(utils.get_versions_from_trains())
         self.post_message(blocks)
 
-        # GREATER_THAN is escaped for Slack, which the email template would
-        # escape a second time, leaving a visible `&gt;`.
-        return [block_text(block).replace(GREATER_THAN, ">") for block in blocks]
+        return [block_text(block) for block in blocks]
 
     def blocks(self, versions: dict[str, int]) -> list[dict]:
-        """Build the action required message, one section per bucket.
+        """Build the action required message: totals, then a section per director.
 
         Header blocks take plain text only, which is why the cadence is a separate
         context block.
@@ -646,15 +696,11 @@ class ReoRegressionSlackDaily(BzCleaner):
         cutoff = stuck_since()
         bugs = self.open_regressions(versions)
 
-        groups = [
-            group
-            for matches, label, anchor in STUCK_BUCKETS
-            if (
-                group := stuck_group(
-                    [bug for bug in bugs if matches(bug, cutoff)], label, anchor
-                )
-            )
-        ]
+        buckets: list[Bucket] = []
+        for matches, label in STUCK_BUCKETS:
+            stuck = [bug for bug in bugs if matches(bug, cutoff)]
+            buckets.append((label, stuck, restricted_note(stuck)))
+
         for channel in UPLIFT_CHANNELS:
             version = versions.get(channel)
             if version is None:
@@ -663,13 +709,20 @@ class ReoRegressionSlackDaily(BzCleaner):
                 logger.warning("No version for %s; skipping its burndown line", channel)
                 continue
 
-            if group := self.burndown_group(channel, version, cutoff):
-                groups.append(group)
+            buckets.append(self.burndown_bucket(channel, version, cutoff))
 
-        if group := self.sec_high_group(versions):
-            groups.append(group)
+        buckets.append(self.sec_high_bucket(versions))
 
-        sections.extend(groups or [NOTHING_STUCK])
+        # Empty buckets are left out of the message entirely.
+        buckets = [bucket for bucket in buckets if bucket[1]]
+        if buckets:
+            totals = ", ".join(
+                f"{bug_link(bugs, label)}{note}" for label, bugs, note in buckets
+            )
+            sections.append(f"Total: {totals}")
+            sections.extend(director_sections(buckets))
+        else:
+            sections.append(NOTHING_STUCK)
 
         return titles + to_blocks(sections)
 
