@@ -49,7 +49,12 @@ def _bug(**overrides):
     }
 
 
-def _cleared(monkeypatch, bug):
+def _cleared(monkeypatch, bug, versions={"release": 138, "beta": 139, "esr": 128}):
+    def init_versions(self):
+        self.versions = versions
+        return bool(versions)
+
+    monkeypatch.setattr(BzCleaner, "init_versions", init_versions)
     monkeypatch.setattr(
         BzCleaner,
         "get_bugs",
@@ -96,57 +101,120 @@ def test_comment_by_human_is_ignored(monkeypatch):
 
 def _approval(name="approval-mozilla-beta", status="?", **overrides):
     return {
-        "flags": [
-            {
-                "name": name,
-                "status": status,
-                "creation_date": "2026-08-15T00:00:00Z",
-                **overrides,
-            }
-        ]
+        "name": name,
+        "status": status,
+        "creation_date": "2026-08-15T00:00:00Z",
+        **overrides,
     }
 
 
-@pytest.mark.parametrize("name", ["approval-mozilla-beta", "approval-mozilla-esr140"])
+def _open_bug(**overrides):
+    return _bug(resolution="", cf_last_resolved=None, **overrides)
+
+
 @pytest.mark.parametrize("status", ["?", "+", "-"])
-def test_uplift_request_clears_needinfo_on_open_bug(monkeypatch, name, status):
-    bug = _bug(
-        resolution="",
-        cf_last_resolved=None,
+def test_beta_uplift_request_clears_needinfo(monkeypatch, status):
+    bug = _open_bug(
         cf_status_firefox139="affected",
-        attachments=[_approval(name, status)],
+        attachments=[{"flags": [_approval(status=status)]}],
+    )
+    assert _cleared(monkeypatch, bug) == [1]
+
+
+def test_esr_uplift_request_clears_needinfo(monkeypatch):
+    bug = _open_bug(
+        cf_status_firefox_esr128="affected",
+        attachments=[{"flags": [_approval("approval-mozilla-esr128")]}],
     )
     assert _cleared(monkeypatch, bug) == [1]
 
 
 def test_uplift_request_clears_needinfo_on_affected_closed_bug(monkeypatch):
-    bug = _bug(cf_status_firefox139="affected", attachments=[_approval()])
+    bug = _bug(
+        cf_status_firefox139="affected",
+        attachments=[{"flags": [_approval()]}],
+    )
+    assert _cleared(monkeypatch, bug) == [1]
+
+
+@pytest.mark.parametrize(
+    "approval", ["approval-mozilla-beta", "approval-mozilla-esr128"]
+)
+def test_partial_uplift_requests_keep_needinfo(monkeypatch, approval):
+    bug = _open_bug(
+        cf_status_firefox139="affected",
+        cf_status_firefox_esr128="affected",
+        attachments=[{"flags": [_approval(approval)]}],
+    )
+    assert _cleared(monkeypatch, bug) == []
+
+
+def test_each_affected_esr_needs_an_uplift_request(monkeypatch):
+    bug = _open_bug(
+        cf_status_firefox_esr115="affected",
+        cf_status_firefox_esr128="affected",
+        attachments=[{"flags": [_approval("approval-mozilla-esr128")]}],
+    )
+    assert _cleared(monkeypatch, bug) == []
+
+    bug["attachments"].append({"flags": [_approval("approval-mozilla-esr115")]})
+    assert _cleared(monkeypatch, bug) == [1]
+
+
+def test_uplift_requests_spread_over_attachments(monkeypatch):
+    bug = _open_bug(
+        cf_status_firefox139="affected",
+        cf_status_firefox_esr128="affected",
+        attachments=[
+            {"flags": [_approval()]},
+            {"flags": [_approval("approval-mozilla-esr128")]},
+        ],
+    )
+    assert _cleared(monkeypatch, bug) == [1]
+
+
+def test_wontfix_channel_needs_no_uplift_request(monkeypatch):
+    bug = _open_bug(
+        cf_status_firefox139="wontfix",
+        cf_status_firefox_esr128="affected",
+        attachments=[{"flags": [_approval("approval-mozilla-esr128")]}],
+    )
+    assert _cleared(monkeypatch, bug) == [1]
+
+
+def test_older_release_status_needs_no_uplift_request(monkeypatch):
+    bug = _open_bug(
+        cf_status_firefox138="affected",
+        cf_status_firefox139="affected",
+        attachments=[{"flags": [_approval()]}],
+    )
     assert _cleared(monkeypatch, bug) == [1]
 
 
 def test_uplift_request_before_needinfo_is_ignored(monkeypatch):
-    bug = _bug(
-        resolution="",
-        cf_last_resolved=None,
-        attachments=[_approval(creation_date="2026-08-01T00:00:00Z")],
+    bug = _open_bug(
+        cf_status_firefox139="affected",
+        attachments=[{"flags": [_approval(creation_date="2026-08-01T00:00:00Z")]}],
     )
     assert _cleared(monkeypatch, bug) == []
 
 
 def test_other_attachment_flags_are_ignored(monkeypatch):
-    bug = _bug(
-        resolution="",
-        cf_last_resolved=None,
-        attachments=[_approval(name="review")],
-    )
+    bug = _open_bug(attachments=[{"flags": [_approval(name="review")]}])
     assert _cleared(monkeypatch, bug) == []
 
 
 def test_uplift_request_keeps_human_needinfo(monkeypatch):
-    bug = _bug(
-        resolution="",
-        cf_last_resolved=None,
+    bug = _open_bug(
+        cf_status_firefox139="affected",
         flags=[_flag(1), _flag(2, setter="human@example.com")],
-        attachments=[_approval()],
+        attachments=[{"flags": [_approval()]}],
     )
     assert _cleared(monkeypatch, bug) == [1]
+
+
+def test_no_versions_only_clears_closed_bugs(monkeypatch):
+    attachments = [{"flags": [_approval()]}]
+    open_bug = _open_bug(cf_status_firefox139="affected", attachments=attachments)
+    assert _cleared(monkeypatch, open_bug, versions={}) == []
+    assert _cleared(monkeypatch, _bug(attachments=attachments), versions={}) == [1]
