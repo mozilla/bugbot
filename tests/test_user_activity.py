@@ -193,3 +193,14 @@ def test_get_status_from_bz_user(user_activity_people):
     }
     status = user_activity.get_status_from_bz_user(old_user)
     assert status == UserStatus.ABSENT
+
+
+def test_is_active_on_phab_empty_feed(user_activity_people):
+    """feed.query returns an empty list when there are no stories"""
+
+    class FakePhab:
+        def request(self, *args, **kwargs):
+            return []
+
+    user_activity = UserActivity(people=user_activity_people, phab=FakePhab())
+    assert user_activity.is_active_on_phab("PHID-USER-abc") is False
