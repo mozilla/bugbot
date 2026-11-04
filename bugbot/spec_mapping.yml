@@ -1,0 +1,573 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# Maps web specification hosts/paths to Bugzilla "Product :: Component".
+# Each entry matches a URL host; `paths` sub-rules match the URL path
+# (as a regular expression) and take precedence over the host `component`.
+
+- component: 'Core :: General'
+- host: drafts.csswg.org
+  component: 'Core :: Layout: General'
+  paths:
+  - path: /css-values-
+    component: 'Core :: CSS Parsing and Computation'
+  - path: /css-cascade-
+    component: 'Core :: CSS Parsing and Computation'
+  - path: /css-color-(\d|adjust|hdr|6)
+    component: 'Core :: CSS Parsing and Computation'
+  - path: /css-conditional-
+    component: 'Core :: CSS Parsing and Computation'
+  - path: /css-view-transitions-
+    component: 'Core :: CSS Parsing and Computation'
+  - path: /css-highlight-api-
+    component: 'Core :: CSS Parsing and Computation'
+  - path: /mediaqueries-
+    component: 'Core :: CSS Parsing and Computation'
+  - path: /css-viewport
+    component: 'Core :: CSS Parsing and Computation'
+  - path: /css-anchor-position-
+    component: 'Core :: CSS Parsing and Computation'
+  - path: /css-position-
+    component: 'Core :: CSS Parsing and Computation'
+  - path: /css-sizing-
+    component: 'Core :: CSS Parsing and Computation'
+  - path: /css-display-
+    component: 'Core :: CSS Parsing and Computation'
+  - path: /css-contain-
+    component: 'Core :: CSS Parsing and Computation'
+  - path: /css-variables-
+    component: 'Core :: CSS Parsing and Computation'
+  - path: /css-mixins-
+    component: 'Core :: CSS Parsing and Computation'
+  - path: /css-nesting-
+    component: 'Core :: CSS Parsing and Computation'
+  - path: /css-namespaces-
+    component: 'Core :: CSS Parsing and Computation'
+  - path: /selectors-
+    component: 'Core :: CSS Parsing and Computation'
+  - path: /css-pseudo-
+    component: 'Core :: CSS Parsing and Computation'
+  - path: /css-inline-
+    component: 'Core :: Layout: Block and Inline'
+  - path: /css-break-
+    component: 'Core :: Layout: Block and Inline'
+  - path: /css-text-
+    component: 'Core :: Layout: Text and Fonts'
+  - path: /css-fonts-
+    component: 'Core :: Layout: Text and Fonts'
+  - path: /css-text-decor-
+    component: 'Core :: Layout: Text and Fonts'
+  - path: /css-writing-modes-
+    component: 'Core :: Layout: Text and Fonts'
+  - path: /css-size-adjust-
+    component: 'Core :: Layout: Text and Fonts'
+  - path: /css-rhythm-
+    component: 'Core :: Layout: Text and Fonts'
+  - path: /css-counter-styles
+    component: 'Core :: Layout: Text and Fonts'
+  - path: /css-tables-
+    component: 'Core :: Layout: Tables'
+  - path: /css-grid-
+    component: 'Core :: Layout: Grid'
+  - path: /css-flexbox-
+    component: 'Core :: Layout'
+  - path: /css-multicol
+    component: 'Core :: Layout'
+  - path: /css-ruby-
+    component: 'Core :: Layout: Ruby'
+  - path: /css-scroll-
+    component: 'Core :: Layout: Scrolling and Overflow'
+  - path: /css-overflow-
+    component: 'Core :: Layout: Scrolling and Overflow'
+  - path: /css-overscroll
+    component: 'Core :: Layout: Scrolling and Overflow'
+  - path: /scroll-animations
+    component: 'Core :: DOM: Animation'
+  - path: /css-images-
+    component: 'Core :: Layout: Images, Video, and HTML Frames'
+  - path: /css-shapes-
+    component: 'Core :: Layout'
+  - path: /css-masking-
+    component: 'Core :: SVG'
+  - path: /filter-effects-
+    component: 'Core :: SVG'
+  - path: /compositing-
+    component: 'Core :: Web Painting'
+  - path: /geometry-
+    component: 'Core :: DOM: CSS Object Model'
+  - path: /css-page-
+    component: 'Core :: Printing: Output'
+  - path: /css-animations-
+    component: 'Core :: CSS Transitions and Animations'
+  - path: /css-transitions-
+    component: 'Core :: CSS Transitions and Animations'
+  - path: /css-easing-
+    component: 'Core :: CSS Transitions and Animations'
+  - path: /css-transforms-
+    component: 'Core :: CSS Transitions and Animations'
+  - path: /web-animations-
+    component: 'Core :: DOM: Animation'
+  - path: /motion-
+    component: 'Core :: DOM: Animation'
+  - path: /css-will-change
+    component: 'Core :: Web Painting'
+  - path: /css-shadow
+    component: 'Core :: Web Painting'
+  - path: /cssom-view
+    component: 'Core :: Layout'
+  - path: /cssom
+    component: 'Core :: DOM: CSS Object Model'
+  - path: /resize-observer
+    component: 'Core :: Layout'
+  - path: /css-gaps-
+    component: 'Core :: Layout'
+  - path: /css-box-
+    component: 'Core :: Layout'
+  - path: /css-align-
+    component: 'Core :: Layout'
+  - path: /css-logical-
+    component: 'Core :: Layout'
+  - path: /css-env-
+    component: 'Core :: Layout'
+  - path: /css-forms-
+    component: 'Core :: Layout'
+  - path: /css-ui-
+    component: 'Core :: Layout'
+  - path: /css-speech-
+    component: 'Core :: Disability Access APIs'
+  - path: /mathml
+    component: 'Core :: MathML'
+- host: w3c.github.io
+  component: 'Core :: DOM: Core & HTML'
+  paths:
+  - path: /manifest
+    component: 'Firefox :: General'
+  - path: /badging
+    component: 'Firefox for Android :: PWA'
+  - path: /web-share-target
+    component: 'Core :: DOM: Web Share'
+  - path: /web-share
+    component: 'Core :: DOM: Web Share'
+  - path: /(accelerometer|ambient-light|gyroscope|magnetometer|orientation-sensor|sensors|compute-pressure|deviceorientation|device-posture|battery)
+    component: 'Core :: DOM: Device Interfaces'
+  - path: /aria
+    component: 'Core :: Disability Access APIs'
+  - path: /clipboard-apis
+    component: 'Core :: DOM: Copy & Paste and Drag & Drop'
+  - path: /editing
+    component: 'Core :: DOM: Editor'
+  - path: /edit-context
+    component: 'Core :: DOM: Editor'
+  - path: /webappsec-permissions-policy
+    component: 'Core :: DOM: Core & HTML'
+  - path: /webappsec-credential-management
+    component: 'Core :: DOM: Credential Management'
+  - path: /webappsec-referrer-policy
+    component: 'Core :: Networking'
+  - path: /webappsec-
+    component: 'Core :: DOM: Security'
+  - path: /trusted-types
+    component: 'Core :: DOM: Security'
+  - path: /webcrypto
+    component: 'Core :: DOM: Security'
+  - path: /(hr-time|performance-timeline|user-timing|server-timing|navigation-timing|resource-timing|element-timing|event-timing|paint-timing|largest-contentful-paint|long-animation-frames)
+    component: 'Core :: DOM: Performance APIs'
+  - path: /(requestidlecallback|longtasks)
+    component: 'Core :: DOM: Core & HTML'
+  - path: /IntersectionObserver
+    component: 'Core :: Layout'
+  - path: /IndexedDB
+    component: 'Core :: Storage: IndexedDB'
+  - path: /FileAPI
+    component: 'Core :: DOM: File'
+  - path: /web-locks
+    component: 'Core :: DOM: Core & HTML'
+  - path: /mediacapture-transform
+    component: 'Core :: WebRTC: Audio/Video'
+  - path: /mediacapture-
+    component: 'Core :: WebRTC: Audio/Video'
+  - path: /webrtc
+    component: 'Core :: WebRTC'
+  - path: /webtransport
+    component: 'Core :: Networking'
+  - path: /audio-session
+    component: 'Core :: Audio/Video: Playback'
+  - path: /encrypted-media
+    component: 'Core :: Audio/Video: Playback'
+  - path: /media-(capabilities|playback-quality|source)
+    component: 'Core :: Audio/Video: Playback'
+  - path: /mediasession
+    component: 'Core :: Audio/Video: Playback'
+  - path: /webcodecs
+    component: 'Core :: Audio/Video: Web Codecs'
+  - path: /remote-playback
+    component: 'Core :: Audio/Video'
+  - path: /webvtt
+    component: 'Core :: Audio/Video: Playback'
+  - path: /html-media-capture
+    component: 'Core :: Audio/Video: Recording'
+  - path: /picture-in-picture
+    component: 'Core :: DOM: Core & HTML'
+  - path: /mathml
+    component: 'Core :: MathML'
+  - path: /svgwg
+    component: 'Core :: SVG'
+  - path: /ServiceWorker
+    component: 'Core :: DOM: Service Workers'
+  - path: /push-api
+    component: 'Core :: DOM: Push Subscriptions'
+  - path: /gamepad
+    component: 'Core :: DOM: Device Interfaces'
+  - path: /geolocation
+    component: 'Core :: DOM: Geolocation'
+  - path: /(pointerevents|pointerlock|touch-events|uievents)
+    component: 'Core :: DOM: UI Events & Focus Handling'
+  - path: /vibration
+    component: 'Core :: DOM: Device Interfaces'
+  - path: /screen-orientation
+    component: 'Core :: DOM: Device Interfaces'
+  - path: /screen-wake-lock
+    component: 'Core :: DOM: Device Interfaces'
+  - path: /virtual-keyboard
+    component: 'Core :: Layout'
+  - path: /window-management
+    component: 'Core :: DOM: Core & HTML'
+  - path: /(payment-request|web-based-payment-handler|secure-payment-confirmation)
+    component: 'Core :: DOM: Web Payments'
+  - path: /webauthn
+    component: 'Core :: DOM: Web Authentication'
+  - path: /selection-api
+    component: 'Core :: DOM: Core & HTML'
+  - path: /DOM-Parsing
+    component: 'Core :: DOM: Serializers'
+  - path: /reporting
+    component: 'Core :: DOM: Core & HTML'
+  - path: /presentation-api
+    component: 'Core :: DOM: Core & HTML'
+  - path: /webdriver-bidi
+    component: 'Remote Protocol :: WebDriver BiDi'
+  - path: /webdriver
+    component: 'Remote Protocol :: Marionette'
+  - path: /beacon
+    component: 'Core :: Networking'
+  - path: /permissions
+    component: 'Core :: DOM: Core & HTML'
+  - path: /gpc
+    component: 'Core :: Privacy: Anti-Tracking'
+  - path: /png
+    component: 'Core :: Graphics: ImageLib'
+- host: html.spec.whatwg.org
+  component: 'Core :: DOM: Core & HTML'
+  paths:
+  - path: /multipage/urls-and-fetching\.html
+    component: 'Core :: Networking'
+  - path: /multipage/speculative-loading\.html
+    component: 'Core :: DOM: Navigation'
+  - path: /multipage/system-state\.html
+    component: 'Core :: DOM: Core & HTML'
+  - path: /multipage/iframe-embed-object\.html
+    component: 'Core :: Layout: Images, Video, and HTML Frames'
+  - path: /multipage/canvas\.html
+    component: 'Core :: Graphics: Canvas2D'
+  - path: /multipage/workers\.html
+    component: 'Core :: DOM: Service Workers'
+  - path: /multipage/web-messaging\.html
+    component: 'Core :: DOM: postMessage'
+  - path: /multipage/server-sent-events\.html
+    component: 'Core :: Networking'
+  - path: /multipage/nav-history-apis\.html
+    component: 'Core :: DOM: Navigation'
+  - path: /multipage/scripting\.html
+    component: 'Core :: DOM: Core & HTML'
+  - path: /multipage/imagebitmap-and-animations\.html
+    component: 'Core :: DOM: Core & HTML'
+  - path: /multipage/timers-and-user-prompts\.html
+    component: 'Core :: DOM: Core & HTML'
+  - path: /multipage/structured-data\.html
+    component: 'Core :: DOM: Core & HTML'
+  - path: /multipage/dynamic-markup-insertion\.html
+    component: 'Core :: DOM: Serializers'
+  - path: /multipage/media\.html
+    component: 'Core :: Audio/Video: Playback'
+  - path: /multipage/embedded-content\.html
+    component: 'Core :: Layout: Images, Video, and HTML Frames'
+  - path: /multipage/image-maps\.html
+    component: 'Core :: Layout: Images, Video, and HTML Frames'
+  - path: /multipage/tables\.html
+    component: 'Core :: Layout: Tables'
+  - path: /multipage/dnd\.html
+    component: 'Core :: DOM: Copy & Paste and Drag & Drop'
+  - path: /multipage/(forms|form-elements|form-control-infrastructure|input)\.html
+    component: 'Core :: DOM: Forms'
+- host: drafts.css-houdini.org
+  component: 'Core :: CSS Parsing and Computation'
+  paths:
+  - path: /css-paint-api
+    component: 'Core :: CSS Parsing and Computation'
+- host: tc39.es
+  component: 'Core :: JavaScript Engine'
+  paths:
+  - path: /ecma402
+    component: 'Core :: JavaScript: Internationalization API'
+- host: github.com
+  paths:
+  - path: /tc39/
+    component: 'Core :: JavaScript Engine'
+  - path: /WebAssembly/
+    component: 'Core :: JavaScript: WebAssembly'
+  - path: /whatwg/(html|dom)
+    component: 'Core :: DOM: Core & HTML'
+  - path: /w3c/manifest
+    component: 'Firefox :: General'
+  - path: /WICG/html-in-canvas
+    component: 'Core :: Graphics: Canvas2D'
+  - path: /WICG/PEPC
+    component: 'Core :: DOM: Core & HTML'
+  - path: /WICG/install-element
+    component: 'Firefox :: General'
+  - path: /WICG/privacy-preserving-ads
+    component: 'Core :: Privacy: Anti-Tracking'
+  - path: /MicrosoftEdge/MSEdgeExplainers/.*OpaqueRange
+    component: 'Core :: DOM: Forms'
+  - path: /MicrosoftEdge/MSEdgeExplainers/.*AriaNotify
+    component: 'Core :: Disability Access APIs'
+  - path: /MicrosoftEdge/MSEdgeExplainers/.*DocumentSubtitle
+    component: 'Core :: DOM: Core & HTML'
+- host: webassembly.github.io
+  component: 'Core :: JavaScript: WebAssembly'
+- host: registry.khronos.org
+  component: 'Core :: Graphics: CanvasWebGL'
+- host: gpuweb.github.io
+  component: 'Core :: Graphics: WebGPU'
+- host: webaudio.github.io
+  component: 'Core :: Web Audio'
+  paths:
+  - path: /web-speech-api
+    component: 'Core :: DOM: Device Interfaces'
+  - path: /web-midi-api
+    component: 'Core :: DOM: Device Interfaces'
+- host: immersive-web.github.io
+  component: 'Core :: WebVR'
+- host: dom.spec.whatwg.org
+  component: 'Core :: DOM: Core & HTML'
+- host: streams.spec.whatwg.org
+  component: 'Core :: DOM: Streams'
+- host: fetch.spec.whatwg.org
+  component: 'Core :: DOM: Networking'
+- host: cookiestore.spec.whatwg.org
+  component: 'Core :: Networking: Cookies'
+- host: url.spec.whatwg.org
+  component: 'Core :: Networking'
+- host: urlpattern.spec.whatwg.org
+  component: 'Core :: Networking'
+- host: xhr.spec.whatwg.org
+  component: 'Core :: DOM: Networking'
+- host: websockets.spec.whatwg.org
+  component: 'Core :: Networking: WebSockets'
+- host: storage.spec.whatwg.org
+  component: 'Core :: Storage: Quota Manager'
+- host: fs.spec.whatwg.org
+  component: 'Core :: DOM: File'
+- host: notifications.spec.whatwg.org
+  component: 'Core :: DOM: Notifications'
+- host: encoding.spec.whatwg.org
+  component: 'Core :: Internationalization'
+- host: compression.spec.whatwg.org
+  component: 'Core :: DOM: Core & HTML'
+- host: console.spec.whatwg.org
+  component: 'DevTools :: Console'
+- host: fullscreen.spec.whatwg.org
+  component: 'Core :: DOM: Core & HTML'
+- host: webidl.spec.whatwg.org
+  component: 'Core :: DOM: Core & HTML'
+- host: compat.spec.whatwg.org
+  component: 'Core :: CSS Parsing and Computation'
+- host: httpwg.org
+  component: 'Core :: Networking: HTTP'
+  paths:
+  - path: /specs/rfc9842
+    component: 'Core :: Networking: Cache'
+- host: www.rfc-editor.org
+  component: 'Core :: Networking'
+- host: w3c-fedid.github.io
+  component: 'Core :: DOM: Credential Management'
+- host: w3c-cg.github.io
+  paths:
+  - path: /web-nfc
+    component: 'Core :: DOM: Device Interfaces'
+- host: webbluetoothcg.github.io
+  component: 'Core :: DOM: Device Interfaces'
+- host: wicg.github.io
+  component: 'Core :: DOM: Core & HTML'
+  paths:
+  - path: /attribution-reporting
+    component: 'Core :: Privacy: Anti-Tracking'
+  - path: /first-party-sets
+    component: 'Core :: Privacy: Anti-Tracking'
+  - path: /turtledove
+    component: 'Core :: Privacy: Anti-Tracking'
+  - path: /shared-storage
+    component: 'Core :: Privacy: Anti-Tracking'
+  - path: /manifest-incubations
+    component: 'Firefox :: General'
+  - path: /web-app-launch
+    component: 'Firefox :: General'
+  - path: /get-installed-related-apps
+    component: 'Firefox :: General'
+  - path: /(local-network-access|private-network-access|netinfo|savedata)
+    component: 'Core :: DOM: Networking'
+  - path: /ua-client-hints
+    component: 'Core :: Networking: HTTP'
+  - path: /(is-input-pending|performance-measure-memory|js-self-profiling|scheduling-apis)
+    component: 'Core :: DOM: Performance APIs'
+  - path: /layout-instability
+    component: 'Core :: Layout'
+  - path: /storage-buckets
+    component: 'Core :: Storage: Quota Manager'
+  - path: /(background-fetch|background-sync|periodic-background-sync|content-index)
+    component: 'Core :: DOM: Service Workers'
+  - path: /sanitizer-api
+    component: 'Core :: DOM: Security'
+  - path: /signature-based-sri
+    component: 'Core :: DOM: Security'
+  - path: /webcrypto-secure-curves
+    component: 'Core :: DOM: Security'
+  - path: /web-otp
+    component: 'Core :: DOM: Web Authentication'
+  - path: /(serial|webhid|webusb|shape-detection-api|idle-detection)
+    component: 'Core :: DOM: Device Interfaces'
+  - path: /keyboard-(lock|map)
+    component: 'Core :: DOM: UI Events & Focus Handling'
+  - path: /ink-enhancement
+    component: 'Core :: DOM: UI Events & Focus Handling'
+  - path: /entries-api
+    component: 'Core :: DOM: File'
+  - path: /eyedropper-api
+    component: 'Core :: DOM: Core & HTML'
+  - path: /local-font-access
+    component: 'Core :: Layout: Text and Fonts'
+  - path: /(crash-reporting|deprecation-reporting|intervention-reporting)
+    component: 'Core :: DOM: Core & HTML'
+  - path: /nav-speculation
+    component: 'Core :: DOM: Navigation'
+  - path: /scroll-to-text-fragment
+    component: 'Core :: DOM: Navigation'
+  - path: /video-rvfc
+    component: 'Core :: Audio/Video: Playback'
+  - path: /document-picture-in-picture
+    component: 'Core :: DOM: Core & HTML'
+  - path: /controls-list
+    component: 'Core :: Audio/Video: Playback'
+  - path: /file-system-access
+    component: 'WebExtensions :: General'
+  - path: /digital-goods
+    component: 'Core :: DOM: Web Payments'
+  - path: /anonymous-iframe
+    component: 'Core :: DOM: Core & HTML'
+  - path: /fenced-frame
+    component: 'Core :: Privacy: Anti-Tracking'
+  - path: /portals
+    component: 'Core :: DOM: Core & HTML'
+  - path: /PEPC
+    component: 'Core :: DOM: Core & HTML'
+  - path: /window-controls-overlay
+    component: 'Firefox :: General'
+  - path: /observable
+    component: 'Core :: DOM: Core & HTML'
+  - path: /page-lifecycle
+    component: 'Core :: DOM: Core & HTML'
+  - path: /permissions-request
+    component: 'Core :: DOM: Core & HTML'
+- host: privacycg.github.io
+  component: 'Core :: Privacy: Anti-Tracking'
+- host: patcg-individual-drafts.github.io
+  component: 'Core :: Privacy: Anti-Tracking'
+- host: www.iso.org
+  paths:
+  - path: /standard/
+    component: 'Core :: Graphics: ImageLib'
+- host: jpeg.org
+  component: 'Core :: Graphics: ImageLib'
+- host: aomediacodec.github.io
+  component: 'Core :: Graphics: ImageLib'
+  paths:
+  - path: /av1-rtp
+    component: 'Core :: WebRTC: Signaling'
+- host: svgwg.org
+  component: 'Core :: SVG'
+- host: webmachinelearning.github.io
+  component: 'Core :: DOM: Core & HTML'
+- host: screen-share.github.io
+  component: 'Core :: WebRTC: Audio/Video'
+- host: open-ui.org
+  component: 'Core :: DOM: Core & HTML'
+- host: www.w3.org
+  component: 'Core :: DOM: Core & HTML'
+  paths:
+  - path: /TR/device-memory
+    component: 'Core :: DOM: Core & HTML'
+  - path: /TR/.*feature-policy
+    component: 'Core :: DOM: Core & HTML'
+  - path: /TR/webnn
+    component: 'Core :: DOM: Core & HTML'
+  - path: /TR/webauthn
+    component: 'Core :: DOM: Web Authentication'
+  - path: /TR/webtransport
+    component: 'Core :: Networking'
+  - path: /TR/webrtc
+    component: 'Core :: WebRTC'
+  - path: /TR/mediasession
+    component: 'Core :: Audio/Video: Playback'
+  - path: /TR/media-capabilities
+    component: 'Core :: Audio/Video: Playback'
+  - path: /TR/media-frags
+    component: 'Core :: Graphics: ImageLib'
+  - path: /TR/discovery-api
+    component: 'Core :: Networking'
+  - path: /TR/png
+    component: 'Core :: Graphics: ImageLib'
+  - path: /Graphics/GIF
+    component: 'Core :: Graphics: ImageLib'
+  - path: /Graphics/SVG
+    component: 'Core :: SVG'
+  - path: /TR/SVG
+    component: 'Core :: SVG'
+  - path: /TR/SMIL
+    component: 'Core :: SVG'
+  - path: '[Mm]ath[Mm][Ll]'
+    component: 'Core :: MathML'
+  - path: (xslt|xpath)
+    component: 'Core :: XSLT'
+  - path: REC-xml-names
+    component: 'Core :: XSLT'
+  - path: xml-entity-names
+    component: 'Core :: DOM: HTML Parser'
+  - path: (xhtml11|\.dtd|xmlschema|/swap/)
+    component: 'Core :: XML'
+  - path: /International
+    component: 'Core :: Layout: Text and Fonts'
+  - path: /WAI/
+    component: 'Core :: Disability Access APIs'
+  - path: /TR/DOM-Level-2-Style
+    component: 'Core :: DOM: CSS Object Model'
+  - path: /TR/DOM-Level-2/events
+    component: 'Core :: DOM: Events'
+  - path: the-canvas-element
+    component: 'Core :: Graphics: Canvas2D'
+  - path: /TR/.*selectors-
+    component: 'Core :: CSS Parsing and Computation'
+  - path: (box|visuren)\.html
+    component: 'Core :: Layout: Block and Inline'
+  - path: tables
+    component: 'Core :: Layout: Tables'
+  - path: scroll-snap
+    component: 'Core :: Layout: Scrolling and Overflow'
+  - path: css3?-break
+    component: 'Core :: Layout'
+  - path: css3-text
+    component: 'Core :: Layout: Text and Fonts'
+  - path: /TR/.*html5
+    component: 'Core :: DOM: Core & HTML'
+  - path: '[Cc][Ss][Ss]'
+    component: 'Core :: CSS Parsing and Computation'
