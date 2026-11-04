@@ -19,11 +19,15 @@ UPLIFT_MARKERS = [COMMENT_MARKER, LEGACY_COMMENT_MARKER]
 # `approval-mozilla-beta` or `approval-mozilla-esr140`.
 APPROVAL_FLAG_PREFIX = "approval-mozilla-"
 
+ESR_STATUS_PREFIX = "cf_status_firefox_esr"
+
 
 class UpliftNiCleanup(NeedinfoCleanup):
+    status_beta: str | None = None
+
     def description(self) -> str:
         return (
-            "Clear uplift needinfos once an uplift was requested or, on closed "
+            "Clear uplift needinfos once uplifts were requested or, on closed "
             "bugs, once no Firefox version is affected anymore"
         )
 
@@ -69,14 +73,43 @@ class UpliftNiCleanup(NeedinfoCleanup):
     def commenthandler(self, bug: Bug, bugid: str | int, data: dict[str, Any]) -> None:
         data[str(bugid)]["comments"] = bug["comments"]
 
+    def prepare(self, bugs: dict[str, Bug]) -> None:
+        # Without versions (e.g. on merge day), we can't tell which status
+        # flag is the beta one, so needinfos are only cleared on closed bugs.
+        self.status_beta = (
+            utils.get_flag(self.versions["beta"], "status", "beta")
+            if self.init_versions()
+            else None
+        )
+
     @staticmethod
-    def get_approval_request_times(bug: Bug) -> list[str]:
+    def get_approval_requests(bug: Bug) -> list[dict[str, Any]]:
         return [
-            flag["creation_date"]
+            flag
             for attachment in bug.get("attachments", [])
             for flag in attachment.get("flags", [])
             if flag["name"].startswith(APPROVAL_FLAG_PREFIX)
         ]
+
+    def get_undecided_approvals(
+        self, bug: Bug, approval_requests: list[dict[str, Any]]
+    ) -> list[str]:
+        """Get the approval flags still to request for the affected channels.
+
+        As in the needinfo, beta and each affected ESR need a decision: either
+        an uplift request or a status no longer marked as affected.
+        """
+        assert self.status_beta is not None
+        needed = []
+        if bug.get(self.status_beta) in AFFECTED_STATUSES:
+            needed.append(utils.get_flag(None, "approval", "beta"))
+        for field, value in bug.items():
+            if field.startswith(ESR_STATUS_PREFIX) and value in AFFECTED_STATUSES:
+                version = int(field.removeprefix(ESR_STATUS_PREFIX))
+                needed.append(utils.get_flag(version, "approval", "esr"))
+
+        requested = {flag["name"] for flag in approval_requests}
+        return [name for name in needed if name not in requested]
 
     def get_needinfos_to_clear(
         self, bug: Bug
@@ -97,20 +130,24 @@ class UpliftNiCleanup(NeedinfoCleanup):
         if not needinfos:
             return [], None
 
-        # The needinfo asks for an uplift decision, so it is answered as soon
-        # as an uplift is requested after it, whatever happens to the bug.
-        approval_times = self.get_approval_request_times(bug)
-        answered = [
-            flag
-            for flag in needinfos
-            if any(time >= flag["creation_date"] for time in approval_times)
-        ]
-        if answered:
-            return (
-                answered,
-                "Clearing the uplift needinfo request since an uplift has been "
-                "requested.",
-            )
+        # The needinfo is answered once an uplift has been requested after it
+        # and every channel still affected has an uplift request.
+        if self.status_beta is not None:
+            approval_requests = self.get_approval_requests(bug)
+            answered = [
+                flag
+                for flag in needinfos
+                if any(
+                    request["creation_date"] >= flag["creation_date"]
+                    for request in approval_requests
+                )
+            ]
+            if answered and not self.get_undecided_approvals(bug, approval_requests):
+                return (
+                    answered,
+                    "Clearing the uplift needinfo request since an uplift has "
+                    "been requested for all the affected channels.",
+                )
 
         if not bug["resolution"]:
             return [], None
