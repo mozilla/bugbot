@@ -546,20 +546,26 @@ def get_versions_from_trains() -> dict[str, int]:
     reports the current-cycle version for every channel, so the numbers stay
     internally consistent through the merge window.
 
-    A channel can be null (e.g. `esr_previous` outside an ESR overlap period);
-    we map that to None rather than failing.
+    Outside an ESR overlap period the API reports `esr_previous` as null. It
+    repeats `esr` here instead, which is what the rules building ESR flags from
+    expect: a null would become the flag `cf_status_firefox_esrNone`,
+    which Bugzilla rejects in a search. Product-details, read through
+    libmozdata, also left the two equal, as it sends an empty FIREFOX_ESR_NEXT.
 
     Returns:
-        dict: major version (int, or None) keyed by channel: release, beta,
-        nightly, esr, esr_previous.
+        dict: major version keyed by channel: release, beta, nightly, esr,
+        esr_previous.
     """
     data = FirefoxTrains.get_instance().get_lando_uplift_train()
 
-    return {
-        channel: data[channel]["version"]
+    # A channel without a version may come as a null version or a null channel.
+    versions = {
+        channel: (data[channel] or {"version": None})["version"]
         for channel in ("release", "beta", "nightly", "esr", "esr_previous")
-        if data[channel]
     }
+    versions["esr_previous"] = versions["esr_previous"] or versions["esr"]
+
+    return versions
 
 
 def get_checked_versions() -> dict[str, int]:
