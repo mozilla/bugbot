@@ -7,8 +7,9 @@
 For Release, Beta and Nightly it reports two bug lists that together partition
 every open regression affecting the version: "new regressions", affected in N
 while N-1 is unaffected or unknown, and "carry over regressions", the same query
-negated. Each count is broken down by severity, New Regressions also by owning
-team, and Beta and Nightly get a working day countdown to the end of the cycle.
+negated. Each count is broken down by severity, New Regressions also by
+director and team, and Beta and Nightly get a working day countdown to the end
+of the cycle.
 
 The regressions that need chasing rather than counting are the other rule,
 `reo_regression_slack_daily`.
@@ -17,8 +18,8 @@ Note: this rule does not follow the usual structure of bugbot rules and should
 not be used as a template for new ones. It runs several queries by setting state
 on `self` and calling `get_bugs` repeatedly, posts to Slack from
 `get_email_data`, and duplicates its module-level helpers with
-`reo_regression_slack_daily`. Base new rules on a conventional one such as
-`uplift_beta` instead.
+`reo_regression_slack_daily`, except for the director breakdown it imports.
+Base new rules on a conventional one such as `uplift_beta` instead.
 """
 
 import argparse
@@ -34,11 +35,11 @@ from libmozdata.fx_trains import FirefoxTrains
 
 from bugbot import logger, slack, utils
 from bugbot.bzcleaner import Bug, BzCleaner, BzParams, EmailData
-from bugbot.components import ComponentName, fetch_component_teams
 
 # Also matches the pre-S1 severity names, so these counts can run slightly ahead
 # of the REO tab's.
 from bugbot.constants import HIGH_SEVERITY
+from bugbot.rules.reo_regression_slack_daily import director_breakdown
 
 # reo slack channel
 CHANNEL = "C04C6CQQR9T"
@@ -71,8 +72,6 @@ EXCLUDED_PRODUCTS = ("Testing", "Developer Infrastructure")
 # Above every slot the query uses, including the 11 `with_severities` takes.
 EXCLUDED_PRODUCTS_SLOT = 12
 
-UNKNOWN_TEAM = "Unknown team"
-
 # A Slack section block holds at most 3000 characters.
 SECTION_LIMIT = 3000
 
@@ -84,7 +83,8 @@ SUB_BULLET = "    ◦ "
 
 # `groups` is how a bug is known to be restricted. No `summary`: the message
 # names no bug, so restricted ones are counted and linked but never named.
-BUG_FIELDS = "id,severity,product,component,groups"
+# `triage_owner` is who a bug's director is found from.
+BUG_FIELDS = "id,severity,product,component,groups,triage_owner"
 
 # Stands in for a milestone key, as the last beta is numbered differently from
 # one version to the next (beta_10 for 154, beta_5 under the 2 week cadence).
@@ -247,9 +247,10 @@ def bug_link(
     """Format a non-empty bug list as a Slack link labelled with its count.
 
     An over-long snapshot URL is shortened, then falls back to fallback_query,
-    which is live and so can drift from the count, then to no link at all. Team
-    lines pass no fallback, as reproducing a team as a query means listing all its
-    components.
+    which is live and so can drift from the count, then to no link at all. The
+    director lines don't come through here: `director_breakdown` links with the
+    daily rule's `bug_link`, which has no fallback, as reproducing a team as a
+    query means listing all its components.
     """
     label = label_template.format(len(bugs))
     snapshot = snapshot_url(bugs)
@@ -265,28 +266,6 @@ def bug_link(
         return label
 
     return f"<{url}|{label}>"
-
-
-@functools.cache
-def component_teams() -> dict[ComponentName, str]:
-    """Map every (product, component) to the team that owns it, in one request."""
-    return fetch_component_teams()
-
-
-def team_of(bug: dict) -> str:
-    """The team owning a bug's component."""
-    return component_teams().get(ComponentName.from_bug(bug)) or UNKNOWN_TEAM
-
-
-def team_breakdown(bugs: list[dict]) -> str:
-    """Count the bugs owned by each team, busiest team first."""
-    by_team: dict[str, list[dict]] = {}
-    for bug in bugs:
-        by_team.setdefault(team_of(bug), []).append(bug)
-
-    ranked = sorted(by_team.items(), key=lambda item: (-len(item[1]), item[0]))
-
-    return ", ".join(bug_link(team_bugs, f"{{}} {team}") for team, team_bugs in ranked)
 
 
 def restricted_note(bugs: list[dict]) -> str:
@@ -481,9 +460,9 @@ class ReoRegressionSlack(BzCleaner):
         return list(self.get_bugs().values())
 
     def regression_group(
-        self, version: int, carry_over: bool, label: str, by_team: bool = False
+        self, version: int, carry_over: bool, label: str, by_director: bool = False
     ) -> str:
-        """Build the bullet and severity sub-bullets for one bug list.
+        """Build the bullet, severity and director sub-bullets for one bug list.
 
         Split locally rather than queried per subset, so the sub-bullets are
         guaranteed to be part of the count above them. Empty lists are left out of
@@ -496,9 +475,6 @@ class ReoRegressionSlack(BzCleaner):
         query = regressions_query(version, carry_over)
         link = bug_link(bugs, f"{{}} {label} Regressions", query)
         lines = [f"• {link}{restricted_note(bugs)}"]
-
-        if by_team:
-            lines.append(SUB_BULLET + team_breakdown(bugs))
 
         severity_counts = []
         for severities, template in (
@@ -513,6 +489,10 @@ class ReoRegressionSlack(BzCleaner):
 
         if severity_counts:
             lines.append(SUB_BULLET + ", ".join(severity_counts))
+
+        # After the severities, which would otherwise read as one more director.
+        if by_director:
+            lines.append(director_breakdown(bugs))
 
         return "\n".join(lines)
 
@@ -555,7 +535,7 @@ class ReoRegressionSlack(BzCleaner):
             groups = [
                 group
                 for group in (
-                    self.regression_group(version, False, "New", by_team=True),
+                    self.regression_group(version, False, "New", by_director=True),
                     self.regression_group(version, True, "Carry Over"),
                 )
                 if group
