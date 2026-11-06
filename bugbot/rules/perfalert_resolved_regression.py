@@ -2,8 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import re
 from datetime import timedelta
 
+import requests
 from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import BugzillaUser
 
@@ -24,6 +26,12 @@ RESOLUTION_KEYWORDS = (
     "resolved",
     "resolve",
     "resolution",
+)
+
+# File names of GitHub pull request attachments are in the form
+# github-{owner}_{repo}-{number}-url.txt
+GITHUB_PR_FILE_NAME_PATTERN = re.compile(
+    r"^github-(?P<owner>[A-Za-z0-9-]+)_(?P<repo>.+)-(?P<number>\d+)-url\.txt$"
 )
 
 
@@ -72,6 +80,9 @@ class PerfAlertResolvedRegression(BzCleaner):
             "comments.text",
             "comments.creation_time",
             "comments.author",
+            "attachments.content_type",
+            "attachments.file_name",
+            "attachments.is_obsolete",
         ]
 
         # Find all bugs that have perf-alert, and regression in their keywords. Search
@@ -166,6 +177,34 @@ class PerfAlertResolvedRegression(BzCleaner):
 
         return None
 
+    def is_github_pr_merged(self, owner, repo, number):
+        try:
+            r = requests.get(
+                f"https://api.github.com/repos/{owner}/{repo}/pulls/{number}",
+                timeout=30,
+            )
+            r.raise_for_status()
+        except requests.exceptions.RequestException:
+            return False
+
+        return bool(r.json().get("merged"))
+
+    def has_merged_github_pr(self, bug):
+        for attachment in bug.get("attachments", []):
+            if (
+                attachment["content_type"] != "text/x-github-pull-request"
+                or attachment["is_obsolete"]
+            ):
+                continue
+
+            match = GITHUB_PR_FILE_NAME_PATTERN.match(attachment["file_name"])
+            if match and self.is_github_pr_merged(
+                match["owner"], match["repo"], match["number"]
+            ):
+                return True
+
+        return False
+
     def get_resolution_history(self, bug):
         bug_info = {}
 
@@ -248,6 +287,13 @@ class PerfAlertResolvedRegression(BzCleaner):
         bug_history["resolution_comment"] = self.get_resolution_comment(
             bug_comments, bug_history
         )
+        if (
+            bug_history["resolution_comment"] is None
+            and bug_history["resolution"] == "FIXED"
+            and self.has_merged_github_pr(bug)
+        ):
+            # A merged GitHub pull request explains the FIXED resolution
+            bug_history["resolution_comment"] = "Fixed by a merged GitHub pull request"
         if bug_history["resolution_comment"] is None:
             # Use N/A to signify no resolution comment was provided
             bug_history["resolution_comment"] = "N/A"
