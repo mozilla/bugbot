@@ -145,11 +145,18 @@ class Component(BzCleaner):
             for bug_id, data in fenix_general_classification.items():
                 confidence = data["prob"][data["index"]]
 
+                fenix_suggestion = data["class"]
+                # Older versions of the model only returned the component name.
+                if "::" not in fenix_suggestion:
+                    if fenix_suggestion == "General":
+                        continue
+                    fenix_suggestion = f"Firefox for Android::{fenix_suggestion}"
+
                 if (
                     confidence > self.fenix_confidence_threshold
-                    and data["class"] != "General"
+                    and fenix_suggestion != "Firefox for Android::General"
                 ):
-                    data["class"] = f"Firefox for Android::{data['class']}"
+                    data["class"] = fenix_suggestion
                     bugs[bug_id] = data
 
         results = {}
@@ -194,11 +201,14 @@ class Component(BzCleaner):
             suggested_product = suggestion[:i]
             suggested_component = suggestion[i + 2 :]
 
-            # When moving bugs out of the 'General' component, we don't want to change the product (unless it is Firefox).
-            if bug["component"] == "General" and bug["product"] not in {
-                suggested_product,
-                "Firefox",
-            }:
+            # When moving bugs out of the 'General' component, we don't want to change the product (unless it is Firefox,
+            # or Firefox for Android bugs moving to GeckoView, which is in practice a part of Firefox for Android).
+            if (
+                bug["component"] == "General"
+                and bug["product"] not in {suggested_product, "Firefox"}
+                and (bug["product"], suggested_product)
+                != ("Firefox for Android", "GeckoView")
+            ):
                 continue
 
             # For Firefox::General bugs, only proceed if the componentspecific
