@@ -1,0 +1,49 @@
+description: >
+  The status flags of a regression are set from the versions its regressor was
+  fixed in (2091308); a regression whose regressor only landed in nightly is left
+  alone (2091281).
+recorded_from:
+  bugs:
+  - 2091281
+  - 2091308
+now: 2026-11-10T11:33:23Z
+versions:
+  release: 160
+  beta: 161
+  nightly: 162
+  esr: 153
+  esr_previous: 153
+bugs:
+- id: 2069054
+  cf_status_firefox158: verified
+- id: 2073111
+  cf_status_firefox162: fixed
+- id: 2091281
+  cf_status_firefox160: unaffected
+  cf_status_firefox161: unaffected
+  cf_status_firefox162: affected
+  cf_status_firefox_esr153: unaffected
+  component: mozglue
+  regressed_by:
+  - 2073111
+  summary: '[clang-23] Perma /builds/worker/checkouts/gecko/mozglue/misc/TimeStamp.cpp(93,13):
+    error: variable ''sScalesInitialized'' set but not used [-Werror,-Wunused-but-set-global]'
+- id: 2091308
+  # As before BugBot set the release and beta flags.
+  cf_status_firefox162: affected
+  cf_status_firefox_esr153: unaffected
+  component: Search
+  product: Firefox
+  regressed_by:
+  - 2069054
+  summary: Don't record serp.engagement events when the SERP has no impression ID
+expect:
+  email: [2091308]
+  changes:
+    2091308:
+      cf_status_firefox160: affected
+      cf_status_firefox161: affected
+      comment:
+        body: Set release status flags based on info from the regressing bug 2069054
+        is_private: false
+      keywords: {add: [regression]}
