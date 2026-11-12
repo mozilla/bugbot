@@ -12,7 +12,6 @@ import pytest
 
 from bugbot.people import People
 from bugbot.round_robin import RotationDefinitions, RoundRobin
-from bugbot.round_robin_calendar import BadFallback
 
 
 class RotationDefinitionsMockup(RotationDefinitions):
@@ -160,5 +159,35 @@ def test_get_who_to_nag(round_robin_config, round_robin_people):
             rotation_definitions=round_robin_config, people=round_robin_people
         )
 
-        with pytest.raises(BadFallback):
-            rr.get_who_to_nag("2019-03-01")
+        # The team with an invalid fallback is disabled instead of crashing later.
+        assert rr.get_components() == []
+        assert rr.get_who_to_nag("2019-03-01") == {}
+
+
+def test_invalid_fallback_only_disables_its_team(round_robin_people, mk_bug):
+    rotation_definitions = RotationDefinitionsMockup(
+        [
+            "Team Name,Calendar Scope,Fallback Triager,Calendar URL",
+            "good,P1::C1,G H,tests/data/calendar_default.json",
+            "bad,P2::C2,X Y,tests/data/calendar_special.json",
+        ]
+    )
+
+    with patch.object(RoundRobin, "get_nick", new=_get_nick):
+        rr = RoundRobin(
+            rotation_definitions=rotation_definitions, people=round_robin_people
+        )
+
+        assert rr.get_components() == ["P1::C1"]
+
+        # The valid team keeps working, including when the fallback is needed.
+        assert rr.get(mk_bug("P1::C1"), "2019-02-17") == ("ab@mozilla.com", "ab")
+        assert rr.get(mk_bug("P1::C1"), "2019-03-08") == ("gh@mozilla.com", "gh")
+
+        # The disabled team falls back to the Bugzilla triage owner.
+        assert rr.get(mk_bug("P2::C2"), "2019-02-17") == ("ij@mozilla.com", "ij")
+        assert rr.get(mk_bug("P2::C2"), "2019-03-08") == ("ij@mozilla.com", "ij")
+
+        assert rr.get_who_to_nag("2019-03-01") == {
+            "gh@mozilla.com": {"good": {"nobody": True, "persons": []}}
+        }

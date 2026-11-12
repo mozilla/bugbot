@@ -80,6 +80,10 @@ class RoundRobin(object):
                                 "Cannot have different fallback triagers for the same calendar"
                             )
 
+                    # Ensure the fallback mails have a value.
+                    calendar.get_fallback_bzmail()
+                    calendar.get_fallback_mozmail()
+
                     self.data[component_name] = calendar
 
             except (BadFallback, InvalidCalendar, InvalidDateError) as err:
