@@ -1,0 +1,37 @@
+description: >
+  The assignee of a bug fixed in nightly and affecting beta is asked for an
+  uplift decision, unless the bug caused a regression which isn't fixed yet.
+  The regressions themselves don't match the query.
+now: 2026-11-10T08:00:00Z
+versions: {nightly: 162, beta: 161, release: 160, esr: 153}
+release_schedule:
+  beta: {release: 2026-11-24 14:00:00+00:00}
+bugs:
+  # Its regression is still open: no uplift yet.
+  - id: 1
+    assigned_to: dev@mozilla.com
+    cf_status_firefox162: fixed
+    cf_status_firefox161: affected
+    attachments: [{file_name: phabricator-D1001-url.txt}]
+  - id: 2
+    regressed_by: [1]
+  # Its regression is fixed.
+  - id: 3
+    assigned_to: dev@mozilla.com
+    cf_status_firefox162: fixed
+    cf_status_firefox161: affected
+    attachments: [{file_name: phabricator-D1003-url.txt}]
+  - id: 4
+    regressed_by: [3]
+    status: RESOLVED
+    resolution: FIXED
+expect:
+  email:
+    3: {channels: [beta]}
+  changes:
+    3:
+      flags: [{name: needinfo, requestee: dev@mozilla.com, status: "?", new: "true"}]
+      comment:
+        body: !contains "[D1003](https://lando.moz.tools/D1003/)"
+  email_contains:
+    - The following bug has been fixed in nightly

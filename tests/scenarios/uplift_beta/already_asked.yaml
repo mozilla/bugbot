@@ -1,0 +1,44 @@
+description: >
+  The query skips the bugs on which the uplift question was already asked, with
+  the current or the previous wording, and those which aren't fixed in nightly.
+now: 2026-11-10T08:00:00Z
+versions: {nightly: 162, beta: 161, release: 160, esr: 153}
+release_schedule:
+  beta: {release: 2026-11-24 14:00:00+00:00}
+bugs:
+  - id: 1
+    assigned_to: dev@mozilla.com
+    cf_status_firefox162: fixed
+    cf_status_firefox161: affected
+    attachments: [{file_name: phabricator-D1001-url.txt}]
+    comments:
+      - Crash on startup.
+      - ":dev, please make an uplift decision for beta."
+  - id: 2
+    assigned_to: dev@mozilla.com
+    cf_status_firefox162: fixed
+    cf_status_firefox161: affected
+    attachments: [{file_name: phabricator-D1002-url.txt}]
+    comments:
+      - Crash on startup.
+      - ":dev, is this bug important enough to require an uplift?"
+  # Not fixed in nightly.
+  - id: 3
+    assigned_to: dev@mozilla.com
+    cf_status_firefox162: affected
+    cf_status_firefox161: affected
+    attachments: [{file_name: phabricator-D1003-url.txt}]
+  # Asked for something else: this one is asked.
+  - id: 4
+    assigned_to: dev@mozilla.com
+    cf_status_firefox162: fixed
+    cf_status_firefox161: affected
+    attachments: [{file_name: phabricator-D1004-url.txt}]
+    comments:
+      - Crash on startup.
+      - Please make a decision.
+expect:
+  email: [4]
+  changes:
+    4:
+      flags: [{name: needinfo, requestee: dev@mozilla.com}]

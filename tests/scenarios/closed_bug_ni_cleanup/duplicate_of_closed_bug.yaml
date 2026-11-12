@@ -1,0 +1,25 @@
+description: >
+  A needinfo on a bug which is a duplicate of a bug closed for more than two
+  weeks is cleared, while the bug only got duped recently.
+now: 2026-10-16T08:00:00Z
+bugs:
+  - id: 1
+    status: RESOLVED
+    resolution: DUPLICATE
+    cf_last_resolved: 2026-10-10T00:00:00Z
+    dupe_of: 2
+    flags:
+      - name: needinfo
+        requestee: dev@example.com
+        creation_date: 2026-09-01T00:00:00Z
+  - id: 2
+    status: RESOLVED
+    resolution: FIXED
+    cf_last_resolved: 2026-09-01T00:00:00Z
+expect:
+  email: []
+  changes:
+    1:
+      flags: [{id: 100, status: X}]
+      comment:
+        body: !contains duplicate of bug 2, which has been closed for 1 month and 15 days

@@ -1,0 +1,13 @@
+description: Needinfos on duplicates of open bugs are kept.
+now: 2026-10-16T08:00:00Z
+bugs:
+  - id: 1
+    status: RESOLVED
+    resolution: DUPLICATE
+    cf_last_resolved: 2026-09-01T00:00:00Z
+    dupe_of: 2
+    flags: [{name: needinfo, requestee: dev@example.com, creation_date: 2026-09-01T00:00:00Z}]
+  - id: 2
+expect:
+  email: []
+  changes: {}
