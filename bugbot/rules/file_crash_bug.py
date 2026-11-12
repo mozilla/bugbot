@@ -195,13 +195,7 @@ class FileCrashBug(BzCleaner):
                 "cf_crash_signature": f"[@ {signature.signature_term}]",
                 "description": description,
                 self.nightly_status_flag: "affected",
-                # NOTE(suhaib): the following CC is for testing purposes only
-                # to allow us access and evaluate security bugs. It should be
-                # removed at some point after we move to production.
-                "cc": [
-                    "smujahid@mozilla.com",
-                    "aryx.bugmail@gmx-topmail.de",
-                ],
+                "cc": [],
             }
 
             if needinfo_regression_author:
