@@ -5,7 +5,6 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import csv
-from typing import List
 from unittest.mock import patch
 
 import pytest
@@ -15,34 +14,28 @@ from bugbot.round_robin import RotationDefinitions, RoundRobin
 
 
 class RotationDefinitionsMockup(RotationDefinitions):
-    def __init__(self, csv_lines: List[str]) -> None:
+    def __init__(self, csv_lines: list[str]) -> None:
         self.csv_lines = csv_lines
 
     def get_definitions_records(self):
-        return csv.DictReader(self.csv_lines)
+        return csv.DictReader(
+            self.csv_lines,
+            fieldnames=[
+                "Team Name",
+                "Calendar Scope",
+                "Fallback Triager",
+                "Calendar URL",
+            ],
+        )
 
 
 @pytest.fixture
 def round_robin_config():
-    return RotationDefinitionsMockup(
-        [
-            "Team Name,Calendar Scope,Fallback Triager,Calendar URL",
-            "team,P1::C1,G H,tests/data/calendar_default.json",
-            "team,P2::C2,G H,tests/data/calendar_default.json",
-            "team,P3::C3,G H,tests/data/calendar_special.json",
-        ]
-    )
-
-
-@pytest.fixture
-def round_robin_config_ics():
-    return RotationDefinitionsMockup(
-        [
-            "Team Name,Calendar Scope,Fallback Triager,Calendar URL",
-            "team,P1::C1,G H,tests/data/calendar.ics",
-            "team,P2::C2,G H,tests/data/calendar.ics",
-        ]
-    )
+    return [
+        "team,P1::C1,G H,tests/data/calendar_default.json",
+        "team,P2::C2,G H,tests/data/calendar_default.json",
+        "team,P3::C3,G H,tests/data/calendar_special.json",
+    ]
 
 
 @pytest.fixture
@@ -82,112 +75,114 @@ def mk_bug():
     return _mk
 
 
-def _get_nick(x, bzmail, pc, cal):
-    return bzmail.split("@")[0]
+@pytest.fixture
+def make_round_robin(round_robin_people, monkeypatch):
+    def get_nick(self, bzmail, prod_comp, cal):
+        return bzmail.split("@")[0]
 
+    monkeypatch.setattr(RoundRobin, "get_nick", get_nick)
 
-def test_get(round_robin_config, round_robin_people, mk_bug):
-    with patch.object(RoundRobin, "get_nick", new=_get_nick):
-        rr = RoundRobin(
-            rotation_definitions=round_robin_config, people=round_robin_people
-        )
-
-        assert rr.get(mk_bug("P1::C1"), "2019-02-17") == ("ab@mozilla.com", "ab")
-        assert rr.get(mk_bug("P2::C2"), "2019-02-17") == ("ab@mozilla.com", "ab")
-        assert rr.get(mk_bug("P3::C3"), "2019-02-17") == ("ef@mozilla.com", "ef")
-
-        assert rr.get(mk_bug("P1::C1"), "2019-02-24") == ("cd@mozilla.com", "cd")
-        assert rr.get(mk_bug("P2::C2"), "2019-02-24") == ("cd@mozilla.com", "cd")
-        assert rr.get(mk_bug("P3::C3"), "2019-02-24") == ("ab@mozilla.com", "ab")
-
-        assert rr.get(mk_bug("P1::C1"), "2019-02-28") == ("ef@mozilla.com", "ef")
-        assert rr.get(mk_bug("P2::C2"), "2019-02-28") == ("ef@mozilla.com", "ef")
-        assert rr.get(mk_bug("P3::C3"), "2019-02-28") == ("cd@mozilla.com", "cd")
-
-        assert rr.get(mk_bug("P1::C1"), "2019-03-05") == ("ef@mozilla.com", "ef")
-        assert rr.get(mk_bug("P2::C2"), "2019-03-05") == ("ef@mozilla.com", "ef")
-        assert rr.get(mk_bug("P3::C3"), "2019-03-05") == ("cd@mozilla.com", "cd")
-
-        assert rr.get(mk_bug("P1::C1"), "2019-03-08") == ("gh@mozilla.com", "gh")
-        assert rr.get(mk_bug("P2::C2"), "2019-03-08") == ("gh@mozilla.com", "gh")
-        assert rr.get(mk_bug("P3::C3"), "2019-03-08") == ("gh@mozilla.com", "gh")
-
-        assert rr.get(mk_bug("Foo::Bar"), "2019-03-01") == ("ij@mozilla.com", "ij")
-
-
-def test_get_ics(round_robin_config_ics, round_robin_people, mk_bug):
-    with patch.object(RoundRobin, "get_nick", new=_get_nick):
-        rr = RoundRobin(
-            rotation_definitions=round_robin_config_ics,
+    def make(rows):
+        return RoundRobin(
+            rotation_definitions=RotationDefinitionsMockup(rows),
             people=round_robin_people,
         )
 
-        assert rr.get(mk_bug("P1::C1"), "2019-02-17") == ("ab@mozilla.com", "ab")
-        assert rr.get(mk_bug("P2::C2"), "2019-02-17") == ("ab@mozilla.com", "ab")
-
-        assert rr.get(mk_bug("P1::C1"), "2019-02-24") == ("cd@mozilla.com", "cd")
-        assert rr.get(mk_bug("P2::C2"), "2019-02-24") == ("cd@mozilla.com", "cd")
-
-        assert rr.get(mk_bug("P1::C1"), "2019-02-28") == ("ef@mozilla.com", "ef")
-        assert rr.get(mk_bug("P2::C2"), "2019-02-28") == ("ef@mozilla.com", "ef")
-
-        assert rr.get(mk_bug("P1::C1"), "2019-03-05") == ("ef@mozilla.com", "ef")
-        assert rr.get(mk_bug("P2::C2"), "2019-03-05") == ("ef@mozilla.com", "ef")
-
-        assert rr.get(mk_bug("P1::C1"), "2019-03-08") == ("ab@mozilla.com", "ab")
-        assert rr.get(mk_bug("P2::C2"), "2019-03-08") == ("ab@mozilla.com", "ab")
-
-        assert rr.get(mk_bug("P1::C1"), "2019-03-15") == ("gh@mozilla.com", "gh")
-        assert rr.get(mk_bug("P2::C2"), "2019-03-15") == ("gh@mozilla.com", "gh")
-
-        assert rr.get(mk_bug("Foo::Bar"), "2019-03-01") == ("ij@mozilla.com", "ij")
+    return make
 
 
-def test_get_who_to_nag(round_robin_config, round_robin_people):
-    rr = RoundRobin(rotation_definitions=round_robin_config, people=round_robin_people)
+@pytest.mark.parametrize(
+    "calendar, rotations",
+    [
+        (
+            "calendar_default.json",
+            [
+                ("2019-02-17", "ab"),
+                ("2019-02-24", "cd"),
+                ("2019-02-28", "ef"),
+                ("2019-03-05", "ef"),
+                ("2019-03-08", "gh"),
+            ],
+        ),
+        (
+            "calendar_special.json",
+            [
+                ("2019-02-17", "ef"),
+                ("2019-02-24", "ab"),
+                ("2019-02-28", "cd"),
+                ("2019-03-05", "cd"),
+                ("2019-03-08", "gh"),
+            ],
+        ),
+        (
+            "calendar.ics",
+            [
+                ("2019-02-17", "ab"),
+                ("2019-02-24", "cd"),
+                ("2019-02-28", "ef"),
+                ("2019-03-05", "ef"),
+                ("2019-03-08", "ab"),
+                ("2019-03-15", "gh"),
+            ],
+        ),
+    ],
+)
+def test_get(calendar, rotations, make_round_robin, mk_bug):
+    components = ["P1::C1", "P2::C2"]
+    rr = make_round_robin(
+        [f"team,{component},G H,tests/data/{calendar}" for component in components]
+    )
 
-    empty = {"team": {"nobody": True, "persons": []}}
+    for date, nick in rotations:
+        for component in components:
+            assert rr.get(mk_bug(component), date) == (f"{nick}@mozilla.com", nick)
+
+    assert rr.get(mk_bug("Foo::Bar"), "2019-03-01") == ("ij@mozilla.com", "ij")
+
+
+def test_get_who_to_nag(round_robin_config, make_round_robin):
+    rr = make_round_robin(round_robin_config)
 
     assert rr.get_who_to_nag("2019-02-25") == {}
-    assert rr.get_who_to_nag("2019-03-01") == {"gh@mozilla.com": empty}
-    assert rr.get_who_to_nag("2019-03-05") == {"gh@mozilla.com": empty}
-    assert rr.get_who_to_nag("2019-03-07") == {"gh@mozilla.com": empty}
-    assert rr.get_who_to_nag("2019-03-10") == {"gh@mozilla.com": empty}
+    for date in ("2019-03-01", "2019-03-05", "2019-03-07", "2019-03-10"):
+        assert rr.get_who_to_nag(date) == {
+            "gh@mozilla.com": {"team": {"nobody": True, "persons": []}}
+        }
 
+
+def test_missing_fallback_mozmail(round_robin_config, make_round_robin):
     with patch.object(People, "get_moz_mail", return_value=None):
-        rr = RoundRobin(
-            rotation_definitions=round_robin_config, people=round_robin_people
-        )
+        rr = make_round_robin(round_robin_config)
 
-        # The team with an invalid fallback is disabled instead of crashing later.
-        assert rr.get_components() == []
-        assert rr.get_who_to_nag("2019-03-01") == {}
+    assert rr.get_components() == []
+    assert rr.get_who_to_nag("2019-03-01") == {}
 
 
-def test_invalid_fallback_only_disables_its_team(round_robin_people, mk_bug):
-    rotation_definitions = RotationDefinitionsMockup(
+@pytest.mark.parametrize("bad_team", ["good", "bad"])
+def test_invalid_fallback_only_disables_its_calendar(
+    bad_team, make_round_robin, mk_bug
+):
+    rr = make_round_robin(
         [
-            "Team Name,Calendar Scope,Fallback Triager,Calendar URL",
             "good,P1::C1,G H,tests/data/calendar_default.json",
-            "bad,P2::C2,X Y,tests/data/calendar_special.json",
+            f"{bad_team},P2::C2,X Y,tests/data/calendar_special.json",
+            f"{bad_team},P3::C3,X Y,tests/data/calendar_special.json",
+            "good,P4::C4,G H,tests/data/calendar_default.json",
         ]
     )
 
-    with patch.object(RoundRobin, "get_nick", new=_get_nick):
-        rr = RoundRobin(
-            rotation_definitions=rotation_definitions, people=round_robin_people
-        )
+    assert sorted(rr.get_components()) == ["P1::C1", "P4::C4"]
 
-        assert rr.get_components() == ["P1::C1"]
+    # Valid calendars still rotate and use their fallback when empty.
+    for component in ("P1::C1", "P4::C4"):
+        assert rr.get(mk_bug(component), "2019-02-17") == ("ab@mozilla.com", "ab")
+        assert rr.get(mk_bug(component), "2019-03-08") == ("gh@mozilla.com", "gh")
 
-        # The valid team keeps working, including when the fallback is needed.
-        assert rr.get(mk_bug("P1::C1"), "2019-02-17") == ("ab@mozilla.com", "ab")
-        assert rr.get(mk_bug("P1::C1"), "2019-03-08") == ("gh@mozilla.com", "gh")
+    # Disabled components use the Bugzilla triage owner.
+    for component in ("P2::C2", "P3::C3"):
+        for date in ("2019-02-17", "2019-03-08"):
+            assert rr.get(mk_bug(component), date) == ("ij@mozilla.com", "ij")
 
-        # The disabled team falls back to the Bugzilla triage owner.
-        assert rr.get(mk_bug("P2::C2"), "2019-02-17") == ("ij@mozilla.com", "ij")
-        assert rr.get(mk_bug("P2::C2"), "2019-03-08") == ("ij@mozilla.com", "ij")
-
-        assert rr.get_who_to_nag("2019-03-01") == {
-            "gh@mozilla.com": {"good": {"nobody": True, "persons": []}}
-        }
+    assert rr.get_who_to_nag("2019-03-01") == {
+        "gh@mozilla.com": {"good": {"nobody": True, "persons": []}}
+    }
