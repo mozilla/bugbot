@@ -326,9 +326,12 @@ class UserActivity:
             filterPHIDs=[user_phid],
             limit=1,
         )
-        for story in feed.values():
-            if story["epoch"] >= self.activity_limit_ts:
-                return True
+        # Conduit returns an empty list instead of an object when there are no
+        # feed stories, so only iterate when we actually got a mapping back.
+        if isinstance(feed, dict):
+            for story in feed.values():
+                if story["epoch"] >= self.activity_limit_ts:
+                    return True
 
         return False
 
