@@ -15,6 +15,6 @@ Uplift requests can be submitted from Lando: {% for revision in extra[bugid]["re
 {% if extra[bugid]["regression"] %}
 Don't forget to request an uplift for the patches in the {{ extra[bugid]["regression"] }} {{ plural('regression', extra[bugid]["regression"]) }} caused by this fix.
 {% endif %}
-See [Requesting an Uplift](https://wiki.mozilla.org/Release_Management/Requesting_an_Uplift) for documentation on how to request an uplift.
+See [Requesting an Uplift](https://firefox-source-docs.mozilla.org/release-mgmt/requesting_an_uplift.html) for documentation on how to request an uplift.
 
 {{ documentation }}
