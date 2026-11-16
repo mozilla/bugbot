@@ -63,9 +63,12 @@ class RoundRobin(object):
         for team_name, components in team_calendars.items():
             if teams is not None and team_name not in teams:
                 continue
+            bad_fallback_urls = set()
             try:
                 for component_name, calendar_info in components.items():
                     url = calendar_info["url"]
+                    if url in bad_fallback_urls:
+                        continue
                     if url not in cache:
                         calendar = cache[url] = Calendar.get(
                             url,
@@ -80,19 +83,27 @@ class RoundRobin(object):
                                 "Cannot have different fallback triagers for the same calendar"
                             )
 
-                    # Ensure the fallback mails have a value.
-                    calendar.get_fallback_bzmail()
-                    calendar.get_fallback_mozmail()
+                    # An unresolved fallback disables only this calendar.
+                    try:
+                        calendar.get_fallback_bzmail()
+                        calendar.get_fallback_mozmail()
+                    except BadFallback as err:
+                        logger.error(
+                            "%s for team %s (%s): disabling this calendar's rotation",
+                            err,
+                            team_name,
+                            component_name,
+                        )
+                        bad_fallback_urls.add(url)
+                        continue
 
                     self.data[component_name] = calendar
 
             except (BadFallback, InvalidCalendar, InvalidDateError) as err:
                 logger.error(err)
-                # If one the team's calendars failed, it is better to fail loud,
-                # and disable all team's calendars.
+                # Malformed calendars or conflicting fallbacks disable the team.
                 for component_name in components:
-                    if component_name in self.data:
-                        del self.data[component_name]
+                    self.data.pop(component_name, None)
 
     def get_components(self):
         return list(self.data.keys())
