@@ -191,7 +191,7 @@ def burndown_query(version: int, uplift_flag: str) -> dict:
     - an uplift request against the channel, in any state
     - sec-critical or sec-high keywords, as the sec-high bucket lists those
 
-    All but the last two of those is bugdash's Burndown list, kept in step with
+    All but the last two of those are bugdash's Burndown list, kept in step with
     app/buglists/burndown.mjs there, its gaps in the chart numbering included,
     except that fix-optional not include to avoid extra noise.
 
@@ -228,12 +228,13 @@ def burndown_query(version: int, uplift_flag: str) -> dict:
     }
 
 
-def sec_high_query(nightly: int, status_flag: str, uplift_flag: str) -> dict:
+def sec_high_query(nightly: int, beta: int, status_flag: str, uplift_flag: str) -> dict:
     """Build the query for the sec-high fixes still to be uplifted to one branch.
 
     Bugs with all of the following:
     - sec-critical or sec-high keywords
-    - status-firefox{nightly} is fixed or verified
+    - status-firefox{nightly} or status-firefox{beta} is fixed or verified, as a
+      bug fixed before the last merge mostly has Nightly's flag left unset
     - the branch's status flag is affected
     Bugs with any of the following are ignored:
     - within one of EXCLUDED_PRODUCTS
@@ -245,16 +246,22 @@ def sec_high_query(nightly: int, status_flag: str, uplift_flag: str) -> dict:
         "f1": "keywords",
         "o1": "anywordssubstr",
         "v1": "sec-critical sec-high",
-        "f2": utils.get_flag(nightly, "status", "nightly"),
-        "o2": "anywordssubstr",
-        "v2": "fixed,verified",
-        "f3": status_flag,
-        "o3": "equals",
-        "v3": "affected",
-        "f4": "flagtypes.name",
-        "o4": "substring",
-        "v4": uplift_flag,
-        "n4": "1",
+        "j2": "OR",
+        "f2": "OP",
+        "f3": utils.get_flag(nightly, "status", "nightly"),
+        "o3": "anywordssubstr",
+        "v3": "fixed,verified",
+        "f4": utils.get_flag(beta, "status", "beta"),
+        "o4": "anywordssubstr",
+        "v4": "fixed,verified",
+        "f5": "CP",
+        "f6": status_flag,
+        "o6": "equals",
+        "v6": "affected",
+        "f7": "flagtypes.name",
+        "o7": "substring",
+        "v7": uplift_flag,
+        "n7": "1",
         **without_excluded_products(),
     }
 
@@ -570,7 +577,9 @@ class ReoRegressionSlackDaily(BzCleaner):
         """The query for the fetch in flight, burndown or open regressions."""
         if self.sec_high:
             return {
-                **sec_high_query(self.version, self.sec_high, self.uplift_flag),
+                **sec_high_query(
+                    self.version, self.beta, self.sec_high, self.uplift_flag
+                ),
                 "include_fields": BUG_FIELDS,
             }
 
@@ -648,6 +657,7 @@ class ReoRegressionSlackDaily(BzCleaner):
             f"ESR{versions['esr']}": ("esr", versions["esr"]),
             f"ESR{LEGACY_ESR}": ("esr", LEGACY_ESR),
         }
+        self.beta = versions["beta"]
         bugs: dict[int, dict] = {}
         counts = []
         for name, (channel, version) in branches.items():
