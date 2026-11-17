@@ -189,8 +189,9 @@ def burndown_query(version: int, uplift_flag: str) -> dict:
     Bugs with any of the following are ignored:
     - within one of EXCLUDED_PRODUCTS
     - an uplift request against the channel, in any state
+    - sec-critical or sec-high keywords, as the sec-high bucket lists those
 
-    All but the last of those is bugdash's Burndown list, kept in step with
+    All but the last two of those is bugdash's Burndown list, kept in step with
     app/buglists/burndown.mjs there, its gaps in the chart numbering included,
     except that fix-optional not include to avoid extra noise.
 
@@ -216,6 +217,9 @@ def burndown_query(version: int, uplift_flag: str) -> dict:
         "o6": "anywordssubstr",
         "v6": "+ ? blocking",
         "f7": "CP",
+        "f9": "keywords",
+        "o9": "nowordssubstr",
+        "v9": "sec-critical,sec-high",
         "f11": "flagtypes.name",
         "o11": "substring",
         "v11": uplift_flag,
@@ -639,6 +643,7 @@ class ReoRegressionSlackDaily(BzCleaner):
         No restricted note: sec-high bugs are all restricted.
         """
         branches = {
+            "Release": ("release", versions["release"]),
             "Beta": ("beta", versions["beta"]),
             f"ESR{versions['esr']}": ("esr", versions["esr"]),
             f"ESR{LEGACY_ESR}": ("esr", LEGACY_ESR),
