@@ -535,8 +535,10 @@ class ReoRegressionSlackDaily(BzCleaner):
     # `warn_regressed_by` sets its step. An uplift flag asks for the burndown.
     version = 0
     uplift_flag = ""
-    # A status flag asks for the sec-high query, with `version` as Nightly.
+    # A status flag asks for the sec-high query, with `version` as Nightly and
+    # `beta` as Beta, either of which can hold the fix.
     sec_high = ""
+    beta = 0
 
     def description(self) -> str:
         return "REO release regressions needing action posted to Slack"
