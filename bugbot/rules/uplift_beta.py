@@ -2,11 +2,19 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import functools
+import logging
+
+from libmozdata import hgmozilla
 from libmozdata import utils as lmdutils
 from libmozdata.bugzilla import Bugzilla
+from libmozdata.connection import Query
 
 from bugbot import utils
+from bugbot.bugbug_utils import get_commits_classification
 from bugbot.bzcleaner import BzCleaner
+
+logger = logging.getLogger(__name__)
 
 # This phrase is posted in every needinfo comment (injected into the template
 # via `get_extra_for_needinfo_template`) AND used as the re-nag guard in
@@ -36,6 +44,63 @@ LANDO_REVISION_URL = "https://lando.moz.tools/D{}/"
 # enable it.
 DEFAULT_LOW_SEVERITY_DAYS_TO_RELEASE = {
     "S4": {"fix-optional": 2},
+}
+
+
+# The commits landed for a bug are found in the comments posted by pulsebot.
+AUTOLAND_PATTERNS = Bugzilla.get_landing_patterns(channels=["autoland"])
+AUTOLAND_REV_URL = "https://hg.mozilla.org/integration/autoland/rev/{}"
+
+# The risk bands of the bugbug regressor model, from the least to the most
+# risky. The shares of patches in each band are 50%, 30%, 15% and 5%.
+RISK_BANDS = {
+    "l": {"label": "low", "regression_rate": "3%"},
+    "a": {"label": "medium", "regression_rate": "7%"},
+    "h": {"label": "high", "regression_rate": "15%"},
+    "v": {"label": "very high", "regression_rate": "30%"},
+}
+
+# How much the bug matters for the release, the other side of the trade-off.
+HIGH_SEVERITIES = {"S1", "S2"}
+HIGH_SECURITY_KEYWORDS = {"sec-critical", "sec-high"}
+LOW_SEVERITIES = {"S4", "--", "N/A"}
+
+# What to recommend depending on the importance of the bug and on the risk band
+# of its riskiest patch. None means stating the risk without recommending
+# anything.
+RECOMMEND_UPLIFT = "Given the severity of the bug, an uplift is recommended."
+MITIGATE_RISK = (
+    "Given the severity of the bug, an uplift is still recommended despite the "
+    "risk: when requesting it, please explain in the risk assessment how the "
+    "risk is mitigated (e.g. test coverage, manual testing by QA)."
+)
+CONSIDER_UPLIFT = "Since the risk is low, an uplift is worth considering."
+RIDE_THE_TRAINS = (
+    "Unless the fix is important for this release, consider letting it ride "
+    "the trains."
+)
+LOW_SEVERITY_RIDE_THE_TRAINS = (
+    "Given the low severity of the bug, consider letting the fix ride the trains."
+)
+RISK_ADVICE = {
+    "high": {
+        "l": RECOMMEND_UPLIFT,
+        "a": RECOMMEND_UPLIFT,
+        "h": MITIGATE_RISK,
+        "v": MITIGATE_RISK,
+    },
+    "normal": {
+        "l": CONSIDER_UPLIFT,
+        "a": None,
+        "h": RIDE_THE_TRAINS,
+        "v": RIDE_THE_TRAINS,
+    },
+    "low": {
+        "l": None,
+        "a": LOW_SEVERITY_RIDE_THE_TRAINS,
+        "h": LOW_SEVERITY_RIDE_THE_TRAINS,
+        "v": LOW_SEVERITY_RIDE_THE_TRAINS,
+    },
 }
 
 
@@ -78,7 +143,7 @@ class UpliftBeta(BzCleaner):
         return self.extra_ni
 
     def columns(self):
-        return ["id", "channels", "summary", "assignee"]
+        return ["id", "channels", "summary", "assignee", "risk"]
 
     def get_channels_to_uplift(self, bug):
         """Get the channels the patch still needs an uplift decision for.
@@ -119,6 +184,132 @@ class UpliftBeta(BzCleaner):
         return any("sec" in group for group in bug["groups"]) or any(
             keyword.startswith("sec-") for keyword in bug.get("keywords", [])
         )
+
+    def get_importance(self, bug):
+        """Get how much the bug matters for the release: high, normal or low."""
+        keywords = set(bug.get("keywords", []))
+        if bug.get("severity") in HIGH_SEVERITIES or keywords & HIGH_SECURITY_KEYWORDS:
+            return "high"
+        if bug.get("severity") in LOW_SEVERITIES and not self.is_security_bug(bug):
+            return "low"
+        return "normal"
+
+    def get_landed_revs(self, bugs):
+        """Get the full hashes of the commits landed on autoland for each bug.
+
+        The commits are the ones linked in the comments, which describe the bug,
+        and which haven't been backed out.
+        """
+
+        def comment_handler(bug, bugid, data):
+            data[bugid] = {
+                landing["revision"]
+                for landing in Bugzilla.get_landing_comments(
+                    bug["comments"], [], AUTOLAND_PATTERNS
+                )
+            }
+
+        short_revs = {}
+        Bugzilla(
+            bugids=list(bugs),
+            commenthandler=comment_handler,
+            commentdata=short_revs,
+            comment_include_fields=["text"],
+        ).get_data().wait()
+
+        def rev_handler(bugid, json, data):
+            match = utils.BUG_PAT.search(json["desc"])
+            if match and match.group(1) == bugid and not json.get("backedoutby"):
+                data.setdefault(bugid, []).append(json["node"])
+
+        url = f"{hgmozilla.Mercurial.HG_URL}/integration/autoland/json-rev"
+        revs = {}
+        queries = [
+            Query(url, {"node": rev}, functools.partial(rev_handler, bugid), revs)
+            for bugid, bug_revs in short_revs.items()
+            for rev in sorted(bug_revs)
+        ]
+        if queries:
+            hgmozilla.Revision(queries=queries).wait()
+
+        return revs
+
+    def get_risks(self, bugs):
+        """Get the regression risk of the patches of each bug.
+
+        The risk of a bug is the one of its riskiest patch, as rated by the bugbug
+        regressor model. Bugs without any rated patch are left out.
+        """
+        revs = self.get_landed_revs(bugs)
+        classifications = get_commits_classification(
+            "regressor",
+            "autoland",
+            [rev for bug_revs in revs.values() for rev in bug_revs],
+        )
+
+        bands = list(RISK_BANDS)
+        risks = {}
+        for bugid, bug_revs in revs.items():
+            rated = [
+                (rev, classifications[rev]["risk_band"])
+                for rev in bug_revs
+                if classifications.get(rev, {}).get("risk_band") in RISK_BANDS
+            ]
+            if not rated:
+                continue
+
+            rev, band = max(rated, key=lambda rated_rev: bands.index(rated_rev[1]))
+            risks[bugid] = {
+                "band": band,
+                "rev": rev,
+                "patches": len(rated),
+                **RISK_BANDS[band],
+            }
+
+        return risks
+
+    def get_risk_comment(self, risk, importance):
+        """Get the paragraph of the needinfo comment about the risk of the patches."""
+        if risk["patches"] == 1:
+            patch = "the patch"
+        else:
+            short_rev = risk["rev"][:12]
+            patch = (
+                f"the riskiest of the {risk['patches']} patches "
+                f"([{short_rev}]({AUTOLAND_REV_URL.format(short_rev)}))"
+            )
+
+        comment = (
+            "The [bugbug](https://github.com/mozilla/bugbug/) regressor model rates "
+            f"{patch} as **{risk['label']}** risk: about {risk['regression_rate']} "
+            "of the patches with this rating cause a regression."
+        )
+        advice = RISK_ADVICE[importance][risk["band"]]
+        if advice:
+            comment += f" {advice}"
+
+        return comment
+
+    def add_risks(self, bugs):
+        """Add the risk of the patches to the bugs getting the uplift question.
+
+        The risk is only a hint: the question is asked anyway when it can't be
+        computed.
+        """
+        bugs = {bugid: data for bugid, data in bugs.items() if data["channels"]}
+        if not bugs:
+            return
+
+        try:
+            risks = self.get_risks(bugs)
+        except Exception:
+            logger.exception("Couldn't get the regression risk of the patches")
+            return
+
+        for bugid, risk in risks.items():
+            data = bugs[bugid]
+            data["risk"] = risk["label"]
+            data["risk_comment"] = self.get_risk_comment(risk, data["importance"])
 
     def get_low_severity_status(self, bug):
         """Get the beta status to set for a low severity bug.
@@ -203,6 +394,9 @@ class UpliftBeta(BzCleaner):
             "channels": channels,
             "revisions": self.get_revisions(bug),
             "beta_change": beta_change,
+            "importance": self.get_importance(bug),
+            "risk": "",
+            "risk_comment": None,
         }
 
         return bug
@@ -304,6 +498,7 @@ class UpliftBeta(BzCleaner):
     def get_bugs(self, date="today", bug_ids=[]):
         bugs = super(UpliftBeta, self).get_bugs(date=date, bug_ids=bug_ids)
         bugs = self.filter_by_regr(bugs)
+        self.add_risks(bugs)
 
         for bugid, data in list(bugs.items()):
             beta_change = data["beta_change"]
@@ -330,6 +525,7 @@ class UpliftBeta(BzCleaner):
                     "channels": data["channels"],
                     "revisions": data["revisions"],
                     "beta_change": data["beta_change"],
+                    "risk_comment": data["risk_comment"],
                 }
                 added = self.add_auto_ni(
                     bugid, {"mail": data["mail"], "nickname": data["nickname"]}

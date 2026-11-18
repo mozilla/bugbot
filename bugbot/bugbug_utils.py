@@ -70,3 +70,70 @@ def get_bug_ids_classification(
         raise Exception(msg)
 
     return json_response
+
+
+# The commit models (e.g. the regressor) are only served by the dev instance
+# for now.
+# TODO: Use BUGBUG_HTTP_SERVER once they are available on the main instance.
+BUGBUG_COMMIT_HTTP_SERVER = os.environ.get(
+    "BUGBUG_COMMIT_HTTP_SERVER", "https://bugbug-dev.moz.tools/"
+)
+
+# The maximum number of commits the service accepts in a single request.
+MAX_COMMITS_PER_REQUEST = 100
+
+
+def get_commits_classification(
+    model: str,
+    branch: str,
+    revs: Iterable[str],
+    retry_count: int = 21,
+    retry_sleep: int = 10,
+) -> dict[str, dict]:
+    """Get the classification for a list of commits.
+
+    Args:
+        model: The commit model to use for the classification, e.g. "regressor".
+        branch: The hg branch the commits are on, e.g. "autoland".
+        revs: The full hashes of the commits to classify.
+        retry_count: The number of times to retry the request.
+        retry_sleep: The number of seconds to sleep between retries.
+
+    Returns:
+        A dictionary with the commit hashes as keys and the classification as
+        values. The classification is {"available": False} for the commits the
+        service couldn't find, and has a `risk_band` of None for the commits the
+        model doesn't score (e.g. backouts).
+    """
+    revs = list(dict.fromkeys(revs))
+    if not revs:
+        return {}
+
+    url = f"{BUGBUG_COMMIT_HTTP_SERVER.rstrip('/')}/{model}/predict/commits/{branch}"
+
+    results: dict[str, dict] = {}
+    for _ in range(retry_count):
+        missing = [rev for rev in revs if rev not in results]
+        for i in range(0, len(missing), MAX_COMMITS_PER_REQUEST):
+            response = requests.post(
+                url,
+                headers={"X-Api-Key": "autonag"},
+                json={"commits": missing[i : i + MAX_COMMITS_PER_REQUEST]},
+            )
+            response.raise_for_status()
+
+            for rev, data in response.json()["commits"].items():
+                if data.get("ready", True):
+                    results[rev] = data
+
+        if len(results) == len(revs):
+            break
+
+        time.sleep(retry_sleep)
+
+    else:
+        total_sleep = retry_count * retry_sleep
+        msg = f"Couldn't get {len(revs) - len(results)} commit classifications in {total_sleep} seconds, aborting"
+        raise Exception(msg)
+
+    return results
