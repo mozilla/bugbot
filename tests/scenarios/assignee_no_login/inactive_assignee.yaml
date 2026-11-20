@@ -1,0 +1,32 @@
+description: >
+  A high severity bug assigned to someone who hasn't been seen on Bugzilla for
+  a year gets unassigned, and its triage owner is needinfoed and nagged.
+now: 2026-11-09T08:00:00Z  # A Monday, the only day the rule runs.
+release_schedule:
+  beta: {release: 2026-11-24 14:00:00+00:00}
+bugs:
+  - id: 1
+    assigned_to: gone@mozilla.com
+    triage_owner: owner@mozilla.com
+    severity: S2
+users:
+  - name: gone@mozilla.com
+    last_seen_date: 2025-10-01T00:00:00Z
+    last_activity_time: 2025-10-01T00:00:00Z
+people:
+  - mail: owner@mozilla.com
+    cn: Triage Owner
+    dn: mail=owner@mozilla.com,o=com,dc=mozilla
+    manager: {cn: Boss, dn: "mail=boss@mozilla.com,o=com,dc=mozilla"}
+  - mail: boss@mozilla.com
+    cn: Boss
+    dn: mail=boss@mozilla.com,o=com,dc=mozilla
+    ismanager: "TRUE"
+expect:
+  changes:
+    1:
+      assigned_to: nobody@mozilla.org
+      flags: [{name: needinfo, requestee: owner@mozilla.com}]
+      comment: {body: !contains "severity 'S2'"}
+  nags:
+    owner@mozilla.com: [1]

@@ -37,7 +37,8 @@ dependencies = [
 dev = [
   "coverage==7.16.2",
   "pytest==9.1.1",
-  "responses==0.26.3"
+  "responses==0.26.3",
+  "time-machine==2.19.0"
 ]
 
 test = [
