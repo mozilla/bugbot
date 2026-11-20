@@ -32,12 +32,14 @@ def api_url() -> str:
     return os.environ.get("HACKBOT_API_URL", DEFAULT_API_URL)
 
 
-def trigger_agent_run(agent: str, inputs: dict) -> str:
+def trigger_agent_run(agent: str, inputs: dict, dedupe_key: str | None = None) -> str:
     """Start a hackbot agent run.
 
     Args:
         agent: The agent to run, e.g. `frontend-triage`.
         inputs: The agent's per-run inputs, e.g. `{"bug_id": 1234567}`.
+        dedupe_key: If a run of this agent already carries this key, hackbot
+            returns that run instead of starting another.
 
     Returns:
         The id of the created run.
@@ -50,6 +52,7 @@ def trigger_agent_run(agent: str, inputs: dict) -> str:
         f"{base_url.rstrip('/')}/agents/{agent}/runs",
         headers={"X-API-Key": utils.get_login_info()["hackbot_api_key"]},
         json=inputs,
+        params={"dedupe_key": dedupe_key} if dedupe_key else None,
         timeout=TIMEOUT,
     )
     response.raise_for_status()

@@ -69,6 +69,9 @@ python -m bugbot.rules.spambug --production
 # Send newly filed frontend bugs to the frontend-triage agent
 python -m bugbot.rules.frontend_triage --production
 
+# Send bugs waiting for performance triage to the perf-triage agent
+python -m bugbot.rules.perf_triage --production
+
 # Suggest components for untriaged bugs (hourly, list only bugs on which we acted)
 python -m bugbot.rules.component --frequency hourly --production
 
