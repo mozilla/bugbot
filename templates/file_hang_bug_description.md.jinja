@@ -1,0 +1,13 @@
+This bug was filed automatically based on data from the [BHR hang-stats dashboard](https://fqueze.github.io/hang-stats/).
+
+**Hang duration:** {{ "%.1f"|format(hang.total_duration_ms / 1000) }}s
+**Hang count:** {{ hang.total_count }}
+
+{% if hang.stack_frames %}
+Top {{ hang.stack_frames|length }} frames of hanging stack:
+```
+{% for frame in hang.stack_frames -%}
+{{ frame }}
+{% endfor -%}
+```
+{% endif %}
