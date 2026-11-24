@@ -34,6 +34,7 @@ class ClosedBugNiCleanup(NeedinfoCleanup):
                 "cf_last_resolved",
                 "product",
                 "dupe_of",
+                "history",
             ],
             "f1": "flagtypes.name",
             "o1": "substring",
@@ -87,33 +88,57 @@ class ClosedBugNiCleanup(NeedinfoCleanup):
         }
         self.dupe_targets = self.get_dupe_targets(bugids) if bugids else {}
 
-    def get_reason(self, bug: Bug) -> str | None:
+    def get_reason(self, bug: Bug) -> tuple[str, str] | None:
         if bug["resolution"] in RESOLUTIONS and self.is_closed_before(bug, self.delay):
-            return f"this bug has been closed as {bug['resolution']} for {self.time_since(bug['cf_last_resolved'])}"
+            resolved_at = bug["cf_last_resolved"]
+            return (
+                f"this bug has been closed as {bug['resolution']} for {self.time_since(resolved_at)}",
+                resolved_at,
+            )
 
         if re.search(UNMAINTAINED_PRODUCTS, bug["product"]):
-            return f"this bug has been moved to the {bug['product']} product"
+            moved_at = next(
+                (
+                    entry["when"]
+                    for entry in reversed(bug.get("history", []))
+                    if any(
+                        change["field_name"] == "product"
+                        and change["added"] == bug["product"]
+                        for change in entry["changes"]
+                    )
+                ),
+                None,
+            )
+            if moved_at and self.is_older_than(moved_at, self.delay):
+                return (
+                    f"this bug has been moved to the {bug['product']} product",
+                    moved_at,
+                )
 
         if bug["resolution"] == "DUPLICATE":
+            duplicated_at = bug.get("cf_last_resolved")
             target = self.dupe_targets.get(str(bug.get("dupe_of")))
-            if target and self.is_closed_before(target, self.delay):
-                return f"this bug is a duplicate of bug {target['id']}, which has been closed for {self.time_since(target['cf_last_resolved'])}"
+            if duplicated_at and target and self.is_closed_before(target, self.delay):
+                return (
+                    f"this bug is a duplicate of bug {target['id']}, which has been closed for {self.time_since(target['cf_last_resolved'])}",
+                    duplicated_at,
+                )
 
         return None
 
     def get_needinfos_to_clear(
         self, bug: Bug
     ) -> tuple[list[dict[str, Any]], str | None]:
-        reason = self.get_reason(bug)
-        if not reason:
+        eligibility = self.get_reason(bug)
+        if eligibility is None:
             return [], None
 
-        # Leave some time to answer to needinfos requested (or redirected to
-        # someone else) on an already closed bug.
+        reason, changed_at = eligibility
+        cutoff = lmdutils.get_date_ymd(changed_at)
         needinfos = [
             flag
             for flag in self.get_pending_needinfos(bug)
-            if self.is_older_than(flag["modification_date"], self.delay)
+            if lmdutils.get_date_ymd(flag["modification_date"]) <= cutoff
         ]
         return needinfos, f"Clearing the needinfo request since {reason}."
 
