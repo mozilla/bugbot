@@ -92,6 +92,8 @@ def send(
 
     if subtype == "html":
         Body = replaceUnicode(Body)
+    if dryrun:
+        print(Body)
     message.attach(MIMEText(Body, subtype))
 
     for file in files:
