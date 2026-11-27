@@ -153,3 +153,47 @@ from tests.framework.scenario import assert_scenario
 result = assert_scenario({"rule": "uplift_beta", "bugs": [...], "expect": {...}})
 ```
 
+## Recording a scenario from real bugs
+
+```sh
+uv run python -m tests.framework.record uplift_beta --find 5         # bugs currently matching
+uv run python -m tests.framework.record uplift_beta 2084355 2083531 --name assignee_asked
+```
+
+The rule runs against the real Bugzilla, with its searches restricted to the
+given bugs. Nothing is written (changes are intercepted, other non-GET requests
+are blocked) and no email is sent. The bugs it fetched are saved with all their
+data (the queries can depend on any field), with everything else it fetched,
+the time and the versions. Then:
+
+- each search of the rule is run again on Bugzilla, restricted to the recorded
+  bugs, and compared with the same search on the local BMO, with the recorded
+  bugs;
+- the scenario is replayed against the local BMO to write its expectations, and
+  compared with the live run.
+
+Any difference is printed, and the recorder exits with status 2: the scenario
+or the loading of the bugs into BMO is missing something. Searches may also
+depend on data you can't see, e.g. a private regressor.
+If a bug fetched by the rule (e.g. a regressor) also matches its searches, it is
+recorded as one of the bugs to run the rule on, since the replay will consider
+it too.
+
+The data the outcome doesn't depend on is then removed: a field is dropped when
+the replay stays exactly the same without it (same outcome, same bugs matched
+by each search, and same lines of BugBot executed so that bugs aren't skipped
+for another reason). The fields the rule explicitly asks for in
+`include_fields` are always kept. Use `--no-minimize` to keep everything.
+
+Options:
+
+- `--people`: include the `configs/people.json` entries of the people involved
+  (nag rules need them). This is not public data: review or anonymize it;
+- `--attr NAME=JSON`: set an attribute on the rule;
+- `-D DATE`, `--description`, `-o PATH` (`-` for stdout), `--force`.
+
+Private bugs are never recorded, private comments and attachments are dropped.
+Recorded bugs are real bugs: the expectations record what the rule did at that
+time. Bugs the rule already acted on usually don't match its query any more:
+edit them back to their previous state (see their `history`), or to explore
+variants.
