@@ -24,23 +24,20 @@ def _flag(flag_id, modified_at, created_at=None):
 
 
 @pytest.mark.parametrize(
-    "resolution,product,run_date",
+    "resolution,run_date",
     [
-        ("WONTFIX", "Firefox", "2026-10-16"),
-        ("DUPLICATE", "Firefox", "2026-08-11"),
-        ("FIXED", "Firefox Graveyard", "2026-10-16"),
-        ("", "Firefox Graveyard", "2026-10-16"),
+        ("WONTFIX", "2026-10-16"),
+        ("DUPLICATE", "2026-08-11"),
     ],
 )
 def test_cleanup_preserves_needinfos_set_after_eligibility_change(
-    monkeypatch, resolution, product, run_date
+    monkeypatch, resolution, run_date
 ):
-    moved = product.endswith("Graveyard")
     bug = {
         "id": 123,
-        "product": product,
+        "product": "Firefox",
         "resolution": resolution,
-        "cf_last_resolved": "2026-07-01T12:00:00Z" if moved else CHANGED_AT,
+        "cf_last_resolved": CHANGED_AT,
         "dupe_of": 456 if resolution == "DUPLICATE" else None,
         "flags": [
             _flag(1, BEFORE_CHANGE),
@@ -49,26 +46,6 @@ def test_cleanup_preserves_needinfos_set_after_eligibility_change(
             _flag(4, AFTER_CHANGE, created_at=BEFORE_CHANGE),
         ],
     }
-    if moved:
-        bug["history"] = [
-            {
-                "when": "2026-07-10T12:00:00Z",
-                "changes": [{"field_name": "product", "added": product}],
-            },
-            {
-                "when": "2026-07-11T12:00:00Z",
-                "changes": [{"field_name": "product", "added": "Firefox"}],
-            },
-            {
-                "when": CHANGED_AT,
-                "changes": [{"field_name": "product", "added": product}],
-            },
-            {
-                "when": AFTER_CHANGE,
-                "changes": [{"field_name": "component", "added": "General"}],
-            },
-        ]
-
     target = {
         "id": 456,
         "resolution": "FIXED",
@@ -88,13 +65,33 @@ def test_cleanup_preserves_needinfos_set_after_eligibility_change(
     ]
 
 
-def test_graveyard_bug_without_recorded_move_keeps_needinfos():
-    rule = ClosedBugNiCleanup()
+@pytest.mark.parametrize("product", ["Firefox Graveyard", "Invalid Bugs"])
+def test_unmaintained_product_clears_needinfos_based_on_age(monkeypatch, product):
     bug = {
-        "product": "Firefox Graveyard",
+        "id": 123,
+        "product": product,
         "resolution": "",
-        "flags": [_flag(1, BEFORE_CHANGE)],
-        "history": [],
+        "flags": [
+            _flag(1, BEFORE_CHANGE),
+            _flag(2, AFTER_CHANGE),
+            _flag(3, "2026-10-02T00:00:00Z"),
+            _flag(4, "2026-10-15T00:00:00Z"),
+        ],
     }
+    if product == "Firefox Graveyard":
+        bug["history"] = [
+            {
+                "when": CHANGED_AT,
+                "changes": [{"field_name": "product", "added": product}],
+            }
+        ]
+    monkeypatch.setattr(BzCleaner, "get_bugs", lambda self, **kwargs: {"123": bug})
 
-    assert rule.get_needinfos_to_clear(bug) == ([], None)
+    rule = ClosedBugNiCleanup()
+    rule.get_bugs("2026-10-16")
+
+    assert rule.autofix_changes["123"]["flags"] == [
+        {"id": 1, "status": "X"},
+        {"id": 2, "status": "X"},
+        {"id": 3, "status": "X"},
+    ]

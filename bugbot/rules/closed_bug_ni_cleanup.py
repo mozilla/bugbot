@@ -3,7 +3,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import re
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 from libmozdata import utils as lmdutils
@@ -34,7 +34,6 @@ class ClosedBugNiCleanup(NeedinfoCleanup):
                 "cf_last_resolved",
                 "product",
                 "dupe_of",
-                "history",
             ],
             "f1": "flagtypes.name",
             "o1": "substring",
@@ -88,32 +87,18 @@ class ClosedBugNiCleanup(NeedinfoCleanup):
         }
         self.dupe_targets = self.get_dupe_targets(bugids) if bugids else {}
 
-    def get_reason(self, bug: Bug) -> tuple[str, str] | None:
+    def get_reason(self, bug: Bug) -> tuple[str, datetime] | None:
+        """Return the reason and the latest eligible flag timestamp."""
         if bug["resolution"] in RESOLUTIONS and self.is_closed_before(bug, self.delay):
             resolved_at = bug["cf_last_resolved"]
             return (
                 f"this bug has been closed as {bug['resolution']} for {self.time_since(resolved_at)}",
-                resolved_at,
+                lmdutils.get_date_ymd(resolved_at),
             )
 
         if re.search(UNMAINTAINED_PRODUCTS, bug["product"]):
-            moved_at = next(
-                (
-                    entry["when"]
-                    for entry in reversed(bug.get("history", []))
-                    if any(
-                        change["field_name"] == "product"
-                        and change["added"] == bug["product"]
-                        for change in entry["changes"]
-                    )
-                ),
-                None,
-            )
-            if moved_at and self.is_older_than(moved_at, self.delay):
-                return (
-                    f"this bug has been moved to the {bug['product']} product",
-                    moved_at,
-                )
+            cutoff = self.date - self.delay
+            return f"this bug has been moved to the {bug['product']} product", cutoff
 
         if bug["resolution"] == "DUPLICATE":
             duplicated_at = bug.get("cf_last_resolved")
@@ -121,7 +106,7 @@ class ClosedBugNiCleanup(NeedinfoCleanup):
             if duplicated_at and target and self.is_closed_before(target, self.delay):
                 return (
                     f"this bug is a duplicate of bug {target['id']}, which has been closed for {self.time_since(target['cf_last_resolved'])}",
-                    duplicated_at,
+                    lmdutils.get_date_ymd(duplicated_at),
                 )
 
         return None
@@ -133,8 +118,7 @@ class ClosedBugNiCleanup(NeedinfoCleanup):
         if eligibility is None:
             return [], None
 
-        reason, changed_at = eligibility
-        cutoff = lmdutils.get_date_ymd(changed_at)
+        reason, cutoff = eligibility
         needinfos = [
             flag
             for flag in self.get_pending_needinfos(bug)
