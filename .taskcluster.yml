@@ -40,7 +40,6 @@ tasks:
           maxRunTime: 3600
           image: astral/uv:python3.10-trixie
           env:
-            TOX_ENV: py310
             COVERALLS_REPO_TOKEN: VWnjgqWLHfmgSQMJPFdIRYIG5ontiAGl6
           command:
             - "/bin/bash"
@@ -48,9 +47,10 @@ tasks:
             - "git clone --quiet ${repository} bugbot &&
               cd bugbot &&
               git -c advice.detachedHead=false checkout ${head_rev} &&
-              uv sync --quiet --locked --extra test &&
+              uv sync --quiet --locked --extra dev --extra test &&
               uv run pre-commit run --all-files --show-diff-on-failure &&
-              uv run tox -e $TOX_ENV &&
+              uv run alembic upgrade head &&
+              uv run coverage run --branch --source bugbot -m pytest -v &&
               uv run coveralls"
         metadata:
           name: bugbot tests
