@@ -1,13 +1,15 @@
 version: 1
 reporting: checks-v1
 policy:
-  pullRequests: public
+  # Pull requests from non-collaborators get the `pull-request-untrusted` role,
+  # without the scopes of the scenarios task.
+  pullRequests: public_restricted
 tasks:
   $let:
     user: ${event.sender.login}
 
     head_branch:
-      $if: 'tasks_for == "github-pull-request"'
+      $if: 'tasks_for[:19] == "github-pull-request"'
       then: ${event.pull_request.head.ref}
       else:
         $if: 'tasks_for == "github-push"'
@@ -15,7 +17,7 @@ tasks:
         else: ${event.release.target_commitish}
 
     head_rev:
-      $if: 'tasks_for == "github-pull-request"'
+      $if: 'tasks_for[:19] == "github-pull-request"'
       then: ${event.pull_request.head.sha}
       else:
         $if: 'tasks_for == "github-push"'
@@ -23,12 +25,12 @@ tasks:
         else: ${event.release.tag_name}
 
     repository:
-      $if: 'tasks_for == "github-pull-request"'
+      $if: 'tasks_for[:19] == "github-pull-request"'
       then: ${event.pull_request.head.repo.html_url}
       else: ${event.repository.html_url}
   in:
     $if: >
-      (tasks_for == "github-pull-request" && event.action in ["opened", "reopened", "synchronize"])
+      (tasks_for[:19] == "github-pull-request" && event.action in ["opened", "reopened", "synchronize"])
       || (tasks_for == "github-push" && event["ref"] == "refs/heads/master")
     then:
       - taskId: { $eval: as_slugid("tests_task") }
@@ -57,3 +59,33 @@ tasks:
           description: bugbot tests
           owner: mcastelluccio@mozilla.com
           source: ${repository}/raw/${head_rev}/.taskcluster.yml
+      # Not for pull requests from non-collaborators, which can't create
+      # privileged tasks.
+      - $if: 'tasks_for != "github-pull-request-untrusted"'
+        then:
+          taskId: { $eval: as_slugid("scenarios_task") }
+          created: { $fromNow: "" }
+          deadline: { $fromNow: "1 hour" }
+          provisionerId: proj-relman
+          workerType: ci
+          # The scenarios run against a local BMO, in Docker: the task starts a
+          # Docker daemon in its container, which needs to be privileged.
+          scopes:
+            - docker-worker:capability:privileged
+          payload:
+            maxRunTime: 3600
+            image: astral/uv:python3.10-trixie
+            capabilities:
+              privileged: true
+            command:
+              - "/bin/bash"
+              - "-lcx"
+              - "git clone --quiet ${repository} bugbot &&
+                cd bugbot &&
+                git -c advice.detachedHead=false checkout ${head_rev} &&
+                tests/bmo/taskcluster.sh"
+          metadata:
+            name: bugbot scenarios
+            description: bugbot rule scenarios, against a local BMO
+            owner: mcastelluccio@mozilla.com
+            source: ${repository}/raw/${head_rev}/.taskcluster.yml

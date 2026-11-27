@@ -26,8 +26,12 @@ about a minute. It keeps running afterwards, for the next runs:
 docker compose -f tests/bmo/docker-compose.yml down     # to stop it
 ```
 
-Without Docker, the scenarios are skipped (unless `BUGBOT_REQUIRE_BMO` is set,
-as in CI). BMO listens on port 18000 (MySQL on 13306, memcached on 21211), see
+Without Docker, the scenarios are skipped, unless `BUGBOT_REQUIRE_BMO` is set.
+On Taskcluster, they run in their own task ("bugbot scenarios" in
+`.taskcluster.yml`, with `tests/bmo/taskcluster.sh`), which starts a Docker
+daemon in its (privileged) container; they're skipped in the main task. That
+task isn't created for pull requests from non-collaborators, which can't run
+privileged tasks. BMO listens on port 18000 (MySQL on 13306, memcached on 21211), see
 `BUGBOT_BMO_PORT`, `BUGBOT_BMO_DB_PORT` and `BUGBOT_BMO_MEMCACHED_PORT` to
 change them.
 
