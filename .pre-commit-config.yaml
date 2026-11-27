@@ -26,9 +26,12 @@ repos:
       - id: debug-statements
       - id: trailing-whitespace
       - id: check-yaml
+        # Scenarios use custom tags, and are validated by their tests.
+        exclude: ^tests/scenarios/
       - id: mixed-line-ending
       - id: name-tests-test
         args: ["--django"]
+        exclude: ^tests/framework/
       - id: check-json
       - id: requirements-txt-fixer
       - id: check-vcs-permalinks

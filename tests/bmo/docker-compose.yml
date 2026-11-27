@@ -1,0 +1,100 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# A local BMO for the rule scenarios (see tests/scenarios/README.md), trimmed
+# from BMO's docker-compose.yml: BMO, MySQL and memcached, plus a server for
+# the product details (Firefox versions) of the current scenario.
+#
+# Started by the tests when needed (see tests/framework/bmo.py), or with:
+#   mkdir -p /tmp/bugbot-bmo && docker compose -f tests/bmo/docker-compose.yml up -d
+#
+# The clocks of BMO and MySQL are moved to the time of each scenario with
+# libfaketime, through the offset in $BUGBOT_BMO_STATE/faketime.
+
+name: bugbot-bmo
+
+x-faketime: &faketime
+  LD_PRELOAD: /usr/local/lib/faketime/libfaketime.so.1
+  FAKETIME_TIMESTAMP_FILE: /state/faketime
+  # Reread the offset every second: always rereading it crashes MySQL.
+  FAKETIME_CACHE_DURATION: "0"
+
+services:
+  # BMO's image, built from a pinned commit.
+  bmo-base:
+    build:
+      context: https://github.com/mozilla-bteam/bmo.git#dd64008da61b25c93477ffc7f47cc850002d7357
+      target: base
+    image: bugbot-bmo-base:dd64008
+    platform: linux/x86_64
+    # Only built, as the base of the bmo image.
+    scale: 0
+
+  bmo:
+    build:
+      context: .
+      dockerfile: bmo.Dockerfile
+      additional_contexts:
+        bmo-base: service:bmo-base
+    image: bugbot-bmo:dd64008
+    platform: linux/x86_64
+    command: dev_httpd
+    tmpfs:
+      - /tmp
+      - /run
+    volumes:
+      - ${BUGBOT_BMO_STATE:-/tmp/bugbot-bmo}:/state:ro
+    environment:
+      <<: *faketime
+      BMO_inbound_proxies: "*"
+      BMO_db_host: db
+      BMO_db_name: bugs
+      BMO_db_pass: bugs
+      BMO_db_user: bugs
+      BMO_memcached_namespace: bugzilla
+      BMO_memcached_servers: memcached:11211
+      BMO_urlbase: http://localhost:8000/
+      BUGZILLA_ALLOW_INSECURE_HTTP: "1"
+      BZ_ANSWERS_FILE: /app/conf/checksetup_answers.txt
+      HTTP_BACKEND: morbo
+      LOCALCONFIG_ENV: "1"
+      LOG4PERL_CONFIG_FILE: log4perl-docker.conf
+      MOJO_LISTEN: http://*:8000
+      PORT: "8000"
+    depends_on:
+      - db
+      - memcached
+    ports:
+      - ${BUGBOT_BMO_PORT:-18000}:8000
+
+  db:
+    build:
+      context: .
+      dockerfile: mysql.Dockerfile
+    image: bugbot-bmo-mysql:8.0.42
+    platform: linux/x86_64
+    tmpfs:
+      - /tmp
+      - /var/lib/mysql
+    volumes:
+      - ${BUGBOT_BMO_STATE:-/tmp/bugbot-bmo}:/state:ro
+    environment:
+      <<: *faketime
+      MYSQL_DATABASE: bugs
+      MYSQL_USER: bugs
+      MYSQL_PASSWORD: bugs
+      MYSQL_ALLOW_EMPTY_PASSWORD: "1"
+    ports:
+      - ${BUGBOT_BMO_DB_PORT:-13306}:3306
+
+  memcached:
+    image: memcached:1.6
+    ports:
+      - ${BUGBOT_BMO_MEMCACHED_PORT:-21211}:11211
+
+  productdetails:
+    image: python:3.12-alpine
+    command: python -m http.server 8080 -d /state
+    volumes:
+      - ${BUGBOT_BMO_STATE:-/tmp/bugbot-bmo}:/state:ro
