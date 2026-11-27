@@ -8,10 +8,11 @@
             <th>Channels to uplift to</th>
             <th>Summary</th>
             <th>Assignee</th>
+            <th>Regression risk</th>
         </tr>
     </thead>
     <tbody>
-        {% for i, (bugid, channels, summary, assignee) in enumerate(data) -%}
+        {% for i, (bugid, channels, summary, assignee, risk) in enumerate(data) -%}
             <tr {% if i % 2 == 0 %}bgcolor="#E0E0E0"
             {% endif -%}
             >
@@ -21,6 +22,7 @@
             <td>{{ channels | join(", ") }}</td>
             <td>{{ summary | e }}</td>
             <td>{{ assignee | e }}</td>
+            <td>{{ risk }}</td>
         </tr>
     {% endfor -%}
 </tbody>
