@@ -14,4 +14,3 @@ db/*
 !db/lock
 cache/
 .coverage
-.tox/
